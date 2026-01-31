@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProvKlar App</title>
+
+<style>
+body{margin:0;font-family:Arial;background:#f5f7fb}
+.wrap{max-width:900px;margin:auto;padding:20px}
+.card{background:white;border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+label{font-weight:700;font-size:14px}
+input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px}
+button{padding:12px 18px;border:none;border-radius:12px;font-weight:800;cursor:pointer;margin-top:10px}
+.primary{background:#18B88A;color:white}
+.secondary{background:#eee}
+.hint{font-size:12px;color:#666;margin-top:8px;word-break:break-word}
+.q{border:1px solid #eee;border-radius:12px;padding:12px;margin-top:10px}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<h1>ProvKlar</h1>
+
+<div class="card">
+<label>Nivå</label>
+<select id="level">
+<option value="E">E</option>
+<option value="C" selected>C</option>
+<option value="A">A</option>
+</select>
+
+<label>Material</label>
+<textarea id="pastedText" placeholder="Klistra in text..."></textarea>
+
+<button class="primary" id="generateBtn">Skapa mockprov</button>
+<button class="secondary" id="gradeBtn" disabled>Rätta prov</button>
+
+<div class="hint" id="status"></div>
+</div>
+
+<div class="card">
+<div id="examMeta">Ingen provdata ännu</div>
+<div id="exam"></div>
+</div>
+
+<div class="card">
+<div id="resultMeta">Ingen rättning ännu</div>
+<div id="result"></div>
+</div>
+
+</div>
+
+<script>
+const statusEl=document.getElementById("status");
+const examMetaEl=document.getElementById("examMeta");
+const examEl=document.getElementById("exam");
+const resultMetaEl=document.getElementById("resultMeta");
+const resultEl=document.getElementById("result");
+const generateBtn=document.getElementById("generateBtn");
+const gradeBtn=document.getElementById("gradeBtn");
+const levelEl=document.getElementById("level");
+const textEl=document.getElementById("pastedText");
+
+window.__exam=null;
+
+function setStatus(t){statusEl.textContent=t||"";}
+function clearExam(){examMetaEl.textContent="Ingen provdata ännu";examEl.innerHTML="";gradeBtn.disabled=true;window.__exam=null;}
+function clearResult(){resultMetaEl.textContent="Ingen rättning ännu";resultEl.innerHTML="";}
+
+generateBtn.onclick=async()=>{
+clearExam();clearResult();
+if(!textEl.value.trim()){setStatus("Klistra in text först");return;}
+setStatus("Skapar mockprov...");
+
+try{
+const r=await fetch("/api/generate-exam",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({level:levelEl.value,pastedText:textEl.value})});
+const raw=await r.text();
+
+let data=null;try{data=JSON.parse(raw);}catch{}
+
+if(!r.ok||!data||!data.ok){
+setStatus("SERVERFEL");
+examMetaEl.textContent="STATUS "+r.status+" → "+raw.slice(0,400);
+return;
+}
+
+const txt=data.openai.output_text||"";
+let exam=null;try{exam=JSON.parse(txt);}catch{}
+
+if(!exam){setStatus("Kunde inte tolka JSON");examMetaEl.textContent=txt.slice(0,400);return;}
+
+window.__exam=exam;
+examMetaEl.textContent=exam.title+" ("+exam.level+")";
+exam.questions.forEach(q=>{
+const d=document.createElement("div");
+d.className="q";
+d.innerHTML="<b>"+q.question+"</b><textarea class='ans'></textarea>";
+examEl.appendChild(d);
+});
+
+gradeBtn.disabled=false;
+setStatus("Mockprov klart");
+}catch(e){setStatus("Nätverksfel");}
+};
+
+gradeBtn.onclick=async()=>{
+if(!window.__exam){setStatus("Skapa prov först");return;}
+setStatus("Rättar...");
+
+const answers=[...document.querySelectorAll(".ans")].map(a=>a.value);
+
+try{
+const r=await fetch("/api/grade",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers})});
+const raw=await r.text();
+
+let data=null;try{data=JSON.parse(raw);}catch{}
+if(!r.ok||!data||!data.ok){resultMetaEl.textContent="SERVERFEL "+raw.slice(0,300);return;}
+
+resultMetaEl.textContent="Rättning klar";
+resultEl.textContent=data.openai.output_text||"";
+setStatus("Klart");
+}catch(e){setStatus("Nätverksfel");}
+};
+</script>
+</body>
+</html>
