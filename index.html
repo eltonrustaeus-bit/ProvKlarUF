@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="ProvKlar UF – mockprov, rättning och förbättringstips på 1 klick." />
+  <title>ProvKlar UF</title>
+
+  <style>
+    :root{
+      /* Matchar loggan: marinblå + grön/teal */
+      --navy: #0B1F3A;
+      --navy-2: #12335F;
+      --teal: #18B88A;
+      --teal-2:#11A67C;
+
+      --bg: #F6F8FB;
+      --card:#FFFFFF;
+      --text:#0C1220;
+      --muted:#556072;
+      --border: rgba(11,31,58,.12);
+      --shadow: 0 16px 40px rgba(11,31,58,.12);
+      --shadow-soft: 0 10px 24px rgba(11,31,58,.10);
+      --radius: 18px;
+
+      --max: 1120px;
+      --pad: 24px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 12% 10%, rgba(24,184,138,.16), transparent 55%),
+        radial-gradient(900px 500px at 88% 8%, rgba(18,51,95,.16), transparent 55%),
+        var(--bg);
+      line-height:1.5;
+    }
+
+    a{color:inherit;text-decoration:none}
+    .container{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+      padding:12px 16px;border-radius:14px;border:1px solid transparent;
+      font-weight:700;font-size:14px;letter-spacing:.2px;
+      cursor:pointer;user-select:none;
+      transition: transform .08s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+      white-space:nowrap;
+    }
+    .btn:active{transform: translateY(1px)}
+    .btn-primary{
+      background: linear-gradient(135deg, var(--teal), var(--teal-2));
+      color:white; box-shadow: 0 14px 28px rgba(24,184,138,.22);
+    }
+    .btn-primary:hover{box-shadow: 0 18px 40px rgba(24,184,138,.28)}
+    .btn-ghost{
+      background: rgba(255,255,255,.7);
+      border-color: var(--border);
+      color: var(--navy);
+      backdrop-filter: blur(10px);
+    }
+    .btn-ghost:hover{border-color: rgba(11,31,58,.20)}
+    .pill{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:8px 12px;border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
+      color: var(--navy);
+      font-weight:700;font-size:12px;
+    }
+
+    /* Header */
+    header{
+      position:sticky;top:0;z-index:50;
+      background: rgba(246,248,251,.66);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(11,31,58,.08);
+    }
+    .nav{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 0;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo-box{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(11,31,58,.10), rgba(24,184,138,.10));
+      border:1px solid rgba(11,31,58,.12);
+      display:grid;place-items:center;
+      overflow:hidden;
+    }
+    .brand-name{display:flex;flex-direction:column;line-height:1.1}
+    .brand-name strong{font-size:15px;letter-spacing:.2px}
+    .brand-name span{font-size:12px;color:var(--muted);font-weight:650}
+    .nav-links{display:flex;align-items:center;gap:10px}
+    .nav-links a{
+      padding:10px 12px;border-radius:12px;
+      color: var(--muted);font-weight:750;font-size:13px;
+      border:1px solid transparent;
+    }
+    .nav-links a:hover{color: var(--navy);border-color: rgba(11,31,58,.10);background: rgba(255,255,255,.55)}
+    .nav-cta{display:flex;gap:10px;align-items:center}
+
+    /* Hero */
+    .hero{padding:56px 0 26px}
+    .hero-grid{
+      display:grid;grid-template-columns: 1.15fr .85fr;gap:28px;align-items:stretch;
+    }
+    .hero-card{
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(11,31,58,.12);
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      backdrop-filter: blur(14px);
+    }
+    .hero h1{
+      margin:10px 0 12px;
+      font-size: clamp(30px, 3.2vw, 44px);
+      letter-spacing: -.8px;
+      line-height:1.1;
+      color: var(--navy);
+    }
+    .hero p{
+      margin:0 0 18px;
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 54ch;
+    }
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .trust{
+      display:flex;gap:10px;flex-wrap:wrap;
+      margin-top:18px;
+    }
+    .trust .pill svg{opacity:.9}
+
+    /* Side preview card */
+    .preview{
+      height:100%;
+      display:flex;flex-direction:column;gap:14px;
+    }
+    .preview .panel{
+      flex:1;
+      background: linear-gradient(180deg, #FFFFFF, rgba(255,255,255,.70));
+      border: 1px solid rgba(11,31,58,.12);
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: var(--shadow-soft);
+      padding: 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .preview .panel:before{
+      content:"";
+      position:absolute;inset:-120px -120px auto auto;
+      width:320px;height:320px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, rgba(24,184,138,.22), transparent 60%);
+      transform: rotate(18deg);
+    }
+    .preview .mini-title{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .tag{
+      font-size:12px;font-weight:800;color: var(--teal);
+      background: rgba(24,184,138,.12);
+      border:1px solid rgba(24,184,138,.22);
+      padding:6px 10px;border-radius:999px;
+    }
+    .mock{
+      display:grid;gap:10px;
+      margin-top:8px;
+    }
+    .mock .row{
+      display:flex;gap:10px;align-items:flex-start;
+      padding:10px;border-radius:14px;
+      border:1px solid rgba(11,31,58,.10);
+      background: rgba(246,248,251,.65);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      margin-top:4px;
+      background: var(--teal);
+      box-shadow: 0 10px 18px rgba(24,184,138,.20);
+      flex:0 0 auto;
+    }
+    .row strong{font-size:13px;color: var(--navy)}
+    .row span{display:block;font-size:12px;color: var(--muted);margin-top:2px}
+
+    /* Sections */
+    section{padding:42px 0}
+    .section-head{
+      display:flex;justify-content:space-between;align-items:flex-end;gap:14px;
+      margin-bottom:16px;
+    }
+    .section-head h2{
+      margin:0;font-size:24px;letter-spacing:-.3px;color: var(--navy);
+    }
+    .section-head p{
+      margin:0;color: var(--muted);max-width: 60ch;font-weight:650;
+    }
+
+    .grid-3{
+      display:grid;grid-template-columns: repeat(3, 1fr);gap:14px;
+    }
+    .card{
+      background: rgba(255,255,255,.80);
+      border: 1px solid rgba(11,31,58,.12);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+    .card h3{
+      margin:10px 0 6px;
+      font-size:15px;
+      color: var(--navy);
+      letter-spacing:.1px;
+    }
+    .card p{
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight:650;
+    }
+    .icon{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background: linear-gradient(135deg, rgba(11,31,58,.10), rgba(24,184,138,.10));
+      border: 1px solid rgba(11,31,58,.12);
+    }
+
+    /* Pricing */
+    .pricing{
+      display:grid;grid-template-columns: 1fr 1fr;gap:14px;
+    }
+    .price{
+      position:relative;
+      overflow:hidden;
+    }
+    .price.featured{
+      border-color: rgba(24,184,138,.34);
+      box-shadow: 0 18px 46px rgba(24,184,138,.18);
+    }
+    .price .top{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+    }
+    .price .plan{
+      font-weight:900;color: var(--navy);font-size:15px;
+    }
+    .price .amount{
+      margin-top:10px;
+      font-size:34px;letter-spacing:-.8px;color: var(--navy);
+      font-weight:950;
+    }
+    .price .amount span{font-size:13px;color: var(--muted);font-weight:800}
+    ul.features{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+    ul.features li{display:flex;gap:10px;align-items:flex-start;color: var(--muted);font-weight:700;font-size:13px}
+    .check{
+      width:18px;height:18px;border-radius:6px;
+      background: rgba(24,184,138,.14);
+      border:1px solid rgba(24,184,138,.30);
+      display:grid;place-items:center;flex:0 0 auto;margin-top:1px;
+    }
+
+    /* Footer */
+    footer{
+      padding:26px 0 40px;
+      border-top: 1px solid rgba(11,31,58,.08);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight:650;
+    }
+    .footer-row{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;
+    }
+    .disclaimer{
+      max-width: 80ch;
+    }
+
+    /* Responsive */
+    @media (max-width: 920px){
+      .hero-grid{grid-template-columns:1fr}
+      .pricing{grid-template-columns:1fr}
+    }
+    @media (max-width: 760px){
+      .grid-3{grid-template-columns:1fr}
+      .nav-links{display:none}
+      .hero{padding-top:30px}
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <a class="brand" href="#top" aria-label="ProvKlar UF">
+          <div class="logo-box" aria-hidden="true">
+            <!-- Enkel ikon som matchar loggans tema (bok + check) -->
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <path d="M5 5.5c0-.83.67-1.5 1.5-1.5H19v14H6.5C5.67 18 5 17.33 5 16.5V5.5Z" stroke="var(--navy)" stroke-width="1.7"/>
+              <path d="M19 4v14" stroke="var(--navy)" stroke-width="1.7"/>
+              <path d="M8 11.4l2.1 2.1L15.7 8" stroke="var(--teal)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand-name">
+            <strong>ProvKlar UF</strong>
+            <span>Mockprov • Rättning • Tips</span>
+          </div>
+        </a>
+
+        <nav class="nav-links" aria-label="Navigering">
+          <a href="#funktioner">Funktioner</a>
+          <a href="#sa-funkar-det">Så funkar det</a>
+          <a href="#pris">Pris</a>
+          <a href="#kontakt">Kontakt</a>
+        </nav>
+
+        <div class="nav-cta">
+          <a class="btn btn-ghost" href="#pris">Se pris</a>
+          <a class="btn btn-primary" href="/app">Testa ProvKlar</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-card">
+            <div class="pill">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Provträning utan prompts
+            </div>
+
+            <h1>Mockprov, rättning och förbättringstips – på 1 klick.</h1>
+            <p>
+              Ladda upp ditt material och få ett realistiskt mockprov med facit.
+              Svara direkt och få rättning + tydliga förbättringar mot nästa nivå.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="/app">Starta ProvKlar</a>
+              <a class="btn btn-ghost" href="#sa-funkar-det">Så funkar det</a>
+            </div>
+
+            <div class="trust" aria-label="Fördelar">
+              <span class="pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h10" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Prov-lika frågor
+              </span>
+              <span class="pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 6v6l4 2" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="var(--navy)" stroke-width="2"/>
+                </svg>
+                Sparar tid
+              </span>
+              <span class="pill">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 20V10" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M8 14l4-4 4 4" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="var(--navy)" stroke-width="2"/>
+                </svg>
+                Nästa nivå
+              </span>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="panel" aria-label="Förhandsvisning">
+              <div class="mini-title">
+                <strong style="color:var(--navy)">Förhandsvisning</strong>
+                <span class="tag">ProvKlar</span>
+              </div>
+              <div class="mock">
+                <div class="row">
+                  <div class="dot"></div>
+                  <div>
+                    <strong>Skapa mockprov</strong>
+                    <span>8–10 frågor, blandade frågetyper, poäng per fråga.</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="dot"></div>
+                  <div>
+                    <strong>Rätta och få feedback</strong>
+                    <span>Vad du missade + kort motivering + tips.</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="dot"></div>
+                  <div>
+                    <strong>Träna smart</strong>
+                    <span>3 riktade övningsfrågor på det du tappade.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" style="padding:16px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div class="icon" aria-hidden="true" style="width:38px;height:38px;border-radius:14px">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4Z" stroke="var(--navy)" stroke-width="2"/>
+                    <path d="M9 12l2 2 4-5" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <strong style="display:block;color:var(--navy);margin-top:2px">Studiehjälp</strong>
+                  <span style="display:block;color:var(--muted);font-size:12px;font-weight:700;margin-top:4px">
+                    Tjänsten ger en nivåindikator, inte officiell betygssättning.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- hero-grid -->
+      </div>
+    </section>
+
+    <section id="funktioner">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Funktioner</h2>
+            <p>Byggt för enkelhet: ladda upp, gör provet, få rättning och förbättringar.</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V4" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+                <path d="M7 9l5-5 5 5" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 20h16" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Ladda upp material</h3>
+            <p>Fota eller ladda upp och samla det du ska ha prov på i ett flöde.</p>
+          </div>
+
+          <div class="card">
+            <div class="icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M7 4h10v16H7V4Z" stroke="var(--navy)" stroke-width="2"/>
+                <path d="M9 8h6M9 12h6M9 16h4" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Mockprov som känns “på riktigt”</h3>
+            <p>8–10 frågor med poäng och blandade frågetyper – anpassat efter nivå.</p>
+          </div>
+
+          <div class="card">
+            <div class="icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6l-9 9-4-4" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4 20h16" stroke="var(--navy)" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Rättning + förbättringar</h3>
+            <p>Du får vad du missade, varför, och riktade övningsfrågor för att höja nivån.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sa-funkar-det">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Så funkar det</h2>
+            <p>Tre steg från material till resultat.</p>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="pill">Steg 1</div>
+            <h3>Välj nivå</h3>
+            <p>Välj E, C eller A-nivå så mockprovet matchar din målsättning.</p>
+          </div>
+          <div class="card">
+            <div class="pill">Steg 2</div>
+            <h3>Skapa mockprov</h3>
+            <p>ProvKlar genererar frågor, poäng och facit baserat på ditt material.</p>
+          </div>
+          <div class="card">
+            <div class="pill">Steg 3</div>
+            <h3>Rätta och förbättra</h3>
+            <p>Få poäng, nivåindikator, tips och nya övningsfrågor på det du tappade.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pris">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Pris</h2>
+            <p>Enkelt upplägg: testa gratis eller gå Premium.</p>
+          </div>
+        </div>
+
+        <div class="pricing">
+          <div class="card price">
+            <div class="top">
+              <div class="plan">Gratis</div>
+              <div class="pill">Start</div>
+            </div>
+            <div class="amount">0 <span>kr/mån</span></div>
+            <ul class="features">
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> 1 mockprov per dag</li>
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> 8–10 frågor</li>
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> Grundläggande rättning + tips</li>
+            </ul>
+            <div style="margin-top:16px">
+              <a class="btn btn-ghost" href="/app">Testa gratis</a>
+            </div>
+          </div>
+
+          <div class="card price featured">
+            <div class="top">
+              <div class="plan">Premium</div>
+              <div class="pill" style="border-color:rgba(24,184,138,.30);background:rgba(24,184,138,.10)">Rekommenderad</div>
+            </div>
+            <div class="amount">49 <span>kr/mån</span></div>
+            <ul class="features">
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> Fler prov och snabbare flöde</li>
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> Djupare feedback</li>
+              <li><span class="check" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M7 12l3 3 7-7" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span> Fler riktade övningsfrågor</li>
+            </ul>
+            <div style="margin-top:16px">
+              <a class="btn btn-primary" href="/app">Starta Premium</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <strong style="color:var(--navy)">Obs:</strong>
+          <span style="color:var(--muted);font-weight:700">
+            ProvKlar UF är ett studiestöd. Nivåindikatorn är en uppskattning och inte officiell betygssättning.
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <section id="kontakt">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Kontakt</h2>
+            <p>För frågor, samarbeten eller skollicens: skriv till oss.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+            <div>
+              <strong style="color:var(--navy);display:block">ProvKlar UF</strong>
+              <span style="color:var(--muted);font-weight:700;font-size:13px">
+                E-post: <span style="color:var(--navy)">kontakt@provklar.se</span> (byt till din riktiga)
+              </span>
+            </div>
+            <a class="btn btn-ghost" href="/app">Öppna appen</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <div class="footer-row">
+          <div class="disclaimer">
+            <strong style="color:var(--navy)">Disclaimer:</strong>
+            ProvKlar UF är ett studiestöd för provförberedelse. Resultat och nivåindikator är vägledande och ersätter inte
+            lärarens bedömning.
+          </div>
+          <div>© <span id="year"></span> ProvKlar UF</div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Smooth scroll för interna länkar
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href");
+        const el = document.querySelector(id);
+        if(!el) return;
+        e.preventDefault();
+        el.scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+  </script>
+</body>
+</html>
