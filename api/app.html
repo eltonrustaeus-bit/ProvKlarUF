@@ -333,53 +333,74 @@
       }
 
       // ===== Skapa mockprov =====
-      generateBtn.addEventListener("click", async () => {
-        clearResultUI();
-        clearExamUI();
+<script>
+// ===== SKAPA MOCKPROV – DEBUG VERSION =====
+generateBtn.addEventListener("click", async () => {
+  clearResultUI();
+  clearExamUI();
 
-        const level = levelEl.value;
-        const course = courseEl.value.trim();
-        const pastedText = pastedTextEl.value.trim();
+  const level = levelEl.value;
+  const course = courseEl.value.trim();
+  const pastedText = pastedTextEl.value.trim();
 
-        if (!pastedText) {
-          setStatus("Klistra in material först.");
-          return;
-        }
+  if (!pastedText) {
+    setStatus("Klistra in material först.");
+    return;
+  }
 
-        setStatus("Skapar mockprov...");
-        try {
-          const resp = await fetch("/api/generate-exam", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ level, course, pastedText })
-          });
+  setStatus("Skapar mockprov...");
 
-          const data = await resp.json().catch(() => null);
+  try {
+    const resp = await fetch("/api/generate-exam", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level, course, pastedText })
+    });
 
-          if (!resp.ok || !data || !data.ok) {
-            setStatus("Fel vid generering. Öppna Console.");
-            console.error("generate error:", resp.status, data);
-            return;
-          }
+    // Läs alltid som text först
+    const raw = await resp.text();
 
-          const rawText = extractTextFromOpenAI(data.openai);
-          const jsonText = extractFirstJsonObject(rawText);
-          const exam = safeParseJson(jsonText);
+    // Försök göra JSON
+    let data = null;
+    try { data = JSON.parse(raw); } catch (_) {}
 
-          if (!exam) {
-            setStatus("Kunde inte tolka prov som JSON. Öppna Console.");
-            console.log("openai raw:", data.openai);
-            console.log("extracted:", rawText);
-            return;
-          }
+    if (!resp.ok) {
+      setStatus("Serverfel. Se detaljer nedan.");
+      examMetaEl.textContent = "STATUS " + resp.status + " → " + raw.slice(0, 500);
+      console.error("SERVER ERROR:", raw);
+      return;
+    }
 
-          renderExam(exam);
-          setStatus("Mockprov klart. Skriv svar och tryck Rätta prov.");
+    if (!data || !data.ok) {
+      setStatus("API svarade men ok=false.");
+      examMetaEl.textContent = raw.slice(0, 500);
+      console.error("API DATA:", data);
+      return;
+    }
 
-        } catch (e) {
-          setStatus("Nätverksfel. Öppna Console.");
-          console.error(e);
-        }
+    // Plocka text från OpenAI
+    const rawText = extractTextFromOpenAI(data.openai);
+    const jsonText = extractFirstJsonObject(rawText);
+    const exam = safeParseJson(jsonText);
+
+    if (!exam) {
+      setStatus("Kunde inte tolka JSON.");
+      examMetaEl.textContent = rawText ? rawText.slice(0, 500) : "Ingen text";
+      console.log("OPENAI RAW:", data.openai);
+      return;
+    }
+
+    renderExam(exam);
+    setStatus("Mockprov klart!");
+
+  } catch (e) {
+    setStatus("Nätverksfel.");
+    examMetaEl.textContent = String(e);
+    console.error(e);
+  }
+});
+</script>
+
       });
 
       // ===== Rätta prov =====
