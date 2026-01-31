@@ -1,123 +1,448 @@
-<script>
-  // ====== HJÄLPFUNKTIONER (om du redan har dessa, duplicera inte) ======
-  function extractTextFromOpenAI(openai) {
-    try {
-      if (openai && typeof openai.output_text === "string" && openai.output_text.trim()) {
-        return openai.output_text;
-      }
-    } catch (_) {}
-    try {
-      const out = openai?.output;
-      if (Array.isArray(out)) {
-        for (const item of out) {
-          const content = item?.content;
-          if (Array.isArray(content)) {
-            for (const c of content) {
-              const t = c?.text;
-              if (typeof t === "string" && t.trim()) return t;
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProvKlar – App</title>
+
+  <style>
+    :root{
+      --navy:#0B1F3A;
+      --teal:#18B88A;
+      --bg:#F6F8FB;
+      --card:#FFFFFF;
+      --muted:#556072;
+      --border:rgba(11,31,58,.12);
+      --radius:16px;
+      --shadow:0 16px 40px rgba(11,31,58,.12);
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --max:920px;
+    }
+
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font);background:var(--bg);color:#0C1220}
+    header{background:#fff;border-bottom:1px solid var(--border)}
+    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px, 3vw, 22px)}
+    a{color:var(--navy);text-decoration:none;font-weight:950}
+
+    h1{margin:8px 0 6px;color:var(--navy)}
+    p{margin:0;color:var(--muted);font-weight:650}
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:clamp(16px, 3vw, 22px);
+      box-shadow:var(--shadow);
+      margin:14px 0;
+    }
+
+    label{display:block;margin:12px 0 6px;font-weight:950;color:var(--navy);font-size:14px}
+    select,input,textarea{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      font-family:inherit;
+      font-size:14px;
+      background:#fff;
+    }
+    textarea{min-height:110px}
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 760px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .btn{
+      padding:12px 18px;
+      border-radius:14px;
+      font-weight:1000;
+      border:1px solid transparent;
+      cursor:pointer;
+      font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+    }
+    .btn-primary{
+      background:var(--teal);
+      color:#fff;
+      border-color:rgba(24,184,138,.25);
+      box-shadow:0 12px 26px rgba(24,184,138,.20);
+    }
+    .btn-secondary{
+      background:#fff;
+      color:var(--navy);
+      border-color:var(--border);
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:12px;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:750;
+      line-height:1.35;
+      word-break:break-word;
+    }
+
+    .q{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+      margin-top:10px;
+    }
+    .q .meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
+    }
+    .q .text{
+      margin:0 0 10px;
+      font-weight:800;
+      color:#0C1220;
+      line-height:1.45;
+    }
+
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:650}
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap">
+      <a href="index.html">← Tillbaka</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>ProvKlar</h1>
+    <p>Skapa mockprov och rätta svar.</p>
+
+    <section class="card">
+      <div class="grid">
+        <div>
+          <label>Nivå</label>
+          <select id="level">
+            <option value="E">E</option>
+            <option value="C" selected>C</option>
+            <option value="A">A</option>
+          </select>
+
+          <label>Ämne/kurs (valfritt)</label>
+          <input id="course" placeholder="Ex: Matematik 2b" />
+        </div>
+
+        <div>
+          <label>Material (klistra in text)</label>
+          <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary" type="button" id="generateBtn">Skapa mockprov</button>
+        <button class="btn btn-secondary" type="button" id="gradeBtn" disabled>Rätta prov</button>
+      </div>
+
+      <div class="hint" id="status"></div>
+    </section>
+
+    <section class="card">
+      <div class="hint" id="examMeta">Ingen provdata ännu.</div>
+      <div id="exam"></div>
+    </section>
+
+    <section class="card">
+      <div class="hint" id="resultMeta">Ingen rättning ännu.</div>
+      <div id="result"></div>
+    </section>
+  </main>
+
+  <footer>ProvKlar UF – studiestöd, ej officiell betygssättning.</footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const statusEl = document.getElementById("status");
+      const examMetaEl = document.getElementById("examMeta");
+      const examEl = document.getElementById("exam");
+      const resultMetaEl = document.getElementById("resultMeta");
+      const resultEl = document.getElementById("result");
+
+      const generateBtn = document.getElementById("generateBtn");
+      const gradeBtn = document.getElementById("gradeBtn");
+
+      const levelEl = document.getElementById("level");
+      const courseEl = document.getElementById("course");
+      const pastedTextEl = document.getElementById("pastedText");
+
+      // Spara senaste provet här:
+      window.__currentExam = null;
+
+      function setStatus(t){ statusEl.textContent = t || ""; }
+
+      function extractTextFromOpenAI(openai) {
+        try {
+          if (openai && typeof openai.output_text === "string" && openai.output_text.trim()) {
+            return openai.output_text;
+          }
+        } catch (_) {}
+        try {
+          const out = openai?.output;
+          if (Array.isArray(out)) {
+            for (const item of out) {
+              const content = item?.content;
+              if (Array.isArray(content)) {
+                for (const c of content) {
+                  const t = c?.text;
+                  if (typeof t === "string" && t.trim()) return t;
+                }
+              }
             }
           }
-        }
+        } catch (_) {}
+        return null;
       }
-    } catch (_) {}
-    return null;
-  }
 
-  function extractFirstJsonObject(text) {
-    if (typeof text !== "string") return null;
-    const s = text.trim();
-    if (!s) return null;
-    if (s.startsWith("{") && s.endsWith("}")) return s;
-    const start = s.indexOf("{");
-    const end = s.lastIndexOf("}");
-    if (start >= 0 && end > start) return s.slice(start, end + 1);
-    return null;
-  }
+      function extractFirstJsonObject(text) {
+        if (typeof text !== "string") return null;
+        const s = text.trim();
+        if (!s) return null;
+        if (s.startsWith("{") && s.endsWith("}")) return s;
+        const start = s.indexOf("{");
+        const end = s.lastIndexOf("}");
+        if (start >= 0 && end > start) return s.slice(start, end + 1);
+        return null;
+      }
 
-  function safeParseJson(jsonText) {
-    try { return JSON.parse(jsonText); } catch (_) { return null; }
-  }
+      function safeParseJson(jsonText) {
+        try { return JSON.parse(jsonText); } catch (_) { return null; }
+      }
 
-  // ====== RÄTTNING: samlar svar från UI och skickar till /api/grade ======
-  const gradeStatus = document.getElementById("gradeStatus");
-  const levelEl = document.getElementById("level");
-  const courseEl = document.getElementById("course");
-  const textEl = document.getElementById("pastedText");
+      function clearExamUI(){
+        examMetaEl.textContent = "Ingen provdata ännu.";
+        examEl.innerHTML = "";
+        gradeBtn.disabled = true;
+        window.__currentExam = null;
+      }
 
-  // Dessa två behövs från din generate-del:
-  // - window.__currentExamQuestions = [...] (sätt detta när mockprovet renderas)
-  // - answer textareas med class="answer" ELLER skapa dem per fråga
-  //
-  // Om du renderar frågor som i min senaste app.html (listan #questions),
-  // lägg till inputfält per fråga och spara i window.__currentExamQuestions.
-  //
-  // Minsta variant: om du inte har svarsfält per fråga ännu,
-  // så skickar vi tomma svar och du bygger vidare senare.
+      function renderExam(exam){
+        window.__currentExam = exam;
+        const title = exam?.title || "Mockprov";
+        const level = exam?.level || "—";
+        const qs = Array.isArray(exam?.questions) ? exam.questions : [];
 
-  document.getElementById("gradeBtn").addEventListener("click", async () => {
-    gradeStatus.textContent = "Rättar...";
+        examMetaEl.textContent = `${title} • Nivå: ${level} • Frågor: ${qs.length}`;
+        examEl.innerHTML = "";
 
-    const level = levelEl ? levelEl.value : "C";
-    const course = courseEl ? courseEl.value.trim() : "";
-    const pastedText = textEl ? textEl.value.trim() : "";
+        qs.forEach((q, idx) => {
+          const box = document.createElement("div");
+          box.className = "q";
 
-    const questions = Array.isArray(window.__currentExamQuestions)
-      ? window.__currentExamQuestions
-      : [];
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = `ID: ${q?.id ?? (idx+1)} • Poäng: ${q?.points ?? "—"}`;
 
-    // Försök läsa svar från textareas med class="answer" (om du har dem)
-    const answerEls = Array.from(document.querySelectorAll("textarea.answer"));
-    const answers = answerEls.map((el, idx) => ({
-      id: questions[idx]?.id ?? String(idx + 1),
-      answer: el.value.trim()
-    }));
+          const text = document.createElement("p");
+          text.className = "text";
+          text.textContent = q?.question ?? "";
 
-    try {
-      const response = await fetch("/api/grade", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ level, course, pastedText, questions, answers })
+          const answer = document.createElement("textarea");
+          answer.className = "answer";
+          answer.placeholder = "Skriv ditt svar här...";
+          answer.dataset.qid = String(q?.id ?? (idx+1));
+
+          box.appendChild(meta);
+          box.appendChild(text);
+          box.appendChild(answer);
+          examEl.appendChild(box);
+        });
+
+        gradeBtn.disabled = (qs.length === 0);
+      }
+
+      function clearResultUI(){
+        resultMetaEl.textContent = "Ingen rättning ännu.";
+        resultEl.innerHTML = "";
+      }
+
+      function renderResult(r){
+        const total = r?.total_points ?? "—";
+        const max = r?.max_points ?? "—";
+        resultMetaEl.textContent = `Rättning: ${total}/${max}`;
+
+        const tips = Array.isArray(r?.tips) ? r.tips : [];
+        const perQ = Array.isArray(r?.per_question) ? r.per_question : [];
+
+        const wrap = document.createElement("div");
+
+        if (perQ.length){
+          const h = document.createElement("p");
+          h.style.margin = "0 0 10px";
+          h.style.fontWeight = "900";
+          h.textContent = "Per fråga:";
+          wrap.appendChild(h);
+
+          perQ.forEach(item => {
+            const d = document.createElement("div");
+            d.className = "q";
+            d.innerHTML = `
+              <div class="meta">ID: ${item.id} • ${item.points}/${item.max_points}</div>
+              <p class="text" style="margin:0">${item.feedback || ""}</p>
+            `;
+            wrap.appendChild(d);
+          });
+        }
+
+        if (tips.length){
+          const h2 = document.createElement("p");
+          h2.style.margin = "14px 0 8px";
+          h2.style.fontWeight = "900";
+          h2.textContent = "Tips:";
+          wrap.appendChild(h2);
+
+          const ul = document.createElement("ul");
+          tips.forEach(t => {
+            const li = document.createElement("li");
+            li.textContent = t;
+            ul.appendChild(li);
+          });
+          wrap.appendChild(ul);
+        }
+
+        resultEl.innerHTML = "";
+        resultEl.appendChild(wrap);
+      }
+
+      generateBtn.addEventListener("click", async () => {
+        clearResultUI();
+        clearExamUI();
+
+        const level = levelEl.value;
+        const course = courseEl.value.trim();
+        const pastedText = pastedTextEl.value.trim();
+
+        if (!pastedText) {
+          setStatus("Klistra in material först.");
+          return;
+        }
+
+        setStatus("Skapar mockprov...");
+        try {
+          const resp = await fetch("/api/generate-exam", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ level, course, pastedText })
+          });
+
+          const data = await resp.json().catch(() => null);
+
+          if (!resp.ok || !data || !data.ok) {
+            setStatus("Fel vid generering. Öppna Console.");
+            console.error("generate error:", resp.status, data);
+            return;
+          }
+
+          const rawText = extractTextFromOpenAI(data.openai);
+          const jsonText = extractFirstJsonObject(rawText);
+          const exam = safeParseJson(jsonText);
+
+          if (!exam) {
+            setStatus("Kunde inte tolka prov som JSON. Öppna Console.");
+            console.log("openai raw:", data.openai);
+            console.log("extracted:", rawText);
+            return;
+          }
+
+          renderExam(exam);
+          setStatus("Mockprov klart. Skriv svar och tryck Rätta prov.");
+
+        } catch (e) {
+          setStatus("Nätverksfel. Öppna Console.");
+          console.error(e);
+        }
       });
 
-      const data = await response.json().catch(() => null);
+      gradeBtn.addEventListener("click", async () => {
+        clearResultUI();
 
-      if (!response.ok || !data || !data.ok) {
-        gradeStatus.textContent = "Fel vid rättning. Se Console.";
-        console.error("Grade API error:", { status: response.status, data });
-        return;
-      }
+        const exam = window.__currentExam;
+        const level = levelEl.value;
+        const course = courseEl.value.trim();
+        const pastedText = pastedTextEl.value.trim();
 
-      const rawText = extractTextFromOpenAI(data.openai);
-      const jsonText = extractFirstJsonObject(rawText);
-      const result = safeParseJson(jsonText);
-
-      if (!result) {
-        gradeStatus.textContent = "Kunde inte tolka rättningen som JSON. Se Console.";
-        console.log("OpenAI raw grade:", data.openai);
-        console.log("Extracted text:", rawText);
-        return;
-      }
-
-      gradeStatus.textContent = `Klart: ${result.total_points}/${result.max_points}`;
-      console.log("Rättning:", result);
-
-      // Om du vill: uppdatera UI-element om du har dem
-      const scoreEl = document.getElementById("score");
-      if (scoreEl) scoreEl.textContent = `${result.total_points} / ${result.max_points}`;
-
-      const tipsEl = document.getElementById("tips");
-      if (tipsEl && Array.isArray(result.tips)) {
-        tipsEl.innerHTML = "";
-        for (const t of result.tips) {
-          const li = document.createElement("li");
-          li.textContent = t;
-          tipsEl.appendChild(li);
+        if (!exam || !Array.isArray(exam.questions) || exam.questions.length === 0) {
+          setStatus("Skapa ett mockprov först.");
+          return;
         }
-      }
 
-    } catch (err) {
-      gradeStatus.textContent = "Nätverksfel. Se Console.";
-      console.error(err);
-    }
-  });
-</script>
+        const answers = Array.from(document.querySelectorAll("textarea.answer")).map(el => ({
+          id: el.dataset.qid,
+          answer: el.value.trim()
+        }));
+
+        setStatus("Rättar prov...");
+        try {
+          const resp = await fetch("/api/grade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              level,
+              course,
+              pastedText,
+              questions: exam.questions,
+              answers
+            })
+          });
+
+          const data = await resp.json().catch(() => null);
+
+          if (!resp.ok || !data || !data.ok) {
+            setStatus("Fel vid rättning. Öppna Console.");
+            console.error("grade error:", resp.status, data);
+            return;
+          }
+
+          const rawText = extractTextFromOpenAI(data.openai);
+          const jsonText = extractFirstJsonObject(rawText);
+          const result = safeParseJson(jsonText);
+
+          if (!result) {
+            setStatus("Kunde inte tolka rättning som JSON. Öppna Console.");
+            console.log("openai raw grade:", data.openai);
+            console.log("extracted:", rawText);
+            return;
+          }
+
+          renderResult(result);
+          setStatus("Rättning klar.");
+
+        } catch (e) {
+          setStatus("Nätverksfel. Öppna Console.");
+          console.error(e);
+        }
+      });
+
+      setStatus("");
+    });
+  </script>
+</body>
+</html>
