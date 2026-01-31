@@ -20,37 +20,13 @@
     }
 
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:var(--font);
-      background:var(--bg);
-      color:#0C1220;
-    }
+    body{margin:0;font-family:var(--font);background:var(--bg);color:#0C1220}
+    header{background:white;border-bottom:1px solid var(--border);padding:16px}
+    .container{max-width:var(--max);margin:auto;padding:20px}
+    a{color:var(--navy);text-decoration:none;font-weight:900}
 
-    header{
-      background:white;
-      border-bottom:1px solid var(--border);
-      padding:16px;
-    }
-
-    .container{
-      max-width:var(--max);
-      margin:auto;
-      padding:20px;
-    }
-
-    .logo{
-      font-weight:900;
-      color:var(--navy);
-      text-decoration:none;
-    }
-
-    h1{
-      color:var(--navy);
-      margin:0 0 6px;
-    }
-
-    p{margin:0;color:var(--muted)}
+    h1{color:var(--navy);margin:0 0 6px}
+    p{margin:0;color:var(--muted);font-weight:650}
 
     .card{
       background:var(--card);
@@ -61,14 +37,7 @@
       margin-bottom:20px;
     }
 
-    label{
-      font-weight:800;
-      display:block;
-      margin:12px 0 6px;
-      color:var(--navy);
-      font-size:14px;
-    }
-
+    label{font-weight:950;display:block;margin:12px 0 6px;color:var(--navy);font-size:14px}
     select,input,textarea{
       width:100%;
       padding:12px;
@@ -78,14 +47,13 @@
       font-size:14px;
       background:#fff;
     }
-
     textarea{min-height:110px}
 
     .btn{
       margin-top:14px;
       padding:12px 18px;
       border-radius:14px;
-      font-weight:900;
+      font-weight:1000;
       border:none;
       cursor:pointer;
       font-size:14px;
@@ -93,131 +61,71 @@
       align-items:center;
       justify-content:center;
       gap:10px;
+      white-space:nowrap;
     }
-
     .btn-primary{
       background:var(--teal);
       color:white;
+      border:1px solid rgba(24,184,138,.25);
+      box-shadow:0 12px 26px rgba(24,184,138,.20);
     }
-
     .btn-secondary{
       background:#eaf7f2;
       color:var(--navy);
       border:1px solid rgba(24,184,138,.25);
     }
 
-    .step{
-      font-weight:950;
-      margin-bottom:10px;
-      color:var(--navy);
-    }
+    .step{font-weight:1100;margin-bottom:10px;color:var(--navy)}
 
-    .split{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-    }
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width: 760px){ .split{grid-template-columns:1fr} }
 
-    @media (max-width: 760px){
-      .split{grid-template-columns:1fr}
+    /* Upload preview (lokalt) */
+    .drop{border:2px dashed var(--border);border-radius:14px;padding:14px;background:#fff}
+    .hint{font-size:12px;color:var(--muted);font-weight:750;margin-top:8px;line-height:1.4}
+    .preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:14px}
+    .thumb{position:relative;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 8px 18px rgba(0,0,0,.08)}
+    .thumb img{width:100%;height:120px;object-fit:cover;display:block}
+    .thumb button{
+      position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:10px;
+      border:1px solid rgba(11,31,58,.18);background:rgba(255,255,255,.95);
+      cursor:pointer;font-weight:1100;color:var(--navy);line-height:1;
     }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:12px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;font-weight:1000;color:var(--navy);font-size:12px}
 
-    /* Upload */
-    .drop{
-      border:2px dashed var(--border);
+    /* Output */
+    .q-list{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+    .q-item{
+      border:1px solid var(--border);
       border-radius:14px;
       padding:14px;
       background:#fff;
     }
-
-    .hint{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:700;
-      margin-top:8px;
-    }
-
-    .preview{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-      gap:12px;
-      margin-top:14px;
-    }
-
-    .thumb{
-      position:relative;
-      border:1px solid var(--border);
-      border-radius:12px;
-      overflow:hidden;
-      background:#fff;
-      box-shadow:0 8px 18px rgba(0,0,0,.08);
-    }
-
-    .thumb img{
-      width:100%;
-      height:120px;
-      object-fit:cover;
-      display:block;
-    }
-
-    .thumb button{
-      position:absolute;
-      top:8px;
-      right:8px;
-      width:28px;
-      height:28px;
-      border-radius:10px;
-      border:1px solid rgba(11,31,58,.18);
-      background:rgba(255,255,255,.9);
-      cursor:pointer;
-      font-weight:900;
-      color:var(--navy);
-      line-height:1;
-    }
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-      margin-top:12px;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
+    .q-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
       border:1px solid var(--border);
       background:#fff;
-      font-weight:900;
-      color:var(--navy);
-      font-size:12px;
+      font-weight:1000;font-size:12px;color:var(--navy);
     }
+    .q-text{margin:0;color:#0C1220;font-weight:750;line-height:1.45}
 
-    footer{
-      text-align:center;
-      font-size:12px;
-      color:var(--muted);
-      padding:20px;
-      border-top:1px solid var(--border);
-    }
+    footer{text-align:center;font-size:12px;color:var(--muted);padding:20px;border-top:1px solid var(--border)}
   </style>
 </head>
 
 <body>
-
 <header>
   <div class="container">
-    <a href="index.html" class="logo">← Tillbaka till ProvKlar</a>
+    <a href="index.html">← Tillbaka till ProvKlar</a>
   </div>
 </header>
 
 <main class="container">
   <h1>ProvKlar</h1>
-  <p>Ladda upp material, skapa mockprov, få rättning och tips.</p>
+  <p>Ladda upp material, skapa mockprov.</p>
 
   <!-- STEG 1 -->
   <div class="card">
@@ -228,7 +136,7 @@
         <label>Nivå</label>
         <select id="level">
           <option value="E">E-nivå</option>
-          <option value="C">C-nivå</option>
+          <option value="C" selected>C-nivå</option>
           <option value="A">A-nivå</option>
         </select>
 
@@ -237,15 +145,15 @@
       </div>
 
       <div>
-        <label>Klistra in text (valfritt i MVP)</label>
+        <label>Klistra in text (rekommenderat för test)</label>
         <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
       </div>
     </div>
 
-    <label>Ladda upp bilder (rekommenderat max 3)</label>
+    <label>Ladda upp bilder (MVP: preview lokalt)</label>
     <div class="drop">
       <input id="imageInput" type="file" accept="image/*" multiple>
-      <div class="hint">Bilderna stannar lokalt i webbläsaren i denna MVP (ingen serveruppladdning).</div>
+      <div class="hint">I denna version skickas bara text till API:t. Bild-stöd kräver separat uppladdning/OCR.</div>
 
       <div class="row">
         <span class="pill" id="imgCount">0 / 3 bilder valda</span>
@@ -262,30 +170,8 @@
   <!-- STEG 2 -->
   <div class="card">
     <div class="step">2. Mockprov</div>
-
-    <p><strong>Exempelfråga 1:</strong> Förklara vad utbud och efterfrågan betyder.</p>
-    <textarea class="answer" placeholder="Skriv ditt svar här..."></textarea>
-
-    <p style="margin-top:14px"><strong>Exempelfråga 2:</strong> Vad menas med komparativ fördel?</p>
-    <textarea class="answer" placeholder="Skriv ditt svar här..."></textarea>
-
-    <button class="btn btn-secondary" type="button" id="gradeBtn">Rätta</button>
-    <div class="hint" id="gradeStatus"></div>
-  </div>
-
-  <!-- STEG 3 -->
-  <div class="card">
-    <div class="step">3. Resultat</div>
-
-    <p><strong>Nivåindikator:</strong> <span id="levelIndicator">C</span></p>
-    <p><strong>Totalpoäng:</strong> <span id="score">14 / 20</span></p>
-
-    <p style="margin-top:10px"><strong>Tips:</strong></p>
-    <ul id="tips">
-      <li>Utveckla resonemang mer</li>
-      <li>Använd fler begrepp</li>
-      <li>Ge exempel</li>
-    </ul>
+    <div class="hint" id="examMeta">Ingen data ännu.</div>
+    <ul class="q-list" id="questions"></ul>
   </div>
 </main>
 
@@ -294,18 +180,14 @@
 </footer>
 
 <script>
-  // === Bildhantering (lokal preview) ===
+  // ===== Bild-preview (lokalt) =====
   const imageInput = document.getElementById("imageInput");
   const preview = document.getElementById("preview");
   const imgCount = document.getElementById("imgCount");
   const clearImagesBtn = document.getElementById("clearImages");
-
   let selectedFiles = [];
 
-  function updateCount(){
-    imgCount.textContent = `${selectedFiles.length} / 3 bilder valda`;
-  }
-
+  function updateCount(){ imgCount.textContent = `${selectedFiles.length} / 3 bilder valda`; }
   function renderPreview(){
     preview.innerHTML = "";
     selectedFiles.forEach((file, idx) => {
@@ -334,13 +216,8 @@
 
   imageInput.addEventListener("change", (e) => {
     const files = Array.from(e.target.files || []);
-    // Begränsa till max 3 totalt
-    const combined = selectedFiles.concat(files).slice(0, 3);
-    selectedFiles = combined;
-
-    // Reset input så att samma fil kan väljas igen vid behov
+    selectedFiles = selectedFiles.concat(files).slice(0, 3);
     imageInput.value = "";
-
     updateCount();
     renderPreview();
   });
@@ -353,24 +230,149 @@
 
   updateCount();
 
-  // === MVP-knappar (placeholder tills API kopplas) ===
-  const genStatus = document.getElementById("genStatus");
-  const gradeStatus = document.getElementById("gradeStatus");
+  // ===== Helpers: plocka ut JSON från OpenAI-svar (robust) =====
+  function extractTextFromOpenAI(openai) {
+    // Försök hitta text i vanliga fält utan att anta exakt struktur
+    try {
+      if (openai && typeof openai.output_text === "string" && openai.output_text.trim()) {
+        return openai.output_text;
+      }
+    } catch (_) {}
+    try {
+      // Responses kan innehålla output[].content[].text
+      const out = openai?.output;
+      if (Array.isArray(out)) {
+        for (const item of out) {
+          const content = item?.content;
+          if (Array.isArray(content)) {
+            for (const c of content) {
+              const t = c?.text;
+              if (typeof t === "string" && t.trim()) return t;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
 
-  document.getElementById("generateBtn").addEventListener("click", () => {
-    // Här kopplar du senare till /api/generate-exam
+  function extractFirstJsonObject(text) {
+    if (typeof text !== "string") return null;
+    const s = text.trim();
+    if (!s) return null;
+    // Om det redan är ren JSON
+    if (s.startsWith("{") && s.endsWith("}")) return s;
+
+    // Annars: försök hitta första {...} blocket
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      return s.slice(start, end + 1);
+    }
+    return null;
+  }
+
+  function safeParseJson(jsonText) {
+    try { return JSON.parse(jsonText); } catch (_) { return null; }
+  }
+
+  // ===== Render =====
+  const genStatus = document.getElementById("genStatus");
+  const examMeta = document.getElementById("examMeta");
+  const questionsEl = document.getElementById("questions");
+
+  function clearExamUI(){
+    examMeta.textContent = "Ingen data ännu.";
+    questionsEl.innerHTML = "";
+  }
+
+  function renderExam(exam){
+    const title = exam?.title || "Mockprov";
+    const level = exam?.level || "—";
+    const qs = Array.isArray(exam?.questions) ? exam.questions : [];
+
+    examMeta.textContent = `${title} • Nivå: ${level} • Antal frågor: ${qs.length}`;
+
+    questionsEl.innerHTML = "";
+    for (const q of qs) {
+      const li = document.createElement("li");
+      li.className = "q-item";
+
+      const meta = document.createElement("div");
+      meta.className = "q-meta";
+
+      const b1 = document.createElement("span");
+      b1.className = "badge";
+      b1.textContent = `ID: ${q?.id ?? "—"}`;
+
+      const b2 = document.createElement("span");
+      b2.className = "badge";
+      b2.textContent = `Poäng: ${q?.points ?? "—"}`;
+
+      meta.appendChild(b1);
+      meta.appendChild(b2);
+
+      const p = document.createElement("p");
+      p.className = "q-text";
+      p.textContent = q?.question ?? "";
+
+      li.appendChild(meta);
+      li.appendChild(p);
+      questionsEl.appendChild(li);
+    }
+  }
+
+  // ===== OpenAI-koppling via Vercel Function: /api/generate-exam =====
+  document.getElementById("generateBtn").addEventListener("click", async () => {
+    clearExamUI();
+
     const level = document.getElementById("level").value;
     const course = document.getElementById("course").value.trim();
     const pastedText = document.getElementById("pastedText").value.trim();
 
-    genStatus.textContent =
-      `MVP: Klick registrerad. (Nivå: ${level}${course ? ", Kurs: " + course : ""}) ` +
-      `${selectedFiles.length} bild(er) valda${pastedText ? " + text." : "."}`;
-  });
+    if (!pastedText) {
+      genStatus.textContent = "Klistra in text först (MVP).";
+      return;
+    }
 
-  document.getElementById("gradeBtn").addEventListener("click", () => {
-    // Här kopplar du senare till /api/grade
-    gradeStatus.textContent = "MVP: Rättning-klick registrerad. (API kopplas senare.)";
+    genStatus.textContent = "Skapar mockprov...";
+
+    try {
+      const response = await fetch("/api/generate-exam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ level, course, pastedText })
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data || !data.ok) {
+        genStatus.textContent = "Fel vid generering. Öppna Console.";
+        console.error("API error:", { status: response.status, data });
+        return;
+      }
+
+      // 1) försök läsa text ur OpenAI-svar
+      const rawText = extractTextFromOpenAI(data.openai);
+
+      // 2) försök plocka JSON
+      const jsonText = extractFirstJsonObject(rawText);
+      const exam = safeParseJson(jsonText);
+
+      if (!exam) {
+        genStatus.textContent = "Kunde inte tolka provet som JSON. Öppna Console.";
+        console.log("OpenAI raw:", data.openai);
+        console.log("Extracted text:", rawText);
+        return;
+      }
+
+      renderExam(exam);
+      genStatus.textContent = "Mockprov klart.";
+
+    } catch (err) {
+      genStatus.textContent = "Nätverksfel. Öppna Console.";
+      console.error(err);
+    }
   });
 </script>
 
