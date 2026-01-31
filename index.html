@@ -42,26 +42,72 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
+      gap:16px;
     }
 
-    .logo{
-      font-weight:900;
-      font-size:18px;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
       color:var(--navy);
+      min-width:0;
+    }
+
+    .brand img{
+      height:42px;
+      width:auto;
+      display:block;
+      border-radius:12px;
+      border:1px solid var(--border);
+      box-shadow: 0 10px 24px rgba(11,31,58,.10);
+      background:#fff;
+    }
+
+    .brand-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+      min-width:0;
+    }
+
+    .brand-text .title{
+      font-weight:950;
+      font-size:18px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .brand-text .subtitle{
+      margin-top:3px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:750;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .btn{
       padding:12px 18px;
       border-radius:14px;
-      font-weight:800;
+      font-weight:900;
       text-decoration:none;
       font-size:14px;
-      display:inline-block;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
     }
 
     .btn-primary{
       background:var(--teal);
       color:white;
+      border:1px solid rgba(24,184,138,.25);
+      box-shadow: 0 12px 26px rgba(24,184,138,.20);
     }
 
     .btn-secondary{
@@ -71,21 +117,31 @@
     }
 
     .hero{
-      padding:80px 20px;
+      padding:78px 20px 40px;
       text-align:center;
     }
 
     .hero h1{
       font-size:42px;
       color:var(--navy);
-      margin-bottom:14px;
+      margin:0 0 14px;
+      letter-spacing:-.6px;
+      line-height:1.1;
     }
 
     .hero p{
       color:var(--muted);
-      max-width:600px;
+      max-width:640px;
       margin:0 auto 28px;
       font-size:16px;
+      font-weight:650;
+    }
+
+    .hero-actions{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
     }
 
     .features{
@@ -101,14 +157,37 @@
       border-radius:var(--radius);
       padding:22px;
       box-shadow:var(--shadow);
+      text-align:left;
+    }
+
+    .card h3{
+      margin:0 0 8px;
+      color:var(--navy);
+      font-size:16px;
+      letter-spacing:.1px;
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      font-weight:650;
+      font-size:13px;
+      line-height:1.5;
     }
 
     footer{
-      padding:30px 20px;
+      padding:26px 20px 34px;
       font-size:12px;
       color:var(--muted);
       border-top:1px solid var(--border);
       text-align:center;
+      font-weight:650;
+    }
+
+    @media (max-width: 640px){
+      .brand img{height:38px;border-radius:10px}
+      .hero h1{font-size:34px}
+      .container{padding:16px}
     }
   </style>
 </head>
@@ -117,7 +196,20 @@
 
 <header>
   <div class="container nav">
-    <div class="logo">ProvKlar UF</div>
+    <!-- Brand (logo + namn) -->
+    <a class="brand" href="index.html" aria-label="ProvKlar UF">
+      <!-- OBS: Filen måste ligga i /public/logo/ på Vercel -->
+      <!-- URL-kodade mellanslag: %20 -->
+      <img
+        src="/logo/ChatGPT%20Image%2031%20jan.%202026%2015_26_40.png"
+        alt="ProvKlar UF logga"
+      >
+      <div class="brand-text">
+        <div class="title">ProvKlar UF</div>
+        <div class="subtitle">Mockprov • Rättning • Tips</div>
+      </div>
+    </a>
+
     <a class="btn btn-primary" href="app.html">Starta ProvKlar</a>
   </div>
 </header>
@@ -129,8 +221,11 @@
       Ladda upp ditt material, få ett realistiskt mockprov,
       svara direkt och få rättning + förbättringstips.
     </p>
-    <a class="btn btn-primary" href="app.html">Starta ProvKlar</a>
-    <a class="btn btn-secondary" href="app.html" style="margin-left:10px">Testa gratis</a>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="app.html">Starta ProvKlar</a>
+      <a class="btn btn-secondary" href="app.html">Testa gratis</a>
+    </div>
 
     <div class="features container">
       <div class="card">
