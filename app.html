@@ -47,8 +47,10 @@
 
     h1{
       color:var(--navy);
-      margin-bottom:6px;
+      margin:0 0 6px;
     }
+
+    p{margin:0;color:var(--muted)}
 
     .card{
       background:var(--card);
@@ -60,10 +62,11 @@
     }
 
     label{
-      font-weight:700;
+      font-weight:800;
       display:block;
-      margin-bottom:6px;
+      margin:12px 0 6px;
       color:var(--navy);
+      font-size:14px;
     }
 
     select,input,textarea{
@@ -73,6 +76,7 @@
       border:1px solid var(--border);
       font-family:inherit;
       font-size:14px;
+      background:#fff;
     }
 
     textarea{min-height:110px}
@@ -81,10 +85,14 @@
       margin-top:14px;
       padding:12px 18px;
       border-radius:14px;
-      font-weight:800;
+      font-weight:900;
       border:none;
       cursor:pointer;
       font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
     }
 
     .btn-primary{
@@ -95,12 +103,98 @@
     .btn-secondary{
       background:#eaf7f2;
       color:var(--navy);
+      border:1px solid rgba(24,184,138,.25);
     }
 
     .step{
-      font-weight:900;
+      font-weight:950;
       margin-bottom:10px;
       color:var(--navy);
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+
+    @media (max-width: 760px){
+      .split{grid-template-columns:1fr}
+    }
+
+    /* Upload */
+    .drop{
+      border:2px dashed var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+    }
+
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      margin-top:8px;
+    }
+
+    .preview{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .thumb{
+      position:relative;
+      border:1px solid var(--border);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .thumb img{
+      width:100%;
+      height:120px;
+      object-fit:cover;
+      display:block;
+    }
+
+    .thumb button{
+      position:absolute;
+      top:8px;
+      right:8px;
+      width:28px;
+      height:28px;
+      border-radius:10px;
+      border:1px solid rgba(11,31,58,.18);
+      background:rgba(255,255,255,.9);
+      cursor:pointer;
+      font-weight:900;
+      color:var(--navy);
+      line-height:1;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:12px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-weight:900;
+      color:var(--navy);
+      font-size:12px;
     }
 
     footer{
@@ -122,40 +216,72 @@
 </header>
 
 <main class="container">
-  <h1>Skapa mockprov</h1>
-  <p style="color:var(--muted)">Ladda upp material och välj nivå.</p>
+  <h1>ProvKlar</h1>
+  <p>Ladda upp material, skapa mockprov, få rättning och tips.</p>
 
+  <!-- STEG 1 -->
   <div class="card">
-    <div class="step">1. Inställningar</div>
+    <div class="step">1. Material & nivå</div>
 
-    <label>Nivå</label>
-    <select>
-      <option>E-nivå</option>
-      <option>C-nivå</option>
-      <option>A-nivå</option>
-    </select>
+    <div class="split">
+      <div>
+        <label>Nivå</label>
+        <select id="level">
+          <option value="E">E-nivå</option>
+          <option value="C">C-nivå</option>
+          <option value="A">A-nivå</option>
+        </select>
 
-    <label style="margin-top:12px">Ladda upp bild eller PDF</label>
-    <input type="file">
+        <label>Ämne/kurs (valfritt)</label>
+        <input id="course" placeholder="Ex: Matematik 2b / Samhällskunskap 1b">
+      </div>
 
-    <button class="btn btn-primary">Skapa mockprov</button>
+      <div>
+        <label>Klistra in text (valfritt i MVP)</label>
+        <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
+      </div>
+    </div>
+
+    <label>Ladda upp bilder (rekommenderat max 3)</label>
+    <div class="drop">
+      <input id="imageInput" type="file" accept="image/*" multiple>
+      <div class="hint">Bilderna stannar lokalt i webbläsaren i denna MVP (ingen serveruppladdning).</div>
+
+      <div class="row">
+        <span class="pill" id="imgCount">0 / 3 bilder valda</span>
+        <button class="btn btn-secondary" type="button" id="clearImages">Rensa bilder</button>
+      </div>
+
+      <div class="preview" id="preview"></div>
+    </div>
+
+    <button class="btn btn-primary" type="button" id="generateBtn">Skapa mockprov</button>
+    <div class="hint" id="genStatus"></div>
   </div>
 
+  <!-- STEG 2 -->
   <div class="card">
     <div class="step">2. Mockprov</div>
 
-    <p><strong>Exempelfråga:</strong> Förklara vad utbud och efterfrågan betyder.</p>
-    <textarea placeholder="Skriv ditt svar här..."></textarea>
+    <p><strong>Exempelfråga 1:</strong> Förklara vad utbud och efterfrågan betyder.</p>
+    <textarea class="answer" placeholder="Skriv ditt svar här..."></textarea>
 
-    <button class="btn btn-secondary">Rätta</button>
+    <p style="margin-top:14px"><strong>Exempelfråga 2:</strong> Vad menas med komparativ fördel?</p>
+    <textarea class="answer" placeholder="Skriv ditt svar här..."></textarea>
+
+    <button class="btn btn-secondary" type="button" id="gradeBtn">Rätta</button>
+    <div class="hint" id="gradeStatus"></div>
   </div>
 
+  <!-- STEG 3 -->
   <div class="card">
     <div class="step">3. Resultat</div>
 
-    <p><strong>Nivåindikator:</strong> C</p>
-    <p><strong>Tips:</strong></p>
-    <ul>
+    <p><strong>Nivåindikator:</strong> <span id="levelIndicator">C</span></p>
+    <p><strong>Totalpoäng:</strong> <span id="score">14 / 20</span></p>
+
+    <p style="margin-top:10px"><strong>Tips:</strong></p>
+    <ul id="tips">
       <li>Utveckla resonemang mer</li>
       <li>Använd fler begrepp</li>
       <li>Ge exempel</li>
@@ -166,6 +292,87 @@
 <footer>
   ProvKlar UF – studiestöd, ej officiell betygssättning.
 </footer>
+
+<script>
+  // === Bildhantering (lokal preview) ===
+  const imageInput = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
+  const imgCount = document.getElementById("imgCount");
+  const clearImagesBtn = document.getElementById("clearImages");
+
+  let selectedFiles = [];
+
+  function updateCount(){
+    imgCount.textContent = `${selectedFiles.length} / 3 bilder valda`;
+  }
+
+  function renderPreview(){
+    preview.innerHTML = "";
+    selectedFiles.forEach((file, idx) => {
+      const wrap = document.createElement("div");
+      wrap.className = "thumb";
+
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.onload = () => URL.revokeObjectURL(img.src);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = "Ta bort";
+      btn.textContent = "×";
+      btn.addEventListener("click", () => {
+        selectedFiles.splice(idx, 1);
+        updateCount();
+        renderPreview();
+      });
+
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      preview.appendChild(wrap);
+    });
+  }
+
+  imageInput.addEventListener("change", (e) => {
+    const files = Array.from(e.target.files || []);
+    // Begränsa till max 3 totalt
+    const combined = selectedFiles.concat(files).slice(0, 3);
+    selectedFiles = combined;
+
+    // Reset input så att samma fil kan väljas igen vid behov
+    imageInput.value = "";
+
+    updateCount();
+    renderPreview();
+  });
+
+  clearImagesBtn.addEventListener("click", () => {
+    selectedFiles = [];
+    updateCount();
+    renderPreview();
+  });
+
+  updateCount();
+
+  // === MVP-knappar (placeholder tills API kopplas) ===
+  const genStatus = document.getElementById("genStatus");
+  const gradeStatus = document.getElementById("gradeStatus");
+
+  document.getElementById("generateBtn").addEventListener("click", () => {
+    // Här kopplar du senare till /api/generate-exam
+    const level = document.getElementById("level").value;
+    const course = document.getElementById("course").value.trim();
+    const pastedText = document.getElementById("pastedText").value.trim();
+
+    genStatus.textContent =
+      `MVP: Klick registrerad. (Nivå: ${level}${course ? ", Kurs: " + course : ""}) ` +
+      `${selectedFiles.length} bild(er) valda${pastedText ? " + text." : "."}`;
+  });
+
+  document.getElementById("gradeBtn").addEventListener("click", () => {
+    // Här kopplar du senare till /api/grade
+    gradeStatus.textContent = "MVP: Rättning-klick registrerad. (API kopplas senare.)";
+  });
+</script>
 
 </body>
 </html>
