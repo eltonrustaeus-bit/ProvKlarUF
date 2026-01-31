@@ -18,7 +18,6 @@
       --font: system-ui, -apple-system, Segoe UI, Roboto, Arial;
       --max:920px;
     }
-
     *{box-sizing:border-box}
     body{margin:0;font-family:var(--font);background:var(--bg);color:#0C1220}
     header{background:#fff;border-bottom:1px solid var(--border)}
@@ -37,6 +36,15 @@
       margin:14px 0;
     }
 
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width:760px){
+      .grid{grid-template-columns:1fr}
+    }
+
     label{display:block;margin:12px 0 6px;font-weight:950;color:var(--navy);font-size:14px}
     select,input,textarea{
       width:100%;
@@ -49,13 +57,12 @@
     }
     textarea{min-height:110px}
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 760px){
-      .grid{grid-template-columns:1fr}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:12px;
     }
 
     .btn{
@@ -70,26 +77,18 @@
       justify-content:center;
       white-space:nowrap;
     }
-    .btn-primary{
+    .btnPrimary{
       background:var(--teal);
       color:#fff;
       border-color:rgba(24,184,138,.25);
       box-shadow:0 12px 26px rgba(24,184,138,.20);
     }
-    .btn-secondary{
+    .btnSecondary{
       background:#fff;
       color:var(--navy);
       border-color:var(--border);
     }
     .btn:disabled{opacity:.6;cursor:not-allowed}
-
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:12px;
-    }
 
     .hint{
       margin-top:10px;
@@ -159,8 +158,8 @@
       </div>
 
       <div class="row">
-        <button class="btn btn-primary" type="button" id="generateBtn">Skapa mockprov</button>
-        <button class="btn btn-secondary" type="button" id="gradeBtn" disabled>Rätta prov</button>
+        <button class="btn btnPrimary" type="button" id="generateBtn">Skapa mockprov</button>
+        <button class="btn btnSecondary" type="button" id="gradeBtn" disabled>Rätta prov</button>
       </div>
 
       <div class="hint" id="status"></div>
@@ -246,6 +245,7 @@
 
       function renderExam(exam){
         window.__currentExam = exam;
+
         const title = exam?.title || "Mockprov";
         const level = exam?.level || "—";
         const qs = Array.isArray(exam?.questions) ? exam.questions : [];
@@ -332,6 +332,7 @@
         resultEl.appendChild(wrap);
       }
 
+      // ===== Skapa mockprov =====
       generateBtn.addEventListener("click", async () => {
         clearResultUI();
         clearExamUI();
@@ -381,6 +382,7 @@
         }
       });
 
+      // ===== Rätta prov =====
       gradeBtn.addEventListener("click", async () => {
         clearResultUI();
 
