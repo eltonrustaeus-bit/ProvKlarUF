@@ -299,7 +299,6 @@
       </a>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="btn btnGhost" href="index.html">Startsida</a>
-        <!-- ÄNDRING: Logga ut ska logga ut direkt och skicka till startsidan -->
         <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
       </div>
     </div>
@@ -392,7 +391,6 @@
       </div>
 
       <div class="row">
-        <!-- ÄNDRING: Testa AI borttagen -->
         <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
         <button class="btn btnGhost" id="gradeBtn" type="button" disabled>Rätta prov</button>
         <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
@@ -495,6 +493,15 @@
       // material state
       const materials = []; // {id, type, name, size, note, contentText?, dataUrl?}
       const id = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+      function escapeHtml(s){
+        return String(s)
+          .replaceAll("&","&amp;")
+          .replaceAll("<","&lt;")
+          .replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;")
+          .replaceAll("'","&#039;");
+      }
 
       function setBusy(isBusy, label){
         spinnerEl.style.display = isBusy ? "inline-block" : "none";
@@ -621,7 +628,6 @@
         return { status: resp.status, ok: resp.ok, raw, data };
       }
 
-      // ========== File handling (text files only for parsing) ==========
       async function addSelectedFiles(fileList, sourceLabel){
         const files = Array.from(fileList || []);
         if(files.length === 0) return;
@@ -657,7 +663,6 @@
               dataUrl
             });
           } else {
-            // pdf/other: store as attachment only (no parsing in client)
             materials.push({
               id: id(),
               type: "file",
@@ -693,7 +698,6 @@
         }
       });
 
-      // ========== Generate / Grade ==========
       function renderExam(exam){
         currentExam = exam;
         const qs = Array.isArray(exam.questions) ? exam.questions : [];
@@ -726,6 +730,7 @@
         gradeBtn.disabled = qs.length === 0;
       }
 
+      // ÄNDRING: visar även modellsvar (full poäng) per fråga
       function renderResult(r){
         resultMetaEl.textContent = `Rättning: ${r.total_points}/${r.max_points}`;
         const wrap = document.createElement("div");
@@ -733,17 +738,30 @@
         (r.per_question || []).forEach(item => {
           const d = document.createElement("div");
           d.className = "q";
+
+          const model = (item.model_answer || "").trim();
+
           d.innerHTML = `
             <div class="meta">ID: ${item.id} • ${item.points}/${item.max_points}</div>
-            <p class="text" style="margin:0">${item.feedback || ""}</p>
+            <p class="text" style="margin:0 0 10px">${escapeHtml(item.feedback || "")}</p>
+            ${model ? `
+              <div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
+                <div style="font-weight:1000;color:#0B1F3A;margin-bottom:6px;font-size:13px">Modellsvar (full poäng)</div>
+                <div style="color:#0C1220;font-weight:800;line-height:1.45;font-size:13px;white-space:pre-wrap">${escapeHtml(model)}</div>
+              </div>
+            ` : ""}
           `;
           wrap.appendChild(d);
         });
 
         if (Array.isArray(r.tips) && r.tips.length){
+          const tipsBox = document.createElement("div");
+          tipsBox.className = "q";
+          tipsBox.innerHTML = `<div class="meta">Tips</div>`;
           const ul = document.createElement("ul");
           r.tips.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
-          wrap.appendChild(ul);
+          tipsBox.appendChild(ul);
+          wrap.appendChild(tipsBox);
         }
 
         resultEl.innerHTML = "";
@@ -843,7 +861,7 @@
         setStatus("");
       });
 
-      // ÄNDRING: Logga ut ska logga ut direkt och skicka till startsidan
+      // Logga ut: rensa och gå till startsidan
       logoutBtn.addEventListener("click", () => {
         logout();
         window.location.href = "index.html";
