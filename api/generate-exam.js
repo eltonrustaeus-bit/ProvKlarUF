@@ -12,6 +12,31 @@ function send(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
+function extractOutputText(data) {
+  // 1) Om output_text finns
+  if (data && typeof data.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+
+  // 2) Annars: försök hitta text i output -> content -> text
+  try {
+    const out = data?.output;
+    if (Array.isArray(out)) {
+      for (const item of out) {
+        const content = item?.content;
+        if (Array.isArray(content)) {
+          for (const c of content) {
+            const t = c?.text;
+            if (typeof t === "string" && t.trim()) return t.trim();
+          }
+        }
+      }
+    }
+  } catch (_) {}
+
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return send(res, 405, { error: "Use POST" });
 
@@ -65,9 +90,26 @@ module.exports = async function handler(req, res) {
     const raw = await r.text();
     if (!r.ok) return send(res, 500, { error: "OpenAI error", details: raw });
 
-    const data = JSON.parse(raw);
-    const examText = data.output_text;
-    const exam = JSON.parse(examText);
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { return send(res, 500, { error: "OpenAI returned non-JSON", details: raw }); }
+
+    const examText = extractOutputText(data);
+    if (!examText) {
+      return send(res, 500, {
+        error: "OpenAI response missing output text",
+        details: raw
+      });
+    }
+
+    let exam;
+    try { exam = JSON.parse(examText); }
+    catch {
+      return send(res, 500, {
+        error: "OpenAI output_text was not valid JSON",
+        details: examText
+      });
+    }
 
     return send(res, 200, { ok: true, exam });
   } catch (e) {
