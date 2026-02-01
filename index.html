@@ -172,10 +172,9 @@
           <div class="tag">Mockprov • Rättning • Tips</div>
         </div>
       </a>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn btnGhost" href="app.html">Öppna app</a>
-        <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
-      </div>
+
+      <!-- ENDAST EN KNAPP KVAR -->
+      <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
     </div>
   </header>
 
@@ -187,9 +186,9 @@
           Klistra in text eller anteckningar. ProvKlar skapar ett realistiskt mockprov på vald nivå, och ger rättning med tydliga förbättringstips.
         </p>
 
+        <!-- ENDAST EN CTA KVAR -->
         <div class="heroActions">
           <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
-          <a class="btn btnGhost" href="app.html">Testa med exempel</a>
         </div>
 
         <div class="pillRow" aria-label="Nyckelfunktioner">
@@ -271,13 +270,11 @@
       msg.textContent = "";
     }
 
-    // Enter to submit
     document.addEventListener("keydown", (e) => {
       const loginVisible = document.getElementById("loginScreen").style.display !== "none";
       if(loginVisible && e.key === "Enter") checkCode();
     });
 
-    // Auto unlock
     if(localStorage.getItem("provklar_logged_in") === "true"){
       document.getElementById("loginScreen").style.display = "none";
     }
