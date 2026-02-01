@@ -1,129 +1,457 @@
-
 <!doctype html>
 <html lang="sv">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ProvKlar App</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProvKlar – App</title>
+  <style>
+    :root{
+      --navy:#0B1F3A;
+      --teal:#18B88A;
+      --bg:#F6F8FB;
+      --card:#FFFFFF;
+      --muted:#556072;
+      --border:rgba(11,31,58,.12);
+      --radius:16px;
+      --shadow:0 16px 40px rgba(11,31,58,.12);
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      --max:920px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font);background:var(--bg);color:#0C1220}
+    header{background:#fff;border-bottom:1px solid var(--border)}
+    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px, 3vw, 22px)}
+    a{color:var(--navy);text-decoration:none;font-weight:950}
+    h1{margin:8px 0 6px;color:var(--navy)}
+    p{margin:0;color:var(--muted);font-weight:650}
 
-<style>
-body{margin:0;font-family:Arial;background:#f5f7fb}
-.wrap{max-width:900px;margin:auto;padding:20px}
-.card{background:white;border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-label{font-weight:700;font-size:14px}
-input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;margin-top:6px}
-button{padding:12px 18px;border:none;border-radius:12px;font-weight:800;cursor:pointer;margin-top:10px}
-.primary{background:#18B88A;color:white}
-.secondary{background:#eee}
-.hint{font-size:12px;color:#666;margin-top:8px;word-break:break-word}
-.q{border:1px solid #eee;border-radius:12px;padding:12px;margin-top:10px}
-</style>
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:clamp(16px, 3vw, 22px);
+      box-shadow:var(--shadow);
+      margin:14px 0;
+    }
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:760px){ .grid{grid-template-columns:1fr} }
+
+    label{display:block;margin:12px 0 6px;font-weight:950;color:var(--navy);font-size:14px}
+    select,input,textarea{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      font-family:inherit;
+      font-size:14px;
+      background:#fff;
+    }
+    textarea{min-height:110px}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    .btn{
+      padding:12px 18px;border-radius:14px;font-weight:1000;border:1px solid transparent;
+      cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;
+      white-space:nowrap;
+    }
+    .btnPrimary{background:var(--teal);color:#fff;border-color:rgba(24,184,138,.25);box-shadow:0 12px 26px rgba(24,184,138,.20)}
+    .btnSecondary{background:#fff;color:var(--navy);border-color:var(--border)}
+    .btnDanger{background:#fff;color:#7a1b1b;border-color:rgba(122,27,27,.25)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    .hint{margin-top:10px;font-size:12px;color:var(--muted);font-weight:750;line-height:1.35;word-break:break-word}
+
+    .q{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+      margin-top:10px;
+    }
+    .q .meta{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted);
+      font-size:12px;font-weight:850;
+    }
+    .q .text{margin:0 0 10px;font-weight:800;color:#0C1220;line-height:1.45}
+
+    pre{
+      margin:10px 0 0;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      overflow:auto;
+      font-size:12px;
+      line-height:1.35;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:650}
+  </style>
 </head>
 
 <body>
-<div class="wrap">
-<h1>ProvKlar</h1>
+  <header>
+    <div class="wrap">
+      <a href="index.html">← Tillbaka</a>
+    </div>
+  </header>
 
-<div class="card">
-<label>Nivå</label>
-<select id="level">
-<option value="E">E</option>
-<option value="C" selected>C</option>
-<option value="A">A</option>
-</select>
+  <main class="wrap">
+    <h1>ProvKlar</h1>
+    <p>Testa API + skapa mockprov + rätta.</p>
 
-<label>Material</label>
-<textarea id="pastedText" placeholder="Klistra in text..."></textarea>
+    <section class="card">
+      <div class="grid">
+        <div>
+          <label>Nivå</label>
+          <select id="level">
+            <option value="E">E</option>
+            <option value="C" selected>C</option>
+            <option value="A">A</option>
+          </select>
 
-<button class="primary" id="generateBtn">Skapa mockprov</button>
-<button class="secondary" id="gradeBtn" disabled>Rätta prov</button>
+          <label>Ämne/kurs (valfritt)</label>
+          <input id="course" placeholder="Ex: Matematik 2b" />
+        </div>
 
-<div class="hint" id="status"></div>
-</div>
+        <div>
+          <label>Material (klistra in text)</label>
+          <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
+        </div>
+      </div>
 
-<div class="card">
-<div id="examMeta">Ingen provdata ännu</div>
-<div id="exam"></div>
-</div>
+      <div class="row">
+        <button class="btn btnPrimary" type="button" id="generateBtn">Skapa mockprov</button>
+        <button class="btn btnSecondary" type="button" id="gradeBtn" disabled>Rätta prov</button>
+        <button class="btn btnSecondary" type="button" id="testGenerateBtn">Testa API (generate-exam)</button>
+        <button class="btn btnSecondary" type="button" id="testGradeBtn">Testa API (grade)</button>
+        <button class="btn btnDanger" type="button" id="clearBtn">Rensa</button>
+      </div>
 
-<div class="card">
-<div id="resultMeta">Ingen rättning ännu</div>
-<div id="result"></div>
-</div>
+      <div class="hint" id="status"></div>
+      <pre id="debugOut" style="display:none;"></pre>
+    </section>
 
-</div>
+    <section class="card">
+      <div class="hint" id="examMeta">Ingen provdata ännu.</div>
+      <div id="exam"></div>
+    </section>
+
+    <section class="card">
+      <div class="hint" id="resultMeta">Ingen rättning ännu.</div>
+      <div id="result"></div>
+    </section>
+  </main>
+
+  <footer>ProvKlar UF – studiestöd, ej officiell betygssättning.</footer>
 
 <script>
-const statusEl=document.getElementById("status");
-const examMetaEl=document.getElementById("examMeta");
-const examEl=document.getElementById("exam");
-const resultMetaEl=document.getElementById("resultMeta");
-const resultEl=document.getElementById("result");
-const generateBtn=document.getElementById("generateBtn");
-const gradeBtn=document.getElementById("gradeBtn");
-const levelEl=document.getElementById("level");
-const textEl=document.getElementById("pastedText");
+document.addEventListener("DOMContentLoaded", () => {
+  const statusEl = document.getElementById("status");
+  const debugOut = document.getElementById("debugOut");
 
-window.__exam=null;
+  const examMetaEl = document.getElementById("examMeta");
+  const examEl = document.getElementById("exam");
+  const resultMetaEl = document.getElementById("resultMeta");
+  const resultEl = document.getElementById("result");
 
-function setStatus(t){statusEl.textContent=t||"";}
-function clearExam(){examMetaEl.textContent="Ingen provdata ännu";examEl.innerHTML="";gradeBtn.disabled=true;window.__exam=null;}
-function clearResult(){resultMetaEl.textContent="Ingen rättning ännu";resultEl.innerHTML="";}
+  const generateBtn = document.getElementById("generateBtn");
+  const gradeBtn = document.getElementById("gradeBtn");
+  const testGenerateBtn = document.getElementById("testGenerateBtn");
+  const testGradeBtn = document.getElementById("testGradeBtn");
+  const clearBtn = document.getElementById("clearBtn");
 
-generateBtn.onclick=async()=>{
-clearExam();clearResult();
-if(!textEl.value.trim()){setStatus("Klistra in text först");return;}
-setStatus("Skapar mockprov...");
+  const levelEl = document.getElementById("level");
+  const courseEl = document.getElementById("course");
+  const pastedTextEl = document.getElementById("pastedText");
 
-try{
-const r=await fetch("/api/generate-exam",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({level:levelEl.value,pastedText:textEl.value})});
-const raw=await r.text();
+  window.__currentExam = null;
 
-let data=null;try{data=JSON.parse(raw);}catch{}
+  function setStatus(t){ statusEl.textContent = t || ""; }
+  function showDebug(t){
+    debugOut.style.display = "block";
+    debugOut.textContent = t || "";
+  }
+  function hideDebug(){
+    debugOut.style.display = "none";
+    debugOut.textContent = "";
+  }
 
-if(!r.ok||!data||!data.ok){
-setStatus("SERVERFEL");
-examMetaEl.textContent="STATUS "+r.status+" → "+raw.slice(0,400);
-return;
-}
+  function clearExamUI(){
+    examMetaEl.textContent = "Ingen provdata ännu.";
+    examEl.innerHTML = "";
+    gradeBtn.disabled = true;
+    window.__currentExam = null;
+  }
+  function clearResultUI(){
+    resultMetaEl.textContent = "Ingen rättning ännu.";
+    resultEl.innerHTML = "";
+  }
 
-const txt=data.openai.output_text||"";
-let exam=null;try{exam=JSON.parse(txt);}catch{}
+  function extractTextFromOpenAI(openai) {
+    try {
+      if (openai && typeof openai.output_text === "string" && openai.output_text.trim()) {
+        return openai.output_text;
+      }
+    } catch (_) {}
+    try {
+      const out = openai?.output;
+      if (Array.isArray(out)) {
+        for (const item of out) {
+          const content = item?.content;
+          if (Array.isArray(content)) {
+            for (const c of content) {
+              const t = c?.text;
+              if (typeof t === "string" && t.trim()) return t;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
 
-if(!exam){setStatus("Kunde inte tolka JSON");examMetaEl.textContent=txt.slice(0,400);return;}
+  function safeParseJson(s){
+    try { return JSON.parse(s); } catch { return null; }
+  }
 
-window.__exam=exam;
-examMetaEl.textContent=exam.title+" ("+exam.level+")";
-exam.questions.forEach(q=>{
-const d=document.createElement("div");
-d.className="q";
-d.innerHTML="<b>"+q.question+"</b><textarea class='ans'></textarea>";
-examEl.appendChild(d);
+  function renderExam(exam){
+    window.__currentExam = exam;
+    const title = exam?.title || "Mockprov";
+    const level = exam?.level || "—";
+    const qs = Array.isArray(exam?.questions) ? exam.questions : [];
+
+    examMetaEl.textContent = `${title} • Nivå: ${level} • Frågor: ${qs.length}`;
+    examEl.innerHTML = "";
+
+    qs.forEach((q, idx) => {
+      const box = document.createElement("div");
+      box.className = "q";
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = `ID: ${q?.id ?? (idx+1)} • Poäng: ${q?.points ?? "—"}`;
+
+      const text = document.createElement("p");
+      text.className = "text";
+      text.textContent = q?.question ?? "";
+
+      const answer = document.createElement("textarea");
+      answer.className = "answer";
+      answer.placeholder = "Skriv ditt svar här...";
+      answer.dataset.qid = String(q?.id ?? (idx+1));
+
+      box.appendChild(meta);
+      box.appendChild(text);
+      box.appendChild(answer);
+      examEl.appendChild(box);
+    });
+
+    gradeBtn.disabled = (qs.length === 0);
+  }
+
+  function renderResult(r){
+    const total = r?.total_points ?? "—";
+    const max = r?.max_points ?? "—";
+    resultMetaEl.textContent = `Rättning: ${total}/${max}`;
+
+    const wrap = document.createElement("div");
+    const tips = Array.isArray(r?.tips) ? r.tips : [];
+    const perQ = Array.isArray(r?.per_question) ? r.per_question : [];
+
+    if (perQ.length){
+      perQ.forEach(item => {
+        const d = document.createElement("div");
+        d.className = "q";
+        d.innerHTML = `
+          <div class="meta">ID: ${item.id} • ${item.points}/${item.max_points}</div>
+          <p class="text" style="margin:0">${item.feedback || ""}</p>
+        `;
+        wrap.appendChild(d);
+      });
+    }
+
+    if (tips.length){
+      const ul = document.createElement("ul");
+      tips.forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        ul.appendChild(li);
+      });
+      wrap.appendChild(ul);
+    }
+
+    resultEl.innerHTML = "";
+    resultEl.appendChild(wrap);
+  }
+
+  async function postJson(path, payload){
+    const resp = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const raw = await resp.text();
+    return { status: resp.status, ok: resp.ok, raw, json: safeParseJson(raw) };
+  }
+
+  // ===== TEST 1: generate-exam =====
+  testGenerateBtn.addEventListener("click", async () => {
+    hideDebug();
+    setStatus("Testar generate-exam...");
+
+    const payload = {
+      level: "C",
+      course: "test",
+      pastedText: "Testmaterial: utbud och efterfrågan, inflation, BNP."
+    };
+
+    try {
+      const r = await postJson("/api/generate-exam", payload);
+      setStatus(`Test generate-exam: HTTP ${r.status}`);
+      showDebug(r.raw);
+
+    } catch (e) {
+      setStatus("Test generate-exam: nätverksfel");
+      showDebug(String(e));
+    }
+  });
+
+  // ===== TEST 2: grade =====
+  testGradeBtn.addEventListener("click", async () => {
+    hideDebug();
+    setStatus("Testar grade...");
+
+    const payload = {
+      level: "C",
+      course: "test",
+      pastedText: "Testmaterial: utbud och efterfrågan.",
+      questions: [{ id: "1", points: 2, question: "Vad är utbud?" }],
+      answers: [{ id: "1", answer: "Utbud är mängden varor som producenter vill sälja vid ett visst pris." }]
+    };
+
+    try {
+      const r = await postJson("/api/grade", payload);
+      setStatus(`Test grade: HTTP ${r.status}`);
+      showDebug(r.raw);
+
+    } catch (e) {
+      setStatus("Test grade: nätverksfel");
+      showDebug(String(e));
+    }
+  });
+
+  // ===== NORMAL: Skapa mockprov =====
+  generateBtn.addEventListener("click", async () => {
+    hideDebug();
+    clearResultUI();
+    clearExamUI();
+
+    const level = levelEl.value;
+    const course = courseEl.value.trim();
+    const pastedText = pastedTextEl.value.trim();
+
+    if (!pastedText) {
+      setStatus("Klistra in material först.");
+      return;
+    }
+
+    setStatus("Skapar mockprov...");
+
+    try {
+      const r = await postJson("/api/generate-exam", { level, course, pastedText });
+
+      if (!r.ok || !r.json || !r.json.ok) {
+        setStatus(`Fel vid generering (HTTP ${r.status}). Se debug.`);
+        showDebug(r.raw);
+        return;
+      }
+
+      const rawText = extractTextFromOpenAI(r.json.openai);
+      const exam = safeParseJson(rawText || "");
+
+      if (!exam) {
+        setStatus("Kunde inte tolka prov som JSON. Se debug.");
+        showDebug(rawText || "(ingen output_text)");
+        return;
+      }
+
+      renderExam(exam);
+      setStatus("Mockprov klart.");
+    } catch (e) {
+      setStatus("Nätverksfel vid generering.");
+      showDebug(String(e));
+    }
+  });
+
+  // ===== NORMAL: Rätta prov =====
+  gradeBtn.addEventListener("click", async () => {
+    hideDebug();
+    clearResultUI();
+
+    const exam = window.__currentExam;
+    if (!exam || !Array.isArray(exam.questions) || exam.questions.length === 0) {
+      setStatus("Skapa ett mockprov först.");
+      return;
+    }
+
+    const level = levelEl.value;
+    const course = courseEl.value.trim();
+    const pastedText = pastedTextEl.value.trim();
+
+    const answers = Array.from(document.querySelectorAll("textarea.answer")).map(el => ({
+      id: el.dataset.qid,
+      answer: el.value.trim()
+    }));
+
+    setStatus("Rättar prov...");
+
+    try {
+      const r = await postJson("/api/grade", {
+        level, course, pastedText,
+        questions: exam.questions,
+        answers
+      });
+
+      if (!r.ok || !r.json || !r.json.ok) {
+        setStatus(`Fel vid rättning (HTTP ${r.status}). Se debug.`);
+        showDebug(r.raw);
+        return;
+      }
+
+      const rawText = extractTextFromOpenAI(r.json.openai);
+      const result = safeParseJson(rawText || "");
+
+      if (!result) {
+        setStatus("Kunde inte tolka rättning som JSON. Se debug.");
+        showDebug(rawText || "(ingen output_text)");
+        return;
+      }
+
+      renderResult(result);
+      setStatus("Rättning klar.");
+    } catch (e) {
+      setStatus("Nätverksfel vid rättning.");
+      showDebug(String(e));
+    }
+  });
+
+  // ===== Rensa =====
+  clearBtn.addEventListener("click", () => {
+    hideDebug();
+    pastedTextEl.value = "";
+    courseEl.value = "";
+    levelEl.value = "C";
+    clearExamUI();
+    clearResultUI();
+    setStatus("");
+  });
+
+  setStatus("");
 });
-
-gradeBtn.disabled=false;
-setStatus("Mockprov klart");
-}catch(e){setStatus("Nätverksfel");}
-};
-
-gradeBtn.onclick=async()=>{
-if(!window.__exam){setStatus("Skapa prov först");return;}
-setStatus("Rättar...");
-
-const answers=[...document.querySelectorAll(".ans")].map(a=>a.value);
-
-try{
-const r=await fetch("/api/grade",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers})});
-const raw=await r.text();
-
-let data=null;try{data=JSON.parse(raw);}catch{}
-if(!r.ok||!data||!data.ok){resultMetaEl.textContent="SERVERFEL "+raw.slice(0,300);return;}
-
-resultMetaEl.textContent="Rättning klar";
-resultEl.textContent=data.openai.output_text||"";
-setStatus("Klart");
-}catch(e){setStatus("Nätverksfel");}
-};
 </script>
 </body>
 </html>
