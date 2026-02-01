@@ -12,6 +12,27 @@ function send(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
+function extractOutputText(data) {
+  if (data && typeof data.output_text === "string" && data.output_text.trim()) {
+    return data.output_text.trim();
+  }
+  try {
+    const out = data?.output;
+    if (Array.isArray(out)) {
+      for (const item of out) {
+        const content = item?.content;
+        if (Array.isArray(content)) {
+          for (const c of content) {
+            const t = c?.text;
+            if (typeof t === "string" && t.trim()) return t.trim();
+          }
+        }
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return send(res, 405, { error: "Use POST" });
 
@@ -76,9 +97,20 @@ module.exports = async function handler(req, res) {
     const raw = await r.text();
     if (!r.ok) return send(res, 500, { error: "OpenAI error", details: raw });
 
-    const data = JSON.parse(raw);
-    const resultText = data.output_text;
-    const result = JSON.parse(resultText);
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { return send(res, 500, { error: "OpenAI returned non-JSON", details: raw }); }
+
+    const resultText = extractOutputText(data);
+    if (!resultText) {
+      return send(res, 500, { error: "OpenAI response missing output text", details: raw });
+    }
+
+    let result;
+    try { result = JSON.parse(resultText); }
+    catch {
+      return send(res, 500, { error: "OpenAI output_text was not valid JSON", details: resultText });
+    }
 
     return send(res, 200, { ok: true, result });
   } catch (e) {
