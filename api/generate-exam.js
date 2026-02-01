@@ -21,6 +21,19 @@ function json(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") return json(res, 405, { error: "Use POST" });
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return json(res, 500, { error: "Missing OPENAI_API_KEY env var" });
+
+  const body = await readJsonBody(req);
+  const level = (body.level || "C").toString().toUpperCase();
+  const course = (body.course || "").toString().trim();
+  const pastedText = (body.pastedText || "").toString().trim();
+
+  if (!pastedText) return json(res, 400, { error: "Missing pastedText" });
+
   // Strikt JSON-output som appen kan JSON.parse:a direkt.
   const input = [
     "Du är en provkonstruktör för svenska gymnasiet.",
