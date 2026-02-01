@@ -1,68 +1,55 @@
 <!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProvKlar UF</title>
-  <style>
-    :root{
-      --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --card:#fff;
-      --muted:#556072; --border:rgba(11,31,58,.12);
-      --radius:16px; --shadow:0 16px 40px rgba(11,31,58,.12);
-      --font: system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1100px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:var(--font);background:var(--bg);color:#0C1220}
-    header{background:#fff;border-bottom:1px solid var(--border)}
-    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,24px)}
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--navy);min-width:0}
-    .brand img{height:clamp(64px,9vw,120px);width:auto;display:block}
-    .t{font-weight:1000;font-size:clamp(22px,4.5vw,38px);line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .s{margin-top:6px;color:var(--muted);font-weight:750;font-size:clamp(12px,2.4vw,16px)}
-    .btn{padding:14px 22px;border-radius:18px;font-weight:1000;text-decoration:none;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
-    .btnPrimary{background:var(--teal);color:#fff;border-color:rgba(24,184,138,.25);box-shadow:0 12px 26px rgba(24,184,138,.20)}
-    .hero{padding:clamp(54px,9vw,96px) 0;text-align:center}
-    h1{margin:0 0 12px;color:var(--navy);font-size:clamp(28px,6vw,52px);line-height:1.1}
-    p{margin:0 auto;max-width:720px;color:var(--muted);font-weight:650;font-size:clamp(15px,3vw,18px)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:32px;text-align:left}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
-    .card h3{margin:0 0 8px;color:var(--navy);font-size:16px}
-    .card p{margin:0;color:var(--muted);font-weight:650;font-size:13px;line-height:1.4}
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:650}
-    @media (max-width:560px){
-      .nav{justify-content:center}
-      .btn{width:100%;max-width:420px}
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ProvKlar UF</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#f6f8fb}
+header{padding:20px;text-align:center}
+a.btn{background:#18B88A;color:white;padding:14px 24px;border-radius:12px;text-decoration:none;font-weight:700}
+</style>
 </head>
 <body>
-  <header>
-    <div class="wrap nav">
-      <a class="brand" href="index.html" aria-label="ProvKlar UF">
-        <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
-        <div style="min-width:0">
-          <div class="t">ProvKlar UF</div>
-          <div class="s">Mockprov • Rättning • Tips</div>
-        </div>
-      </a>
-      <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
-    </div>
-  </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <h1>Provträning på 1 klick</h1>
-      <p>Klistra in material, skapa mockprov, skriv svar och få rättning + förbättringstips.</p>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="
+position:fixed; inset:0; background:#0B1F3A;
+display:flex; align-items:center; justify-content:center;
+color:white; z-index:9999;">
+  <div style="background:white;color:black;padding:30px;border-radius:16px;text-align:center;width:300px;">
+    <h2>ProvKlar</h2>
+    <p>Ange åtkomstkod</p>
+    <input id="accessCode" type="password" placeholder="Kod"
+      style="padding:10px;width:100%;margin-bottom:10px;">
+    <button onclick="checkCode()" style="padding:10px 20px;">Logga in</button>
+    <p id="errorMsg" style="color:red;"></p>
+  </div>
+</div>
 
-      <div class="grid">
-        <div class="card"><h3>Mockprov</h3><p>Realistiska frågor utifrån ditt material och vald nivå.</p></div>
-        <div class="card"><h3>Rättning</h3><p>Poäng per fråga, totalpoäng och konkret feedback.</p></div>
-        <div class="card"><h3>Tips</h3><p>Vad du tappade på och hur du höjer nivån.</p></div>
-      </div>
-    </section>
-  </main>
+<header>
+  <h1>ProvKlar UF</h1>
+  <p>Mockprov • Rättning • Tips</p>
+  <a class="btn" href="app.html">Starta ProvKlar</a>
+</header>
 
-  <footer>ProvKlar UF är studiestöd. Ingen officiell betygssättning.</footer>
+<script>
+const CORRECT_CODE = "provklar123";
+
+function checkCode(){
+  const val = document.getElementById("accessCode").value;
+  if(val === CORRECT_CODE){
+    document.getElementById("loginScreen").style.display = "none";
+    localStorage.setItem("loggedIn","true");
+  } else {
+    document.getElementById("errorMsg").innerText="Fel kod";
+  }
+}
+
+if(localStorage.getItem("loggedIn")==="true"){
+  document.getElementById("loginScreen").style.display="none";
+}
+</script>
+
 </body>
 </html>
