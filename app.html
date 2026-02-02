@@ -40,9 +40,7 @@
       position:sticky;top:0;z-index:50;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:14px;
-    }
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
@@ -60,7 +58,6 @@
       color:var(--navy);
     }
     .btn:active{transform:translateY(1px)}
-    .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.24)}
     .btnPrimary{
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
@@ -68,8 +65,7 @@
 
     /* Hamburger */
     .menuBtn{
-      width:46px;height:46px;
-      border-radius:14px;
+      width:46px;height:46px;border-radius:14px;
       display:inline-flex;align-items:center;justify-content:center;
       position:relative;
     }
@@ -113,10 +109,8 @@
       font-weight:1000;color:var(--navy);
     }
     .dropItem small{color:var(--muted);font-weight:800}
-    .dropItem.danger{
-      color:var(--danger);
-      border-color:rgba(139,29,29,.22);
-    }
+    .dropItem.danger{color:var(--danger);border-color:rgba(139,29,29,.22)}
+
     .overlay{position:fixed;inset:0;z-index:55;background:transparent;display:none}
     .overlay.show{display:block}
 
@@ -222,7 +216,6 @@
       padding:14px;
       display:grid;gap:10px;
     }
-    .pickTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .pickTop strong{color:var(--navy);font-weight:1100}
     .pickTop span{color:var(--muted);font-weight:750;font-size:12px;line-height:1.35;max-width:70ch}
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -280,7 +273,7 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
-    /* LOGIN OVERLAY (app kräver kod) */
+    /* LOGIN OVERLAY */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -313,7 +306,7 @@
 </head>
 <body>
 
-  <!-- APP-LOCK -->
+  <!-- APP-LOCK (KRÄVER KOD) -->
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
@@ -457,17 +450,15 @@
 
         <div class="pickBox">
           <div class="pickTop">
-            <div>
-              <strong>Bilagor (valfritt)</strong>
-              <div style="margin-top:4px">
-                <span>Mobil: välj bild eller ta foto. Desktop: välj filer. Textfiler kan läggas in i materialfältet från listan.</span>
-              </div>
+            <strong>Bilagor (valfritt)</strong>
+            <div style="margin-top:6px">
+              <span>Mobil: välj bild eller ta foto. Desktop: välj filer. Textfiler kan läggas in i materialfältet från listan.</span>
             </div>
           </div>
 
           <div class="fileRow">
             <label class="fileBtn" for="fileInput">Välj fil / ta bild</label>
-            <span class="fileHelp">.txt .md .pdf .png .jpg (flera samtidigt)</span>
+            <span class="fileHelp">.txt .md .pdf .png .jpg</span>
             <input id="fileInput" class="hiddenInput" type="file" multiple
                    accept=".txt,.md,text/plain,application/pdf,image/*" />
           </div>
@@ -479,9 +470,7 @@
             <small id="matCount">0 objekt</small>
           </div>
           <div id="matList"></div>
-          <div class="status" id="matHint" style="margin-top:10px">
-            Tips: ladda upp .txt/.md → klicka “Lägg i material”.
-          </div>
+          <div class="status" id="matHint" style="margin-top:10px">Inga bilagor ännu.</div>
 
           <div class="preview" id="imgPreview">
             <div class="sectionTitle" style="margin:12px 0 10px">
@@ -556,17 +545,15 @@
       inp.value = "";
       msg.textContent = "";
     }
-
     document.addEventListener("keydown", (e) => {
       const visible = document.getElementById("loginScreen").style.display !== "none";
       if(visible && e.key === "Enter") checkCode();
     });
-
     if(localStorage.getItem("provklar_app_access") === "true"){
       document.getElementById("loginScreen").style.display = "none";
     }
 
-    // ========= MENU =========
+    // ========= MENU (stabil scroll för #länkar) =========
     const menuBtn = document.getElementById("menuBtn");
     const dropdown = document.getElementById("dropdown");
     const overlay = document.getElementById("overlay");
@@ -591,7 +578,17 @@
 
     dropdown.addEventListener("click", (e) => {
       const a = e.target.closest("a");
-      if(a) closeMenu();
+      if(!a) return;
+
+      const href = a.getAttribute("href") || "";
+      closeMenu();
+
+      if(href.startsWith("#")){
+        e.preventDefault();
+        const el = document.querySelector(href);
+        if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      // annars normal navigation (index.html)
     });
 
     logoutMenuBtn.addEventListener("click", () => {
@@ -682,7 +679,7 @@
         matListEl.innerHTML = "";
 
         if(materials.length === 0){
-          matHintEl.textContent = "Inga bilagor ännu. Lägg till om du vill spara material i listan.";
+          matHintEl.textContent = "Inga bilagor ännu.";
           return;
         }
         matHintEl.textContent = "Textfiler kan läggas in i materialfältet. Bilder kan förhandsvisas.";
@@ -847,7 +844,6 @@
         (r.per_question || []).forEach(item => {
           const d = document.createElement("div");
           d.className = "q";
-
           const model = (item.model_answer || "").trim();
 
           d.innerHTML = `
@@ -908,7 +904,7 @@
 
           renderExam(r.data.exam);
           setBusy(false, "Redo.");
-          setStatus("Mockprov klart. Svara på frågorna och tryck “Rätta prov”.", "ok");
+          setStatus("Mockprov klart. Svara och tryck “Rätta prov”.", "ok");
           document.getElementById("exam").scrollIntoView({behavior:"smooth", block:"start"});
         } catch(e){
           setBusy(false, "Redo.");
@@ -951,7 +947,7 @@
 
           renderResult(r.data.result);
           setBusy(false, "Redo.");
-          setStatus("Rättning klar. Se poäng, feedback och modellsvar.", "ok");
+          setStatus("Rättning klar.", "ok");
           document.getElementById("result").scrollIntoView({behavior:"smooth", block:"start"});
         } catch(e){
           setBusy(false, "Redo.");
@@ -973,12 +969,6 @@
         clearResult();
         setStatus("");
         document.getElementById("material").scrollIntoView({behavior:"smooth", block:"start"});
-      });
-
-      // Header menu logout button
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        lockOut();
-        window.location.href = "index.html";
       });
 
       updateMaterialUI();
