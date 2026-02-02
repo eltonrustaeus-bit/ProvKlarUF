@@ -32,16 +32,19 @@
     a{text-decoration:none;color:inherit}
     :target{scroll-margin-top:90px}
 
+    /* Header */
     header{
       background:rgba(255,255,255,.86);
       backdrop-filter:saturate(140%) blur(10px);
       border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:5
+      position:sticky;top:0;z-index:50;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+    }
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .brand img{height:56px;width:auto;display:block}
+    .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
 
@@ -52,16 +55,72 @@
       cursor:pointer;white-space:nowrap;
       transition:transform .06s ease, opacity .06s ease;
       user-select:none;
+      background:rgba(255,255,255,.92);
+      border-color:var(--border);
+      color:var(--navy);
     }
     .btn:active{transform:translateY(1px)}
+    .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.24)}
     .btnPrimary{
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
-    .btnGhost{background:rgba(255,255,255,.92);color:var(--navy);border-color:var(--border)}
-    .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.24)}
-    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
+    /* Hamburger */
+    .menuBtn{
+      width:46px;height:46px;
+      border-radius:14px;
+      display:inline-flex;align-items:center;justify-content:center;
+      position:relative;
+    }
+    .burger{width:18px;height:12px;position:relative}
+    .burger span{
+      position:absolute;left:0;right:0;height:2px;border-radius:2px;background:var(--navy);
+      transition:transform .12s ease, top .12s ease, opacity .12s ease;
+    }
+    .burger span:nth-child(1){top:0}
+    .burger span:nth-child(2){top:5px}
+    .burger span:nth-child(3){top:10px}
+    .menuBtn[aria-expanded="true"] .burger span:nth-child(1){top:5px;transform:rotate(45deg)}
+    .menuBtn[aria-expanded="true"] .burger span:nth-child(2){opacity:0}
+    .menuBtn[aria-expanded="true"] .burger span:nth-child(3){top:5px;transform:rotate(-45deg)}
+
+    /* Dropdown */
+    .menuWrap{position:relative}
+    .dropdown{
+      position:absolute;right:0;top:56px;
+      width:min(340px, calc(100vw - 28px));
+      background:rgba(255,255,255,.96);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 18px 60px rgba(11,31,58,.18);
+      padding:10px;
+      display:none;
+      z-index:60;
+    }
+    .dropdown.open{display:block}
+    .dropHead{
+      padding:10px 10px 8px;
+      font-weight:1100;color:var(--navy);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+    }
+    .dropList{display:grid;gap:8px;padding:0 6px 8px}
+    .dropItem{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px;border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-weight:1000;color:var(--navy);
+    }
+    .dropItem small{color:var(--muted);font-weight:800}
+    .dropItem.danger{
+      color:var(--danger);
+      border-color:rgba(139,29,29,.22);
+    }
+    .overlay{position:fixed;inset:0;z-index:55;background:transparent;display:none}
+    .overlay.show{display:block}
+
+    /* Cards */
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -254,7 +313,7 @@
 </head>
 <body>
 
-  <!-- APP-LOCK (KRÄVER KOD) -->
+  <!-- APP-LOCK -->
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
@@ -269,7 +328,7 @@
         <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" onclick="checkCode()">Lås upp</button>
-          <a class="btn btnGhost" href="index.html">Till infosidan</a>
+          <a class="btn" href="index.html">Till infosidan</a>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
         <div class="hint">Tryck <span class="kbd">Enter</span> för att låsa upp.</div>
@@ -286,16 +345,47 @@
           <div class="tag">Skapa • Svara • Rätta</div>
         </div>
       </a>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn btnGhost" href="index.html">Infosida</a>
-        <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
+
+      <div class="menuWrap">
+        <button class="btn menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="dropdown" aria-label="Meny">
+          <div class="burger" aria-hidden="true"><span></span><span></span><span></span></div>
+        </button>
+
+        <div class="dropdown" id="dropdown" role="menu" aria-label="Meny">
+          <div class="dropHead">
+            <span>Meny</span>
+            <small>App</small>
+          </div>
+          <div class="dropList">
+            <a class="dropItem" href="index.html" role="menuitem">
+              <span>Infosida</span><small>öppnar</small>
+            </a>
+            <a class="dropItem" href="#material" role="menuitem">
+              <span>Material</span><small>steg 1</small>
+            </a>
+            <a class="dropItem" href="#actions" role="menuitem">
+              <span>Skapa/Rätta</span><small>steg 2</small>
+            </a>
+            <a class="dropItem" href="#exam" role="menuitem">
+              <span>Mockprov</span><small>steg 3</small>
+            </a>
+            <a class="dropItem" href="#result" role="menuitem">
+              <span>Rättning</span><small>steg 4</small>
+            </a>
+            <button class="dropItem danger" type="button" id="logoutMenuBtn" role="menuitem">
+              <span>Logga ut</span><small>låser appen</small>
+            </button>
+          </div>
+        </div>
       </div>
+
     </div>
   </header>
 
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
   <main class="wrap">
 
-    <!-- HUR DET FUNKAR (klickbara steg som scrollar) -->
     <section class="card" id="guide">
       <div class="sectionTitle">
         <span>Så gör du</span>
@@ -316,7 +406,6 @@
             <span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span>
           </div>
         </a>
-
         <a class="stepLink" href="#actions">
           <div class="stepNum">2</div>
           <div class="stepText">
@@ -324,7 +413,6 @@
             <span>Välj nivå (E/C/A) och generera provfrågor.</span>
           </div>
         </a>
-
         <a class="stepLink" href="#exam">
           <div class="stepNum">3</div>
           <div class="stepText">
@@ -332,7 +420,6 @@
             <span>Skriv dina svar under varje fråga.</span>
           </div>
         </a>
-
         <a class="stepLink" href="#result">
           <div class="stepNum">4</div>
           <div class="stepText">
@@ -343,12 +430,8 @@
       </div>
     </section>
 
-    <!-- MATERIAL -->
     <section class="card" id="material">
-      <div class="sectionTitle">
-        <span>Steg 1 – Material</span>
-        <a class="chip" href="#guide"><span class="dot"></span> Till toppen</a>
-      </div>
+      <div class="sectionTitle"><span>Steg 1 – Material</span></div>
       <p class="sectionSub">Texten nedan är viktigast. Bilagor är valfritt.</p>
 
       <div class="gridOne" style="margin-top:12px">
@@ -411,12 +494,8 @@
       </div>
     </section>
 
-    <!-- ACTIONS -->
     <section class="card" id="actions">
-      <div class="sectionTitle">
-        <span>Steg 2 – Skapa och rätta</span>
-        <a class="chip" href="#guide"><span class="dot"></span> Till toppen</a>
-      </div>
+      <div class="sectionTitle"><span>Steg 2 – Skapa och rätta</span></div>
       <p class="sectionSub">Skapa mockprov när du klistrat in material. Rätta när du svarat.</p>
 
       <div class="actionCard">
@@ -427,8 +506,8 @@
 
         <div class="row">
           <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
-          <button class="btn btnGhost" id="gradeBtn" type="button" disabled>Rätta prov</button>
-          <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
+          <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
+          <button class="btn" id="clearBtn" type="button">Rensa</button>
         </div>
 
         <div class="status" id="status"></div>
@@ -436,22 +515,14 @@
       </div>
     </section>
 
-    <!-- EXAM -->
     <section class="card" id="exam">
-      <div class="sectionTitle">
-        <span>Steg 3 – Mockprov</span>
-        <a class="chip" href="#actions"><span class="dot"></span> Till steg 2</a>
-      </div>
+      <div class="sectionTitle"><span>Steg 3 – Mockprov</span></div>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
       <div id="examBody"></div>
     </section>
 
-    <!-- RESULT -->
     <section class="card" id="result">
-      <div class="sectionTitle">
-        <span>Steg 4 – Rättning</span>
-        <a class="chip" href="#actions"><span class="dot"></span> Till steg 2</a>
-      </div>
+      <div class="sectionTitle"><span>Steg 4 – Rättning</span></div>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
       <div id="resultBody"></div>
     </section>
@@ -477,7 +548,6 @@
         msg.textContent = "Fel kod.";
       }
     }
-
     function lockOut(){
       localStorage.removeItem("provklar_app_access");
       document.getElementById("loginScreen").style.display = "flex";
@@ -496,6 +566,40 @@
       document.getElementById("loginScreen").style.display = "none";
     }
 
+    // ========= MENU =========
+    const menuBtn = document.getElementById("menuBtn");
+    const dropdown = document.getElementById("dropdown");
+    const overlay = document.getElementById("overlay");
+    const logoutMenuBtn = document.getElementById("logoutMenuBtn");
+
+    function closeMenu(){
+      dropdown.classList.remove("open");
+      overlay.classList.remove("show");
+      menuBtn.setAttribute("aria-expanded","false");
+    }
+    function openMenu(){
+      dropdown.classList.add("open");
+      overlay.classList.add("show");
+      menuBtn.setAttribute("aria-expanded","true");
+    }
+    menuBtn.addEventListener("click", () => {
+      const expanded = menuBtn.getAttribute("aria-expanded") === "true";
+      expanded ? closeMenu() : openMenu();
+    });
+    overlay.addEventListener("click", closeMenu);
+    window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeMenu(); });
+
+    dropdown.addEventListener("click", (e) => {
+      const a = e.target.closest("a");
+      if(a) closeMenu();
+    });
+
+    logoutMenuBtn.addEventListener("click", () => {
+      closeMenu();
+      lockOut();
+      window.location.href = "index.html";
+    });
+
     // ========= APP =========
     document.addEventListener("DOMContentLoaded", () => {
       const statusEl = document.getElementById("status");
@@ -511,7 +615,6 @@
       const generateBtn = document.getElementById("generateBtn");
       const gradeBtn = document.getElementById("gradeBtn");
       const clearBtn = document.getElementById("clearBtn");
-      const logoutBtn = document.getElementById("logoutBtn");
 
       const levelEl = document.getElementById("level");
       const courseEl = document.getElementById("course");
@@ -528,7 +631,7 @@
 
       let currentExam = null;
 
-      const materials = []; // {id, type, name, size, contentText?, dataUrl?}
+      const materials = [];
       const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
       function escapeHtml(s){
@@ -872,7 +975,8 @@
         document.getElementById("material").scrollIntoView({behavior:"smooth", block:"start"});
       });
 
-      logoutBtn.addEventListener("click", () => {
+      // Header menu logout button
+      document.getElementById("logoutBtn").addEventListener("click", () => {
         lockOut();
         window.location.href = "index.html";
       });
