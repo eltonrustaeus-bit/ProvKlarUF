@@ -32,7 +32,8 @@
       background:rgba(255,255,255,.86);
       backdrop-filter:saturate(140%) blur(10px);
       border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:50;
+      position:sticky;top:0;z-index:1000;
+      overflow:visible; /* viktigt så dropdown inte “klick-blockas” */
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -46,7 +47,7 @@
       padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid transparent;
       cursor:pointer;white-space:nowrap;
-      transition:transform .06s ease, opacity .06s ease;
+      transition:transform .06s ease;
       user-select:none;
       background:rgba(255,255,255,.92);
       border-color:var(--border);
@@ -58,11 +59,15 @@
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
 
-    /* Hamburger */
+    /* ====== MENY (checkbox + overlay) – funkar stabilt överallt ====== */
+    .menuWrap{position:relative;z-index:2000}
+    #navToggle{position:absolute;left:-9999px}
     .menuBtn{
       width:46px;height:46px;border-radius:14px;
       display:inline-flex;align-items:center;justify-content:center;
-      position:relative;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.92);
+      cursor:pointer;
     }
     .burger{width:18px;height:12px;position:relative}
     .burger span{
@@ -72,12 +77,19 @@
     .burger span:nth-child(1){top:0}
     .burger span:nth-child(2){top:5px}
     .burger span:nth-child(3){top:10px}
-    .menuBtn[aria-expanded="true"] .burger span:nth-child(1){top:5px;transform:rotate(45deg)}
-    .menuBtn[aria-expanded="true"] .burger span:nth-child(2){opacity:0}
-    .menuBtn[aria-expanded="true"] .burger span:nth-child(3){top:5px;transform:rotate(-45deg)}
 
-    /* Dropdown */
-    .menuWrap{position:relative}
+    #navToggle:checked + label .burger span:nth-child(1){top:5px;transform:rotate(45deg)}
+    #navToggle:checked + label .burger span:nth-child(2){opacity:0}
+    #navToggle:checked + label .burger span:nth-child(3){top:5px;transform:rotate(-45deg)}
+
+    .overlay{
+      position:fixed;inset:0;
+      background:transparent;
+      z-index:1500;
+      display:none;
+    }
+    #navToggle:checked ~ .overlay{display:block}
+
     .dropdown{
       position:absolute;right:0;top:56px;
       width:min(320px, calc(100vw - 28px));
@@ -87,9 +99,11 @@
       box-shadow:0 18px 60px rgba(11,31,58,.18);
       padding:10px;
       display:none;
-      z-index:60;
+      z-index:2001;
+      pointer-events:auto;
     }
-    .dropdown.open{display:block}
+    #navToggle:checked ~ .dropdown{display:block}
+
     .dropHead{
       padding:10px 10px 8px;
       font-weight:1100;color:var(--navy);
@@ -110,9 +124,6 @@
     }
     .dropItem.primary small{color:rgba(255,255,255,.88)}
 
-    .overlay{position:fixed;inset:0;z-index:55;background:transparent;display:none}
-    .overlay.show{display:block}
-
     /* Cards */
     .card{
       background:rgba(255,255,255,.92);
@@ -131,61 +142,21 @@
       background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.16), transparent 60%);
       pointer-events:none;
     }
-
-    .hero{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      align-items:center;
-    }
+    .hero{display:grid;grid-template-columns: 1.2fr .8fr;gap:14px;align-items:center}
     @media (max-width: 860px){ .hero{grid-template-columns:1fr} }
 
-    h1{
-      margin:0;
-      font-size:clamp(26px,4vw,40px);
-      line-height:1.05;
-      letter-spacing:-.02em;
-      color:var(--navy);
-      font-weight:1100;
-    }
-    .lead{
-      margin:10px 0 0;
-      color:var(--muted);
-      font-weight:800;
-      line-height:1.45;
-      font-size:14px;
-      max-width:70ch;
-    }
-
+    h1{margin:0;font-size:clamp(26px,4vw,40px);line-height:1.05;letter-spacing:-.02em;color:var(--navy);font-weight:1100}
+    .lead{margin:10px 0 0;color:var(--muted);font-weight:800;line-height:1.45;font-size:14px;max-width:70ch}
     .kpiRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .kpi{
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      min-width:180px;
-      flex:1 1 180px;
-    }
+    .kpi{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;min-width:180px;flex:1 1 180px}
     .kpi b{display:block;color:var(--navy);font-weight:1100}
     .kpi span{display:block;margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
 
-    .sectionTitle{
-      margin:0 0 8px;
-      font-weight:1100;
-      letter-spacing:-.01em;
-      color:var(--navy);
-      font-size:16px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    }
+    .sectionTitle{margin:0 0 8px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
-
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
     @media (max-width: 860px){ .grid2{grid-template-columns:1fr} }
-
-    .feature{
-      background:#fff;border:1px solid var(--border);border-radius:16px;
-      padding:14px;
-    }
+    .feature{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
     .feature b{display:block;color:var(--navy);font-weight:1100}
     .feature span{display:block;margin-top:6px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.45}
 
@@ -205,57 +176,39 @@
       </a>
 
       <div class="menuWrap">
-        <button class="btn menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="dropdown" aria-label="Meny">
+        <input id="navToggle" type="checkbox" />
+        <label class="menuBtn" for="navToggle" aria-label="Meny">
           <div class="burger" aria-hidden="true"><span></span><span></span><span></span></div>
-        </button>
+        </label>
 
-        <div class="dropdown" id="dropdown" role="menu" aria-label="Meny">
+        <label class="overlay" for="navToggle" aria-hidden="true"></label>
+
+        <nav class="dropdown" aria-label="Meny">
           <div class="dropHead">
             <span>Meny</span>
             <small>ProvKlar UF</small>
           </div>
           <div class="dropList">
-            <a class="dropItem primary" href="app.html" role="menuitem">
-              <span>Öppna appen</span><small>kod krävs</small>
-            </a>
-            <a class="dropItem" href="#hur" role="menuitem">
-              <span>Hur det funkar</span><small>4 steg</small>
-            </a>
-            <a class="dropItem" href="#funktioner" role="menuitem">
-              <span>Funktioner</span><small>översikt</small>
-            </a>
+            <a class="dropItem primary" href="app.html"><span>Öppna appen</span><small>kod krävs</small></a>
+            <a class="dropItem" href="#hur"><span>Hur det funkar</span><small>4 steg</small></a>
+            <a class="dropItem" href="#funktioner"><span>Funktioner</span><small>översikt</small></a>
           </div>
-        </div>
+        </nav>
       </div>
-
     </div>
   </header>
 
-  <div class="overlay" id="overlay" aria-hidden="true"></div>
-
-  <main class="wrap" id="top">
-
+  <main class="wrap">
     <section class="card">
       <div class="hero">
         <div>
           <h1>ProvKlar UF</h1>
-          <p class="lead">
-            Klistra in ditt provmaterial → generera ett mockprov → skriv dina svar → få rättning med poäng, feedback och modellsvar.
-          </p>
+          <p class="lead">Klistra in ditt provmaterial → generera ett mockprov → skriv dina svar → få rättning med poäng, feedback och modellsvar.</p>
 
           <div class="kpiRow">
-            <div class="kpi">
-              <b>Snabbt</b>
-              <span>Gör prov på minuter från anteckningar.</span>
-            </div>
-            <div class="kpi">
-              <b>Tydligt</b>
-              <span>Poäng per fråga + vad som ger full poäng.</span>
-            </div>
-            <div class="kpi">
-              <b>Fokus</b>
-              <span>Nivå E/C/A och förbättringstips.</span>
-            </div>
+            <div class="kpi"><b>Snabbt</b><span>Gör prov på minuter från anteckningar.</span></div>
+            <div class="kpi"><b>Tydligt</b><span>Poäng per fråga + vad som ger full poäng.</span></div>
+            <div class="kpi"><b>Fokus</b><span>Nivå E/C/A och förbättringstips.</span></div>
           </div>
 
           <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
@@ -267,109 +220,44 @@
           <div class="sectionTitle">Kort sammanfattning</div>
           <p class="sectionSub">Infosidan är öppen. Appen (provskapande/rättning) kräver åtkomstkod.</p>
           <div class="grid2">
-            <div class="feature">
-              <b>För vem?</b>
-              <span>Gymnasieelever som vill öva inför prov med realistiska frågor.</span>
-            </div>
-            <div class="feature">
-              <b>Vad får du?</b>
-              <span>Mockprov + rättning + modellsvar + förbättringsförslag.</span>
-            </div>
+            <div class="feature"><b>För vem?</b><span>Gymnasieelever som vill öva inför prov med realistiska frågor.</span></div>
+            <div class="feature"><b>Vad får du?</b><span>Mockprov + rättning + modellsvar + förbättringsförslag.</span></div>
           </div>
         </div>
-
       </div>
     </section>
 
     <section class="card" id="hur">
       <div class="sectionTitle">Hur det funkar</div>
       <p class="sectionSub">4 steg i appen.</p>
-
       <div class="grid2">
-        <div class="feature">
-          <b>1) Klistra in material</b>
-          <span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span>
-        </div>
-        <div class="feature">
-          <b>2) Skapa mockprov</b>
-          <span>Välj nivå (E/C/A) och generera frågor som kan komma på prov.</span>
-        </div>
-        <div class="feature">
-          <b>3) Svara</b>
-          <span>Skriv dina svar direkt under varje fråga.</span>
-        </div>
-        <div class="feature">
-          <b>4) Rätta</b>
-          <span>Poäng, feedback och modellsvar (vad som ger full poäng).</span>
-        </div>
+        <div class="feature"><b>1) Klistra in material</b><span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span></div>
+        <div class="feature"><b>2) Skapa mockprov</b><span>Välj nivå (E/C/A) och generera frågor som kan komma på prov.</span></div>
+        <div class="feature"><b>3) Svara</b><span>Skriv dina svar direkt under varje fråga.</span></div>
+        <div class="feature"><b>4) Rätta</b><span>Poäng, feedback och modellsvar (vad som ger full poäng).</span></div>
       </div>
     </section>
 
     <section class="card" id="funktioner">
       <div class="sectionTitle">Funktioner</div>
       <p class="sectionSub">Designad för att vara enkel och mobilvänlig.</p>
-
       <div class="grid2">
-        <div class="feature">
-          <b>Nivåstyrning</b>
-          <span>Välj E/C/A så att frågorna och rättningen matchar din målnivå.</span>
-        </div>
-        <div class="feature">
-          <b>Bilagor</b>
-          <span>Lägg till bilder/filer (valfritt). Textfiler kan läggas in i materialfältet.</span>
-        </div>
-        <div class="feature">
-          <b>Debug vid fel</b>
-          <span>Om något går fel visas debug-ruta (för felsökning).</span>
-        </div>
-        <div class="feature">
-          <b>Rensa / börja om</b>
-          <span>Rensa allt med en knapp och skapa nytt prov.</span>
-        </div>
+        <div class="feature"><b>Nivåstyrning</b><span>Välj E/C/A så att frågorna och rättningen matchar din målnivå.</span></div>
+        <div class="feature"><b>Bilagor</b><span>Lägg till bilder/filer (valfritt). Textfiler kan läggas in i materialfältet.</span></div>
+        <div class="feature"><b>Debug vid fel</b><span>Om något går fel visas debug-ruta (för felsökning).</span></div>
+        <div class="feature"><b>Rensa / börja om</b><span>Rensa allt med en knapp och skapa nytt prov.</span></div>
       </div>
     </section>
-
   </main>
 
   <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
-    const menuBtn = document.getElementById("menuBtn");
-    const dropdown = document.getElementById("dropdown");
-    const overlay = document.getElementById("overlay");
-
-    function closeMenu(){
-      dropdown.classList.remove("open");
-      overlay.classList.remove("show");
-      menuBtn.setAttribute("aria-expanded","false");
-    }
-    function openMenu(){
-      dropdown.classList.add("open");
-      overlay.classList.add("show");
-      menuBtn.setAttribute("aria-expanded","true");
-    }
-
-    menuBtn.addEventListener("click", () => {
-      const expanded = menuBtn.getAttribute("aria-expanded") === "true";
-      expanded ? closeMenu() : openMenu();
-    });
-    overlay.addEventListener("click", closeMenu);
-    window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeMenu(); });
-
-    // Stabil scroll för #länkar
-    dropdown.addEventListener("click", (e) => {
-      const a = e.target.closest("a");
-      if(!a) return;
-
-      const href = a.getAttribute("href") || "";
-      closeMenu();
-
-      if(href.startsWith("#")){
-        e.preventDefault();
-        const el = document.querySelector(href);
-        if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      // annars normal navigation (app.html)
+    // Stäng menyn automatiskt när man klickar på ett menyval (utan att stoppa navigation)
+    const navToggle = document.getElementById("navToggle");
+    document.addEventListener("click", (e) => {
+      const link = e.target.closest(".dropdown a");
+      if(link) navToggle.checked = false;
     });
   </script>
 </body>
