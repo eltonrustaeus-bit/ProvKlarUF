@@ -22,6 +22,7 @@
     }
 
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
       margin:0;
       font-family:var(--font);
@@ -29,6 +30,7 @@
       color:#0C1220;
     }
     a{text-decoration:none;color:inherit}
+    :target{scroll-margin-top:90px}
 
     header{
       background:rgba(255,255,255,.86);
@@ -88,7 +90,6 @@
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
 
-    /* konsekvent mellan dator/mobil: en kolumn */
     .gridOne{display:grid;grid-template-columns:1fr;gap:12px}
 
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
@@ -118,13 +119,17 @@
       background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;display:none;
     }
 
+    /* Clickable chips */
     .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:10px 12px;border-radius:999px;
       background:#fff;border:1px solid var(--border);
-      color:var(--navy);font-weight:950;font-size:12px
+      color:var(--navy);font-weight:950;font-size:12px;
+      transition:transform .06s ease, border-color .06s ease, box-shadow .06s ease;
     }
+    a.chip:hover{border-color:rgba(24,184,138,.35);box-shadow:0 10px 22px rgba(11,31,58,.06)}
+    a.chip:active{transform:translateY(1px)}
     .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
 
     .q{
@@ -137,22 +142,16 @@
     .q .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:950}
     .q .text{margin:0 0 10px;font-weight:850;color:#0C1220;line-height:1.45}
 
-    /* Steg-guide */
-    .steps{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin-top:12px;
+    /* Steps */
+    .steps{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    .stepLink{
+      display:flex;gap:12px;align-items:flex-start;
+      background:#fff;border:1px solid var(--border);
+      border-radius:16px;padding:12px;
+      transition:transform .06s ease, border-color .06s ease, box-shadow .06s ease;
     }
-    .step{
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:12px;
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-    }
+    .stepLink:hover{border-color:rgba(24,184,138,.35);box-shadow:0 10px 22px rgba(11,31,58,.06)}
+    .stepLink:active{transform:translateY(1px)}
     .stepNum{
       width:30px;height:30px;border-radius:12px;
       display:flex;align-items:center;justify-content:center;
@@ -166,19 +165,17 @@
     .stepText b{display:block;color:var(--navy);font-weight:1100}
     .stepText span{display:block;margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
 
-    /* Samlad upload/kamera i ett block */
+    /* Upload */
     .pickBox{
       border:1px dashed rgba(11,31,58,.28);
       border-radius:16px;
       background:rgba(255,255,255,.92);
       padding:14px;
-      display:grid;
-      gap:10px;
+      display:grid;gap:10px;
     }
     .pickTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .pickTop strong{color:var(--navy);font-weight:1100}
     .pickTop span{color:var(--muted);font-weight:750;font-size:12px;line-height:1.35;max-width:70ch}
-
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .fileBtn{
       display:inline-flex;align-items:center;justify-content:center;
@@ -216,24 +213,21 @@
     .tinyBtn.danger{color:var(--danger);border-color:rgba(139,29,29,.22)}
 
     .preview{
-      margin-top:10px;display:none;border:1px solid var(--border);border-radius:16px;background:#fff;padding:12px;
+      margin-top:10px;display:none;border:1px solid var(--border);
+      border-radius:16px;background:#fff;padding:12px;
     }
     .preview img{max-width:100%;height:auto;border-radius:14px;border:1px solid var(--border)}
 
-    /* Sticky action bar (proffsig + mobilvänlig) */
-    .actionBar{
-      position:sticky;
-      bottom:12px;
-      z-index:4;
-      margin-top:10px;
-      background:rgba(255,255,255,.86);
-      backdrop-filter:saturate(140%) blur(10px);
+    /* Action card */
+    .actionCard{
       border:1px solid var(--border);
       border-radius:18px;
-      padding:10px;
-      box-shadow:0 18px 50px rgba(11,31,58,.10);
+      background:rgba(255,255,255,.92);
+      padding:14px;
     }
-    .actionBar .row{margin-top:0}
+    .miniRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite;display:none;}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
@@ -266,9 +260,6 @@
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
     .hint{margin-top:10px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
     .kbd{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--navy);font-weight:1000;font-size:11px}
-
-    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite;display:none;}
-    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -314,68 +305,71 @@
 
   <main class="wrap">
 
-    <!-- HUR DET FUNKAR -->
-    <section class="card">
+    <!-- HUR DET FUNKAR (klickbara steg som scrollar) -->
+    <section class="card" id="guide">
       <div class="sectionTitle">
         <span>Så gör du</span>
-        <div class="chipRow" aria-label="Snabbguide">
-          <span class="chip"><span class="dot"></span> 1. Klistra in</span>
-          <span class="chip"><span class="dot"></span> 2. Skapa</span>
-          <span class="chip"><span class="dot"></span> 3. Rätta</span>
+        <div class="chipRow" aria-label="Snabbnavigering">
+          <a class="chip" href="#material"><span class="dot"></span> 1. Klistra in</a>
+          <a class="chip" href="#actions"><span class="dot"></span> 2. Skapa</a>
+          <a class="chip" href="#exam"><span class="dot"></span> 3. Svara</a>
+          <a class="chip" href="#result"><span class="dot"></span> 4. Rätta</a>
         </div>
       </div>
-      <p class="sectionSub">Kort process: skriv in ditt provmaterial → skapa mockprov → skriv svar → få rättning + modellsvar.</p>
+      <p class="sectionSub">Klicka på ett steg för att hoppa direkt dit.</p>
 
       <div class="steps">
-        <div class="step">
+        <a class="stepLink" href="#material">
           <div class="stepNum">1</div>
           <div class="stepText">
             <b>Klistra in material</b>
-            <span>Skriv/klistra in det du ska ha prov på (helst i punktform). Detta är viktigast.</span>
+            <span>Klistra in det du ska ha prov på (rubriker + punktlista).</span>
           </div>
-        </div>
-        <div class="step">
+        </a>
+
+        <a class="stepLink" href="#actions">
           <div class="stepNum">2</div>
           <div class="stepText">
-            <b>Välj nivå och skapa</b>
-            <span>Välj E/C/A → tryck “Skapa mockprov”.</span>
+            <b>Välj nivå och skapa mockprov</b>
+            <span>Välj E/C/A och tryck “Skapa mockprov”.</span>
           </div>
-        </div>
-        <div class="step">
+        </a>
+
+        <a class="stepLink" href="#exam">
           <div class="stepNum">3</div>
           <div class="stepText">
-            <b>Svara och rätta</b>
-            <span>Skriv dina svar → tryck “Rätta prov” för poäng, feedback och modellsvar (full poäng).</span>
+            <b>Svara på frågorna</b>
+            <span>Skriv kort och tydligt. Använd begrepp och exempel.</span>
           </div>
-        </div>
+        </a>
+
+        <a class="stepLink" href="#result">
+          <div class="stepNum">4</div>
+          <div class="stepText">
+            <b>Rätta provet</b>
+            <span>Få poäng, feedback, tips och modellsvar (full poäng).</span>
+          </div>
+        </a>
       </div>
     </section>
 
     <!-- MATERIAL -->
-    <section class="card">
+    <section class="card" id="material">
       <div class="sectionTitle">
-        <span>Material</span>
-        <div class="chipRow" aria-label="Materialstatus">
-          <span class="chip"><span class="dot"></span> Text först</span>
-          <span class="chip"><span class="dot"></span> Bilagor valfritt</span>
-        </div>
+        <span>Steg 1 – Material</span>
+        <a class="chip" href="#guide"><span class="dot"></span> Till toppen</a>
       </div>
-      <p class="sectionSub">
-        För bästa resultat: klistra in texten nedan. Filer/bilder är ett komplement (t.ex. för att spara material i listan).
-      </p>
+      <p class="sectionSub">Texten nedan är viktigast. Filer/bilder är valfritt komplement.</p>
 
-      <!-- 1) TEXT LÄNGST UPP -->
       <div class="gridOne" style="margin-top:12px">
         <div>
           <label for="pastedText">Material (klistra in text)</label>
-          <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
-
-          <div class="status warn" id="textTip" style="margin-top:10px">
-            Tips: skriv rubriker + punktlista (begrepp, definitioner, formler, exempel).
+          <textarea id="pastedText" placeholder="Klistra in anteckningar här..."></textarea>
+          <div class="status warn" style="margin-top:10px">
+            Format: Rubrik → punktlista → definitioner/formler → 1–2 exempel.
           </div>
         </div>
 
-        <!-- 2) Nivå + kurs -->
         <div>
           <label for="level">Nivå</label>
           <select id="level">
@@ -388,32 +382,24 @@
           <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
         </div>
 
-        <!-- 3) BILDER/FILER UNDER -->
         <div class="pickBox">
           <div class="pickTop">
             <div>
-              <strong>Lägg till bilder/filer (valfritt)</strong>
+              <strong>Bilagor (valfritt)</strong>
               <div style="margin-top:4px">
-                <span>Mobil: välj bild eller ta foto. Desktop: välj filer. Textfiler (.txt/.md) kan läggas in i textfältet via knappen i listan.</span>
+                <span>Mobil: välj bild eller ta foto. Desktop: välj filer. Textfiler kan läggas in i materialfältet från listan.</span>
               </div>
             </div>
           </div>
 
           <div class="fileRow">
             <label class="fileBtn" for="fileInput">Välj fil / ta bild</label>
-            <span class="fileHelp">Stöder: .txt, .md, .pdf, .png, .jpg (flera samtidigt)</span>
-
-            <input
-              id="fileInput"
-              class="hiddenInput"
-              type="file"
-              multiple
-              accept=".txt,.md,text/plain,application/pdf,image/*"
-            />
+            <span class="fileHelp">.txt .md .pdf .png .jpg (flera samtidigt)</span>
+            <input id="fileInput" class="hiddenInput" type="file" multiple
+                   accept=".txt,.md,text/plain,application/pdf,image/*" />
           </div>
         </div>
 
-        <!-- Materiallista + preview -->
         <div class="list">
           <div class="listHeader">
             <b>Materiallista</b>
@@ -421,7 +407,7 @@
           </div>
           <div id="matList"></div>
           <div class="status" id="matHint" style="margin-top:10px">
-            Tips: ladda upp en .txt/.md → klicka “Lägg i material” för att fylla textfältet snabbt.
+            Tips: ladda upp .txt/.md → klicka “Lägg i material”.
           </div>
 
           <div class="preview" id="imgPreview">
@@ -435,38 +421,49 @@
       </div>
     </section>
 
-    <!-- ACTION BAR (sticky) -->
-    <section class="actionBar">
-      <div class="sectionTitle" style="margin:0 0 6px">
-        <span>Kontroller</span>
-        <div class="row" style="margin:0;gap:10px">
+    <!-- ACTIONS (utan “Kontroller”-sektionen) -->
+    <section class="card" id="actions">
+      <div class="sectionTitle">
+        <span>Steg 2 – Skapa och rätta</span>
+        <a class="chip" href="#guide"><span class="dot"></span> Till toppen</a>
+      </div>
+      <p class="sectionSub">Skapa mockprov när du klistrat in material. Rätta när du svarat.</p>
+
+      <div class="actionCard">
+        <div class="miniRow">
           <div class="spinner" id="spinner"></div>
           <span class="sectionSub" id="miniState">Redo.</span>
         </div>
-      </div>
 
-      <div class="row">
-        <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
-        <button class="btn btnGhost" id="gradeBtn" type="button" disabled>Rätta prov</button>
-        <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
-      </div>
+        <div class="row">
+          <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
+          <button class="btn btnGhost" id="gradeBtn" type="button" disabled>Rätta prov</button>
+          <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
+        </div>
 
-      <div class="status" id="status"></div>
-      <pre id="debug"></pre>
+        <div class="status" id="status"></div>
+        <pre id="debug"></pre>
+      </div>
     </section>
 
     <!-- EXAM -->
-    <section class="card">
-      <div class="sectionTitle"><span>Mockprov</span></div>
+    <section class="card" id="exam">
+      <div class="sectionTitle">
+        <span>Steg 3 – Mockprov</span>
+        <a class="chip" href="#actions"><span class="dot"></span> Till steg 2</a>
+      </div>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
-      <div id="exam"></div>
+      <div id="examBody"></div>
     </section>
 
     <!-- RESULT -->
-    <section class="card">
-      <div class="sectionTitle"><span>Rättning</span></div>
+    <section class="card" id="result">
+      <div class="sectionTitle">
+        <span>Steg 4 – Rättning</span>
+        <a class="chip" href="#actions"><span class="dot"></span> Till steg 2</a>
+      </div>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
-      <div id="result"></div>
+      <div id="resultBody"></div>
     </section>
 
   </main>
@@ -516,9 +513,9 @@
       const spinnerEl = document.getElementById("spinner");
 
       const examMetaEl = document.getElementById("examMeta");
-      const examEl = document.getElementById("exam");
+      const examBodyEl = document.getElementById("examBody");
       const resultMetaEl = document.getElementById("resultMeta");
-      const resultEl = document.getElementById("result");
+      const resultBodyEl = document.getElementById("resultBody");
 
       const generateBtn = document.getElementById("generateBtn");
       const gradeBtn = document.getElementById("gradeBtn");
@@ -530,7 +527,6 @@
       const pastedTextEl = document.getElementById("pastedText");
 
       const fileInput = document.getElementById("fileInput");
-
       const matListEl = document.getElementById("matList");
       const matCountEl = document.getElementById("matCount");
       const matHintEl = document.getElementById("matHint");
@@ -578,13 +574,13 @@
       function clearExam(){
         currentExam = null;
         examMetaEl.textContent = "Ingen provdata ännu.";
-        examEl.innerHTML = "";
+        examBodyEl.innerHTML = "";
         gradeBtn.disabled = true;
       }
 
       function clearResult(){
         resultMetaEl.textContent = "Ingen rättning ännu.";
-        resultEl.innerHTML = "";
+        resultBodyEl.innerHTML = "";
       }
 
       function updateMaterialUI(){
@@ -592,7 +588,7 @@
         matListEl.innerHTML = "";
 
         if(materials.length === 0){
-          matHintEl.textContent = "Inga filer/bilder ännu. Lägg till om du vill spara material i listan.";
+          matHintEl.textContent = "Inga bilagor ännu. Lägg till om du vill spara material i listan.";
           return;
         }
         matHintEl.textContent = "Textfiler kan läggas in i materialfältet. Bilder kan förhandsvisas.";
@@ -641,7 +637,7 @@
               const add = m.contentText.trim();
               pastedTextEl.value = (current ? (current + "\n\n") : "") + add;
               setStatus("Text från fil inlagd i materialfältet.", "ok");
-              pastedTextEl.scrollIntoView({behavior:"smooth", block:"center"});
+              document.getElementById("material").scrollIntoView({behavior:"smooth", block:"start"});
             });
             actions.appendChild(insert);
           }
@@ -707,7 +703,6 @@
         setStatus("Bilagor tillagda i materiallistan.", "ok");
       }
 
-      // Automatisk tillägg direkt vid val
       fileInput.addEventListener("change", async () => {
         hideDebug();
         try{
@@ -723,7 +718,7 @@
         currentExam = exam;
         const qs = Array.isArray(exam.questions) ? exam.questions : [];
         examMetaEl.textContent = `${exam.title || "Mockprov"} • Nivå: ${exam.level || "—"} • Frågor: ${qs.length}`;
-        examEl.innerHTML = "";
+        examBodyEl.innerHTML = "";
 
         qs.forEach((q, idx) => {
           const box = document.createElement("div");
@@ -745,7 +740,7 @@
           box.appendChild(meta);
           box.appendChild(text);
           box.appendChild(answer);
-          examEl.appendChild(box);
+          examBodyEl.appendChild(box);
         });
 
         gradeBtn.disabled = qs.length === 0;
@@ -784,8 +779,8 @@
           wrap.appendChild(tipsBox);
         }
 
-        resultEl.innerHTML = "";
-        resultEl.appendChild(wrap);
+        resultBodyEl.innerHTML = "";
+        resultBodyEl.appendChild(wrap);
       }
 
       generateBtn.addEventListener("click", async () => {
@@ -797,6 +792,7 @@
         if (!pastedText){
           setStatus("Klistra in material först.", "bad");
           pastedTextEl.focus();
+          document.getElementById("material").scrollIntoView({behavior:"smooth", block:"start"});
           return;
         }
 
@@ -882,6 +878,7 @@
         clearExam();
         clearResult();
         setStatus("");
+        document.getElementById("material").scrollIntoView({behavior:"smooth", block:"start"});
       });
 
       logoutBtn.addEventListener("click", () => {
