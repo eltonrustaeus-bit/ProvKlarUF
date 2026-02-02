@@ -28,7 +28,6 @@
     a{text-decoration:none;color:inherit}
     :target{scroll-margin-top:90px}
 
-    /* Header */
     header{
       background:rgba(255,255,255,.86);
       backdrop-filter:saturate(140%) blur(10px);
@@ -36,9 +35,7 @@
       position:sticky;top:0;z-index:50;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:14px;
-    }
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
@@ -63,15 +60,11 @@
 
     /* Hamburger */
     .menuBtn{
-      width:46px;height:46px;
-      border-radius:14px;
+      width:46px;height:46px;border-radius:14px;
       display:inline-flex;align-items:center;justify-content:center;
-      gap:0;
       position:relative;
     }
-    .burger{
-      width:18px;height:12px;position:relative;
-    }
+    .burger{width:18px;height:12px;position:relative}
     .burger span{
       position:absolute;left:0;right:0;height:2px;border-radius:2px;background:var(--navy);
       transition:transform .12s ease, top .12s ease, opacity .12s ease;
@@ -116,11 +109,8 @@
       box-shadow:0 14px 28px rgba(24,184,138,.18);
     }
     .dropItem.primary small{color:rgba(255,255,255,.88)}
-    .overlay{
-      position:fixed;inset:0;z-index:55;
-      background:transparent;
-      display:none;
-    }
+
+    .overlay{position:fixed;inset:0;z-index:55;background:transparent;display:none}
     .overlay.show{display:block}
 
     /* Cards */
@@ -148,9 +138,8 @@
       gap:14px;
       align-items:center;
     }
-    @media (max-width: 860px){
-      .hero{grid-template-columns:1fr}
-    }
+    @media (max-width: 860px){ .hero{grid-template-columns:1fr} }
+
     h1{
       margin:0;
       font-size:clamp(26px,4vw,40px);
@@ -191,9 +180,8 @@
     .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
 
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    @media (max-width: 860px){
-      .grid2{grid-template-columns:1fr}
-    }
+    @media (max-width: 860px){ .grid2{grid-template-columns:1fr} }
+
     .feature{
       background:#fff;border:1px solid var(--border);border-radius:16px;
       padding:14px;
@@ -218,9 +206,7 @@
 
       <div class="menuWrap">
         <button class="btn menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="dropdown" aria-label="Meny">
-          <div class="burger" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
+          <div class="burger" aria-hidden="true"><span></span><span></span><span></span></div>
         </button>
 
         <div class="dropdown" id="dropdown" role="menu" aria-label="Meny">
@@ -238,12 +224,10 @@
             <a class="dropItem" href="#funktioner" role="menuitem">
               <span>Funktioner</span><small>översikt</small>
             </a>
-            <a class="dropItem" href="#top" role="menuitem" id="toTop">
-              <span>Till toppen</span><small>snabbt</small>
-            </a>
           </div>
         </div>
       </div>
+
     </div>
   </header>
 
@@ -276,15 +260,12 @@
 
           <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
             <a class="btn btnPrimary" href="app.html">Gå till appen</a>
-            <a class="btn" href="#hur">Läs hur det funkar</a>
           </div>
         </div>
 
         <div class="card" style="margin:0;box-shadow:none">
           <div class="sectionTitle">Kort sammanfattning</div>
-          <p class="sectionSub">
-            Detta är infosidan. Appen (provskapande/rättning) kräver åtkomstkod.
-          </p>
+          <p class="sectionSub">Infosidan är öppen. Appen (provskapande/rättning) kräver åtkomstkod.</p>
           <div class="grid2">
             <div class="feature">
               <b>För vem?</b>
@@ -356,7 +337,6 @@
     const menuBtn = document.getElementById("menuBtn");
     const dropdown = document.getElementById("dropdown");
     const overlay = document.getElementById("overlay");
-    const toTop = document.getElementById("toTop");
 
     function closeMenu(){
       dropdown.classList.remove("open");
@@ -368,6 +348,7 @@
       overlay.classList.add("show");
       menuBtn.setAttribute("aria-expanded","true");
     }
+
     menuBtn.addEventListener("click", () => {
       const expanded = menuBtn.getAttribute("aria-expanded") === "true";
       expanded ? closeMenu() : openMenu();
@@ -375,16 +356,20 @@
     overlay.addEventListener("click", closeMenu);
     window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeMenu(); });
 
+    // Stabil scroll för #länkar
     dropdown.addEventListener("click", (e) => {
       const a = e.target.closest("a");
       if(!a) return;
-      closeMenu();
-    });
 
-    toTop.addEventListener("click",(e)=>{
-      e.preventDefault();
+      const href = a.getAttribute("href") || "";
       closeMenu();
-      window.scrollTo({top:0,behavior:"smooth"});
+
+      if(href.startsWith("#")){
+        e.preventDefault();
+        const el = document.querySelector(href);
+        if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      // annars normal navigation (app.html)
     });
   </script>
 </body>
