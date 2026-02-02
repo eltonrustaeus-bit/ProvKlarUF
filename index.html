@@ -4,280 +4,260 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar UF</title>
-  <meta name="description" content="ProvKlar UF – skapa mockprov av ditt material, få rättning och konkreta tips för att höja nivån." />
+  <meta name="description" content="ProvKlar UF – skapa mockprov från ditt material, få rättning, feedback och modellsvar." />
   <style>
     :root{
       --navy:#0B1F3A;
       --teal:#18B88A;
       --bg:#F6F8FB;
-      --card:#FFFFFF;
       --muted:#556072;
       --border:rgba(11,31,58,.12);
       --shadow:0 18px 50px rgba(11,31,58,.14);
       --radius:18px;
       --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --max:1100px;
+      --max:1020px;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:var(--font);background:radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%), var(--bg);color:#0C1220}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%), var(--bg);
+      color:#0C1220;
+    }
     a{text-decoration:none;color:inherit}
-    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,24px)}
-    header{background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .brand{display:flex;align-items:center;gap:14px;min-width:0}
-    .brand img{height:clamp(52px,7vw,92px);width:auto;display:block}
-    .brand .name{font-weight:1000;color:var(--navy);font-size:clamp(18px,3.8vw,26px);line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .brand .tag{margin-top:4px;color:var(--muted);font-weight:750;font-size:12px}
+    header{
+      background:rgba(255,255,255,.86);
+      backdrop-filter:saturate(140%) blur(10px);
+      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:5
+    }
+    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand img{height:56px;width:auto;display:block}
+    .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
+    .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
+
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
-      padding:12px 18px;border-radius:14px;
+      padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid transparent;
-      cursor:pointer;white-space:nowrap
+      cursor:pointer;white-space:nowrap;
+      transition:transform .06s ease, opacity .06s ease;
+      user-select:none;
     }
-    .btnPrimary{background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);box-shadow:0 14px 28px rgba(24,184,138,.22)}
-    .btnGhost{background:rgba(255,255,255,.85);color:var(--navy);border-color:var(--border)}
-    .hero{padding:clamp(28px,6vw,56px) 0}
-    .heroGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:stretch}
-    @media (max-width:920px){.heroGrid{grid-template-columns:1fr}}
-    .panel{
-      background:rgba(255,255,255,.9);
+    .btn:active{transform:translateY(1px)}
+    .btnPrimary{
+      background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
+      box-shadow:0 14px 28px rgba(24,184,138,.22)
+    }
+    .btnGhost{background:rgba(255,255,255,.92);color:var(--navy);border-color:var(--border)}
+    .pillRow{display:flex;gap:10px;flex-wrap:wrap}
+
+    .card{
+      background:rgba(255,255,255,.92);
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       padding:clamp(16px,3vw,22px);
+      margin:14px 0;
       overflow:hidden;
       position:relative;
     }
-    .panel:before{
+    .card:before{
       content:"";
-      position:absolute;inset:-60px -60px auto auto;
-      width:180px;height:180px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.22), transparent 60%);
+      position:absolute;inset:-70px -70px auto auto;
+      width:190px;height:190px;border-radius:999px;
+      background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.16), transparent 60%);
       pointer-events:none;
     }
-    h1{margin:0 0 10px;color:var(--navy);font-size:clamp(28px,5.8vw,50px);line-height:1.08;letter-spacing:-.02em}
-    .lead{margin:0;color:var(--muted);font-weight:750;font-size:clamp(15px,2.8vw,18px);line-height:1.45;max-width:62ch}
-    .heroActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-    .pillRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:10px 12px;border-radius:999px;
-      background:#fff;border:1px solid var(--border);
-      color:var(--navy);font-weight:900;font-size:12px
+    .hero{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      align-items:center;
     }
-    .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
-    @media (max-width:920px){.cards{grid-template-columns:1fr}}
-    .card{
-      background:#fff;border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:16px;
+    @media (max-width: 860px){
+      .hero{grid-template-columns:1fr}
     }
-    .card h3{margin:0 0 6px;color:var(--navy);font-size:15px}
-    .card p{margin:0;color:var(--muted);font-weight:700;font-size:13px;line-height:1.45}
-    .sideBox{
-      display:flex;flex-direction:column;gap:12px;height:100%;
-      background:linear-gradient(180deg, rgba(11,31,58,.04), transparent 40%), rgba(255,255,255,.9);
+    h1{
+      margin:0;
+      font-size:clamp(26px,4vw,40px);
+      line-height:1.05;
+      letter-spacing:-.02em;
+      color:var(--navy);
+      font-weight:1100;
+    }
+    .lead{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-weight:800;
+      line-height:1.45;
+      font-size:14px;
+      max-width:70ch;
+    }
+    .kpiRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .kpi{
+      background:#fff;
       border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:clamp(16px,3vw,22px);
+      border-radius:16px;
+      padding:12px;
+      min-width:180px;
+      flex:1 1 180px;
     }
-    .step{display:flex;gap:12px;align-items:flex-start}
-    .num{
-      width:28px;height:28px;border-radius:10px;
-      display:flex;align-items:center;justify-content:center;
-      background:rgba(24,184,138,.14);color:var(--navy);font-weight:1000;font-size:13px;border:1px solid rgba(24,184,138,.22)
-    }
-    .step b{display:block;color:var(--navy)}
-    .step span{display:block;color:var(--muted);font-weight:700;font-size:13px;line-height:1.35;margin-top:2px}
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:700}
+    .kpi b{display:block;color:var(--navy);font-weight:1100}
+    .kpi span{display:block;margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
 
-    /* LOGIN OVERLAY */
-    .loginOverlay{
-      position:fixed;inset:0;z-index:9999;
-      background:
-        radial-gradient(800px 420px at 20% 10%, rgba(24,184,138,.22), transparent 60%),
-        radial-gradient(700px 380px at 90% 20%, rgba(24,184,138,.10), transparent 55%),
-        linear-gradient(135deg, rgba(11,31,58,.98), rgba(11,31,58,.92));
-      display:flex;align-items:center;justify-content:center;
-      padding:18px;
+    .sectionTitle{
+      margin:0 0 8px;
+      font-weight:1100;
+      letter-spacing:-.01em;
+      color:var(--navy);
+      font-size:16px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     }
-    .loginCard{
-      width:min(520px, 100%);
-      background:rgba(255,255,255,.92);
-      border:1px solid rgba(255,255,255,.22);
-      border-radius:22px;
-      box-shadow:0 24px 70px rgba(0,0,0,.25);
-      overflow:hidden;
+    .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    @media (max-width: 860px){
+      .grid2{grid-template-columns:1fr}
     }
-    .loginTop{
-      display:flex;gap:14px;align-items:center;
-      padding:18px 18px 10px 18px;
+    .feature{
+      background:#fff;border:1px solid var(--border);border-radius:16px;
+      padding:14px;
     }
-    .loginTop img{height:68px;width:auto;display:block}
-    .loginTop .ltTitle{font-weight:1000;color:var(--navy);font-size:20px;line-height:1.1}
-    .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
-    .loginBody{padding:12px 18px 18px 18px}
-    .fieldLabel{display:block;font-weight:1000;color:var(--navy);font-size:13px;margin:10px 0 6px}
-    .field{
-      width:100%;padding:12px 12px;border-radius:14px;border:1px solid var(--border);
-      background:#fff;font-family:inherit;font-size:14px
-    }
-    .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .err{margin-top:10px;color:#8b1d1d;font-weight:900;font-size:12px}
-    .hint{margin-top:10px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
-    .kbd{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:2px 8px;border-radius:999px;border:1px solid var(--border);
-      background:#fff;color:var(--navy);font-weight:1000;font-size:11px
-    }
+    .feature b{display:block;color:var(--navy);font-weight:1100}
+    .feature span{display:block;margin-top:6px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.45}
+
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
 <body>
 
-  <!-- LOGIN OVERLAY -->
-  <div id="loginScreen" class="loginOverlay" aria-hidden="false">
-    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
-      <div class="loginTop">
+  <header>
+    <div class="wrap topbar">
+      <a class="brand" href="index.html" aria-label="Till startsidan">
         <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
         <div>
-          <div class="ltTitle">ProvKlar UF</div>
-          <div class="ltSub">Åtkomst krävs för att fortsätta</div>
-        </div>
-      </div>
-      <div class="loginBody">
-        <label class="fieldLabel" for="accessCode">Åtkomstkod</label>
-        <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-
-        <div class="loginRow">
-          <button class="btn btnPrimary" type="button" onclick="checkCode()">Lås upp</button>
-          <button class="btn btnGhost" type="button" onclick="logout()">Rensa</button>
-        </div>
-
-        <div id="errorMsg" class="err" aria-live="polite"></div>
-        <div class="hint">
-          Tips: tryck <span class="kbd">Enter</span> efter att du skrivit koden.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <header>
-    <div class="wrap nav">
-      <a class="brand" href="index.html" aria-label="ProvKlar UF">
-        <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
-        <div style="min-width:0">
-          <div class="name">ProvKlar UF</div>
-          <div class="tag">Mockprov • Rättning • Tips</div>
+          <div class="name">ProvKlar</div>
+          <div class="tag">Mockprov • Rättning • Modellsvar</div>
         </div>
       </a>
-
-      <!-- ENDAST EN KNAPP KVAR -->
-      <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
+      <div class="pillRow">
+        <a class="btn btnGhost" href="#hur">Hur det funkar</a>
+        <a class="btn btnGhost" href="#funktioner">Funktioner</a>
+        <a class="btn btnPrimary" href="app.html">Öppna appen</a>
+      </div>
     </div>
   </header>
 
-  <main class="wrap hero">
-    <div class="heroGrid">
-      <section class="panel">
-        <h1>Provträning byggd på ditt material</h1>
-        <p class="lead">
-          Klistra in text eller anteckningar. ProvKlar skapar ett realistiskt mockprov på vald nivå, och ger rättning med tydliga förbättringstips.
-        </p>
+  <main class="wrap">
 
-        <!-- ENDAST EN CTA KVAR -->
-        <div class="heroActions">
-          <a class="btn btnPrimary" href="app.html">Starta ProvKlar</a>
-        </div>
+    <section class="card">
+      <div class="hero">
+        <div>
+          <h1>ProvKlar UF</h1>
+          <p class="lead">
+            Klistra in ditt provmaterial → generera ett mockprov → skriv dina svar → få rättning med poäng, feedback och modellsvar.
+          </p>
 
-        <div class="pillRow" aria-label="Nyckelfunktioner">
-          <span class="pill"><span class="dot"></span> 8–12 frågor per prov</span>
-          <span class="pill"><span class="dot"></span> Poäng & feedback per fråga</span>
-          <span class="pill"><span class="dot"></span> Tips för att höja nivån</span>
-        </div>
+          <div class="kpiRow">
+            <div class="kpi">
+              <b>Snabbt</b>
+              <span>Gör prov på minuter från anteckningar.</span>
+            </div>
+            <div class="kpi">
+              <b>Tydligt</b>
+              <span>Poäng per fråga + vad som ger full poäng.</span>
+            </div>
+            <div class="kpi">
+              <b>Fokus</b>
+              <span>Nivå E/C/A och förbättringstips.</span>
+            </div>
+          </div>
 
-        <div class="cards">
-          <div class="card">
-            <h3>Skapa mockprov</h3>
-            <p>Frågor som liknar riktiga provfrågor baserat på ditt material.</p>
-          </div>
-          <div class="card">
-            <h3>Rätta svar</h3>
-            <p>Automatisk rättning med poäng, motivering och förbättringar.</p>
-          </div>
-          <div class="card">
-            <h3>Plugga smart</h3>
-            <p>Se exakt vad du tappade på och vad du ska träna mer på.</p>
-          </div>
-        </div>
-      </section>
-
-      <aside class="sideBox" aria-label="Så funkar det">
-        <div class="step">
-          <div class="num">1</div>
-          <div>
-            <b>Klistra in material</b>
-            <span>Anteckningar, text, eller sammanfattning från lektion.</span>
-          </div>
-        </div>
-        <div class="step">
-          <div class="num">2</div>
-          <div>
-            <b>Välj nivå</b>
-            <span>E, C eller A – frågor anpassas efter målet.</span>
-          </div>
-        </div>
-        <div class="step">
-          <div class="num">3</div>
-          <div>
-            <b>Skriv svar & få rättning</b>
-            <span>Poäng + feedback och tips för att förbättra nästa prov.</span>
+          <div class="pillRow" style="margin-top:14px">
+            <a class="btn btnPrimary" href="app.html">Gå till appen</a>
+            <a class="btn btnGhost" href="#hur">Läs hur det funkar</a>
           </div>
         </div>
 
-        <div style="margin-top:auto;border-top:1px solid var(--border);padding-top:12px;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35">
-          ProvKlar UF är studiestöd och ger ingen officiell betygssättning.
+        <div class="card" style="margin:0;box-shadow:none">
+          <div class="sectionTitle">Kort sammanfattning</div>
+          <p class="sectionSub">
+            Detta är infosidan. Appen (provskapande/rättning) kräver åtkomstkod.
+          </p>
+          <div class="grid2">
+            <div class="feature">
+              <b>För vem?</b>
+              <span>Gymnasieelever som vill öva inför prov med realistiska frågor.</span>
+            </div>
+            <div class="feature">
+              <b>Vad får du?</b>
+              <span>Mockprov + rättning + modellsvar + förbättringsförslag.</span>
+            </div>
+          </div>
         </div>
-      </aside>
-    </div>
+
+      </div>
+    </section>
+
+    <section class="card" id="hur">
+      <div class="sectionTitle">Hur det funkar</div>
+      <p class="sectionSub">4 steg i appen.</p>
+
+      <div class="grid2">
+        <div class="feature">
+          <b>1) Klistra in material</b>
+          <span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span>
+        </div>
+        <div class="feature">
+          <b>2) Skapa mockprov</b>
+          <span>Välj nivå (E/C/A) och generera frågor som kan komma på prov.</span>
+        </div>
+        <div class="feature">
+          <b>3) Svara</b>
+          <span>Skriv dina svar direkt under varje fråga.</span>
+        </div>
+        <div class="feature">
+          <b>4) Rätta</b>
+          <span>Poäng, feedback och modellsvar (vad som ger full poäng).</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="funktioner">
+      <div class="sectionTitle">Funktioner</div>
+      <p class="sectionSub">Designad för att vara enkel och mobilvänlig.</p>
+
+      <div class="grid2">
+        <div class="feature">
+          <b>Nivåstyrning</b>
+          <span>Välj E/C/A så att frågorna och rättningen matchar din målnivå.</span>
+        </div>
+        <div class="feature">
+          <b>Bilagor</b>
+          <span>Lägg till bilder/filer (valfritt). Textfiler kan läggas in i materialfältet.</span>
+        </div>
+        <div class="feature">
+          <b>Debug vid fel</b>
+          <span>Om något går fel visas debug-ruta (för felsökning).</span>
+        </div>
+        <div class="feature">
+          <b>Rensa / börja om</b>
+          <span>Rensa allt med en knapp och skapa nytt prov.</span>
+        </div>
+      </div>
+
+      <div class="pillRow" style="margin-top:14px">
+        <a class="btn btnPrimary" href="app.html">Öppna appen</a>
+        <a class="btn btnGhost" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Till toppen</a>
+      </div>
+    </section>
+
   </main>
 
-  <footer>© ProvKlar UF</footer>
-
-  <script>
-    const CORRECT_CODE = "provklar123";
-
-    function checkCode(){
-      const inp = document.getElementById("accessCode");
-      const msg = document.getElementById("errorMsg");
-      const val = (inp.value || "").trim();
-
-      if(val === CORRECT_CODE){
-        localStorage.setItem("provklar_logged_in", "true");
-        document.getElementById("loginScreen").style.display = "none";
-        msg.textContent = "";
-      } else {
-        msg.textContent = "Fel kod.";
-      }
-    }
-
-    function logout(){
-      localStorage.removeItem("provklar_logged_in");
-      const inp = document.getElementById("accessCode");
-      const msg = document.getElementById("errorMsg");
-      inp.value = "";
-      msg.textContent = "";
-    }
-
-    document.addEventListener("keydown", (e) => {
-      const loginVisible = document.getElementById("loginScreen").style.display !== "none";
-      if(loginVisible && e.key === "Enter") checkCode();
-    });
-
-    if(localStorage.getItem("provklar_logged_in") === "true"){
-      document.getElementById("loginScreen").style.display = "none";
-    }
-  </script>
+  <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 </body>
 </html>
