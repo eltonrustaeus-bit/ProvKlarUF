@@ -18,6 +18,7 @@
       --max:1020px;
       --danger:#8b1d1d;
       --ok:#0f7a5a;
+      --warn:#946200;
     }
 
     *{box-sizing:border-box}
@@ -87,7 +88,7 @@
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
 
-    /* Layout ska vara konsekvent desktop/mobil: en kolumn */
+    /* konsekvent mellan dator/mobil: en kolumn */
     .gridOne{display:grid;grid-template-columns:1fr;gap:12px}
 
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
@@ -101,7 +102,7 @@
       font-size:14px;
       outline:none;
     }
-    textarea{min-height:150px;resize:vertical}
+    textarea{min-height:160px;resize:vertical}
     input:focus, textarea:focus, select:focus{
       border-color:rgba(24,184,138,.45);
       box-shadow:0 0 0 5px rgba(24,184,138,.14);
@@ -111,6 +112,7 @@
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)}
     .status.bad{color:var(--danger)}
+    .status.warn{color:var(--warn)}
     pre{
       margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
       background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;display:none;
@@ -135,7 +137,36 @@
     .q .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:950}
     .q .text{margin:0 0 10px;font-weight:850;color:#0C1220;line-height:1.45}
 
-    /* Samlad upload + kamera i ett block */
+    /* Steg-guide */
+    .steps{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .stepNum{
+      width:30px;height:30px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(24,184,138,.14);
+      border:1px solid rgba(24,184,138,.22);
+      color:var(--navy);
+      font-weight:1100;
+      font-size:13px;
+      flex:0 0 auto;
+    }
+    .stepText b{display:block;color:var(--navy);font-weight:1100}
+    .stepText span{display:block;margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
+
+    /* Samlad upload/kamera i ett block */
     .pickBox{
       border:1px dashed rgba(11,31,58,.28);
       border-radius:16px;
@@ -148,7 +179,6 @@
     .pickTop strong{color:var(--navy);font-weight:1100}
     .pickTop span{color:var(--muted);font-weight:750;font-size:12px;line-height:1.35;max-width:70ch}
 
-    /* Snygg “Välj fil”-knapp men samma funktion */
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .fileBtn{
       display:inline-flex;align-items:center;justify-content:center;
@@ -160,8 +190,6 @@
       cursor:pointer;user-select:none;
     }
     .fileHelp{color:var(--muted);font-weight:800;font-size:12px}
-
-    /* Döljer input men behåller “Välj fil” */
     .hiddenInput{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
 
     .list{
@@ -191,6 +219,21 @@
       margin-top:10px;display:none;border:1px solid var(--border);border-radius:16px;background:#fff;padding:12px;
     }
     .preview img{max-width:100%;height:auto;border-radius:14px;border:1px solid var(--border)}
+
+    /* Sticky action bar (proffsig + mobilvänlig) */
+    .actionBar{
+      position:sticky;
+      bottom:12px;
+      z-index:4;
+      margin-top:10px;
+      background:rgba(255,255,255,.86);
+      backdrop-filter:saturate(140%) blur(10px);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:10px;
+      box-shadow:0 18px 50px rgba(11,31,58,.10);
+    }
+    .actionBar .row{margin-top:0}
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
@@ -271,47 +314,68 @@
 
   <main class="wrap">
 
+    <!-- HUR DET FUNKAR -->
+    <section class="card">
+      <div class="sectionTitle">
+        <span>Så gör du</span>
+        <div class="chipRow" aria-label="Snabbguide">
+          <span class="chip"><span class="dot"></span> 1. Klistra in</span>
+          <span class="chip"><span class="dot"></span> 2. Skapa</span>
+          <span class="chip"><span class="dot"></span> 3. Rätta</span>
+        </div>
+      </div>
+      <p class="sectionSub">Kort process: skriv in ditt provmaterial → skapa mockprov → skriv svar → få rättning + modellsvar.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="stepNum">1</div>
+          <div class="stepText">
+            <b>Klistra in material</b>
+            <span>Skriv/klistra in det du ska ha prov på (helst i punktform). Detta är viktigast.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="stepNum">2</div>
+          <div class="stepText">
+            <b>Välj nivå och skapa</b>
+            <span>Välj E/C/A → tryck “Skapa mockprov”.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="stepNum">3</div>
+          <div class="stepText">
+            <b>Svara och rätta</b>
+            <span>Skriv dina svar → tryck “Rätta prov” för poäng, feedback och modellsvar (full poäng).</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- MATERIAL -->
     <section class="card">
       <div class="sectionTitle">
         <span>Material</span>
         <div class="chipRow" aria-label="Materialstatus">
-          <span class="chip"><span class="dot"></span> Text</span>
-          <span class="chip"><span class="dot"></span> Filer/Bilder</span>
+          <span class="chip"><span class="dot"></span> Text först</span>
+          <span class="chip"><span class="dot"></span> Bilagor valfritt</span>
         </div>
       </div>
-
       <p class="sectionSub">
-        Välj filer eller ta en bild i samma knapp. På mobil får du val mellan kamera och bildbibliotek.
-        Textfiler kan läggas in direkt i materialfältet. Bilder sparas som bilaga.
+        För bästa resultat: klistra in texten nedan. Filer/bilder är ett komplement (t.ex. för att spara material i listan).
       </p>
 
-      <!-- SAMMANSLAGET: en input, inga “Lägg till”-knappar -->
-      <div class="pickBox" style="margin-top:12px">
-        <div class="pickTop">
-          <div>
-            <strong>Lägg till material</strong>
-            <div style="margin-top:4px">
-              <span>Stöder: .txt, .md, .pdf, .png, .jpg. Du kan välja flera samtidigt.</span>
-            </div>
+      <!-- 1) TEXT LÄNGST UPP -->
+      <div class="gridOne" style="margin-top:12px">
+        <div>
+          <label for="pastedText">Material (klistra in text)</label>
+          <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
+
+          <div class="status warn" id="textTip" style="margin-top:10px">
+            Tips: skriv rubriker + punktlista (begrepp, definitioner, formler, exempel).
           </div>
         </div>
 
-        <div class="fileRow">
-          <label class="fileBtn" for="fileInput">Välj fil</label>
-          <span class="fileHelp">Desktop: välj filer • Mobil: välj filer eller ta bild</span>
-
-          <input
-            id="fileInput"
-            class="hiddenInput"
-            type="file"
-            multiple
-            accept=".txt,.md,text/plain,application/pdf,image/*"
-          />
-        </div>
-      </div>
-
-      <div class="gridOne" style="margin-top:14px">
+        <!-- 2) Nivå + kurs -->
         <div>
           <label for="level">Nivå</label>
           <select id="level">
@@ -321,26 +385,47 @@
           </select>
 
           <label for="course">Ämne/kurs (valfritt)</label>
-          <input id="course" placeholder="Ex: Matematik 2b" />
+          <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
         </div>
 
-        <div>
-          <label for="pastedText">Material (klistra in text)</label>
-          <textarea id="pastedText" placeholder="Klistra in anteckningar eller text här..."></textarea>
-
-          <div class="list" style="margin-top:12px">
-            <div class="listHeader">
-              <b>Materiallista</b>
-              <small id="matCount">0 objekt</small>
-            </div>
-            <div id="matList"></div>
-            <div class="status" id="matHint" style="margin-top:10px">
-              Tips: ladda upp en .txt/.md för att snabbt lägga in text i materialfältet.
+        <!-- 3) BILDER/FILER UNDER -->
+        <div class="pickBox">
+          <div class="pickTop">
+            <div>
+              <strong>Lägg till bilder/filer (valfritt)</strong>
+              <div style="margin-top:4px">
+                <span>Mobil: välj bild eller ta foto. Desktop: välj filer. Textfiler (.txt/.md) kan läggas in i textfältet via knappen i listan.</span>
+              </div>
             </div>
           </div>
 
+          <div class="fileRow">
+            <label class="fileBtn" for="fileInput">Välj fil / ta bild</label>
+            <span class="fileHelp">Stöder: .txt, .md, .pdf, .png, .jpg (flera samtidigt)</span>
+
+            <input
+              id="fileInput"
+              class="hiddenInput"
+              type="file"
+              multiple
+              accept=".txt,.md,text/plain,application/pdf,image/*"
+            />
+          </div>
+        </div>
+
+        <!-- Materiallista + preview -->
+        <div class="list">
+          <div class="listHeader">
+            <b>Materiallista</b>
+            <small id="matCount">0 objekt</small>
+          </div>
+          <div id="matList"></div>
+          <div class="status" id="matHint" style="margin-top:10px">
+            Tips: ladda upp en .txt/.md → klicka “Lägg i material” för att fylla textfältet snabbt.
+          </div>
+
           <div class="preview" id="imgPreview">
-            <div class="sectionTitle" style="margin:0 0 10px">
+            <div class="sectionTitle" style="margin:12px 0 10px">
               <span>Förhandsvisning</span>
               <button class="tinyBtn danger" type="button" id="closePreviewBtn">Stäng</button>
             </div>
@@ -350,10 +435,10 @@
       </div>
     </section>
 
-    <!-- ACTIONS -->
-    <section class="card">
-      <div class="sectionTitle">
-        <span>Prov</span>
+    <!-- ACTION BAR (sticky) -->
+    <section class="actionBar">
+      <div class="sectionTitle" style="margin:0 0 6px">
+        <span>Kontroller</span>
         <div class="row" style="margin:0;gap:10px">
           <div class="spinner" id="spinner"></div>
           <span class="sectionSub" id="miniState">Redo.</span>
@@ -456,8 +541,7 @@
 
       let currentExam = null;
 
-      // material state
-      const materials = []; // {id, type, name, size, note, contentText?, dataUrl?}
+      const materials = []; // {id, type, name, size, contentText?, dataUrl?}
       const id = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
       function escapeHtml(s){
@@ -508,10 +592,10 @@
         matListEl.innerHTML = "";
 
         if(materials.length === 0){
-          matHintEl.textContent = "Inga filer/bilder ännu. Klicka “Välj fil” för att lägga till material.";
+          matHintEl.textContent = "Inga filer/bilder ännu. Lägg till om du vill spara material i listan.";
           return;
         }
-        matHintEl.textContent = "Textfiler kan läsas in i materialfältet. Bilder sparas som bilaga.";
+        matHintEl.textContent = "Textfiler kan läggas in i materialfältet. Bilder kan förhandsvisas.";
 
         for(const m of materials){
           const row = document.createElement("div");
@@ -557,6 +641,7 @@
               const add = m.contentText.trim();
               pastedTextEl.value = (current ? (current + "\n\n") : "") + add;
               setStatus("Text från fil inlagd i materialfältet.", "ok");
+              pastedTextEl.scrollIntoView({behavior:"smooth", block:"center"});
             });
             actions.appendChild(insert);
           }
@@ -619,10 +704,10 @@
           }
         }
         updateMaterialUI();
-        setStatus("Material tillagt i listan.", "ok");
+        setStatus("Bilagor tillagda i materiallistan.", "ok");
       }
 
-      // ÄNDRING: Automatisk “lägg till” direkt vid val
+      // Automatisk tillägg direkt vid val
       fileInput.addEventListener("change", async () => {
         hideDebug();
         try{
@@ -681,7 +766,7 @@
             <p class="text" style="margin:0 0 10px">${escapeHtml(item.feedback || "")}</p>
             ${model ? `
               <div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
-                <div style="font-weight:1000;color:#0B1F3A;margin-bottom:6px;font-size:13px">Modellsvar (full poäng)</div>
+                <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">Modellsvar (full poäng)</div>
                 <div style="color:#0C1220;font-weight:800;line-height:1.45;font-size:13px;white-space:pre-wrap">${escapeHtml(model)}</div>
               </div>
             ` : ""}
@@ -710,7 +795,8 @@
 
         const pastedText = pastedTextEl.value.trim();
         if (!pastedText){
-          setStatus("Klistra in material först (eller lägg in text från en textfil).", "bad");
+          setStatus("Klistra in material först.", "bad");
+          pastedTextEl.focus();
           return;
         }
 
@@ -732,7 +818,8 @@
 
           renderExam(r.data.exam);
           setBusy(false, "Redo.");
-          setStatus("Mockprov klart.", "ok");
+          setStatus("Mockprov klart. Svara på frågorna och tryck “Rätta prov”.", "ok");
+          document.getElementById("exam").scrollIntoView({behavior:"smooth", block:"start"});
         } catch(e){
           setBusy(false, "Redo.");
           setStatus("Fel vid generering.", "bad");
@@ -774,7 +861,8 @@
 
           renderResult(r.data.result);
           setBusy(false, "Redo.");
-          setStatus("Rättning klar.", "ok");
+          setStatus("Rättning klar. Se poäng, feedback och modellsvar.", "ok");
+          document.getElementById("result").scrollIntoView({behavior:"smooth", block:"start"});
         } catch(e){
           setBusy(false, "Redo.");
           setStatus("Fel vid rättning.", "bad");
