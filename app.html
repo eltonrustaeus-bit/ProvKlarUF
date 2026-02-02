@@ -119,7 +119,7 @@
       background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;display:none;
     }
 
-    /* Clickable chips */
+    /* Chips */
     .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
@@ -131,16 +131,6 @@
     a.chip:hover{border-color:rgba(24,184,138,.35);box-shadow:0 10px 22px rgba(11,31,58,.06)}
     a.chip:active{transform:translateY(1px)}
     .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
-
-    .q{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-      margin-top:10px;
-    }
-    .q .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:950}
-    .q .text{margin:0 0 10px;font-weight:850;color:#0C1220;line-height:1.45}
 
     /* Steps */
     .steps{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
@@ -218,7 +208,7 @@
     }
     .preview img{max-width:100%;height:auto;border-radius:14px;border:1px solid var(--border)}
 
-    /* Action card */
+    /* Action box */
     .actionCard{
       border:1px solid var(--border);
       border-radius:18px;
@@ -231,7 +221,7 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
-    /* LOGIN OVERLAY */
+    /* LOGIN OVERLAY (app kräver kod) */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -264,14 +254,14 @@
 </head>
 <body>
 
-  <!-- LOGIN OVERLAY -->
+  <!-- APP-LOCK (KRÄVER KOD) -->
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
         <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
         <div>
           <div class="ltTitle">ProvKlar UF</div>
-          <div class="ltSub">Åtkomst krävs för att fortsätta</div>
+          <div class="ltSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
       <div class="loginBody">
@@ -279,17 +269,17 @@
         <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" onclick="checkCode()">Lås upp</button>
-          <button class="btn btnGhost" type="button" onclick="logout()">Rensa</button>
+          <a class="btn btnGhost" href="index.html">Till infosidan</a>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
-        <div class="hint">Tips: tryck <span class="kbd">Enter</span> efter att du skrivit koden.</div>
+        <div class="hint">Tryck <span class="kbd">Enter</span> för att låsa upp.</div>
       </div>
     </div>
   </div>
 
   <header>
     <div class="wrap topbar">
-      <a class="brand" href="index.html" aria-label="Till startsidan">
+      <a class="brand" href="index.html" aria-label="Till infosidan">
         <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
         <div>
           <div class="name">ProvKlar</div>
@@ -297,7 +287,7 @@
         </div>
       </a>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn btnGhost" href="index.html">Startsida</a>
+        <a class="btn btnGhost" href="index.html">Infosida</a>
         <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
       </div>
     </div>
@@ -316,38 +306,38 @@
           <a class="chip" href="#result"><span class="dot"></span> 4. Rätta</a>
         </div>
       </div>
-      <p class="sectionSub">Klicka på ett steg för att hoppa direkt dit.</p>
+      <p class="sectionSub">Klicka på ett steg för att hoppa dit.</p>
 
       <div class="steps">
         <a class="stepLink" href="#material">
           <div class="stepNum">1</div>
           <div class="stepText">
             <b>Klistra in material</b>
-            <span>Klistra in det du ska ha prov på (rubriker + punktlista).</span>
+            <span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span>
           </div>
         </a>
 
         <a class="stepLink" href="#actions">
           <div class="stepNum">2</div>
           <div class="stepText">
-            <b>Välj nivå och skapa mockprov</b>
-            <span>Välj E/C/A och tryck “Skapa mockprov”.</span>
+            <b>Skapa mockprov</b>
+            <span>Välj nivå (E/C/A) och generera provfrågor.</span>
           </div>
         </a>
 
         <a class="stepLink" href="#exam">
           <div class="stepNum">3</div>
           <div class="stepText">
-            <b>Svara på frågorna</b>
-            <span>Skriv kort och tydligt. Använd begrepp och exempel.</span>
+            <b>Svara</b>
+            <span>Skriv dina svar under varje fråga.</span>
           </div>
         </a>
 
         <a class="stepLink" href="#result">
           <div class="stepNum">4</div>
           <div class="stepText">
-            <b>Rätta provet</b>
-            <span>Få poäng, feedback, tips och modellsvar (full poäng).</span>
+            <b>Rätta</b>
+            <span>Poäng, feedback och modellsvar (full poäng).</span>
           </div>
         </a>
       </div>
@@ -359,7 +349,7 @@
         <span>Steg 1 – Material</span>
         <a class="chip" href="#guide"><span class="dot"></span> Till toppen</a>
       </div>
-      <p class="sectionSub">Texten nedan är viktigast. Filer/bilder är valfritt komplement.</p>
+      <p class="sectionSub">Texten nedan är viktigast. Bilagor är valfritt.</p>
 
       <div class="gridOne" style="margin-top:12px">
         <div>
@@ -421,7 +411,7 @@
       </div>
     </section>
 
-    <!-- ACTIONS (utan “Kontroller”-sektionen) -->
+    <!-- ACTIONS -->
     <section class="card" id="actions">
       <div class="sectionTitle">
         <span>Steg 2 – Skapa och rätta</span>
@@ -471,7 +461,7 @@
   <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
-    // ========= LOGIN =========
+    // ========= APP-LOCK =========
     const CORRECT_CODE = "provklar123";
 
     function checkCode(){
@@ -480,7 +470,7 @@
       const val = (inp.value || "").trim();
 
       if(val === CORRECT_CODE){
-        localStorage.setItem("provklar_logged_in", "true");
+        localStorage.setItem("provklar_app_access", "true");
         document.getElementById("loginScreen").style.display = "none";
         msg.textContent = "";
       } else {
@@ -488,8 +478,9 @@
       }
     }
 
-    function logout(){
-      localStorage.removeItem("provklar_logged_in");
+    function lockOut(){
+      localStorage.removeItem("provklar_app_access");
+      document.getElementById("loginScreen").style.display = "flex";
       const inp = document.getElementById("accessCode");
       const msg = document.getElementById("errorMsg");
       inp.value = "";
@@ -501,7 +492,7 @@
       if(visible && e.key === "Enter") checkCode();
     });
 
-    if(localStorage.getItem("provklar_logged_in") === "true"){
+    if(localStorage.getItem("provklar_app_access") === "true"){
       document.getElementById("loginScreen").style.display = "none";
     }
 
@@ -538,7 +529,7 @@
       let currentExam = null;
 
       const materials = []; // {id, type, name, size, contentText?, dataUrl?}
-      const id = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+      const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
       function escapeHtml(s){
         return String(s)
@@ -686,7 +677,7 @@
 
           if(isText){
             const text = await f.text();
-            materials.push({ id: id(), type: "text", name: f.name, size: f.size, contentText: text });
+            materials.push({ id: makeId(), type: "text", name: f.name, size: f.size, contentText: text });
           } else if(isImage){
             const dataUrl = await new Promise((resolve, reject) => {
               const r = new FileReader();
@@ -694,9 +685,9 @@
               r.onerror = reject;
               r.readAsDataURL(f);
             });
-            materials.push({ id: id(), type: "image", name: f.name, size: f.size, dataUrl });
+            materials.push({ id: makeId(), type: "image", name: f.name, size: f.size, dataUrl });
           } else {
-            materials.push({ id: id(), type: "file", name: f.name, size: f.size });
+            materials.push({ id: makeId(), type: "file", name: f.name, size: f.size });
           }
         }
         updateMaterialUI();
@@ -882,7 +873,7 @@
       });
 
       logoutBtn.addEventListener("click", () => {
-        logout();
+        lockOut();
         window.location.href = "index.html";
       });
 
