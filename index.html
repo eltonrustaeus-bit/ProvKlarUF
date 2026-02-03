@@ -4,36 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar UF</title>
-  <meta name="description" content="ProvKlar UF – skapa mockprov från ditt material, få rättning, feedback och modellsvar." />
+  <meta name="description" content="ProvKlar UF – mockprov + rättning + förbättringar." />
   <style>
     :root{
-      --navy:#0B1F3A;
-      --teal:#18B88A;
-      --bg:#F6F8FB;
-      --muted:#556072;
-      --border:rgba(11,31,58,.12);
-      --shadow:0 18px 50px rgba(11,31,58,.14);
-      --radius:18px;
-      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --max:1020px;
+      --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --muted:#556072; --border:rgba(11,31,58,.12);
+      --shadow:0 18px 50px rgba(11,31,58,.14); --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      --max:1080px;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
+    :target{scroll-margin-top:92px}
     body{
-      margin:0;
-      font-family:var(--font);
-      background:radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%), var(--bg);
-      color:#0C1220;
+      margin:0;font-family:var(--font);color:#0C1220;
+      background:
+        radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%),
+        radial-gradient(700px 380px at 95% 20%, rgba(24,184,138,.10), transparent 55%),
+        var(--bg);
     }
     a{text-decoration:none;color:inherit}
-    :target{scroll-margin-top:90px}
-
     header{
-      background:rgba(255,255,255,.86);
-      backdrop-filter:saturate(140%) blur(10px);
+      background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);
       border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:1000;
-      overflow:visible; /* viktigt så dropdown inte “klick-blockas” */
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -41,90 +33,17 @@
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
-
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
-      font-weight:1000;font-size:14px;border:1px solid transparent;
+      font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
-      transition:transform .06s ease;
-      user-select:none;
-      background:rgba(255,255,255,.92);
-      border-color:var(--border);
-      color:var(--navy);
+      background:rgba(255,255,255,.92);color:var(--navy);
     }
-    .btn:active{transform:translateY(1px)}
     .btnPrimary{
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
-
-    /* ====== MENY (checkbox + overlay) – funkar stabilt överallt ====== */
-    .menuWrap{position:relative;z-index:2000}
-    #navToggle{position:absolute;left:-9999px}
-    .menuBtn{
-      width:46px;height:46px;border-radius:14px;
-      display:inline-flex;align-items:center;justify-content:center;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.92);
-      cursor:pointer;
-    }
-    .burger{width:18px;height:12px;position:relative}
-    .burger span{
-      position:absolute;left:0;right:0;height:2px;border-radius:2px;background:var(--navy);
-      transition:transform .12s ease, top .12s ease, opacity .12s ease;
-    }
-    .burger span:nth-child(1){top:0}
-    .burger span:nth-child(2){top:5px}
-    .burger span:nth-child(3){top:10px}
-
-    #navToggle:checked + label .burger span:nth-child(1){top:5px;transform:rotate(45deg)}
-    #navToggle:checked + label .burger span:nth-child(2){opacity:0}
-    #navToggle:checked + label .burger span:nth-child(3){top:5px;transform:rotate(-45deg)}
-
-    .overlay{
-      position:fixed;inset:0;
-      background:transparent;
-      z-index:1500;
-      display:none;
-    }
-    #navToggle:checked ~ .overlay{display:block}
-
-    .dropdown{
-      position:absolute;right:0;top:56px;
-      width:min(320px, calc(100vw - 28px));
-      background:rgba(255,255,255,.96);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:0 18px 60px rgba(11,31,58,.18);
-      padding:10px;
-      display:none;
-      z-index:2001;
-      pointer-events:auto;
-    }
-    #navToggle:checked ~ .dropdown{display:block}
-
-    .dropHead{
-      padding:10px 10px 8px;
-      font-weight:1100;color:var(--navy);
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-    }
-    .dropList{display:grid;gap:8px;padding:0 6px 8px}
-    .dropItem{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px;border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:1000;color:var(--navy);
-    }
-    .dropItem small{color:var(--muted);font-weight:800}
-    .dropItem.primary{
-      background:var(--teal);border-color:rgba(24,184,138,.28);color:#fff;
-      box-shadow:0 14px 28px rgba(24,184,138,.18);
-    }
-    .dropItem.primary small{color:rgba(255,255,255,.88)}
-
-    /* Cards */
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -142,123 +61,93 @@
       background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.16), transparent 60%);
       pointer-events:none;
     }
-    .hero{display:grid;grid-template-columns: 1.2fr .8fr;gap:14px;align-items:center}
-    @media (max-width: 860px){ .hero{grid-template-columns:1fr} }
-
-    h1{margin:0;font-size:clamp(26px,4vw,40px);line-height:1.05;letter-spacing:-.02em;color:var(--navy);font-weight:1100}
-    .lead{margin:10px 0 0;color:var(--muted);font-weight:800;line-height:1.45;font-size:14px;max-width:70ch}
-    .kpiRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .kpi{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px;min-width:180px;flex:1 1 180px}
-    .kpi b{display:block;color:var(--navy);font-weight:1100}
-    .kpi span{display:block;margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
-
-    .sectionTitle{margin:0 0 8px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .sectionSub{margin:0;color:var(--muted);font-weight:750;font-size:12px;line-height:1.35}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    @media (max-width: 860px){ .grid2{grid-template-columns:1fr} }
-    .feature{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
-    .feature b{display:block;color:var(--navy);font-weight:1100}
-    .feature span{display:block;margin-top:6px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.45}
-
+    .h1{margin:0;color:var(--navy);font-weight:1100;font-size:32px;letter-spacing:-.02em}
+    .p{margin:10px 0 0;color:var(--muted);font-weight:780;line-height:1.45}
+    .grid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
+    .box b{color:var(--navy)}
+    .box ul{margin:10px 0 0;padding-left:18px}
+    .box li{margin:6px 0;color:#0C1220;font-weight:800;font-size:13px;line-height:1.4}
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
 <body>
-
   <header>
     <div class="wrap topbar">
-      <a class="brand" href="index.html" aria-label="Till startsidan">
-        <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
+      <a class="brand" href="#top" aria-label="Till toppen">
+        <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
           <div class="name">ProvKlar</div>
-          <div class="tag">Mockprov • Rättning • Modellsvar</div>
+          <div class="tag">Mockprov • Rättning • Förbättringar</div>
         </div>
       </a>
-
-      <div class="menuWrap">
-        <input id="navToggle" type="checkbox" />
-        <label class="menuBtn" for="navToggle" aria-label="Meny">
-          <div class="burger" aria-hidden="true"><span></span><span></span><span></span></div>
-        </label>
-
-        <label class="overlay" for="navToggle" aria-hidden="true"></label>
-
-        <nav class="dropdown" aria-label="Meny">
-          <div class="dropHead">
-            <span>Meny</span>
-            <small>ProvKlar UF</small>
-          </div>
-          <div class="dropList">
-            <a class="dropItem primary" href="app.html"><span>Öppna appen</span><small>kod krävs</small></a>
-            <a class="dropItem" href="#hur"><span>Hur det funkar</span><small>4 steg</small></a>
-            <a class="dropItem" href="#funktioner"><span>Funktioner</span><small>översikt</small></a>
-          </div>
-        </nav>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" href="#funktioner">Funktioner</a>
+        <a class="btn" href="#hur">Hur det funkar</a>
+        <a class="btn btnPrimary" href="app.html">Öppna appen</a>
       </div>
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="top">
     <section class="card">
-      <div class="hero">
+      <div class="grid">
         <div>
-          <h1>ProvKlar UF</h1>
-          <p class="lead">Klistra in ditt provmaterial → generera ett mockprov → skriv dina svar → få rättning med poäng, feedback och modellsvar.</p>
-
-          <div class="kpiRow">
-            <div class="kpi"><b>Snabbt</b><span>Gör prov på minuter från anteckningar.</span></div>
-            <div class="kpi"><b>Tydligt</b><span>Poäng per fråga + vad som ger full poäng.</span></div>
-            <div class="kpi"><b>Fokus</b><span>Nivå E/C/A och förbättringstips.</span></div>
-          </div>
-
-          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-            <a class="btn btnPrimary" href="app.html">Gå till appen</a>
+          <div class="h1">ProvKlar UF</div>
+          <p class="p">Skapa mockprov från ditt material och få rättning med poäng, feedback, modellsvar och förbättringar.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <a class="btn btnPrimary" href="app.html">Öppna appen</a>
+            <a class="btn" href="#hur">Se hur det funkar</a>
           </div>
         </div>
+        <div class="box">
+          <b>Snabbt</b>
+          <ul>
+            <li>Klistra in material</li>
+            <li>Välj frågetyp + antal frågor</li>
+            <li>Generera prov</li>
+            <li>Rätta och få modellsvar</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-        <div class="card" style="margin:0;box-shadow:none">
-          <div class="sectionTitle">Kort sammanfattning</div>
-          <p class="sectionSub">Infosidan är öppen. Appen (provskapande/rättning) kräver åtkomstkod.</p>
-          <div class="grid2">
-            <div class="feature"><b>För vem?</b><span>Gymnasieelever som vill öva inför prov med realistiska frågor.</span></div>
-            <div class="feature"><b>Vad får du?</b><span>Mockprov + rättning + modellsvar + förbättringsförslag.</span></div>
-          </div>
+    <section class="card" id="funktioner">
+      <div style="font-weight:1100;color:var(--navy);font-size:18px;margin:0 0 10px">Funktioner</div>
+      <div class="grid">
+        <div class="box">
+          <b>Mockprov</b>
+          <ul>
+            <li>Flerval / kortsvar / essä / blandat</li>
+            <li>Exakt antal frågor (3–12)</li>
+            <li>Nivåval: E/C/A</li>
+          </ul>
+        </div>
+        <div class="box">
+          <b>Rättning</b>
+          <ul>
+            <li>Poäng + feedback</li>
+            <li>Modellsvar (full poäng)</li>
+            <li>Förbättringstips</li>
+          </ul>
         </div>
       </div>
     </section>
 
     <section class="card" id="hur">
-      <div class="sectionTitle">Hur det funkar</div>
-      <p class="sectionSub">4 steg i appen.</p>
-      <div class="grid2">
-        <div class="feature"><b>1) Klistra in material</b><span>Rubriker + punktlista (begrepp, definitioner, formler, exempel).</span></div>
-        <div class="feature"><b>2) Skapa mockprov</b><span>Välj nivå (E/C/A) och generera frågor som kan komma på prov.</span></div>
-        <div class="feature"><b>3) Svara</b><span>Skriv dina svar direkt under varje fråga.</span></div>
-        <div class="feature"><b>4) Rätta</b><span>Poäng, feedback och modellsvar (vad som ger full poäng).</span></div>
-      </div>
-    </section>
-
-    <section class="card" id="funktioner">
-      <div class="sectionTitle">Funktioner</div>
-      <p class="sectionSub">Designad för att vara enkel och mobilvänlig.</p>
-      <div class="grid2">
-        <div class="feature"><b>Nivåstyrning</b><span>Välj E/C/A så att frågorna och rättningen matchar din målnivå.</span></div>
-        <div class="feature"><b>Bilagor</b><span>Lägg till bilder/filer (valfritt). Textfiler kan läggas in i materialfältet.</span></div>
-        <div class="feature"><b>Debug vid fel</b><span>Om något går fel visas debug-ruta (för felsökning).</span></div>
-        <div class="feature"><b>Rensa / börja om</b><span>Rensa allt med en knapp och skapa nytt prov.</span></div>
+      <div style="font-weight:1100;color:var(--navy);font-size:18px;margin:0 0 10px">Hur det funkar</div>
+      <div class="box">
+        <ul>
+          <li>1) Klistra in text i appen (och valfritt: ladda upp bilder/filer).</li>
+          <li>2) Välj frågetyp och exakt antal frågor.</li>
+          <li>3) Tryck “Skapa mockprov”.</li>
+          <li>4) Svara och tryck “Rätta prov”.</li>
+        </ul>
       </div>
     </section>
   </main>
 
   <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
-
-  <script>
-    // Stäng menyn automatiskt när man klickar på ett menyval (utan att stoppa navigation)
-    const navToggle = document.getElementById("navToggle");
-    document.addEventListener("click", (e) => {
-      const link = e.target.closest(".dropdown a");
-      if(link) navToggle.checked = false;
-    });
-  </script>
 </body>
 </html>
