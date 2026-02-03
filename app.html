@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar – App</title>
-  <meta name="description" content="ProvKlar – multimodal material → OCR → mockprov → rättning + modellsvar + förbättringar." />
+  <meta name="description" content="ProvKlar – material → OCR → mockprov → rättning + modellsvar + förbättringar." />
 
   <style>
     :root{
@@ -36,7 +36,6 @@
     a{text-decoration:none;color:inherit}
     :target{scroll-margin-top:92px}
 
-    /* Header */
     header{
       background:rgba(255,255,255,.86);
       backdrop-filter:saturate(140%) blur(10px);
@@ -51,7 +50,6 @@
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
 
-    /* Buttons */
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
@@ -67,15 +65,10 @@
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
-    .btnGhost{
-      background:#fff;border-color:var(--border);color:var(--navy);
-    }
-    .btnDanger{
-      background:#fff;border-color:rgba(139,29,29,.22);color:var(--danger);
-    }
+    .btnGhost{background:#fff;border-color:var(--border);color:var(--navy)}
+    .btnDanger{background:#fff;border-color:rgba(139,29,29,.22);color:var(--danger)}
     .btn:disabled{opacity:.55;cursor:not-allowed}
 
-    /* Menu (checkbox + overlay, robust on mobile) */
     .menuWrap{position:relative;z-index:2000}
     #navToggleApp{position:absolute;left:-9999px}
     .menuBtn{
@@ -105,7 +98,7 @@
     #navToggleApp:checked ~ .overlay{display:block}
     .dropdown{
       position:absolute;right:0;top:56px;
-      width:min(380px, calc(100vw - 28px));
+      width:min(420px, calc(100vw - 28px));
       background:rgba(255,255,255,.97);
       border:1px solid var(--border);
       border-radius:18px;
@@ -132,7 +125,6 @@
     .dropItem small{color:var(--muted);font-weight:800}
     .dropItem.danger{color:var(--danger);border-color:rgba(139,29,29,.22);cursor:pointer}
 
-    /* Cards */
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -160,7 +152,6 @@
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
 
-    /* Chips */
     .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
@@ -170,7 +161,6 @@
     }
     .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
 
-    /* Inputs */
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
     select,input,textarea{
       width:100%;
@@ -188,12 +178,9 @@
       box-shadow:0 0 0 5px rgba(24,184,138,.14);
     }
 
-    /* Layout blocks */
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width: 920px){ .grid2{grid-template-columns:1fr} }
-    .grid1{display:grid;grid-template-columns:1fr;gap:12px}
 
-    /* Upload/OCR box */
     .pickBox{
       border:1px dashed rgba(11,31,58,.28);
       border-radius:16px;
@@ -214,7 +201,6 @@
     .fileHelp{color:var(--muted);font-weight:800;font-size:12px}
     .hiddenInput{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
 
-    /* List */
     .list{
       border:1px solid var(--border);
       border-radius:16px;
@@ -238,7 +224,6 @@
     }
     .tinyBtn.danger{color:var(--danger);border-color:rgba(139,29,29,.22)}
 
-    /* Preview & OCR */
     .preview{
       margin-top:10px;border:1px solid var(--border);border-radius:16px;background:#fff;padding:12px;display:none;
     }
@@ -260,7 +245,6 @@
     .badge.warn{border-color:rgba(148,98,0,.24);color:var(--warn)}
     .badge.bad{border-color:rgba(139,29,29,.24);color:var(--danger)}
 
-    /* Actions card */
     .actionCard{
       border:1px solid var(--border);
       border-radius:18px;
@@ -283,22 +267,59 @@
     }
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* Exam blocks */
-    .qBox{
-      margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff
-    }
+    .qBox{margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff}
     .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
     .qText{font-weight:900;color:#0C1220;line-height:1.45}
     .answer{margin-top:10px}
+    .ansRow{display:grid;grid-template-columns:1fr;gap:10px}
+    .ansActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-    /* Coaching / adaptive */
     .coachGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
     @media (max-width: 920px){ .coachGrid{grid-template-columns:1fr} }
     .coachBox{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
     .coachBox b{display:block;color:var(--navy);font-weight:1100}
     .coachBox span{display:block;margin-top:6px;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45}
 
-    /* Login overlay */
+    .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    @media (max-width: 920px){ .dashGrid{grid-template-columns:1fr} }
+    .metricBox{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
+    .metricTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .metricTop b{color:var(--navy)}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;border:1px solid var(--border);
+      background:#fff;font-weight:950;font-size:12px;color:var(--navy);
+    }
+    .trendUp{border-color:rgba(15,122,90,.24);color:var(--ok)}
+    .trendDown{border-color:rgba(139,29,29,.22);color:var(--danger)}
+    .trendFlat{border-color:rgba(148,98,0,.24);color:var(--warn)}
+
+    .barWrap{margin-top:10px;display:grid;gap:10px}
+    .barRow{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center}
+    @media (max-width: 520px){ .barRow{grid-template-columns:120px 1fr 44px} }
+    .barLabel{color:var(--navy);font-weight:950;font-size:12px}
+    .barTrack{height:10px;border-radius:999px;background:rgba(11,31,58,.10);overflow:hidden;border:1px solid rgba(11,31,58,.06)}
+    .barFill{height:100%;background:var(--teal);width:0%}
+    .barPct{color:var(--muted);font-weight:900;font-size:12px;text-align:right}
+
+    .notesBox{
+      margin-top:12px;border:1px solid var(--border);border-radius:16px;background:#fff;padding:14px
+    }
+    .notesBox h4{margin:0 0 8px;color:var(--navy);font-size:13px}
+    .notesBox ul{margin:0;padding-left:18px}
+    .notesBox li{color:#0C1220;font-weight:800;font-size:12px;line-height:1.45;margin:4px 0}
+    .notesBox p{margin:8px 0 0;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45;white-space:pre-wrap}
+
+    .canvasWrap{display:grid;gap:10px;margin-top:12px}
+    canvas{
+      width:100%;
+      height:240px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      background:#fff;
+      touch-action:none;
+    }
+
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -329,7 +350,6 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
-    /* Print export (PDF via browser print dialog) */
     @media print{
       header, .noPrint {display:none !important;}
       body{background:#fff}
@@ -345,21 +365,21 @@
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
-        <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
+        <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
-          <div class="ltTitle">ProvKlar UF</div>
-          <div class="ltSub">Åtkomst krävs för att använda appen</div>
+          <div class="ltTitle" id="lockTitle">ProvKlar UF</div>
+          <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
       <div class="loginBody">
-        <label class="fieldLabel" for="accessCode">Åtkomstkod</label>
+        <label class="fieldLabel" for="accessCode" id="lockLabel">Åtkomstkod</label>
         <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
-          <button class="btn btnPrimary" type="button" onclick="checkCode()">Lås upp</button>
-          <a class="btn" href="index.html">Till infosidan</a>
+          <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+          <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
-        <div class="hint">Tryck <span class="kbd">Enter</span> för att låsa upp.</div>
+        <div class="hint" id="lockHint">Tryck <span class="kbd">Enter</span> för att låsa upp.</div>
       </div>
     </div>
   </div>
@@ -367,10 +387,10 @@
   <header>
     <div class="wrap topbar">
       <a class="brand" href="index.html" aria-label="Till infosidan">
-        <img src="image/provklar-logo.png" alt="ProvKlar UF logga">
+        <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
           <div class="name">ProvKlar</div>
-          <div class="tag">Multimodal • OCR • Mockprov</div>
+          <div class="tag" id="brandTag">Multimodal • OCR • Mockprov</div>
         </div>
       </a>
 
@@ -383,16 +403,21 @@
         <label class="overlay" for="navToggleApp" aria-hidden="true"></label>
 
         <nav class="dropdown" aria-label="Meny">
-          <div class="dropHead"><span>Meny</span><small>App</small></div>
+          <div class="dropHead"><span id="menuTitle">Meny</span><small id="menuSub">App</small></div>
           <div class="dropList">
-            <a class="dropItem" href="index.html"><span>Infosida</span><small>öppnar</small></a>
-            <a class="dropItem" href="#material"><span>Material + OCR</span><small>steg 1</small></a>
-            <a class="dropItem" href="#actions"><span>Skapa/Rätta</span><small>steg 2</small></a>
-            <a class="dropItem" href="#exam"><span>Mockprov</span><small>steg 3</small></a>
-            <a class="dropItem" href="#result"><span>Rättning</span><small>steg 4</small></a>
-            <a class="dropItem" href="#coach"><span>Förbättringar</span><small>adaptivt</small></a>
-            <a class="dropItem" href="#export"><span>Export</span><small>PDF</small></a>
-            <div class="dropItem danger" id="logoutMenuBtn"><span>Logga ut</span><small>låser appen</small></div>
+            <button class="dropItem" type="button" data-jump="#material"><span id="mMaterial">Material + OCR</span><small id="mMaterialS">steg 1</small></button>
+            <button class="dropItem" type="button" data-jump="#actions"><span id="mActions">Skapa/Rätta</span><small id="mActionsS">steg 2</small></button>
+            <button class="dropItem" type="button" data-jump="#exam"><span id="mExam">Mockprov</span><small id="mExamS">steg 3</small></button>
+            <button class="dropItem" type="button" data-jump="#result"><span id="mResult">Rättning</span><small id="mResultS">steg 4</small></button>
+            <button class="dropItem" type="button" data-jump="#dashboard"><span id="mDash">Dashboard</span><small id="mDashS">mätare</small></button>
+            <button class="dropItem" type="button" data-jump="#draw"><span id="mDraw">Rita svar</span><small id="mDrawS">visuellt</small></button>
+
+            <button class="dropItem" type="button" id="langToggleMenu">
+              <span id="mLang">English mode</span>
+              <small id="mLangS">off</small>
+            </button>
+
+            <div class="dropItem danger" id="logoutMenuBtn"><span id="mLogout">Logga ut</span><small id="mLogoutS">låser appen</small></div>
           </div>
         </nav>
       </div>
@@ -402,45 +427,45 @@
   <main class="wrap">
 
     <!-- Guide -->
-    <section class="card">
+    <section class="card" id="top">
       <div class="sectionTitle">
-        <span>Stegprocess</span>
+        <span id="stepTitle">Stegprocess</span>
         <div class="chipRow">
-          <a class="chip" href="#material"><span class="dot"></span> 1) Material</a>
-          <a class="chip" href="#actions"><span class="dot"></span> 2) Skapa</a>
-          <a class="chip" href="#exam"><span class="dot"></span> 3) Svara</a>
-          <a class="chip" href="#result"><span class="dot"></span> 4) Rätta</a>
+          <button class="chip" type="button" data-jump="#material"><span class="dot"></span><span id="chip1">1) Material</span></button>
+          <button class="chip" type="button" data-jump="#actions"><span class="dot"></span><span id="chip2">2) Skapa</span></button>
+          <button class="chip" type="button" data-jump="#exam"><span class="dot"></span><span id="chip3">3) Svara</span></button>
+          <button class="chip" type="button" data-jump="#result"><span class="dot"></span><span id="chip4">4) Rätta</span></button>
         </div>
       </div>
-      <p class="sectionSub">
-        Klistra in text (viktigast). Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.
+      <p class="sectionSub" id="stepSub">
+        Klistra in text. Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.
       </p>
     </section>
 
     <!-- Material + OCR -->
     <section class="card" id="material">
       <div class="sectionTitle">
-        <span>Steg 1 – Material + OCR (multimodal)</span>
+        <span id="s1Title">Steg 1 – Material + OCR (multimodal)</span>
         <div class="noPrint" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <label class="chip" style="cursor:pointer">
-            <input type="checkbox" id="langToggle" style="margin:0 6px 0 0;transform:translateY(1px)">
-            Engelska läge
+            <input type="checkbox" id="englishToggle" style="margin:0 6px 0 0;transform:translateY(1px)">
+            <span id="englishLabel">English mode</span>
           </label>
         </div>
       </div>
-      <p class="sectionSub">
+      <p class="sectionSub" id="s1Sub">
         Primärt: klistra in provmaterial. Sekundärt: lägg till bilder (bok/anteckning) och kör OCR → granska → lägg till i materialet.
       </p>
 
       <div class="grid2" style="margin-top:12px">
         <div>
-          <label for="pastedText">Material (klistra in text)</label>
+          <label for="pastedText" id="matPasteLabel">Material (klistra in text)</label>
           <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
           <div class="status warn" style="margin-top:10px" id="formatHint">Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.</div>
 
           <div class="grid2" style="margin-top:12px">
             <div>
-              <label for="level">Nivå</label>
+              <label for="level" id="levelLabel">Nivå</label>
               <select id="level">
                 <option value="E">E</option>
                 <option value="C" selected>C</option>
@@ -448,8 +473,27 @@
               </select>
             </div>
             <div>
-              <label for="course">Ämne/kurs (valfritt)</label>
+              <label for="course" id="courseLabel">Ämne/kurs (valfritt)</label>
               <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:12px">
+            <div>
+              <label for="qType" id="qTypeLabel">Frågetyp</label>
+              <select id="qType">
+                <option value="mix" selected id="qMix">Blandat</option>
+                <option value="mc" id="qMC">Flerval</option>
+                <option value="short" id="qShort">Kortsvar</option>
+                <option value="essay" id="qEssay">Essä</option>
+              </select>
+            </div>
+            <div>
+              <label for="miniCount" id="miniCountLabel">Snabbtest – antal frågor</label>
+              <select id="miniCount">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+              </select>
             </div>
           </div>
         </div>
@@ -457,25 +501,25 @@
         <div>
           <div class="pickBox">
             <div>
-              <b style="color:var(--navy)">Bilder/filer</b>
-              <div class="sectionSub" style="margin-top:6px">
+              <b style="color:var(--navy)" id="attachTitle">Bilder/filer</b>
+              <div class="sectionSub" style="margin-top:6px" id="attachSub">
                 Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.
               </div>
             </div>
             <div class="fileRow">
-              <label class="fileBtn" for="fileInput">Välj fil / ta bild</label>
-              <span class="fileHelp">.png .jpg .pdf .txt .md</span>
+              <label class="fileBtn" for="fileInput" id="pickBtn">Välj fil / ta bild</label>
+              <span class="fileHelp" id="pickHelp">.png .jpg .pdf .txt .md</span>
               <input id="fileInput" class="hiddenInput" type="file" multiple accept=".txt,.md,text/plain,application/pdf,image/*" />
             </div>
 
             <div class="list">
-              <div class="listHeader"><b>Materiallista</b><small id="matCount">0 objekt</small></div>
+              <div class="listHeader"><b id="matListTitle">Materiallista</b><small id="matCount">0 objekt</small></div>
               <div id="matList"></div>
               <div class="status" id="matHint" style="margin-top:10px">Inga bilagor ännu.</div>
 
               <div class="preview" id="ocrPanel">
                 <div class="sectionTitle" style="margin:0 0 8px">
-                  <span>OCR-panel</span>
+                  <span id="ocrTitle">OCR-panel</span>
                   <div class="noPrint" style="display:flex;gap:8px;flex-wrap:wrap">
                     <button class="tinyBtn" type="button" id="ocrRunBtn">Kör OCR</button>
                     <button class="tinyBtn" type="button" id="ocrAppendBtn" disabled>Lägg till i material</button>
@@ -490,7 +534,7 @@
                     <div class="status" id="ocrStatus"></div>
                   </div>
                   <div>
-                    <label for="ocrText">OCR-text (granska och justera innan du lägger till)</label>
+                    <label for="ocrText" id="ocrTextLabel">OCR-text (granska och justera innan du lägger till)</label>
                     <textarea id="ocrText" placeholder="OCR-resultat visas här..." style="min-height:210px"></textarea>
                     <div class="status warn" id="ocrHint" style="margin-top:10px">
                       OCR kräver backend-endpoint: <code>/api/ocr</code>. Om den saknas visas fel i debug.
@@ -504,9 +548,9 @@
 
           <div class="pickBox" style="margin-top:12px">
             <div>
-              <b style="color:var(--navy)">Röstinmatning (svar)</b>
-              <div class="sectionSub" style="margin-top:6px">
-                I provdelen kan du använda “🎤” per fråga (om webbläsaren stödjer tal-till-text).
+              <b style="color:var(--navy)" id="ocrBestTitle">OCR-kvalitet</b>
+              <div class="sectionSub" style="margin-top:6px" id="ocrBestSub">
+                För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.
               </div>
             </div>
           </div>
@@ -516,8 +560,8 @@
 
     <!-- Actions -->
     <section class="card" id="actions">
-      <div class="sectionTitle"><span>Steg 2 – Skapa och rätta</span></div>
-      <p class="sectionSub">Skapa mockprov efter du lagt in material. Rätta när du svarat. Rättning ger även “vad som ger full poäng”.</p>
+      <div class="sectionTitle"><span id="s2Title">Steg 2 – Skapa och rätta</span></div>
+      <p class="sectionSub" id="s2Sub">Skapa mockprov efter du lagt in material. Rätta när du svarat. Rättning ger även “vad som ger full poäng”, anteckningar och mätare.</p>
 
       <div class="actionCard">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -527,6 +571,7 @@
 
         <div class="row noPrint">
           <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
+          <button class="btn" id="miniBtn" type="button">Snabbtest 3 min</button>
           <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
           <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
         </div>
@@ -538,30 +583,132 @@
 
     <!-- Exam -->
     <section class="card" id="exam">
-      <div class="sectionTitle"><span>Steg 3 – Mockprov</span></div>
+      <div class="sectionTitle"><span id="s3Title">Steg 3 – Mockprov</span></div>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
       <div id="examBody"></div>
     </section>
 
     <!-- Result -->
     <section class="card" id="result">
-      <div class="sectionTitle"><span>Steg 4 – Rättning</span></div>
+      <div class="sectionTitle"><span id="s4Title">Steg 4 – Rättning</span></div>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
       <div id="resultBody"></div>
+
+      <div class="notesBox" id="autoNotesBox" style="display:none">
+        <h4 id="notesTitle">Auto-anteckningar</h4>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <h4 id="notesKeyTitle" style="margin:0 0 6px;color:var(--navy);font-size:13px">3 viktigaste begrepp</h4>
+            <ul id="notesKey"></ul>
+          </div>
+          <div>
+            <h4 id="notesMistTitle" style="margin:0 0 6px;color:var(--navy);font-size:13px">2 vanligaste missar</h4>
+            <ul id="notesMist"></ul>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <h4 id="notesModelTitle">1 modellförklaring</h4>
+          <p id="notesModel"></p>
+        </div>
+        <div style="margin-top:10px">
+          <h4 id="notesExTitle">1 exempel</h4>
+          <p id="notesEx"></p>
+        </div>
+      </div>
     </section>
 
-    <!-- Adaptive coaching -->
+    <!-- Dashboard -->
+    <section class="card" id="dashboard">
+      <div class="sectionTitle"><span id="dashTitle">Dashboard</span></div>
+      <p class="sectionSub" id="dashSub">Mätare och betygsprognos baserat på senaste rättning (och historik lokalt).</p>
+
+      <div class="dashGrid">
+        <div class="metricBox">
+          <div class="metricTop">
+            <b id="meterTitle">Förstå-Mätare</b>
+            <span class="pill" id="meterNote">senaste prov</span>
+          </div>
+
+          <div class="barWrap" aria-label="Förstå-mätare">
+            <div class="barRow">
+              <div class="barLabel" id="mFact">Fakta</div>
+              <div class="barTrack"><div class="barFill" id="barFact"></div></div>
+              <div class="barPct" id="pctFact">0%</div>
+            </div>
+            <div class="barRow">
+              <div class="barLabel" id="mExplain">Förklaring</div>
+              <div class="barTrack"><div class="barFill" id="barExplain"></div></div>
+              <div class="barPct" id="pctExplain">0%</div>
+            </div>
+            <div class="barRow">
+              <div class="barLabel" id="mAnalysis">Analys</div>
+              <div class="barTrack"><div class="barFill" id="barAnalysis"></div></div>
+              <div class="barPct" id="pctAnalysis">0%</div>
+            </div>
+            <div class="barRow">
+              <div class="barLabel" id="mExample">Exempel</div>
+              <div class="barTrack"><div class="barFill" id="barExample"></div></div>
+              <div class="barPct" id="pctExample">0%</div>
+            </div>
+          </div>
+
+          <div class="status" id="meterHint" style="margin-top:10px">
+            Mätaren räknas från rättningen. Om backend inte skickar breakdown beräknas en förenklad fördelning.
+          </div>
+        </div>
+
+        <div class="metricBox">
+          <div class="metricTop">
+            <b id="forecastTitle">Betygsprognos</b>
+            <span class="pill trendFlat" id="trendPill">≈</span>
+          </div>
+          <div class="status" id="forecastText" style="margin-top:10px">
+            Ingen prognos ännu.
+          </div>
+          <div class="status" id="forecastDetail"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Draw -->
+    <section class="card" id="draw">
+      <div class="sectionTitle"><span id="drawTitle">Visuellt svarsstöd</span></div>
+      <p class="sectionSub" id="drawSub">Rita en skiss/diagram och bifoga som stöd när du svarar (lokalt i webbläsaren).</p>
+
+      <div class="canvasWrap">
+        <canvas id="sketch" width="1200" height="600"></canvas>
+        <div class="row noPrint">
+          <button class="btn" id="penBtn" type="button">Penna</button>
+          <button class="btn" id="eraserBtn" type="button">Sudd</button>
+          <button class="btn" id="clearCanvasBtn" type="button">Rensa</button>
+          <button class="btn btnGhost" id="saveCanvasBtn" type="button">Spara bild</button>
+        </div>
+        <div class="status" id="canvasStatus"></div>
+      </div>
+    </section>
+
+    <!-- Export -->
+    <section class="card" id="export">
+      <div class="sectionTitle"><span id="exportTitle">Export (PDF)</span></div>
+      <p class="sectionSub" id="exportSub">PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).</p>
+      <div class="row noPrint">
+        <button class="btn" id="exportExamBtn" type="button" disabled>Exportera mockprov (PDF)</button>
+        <button class="btn" id="exportResultBtn" type="button" disabled>Exportera rättning (PDF)</button>
+      </div>
+      <div class="status" id="exportStatus"></div>
+    </section>
+
     <section class="card" id="coach">
-      <div class="sectionTitle"><span>Förbättringar (adaptivt)</span></div>
-      <p class="sectionSub">Baserat på tidigare rättningar (sparas lokalt i webbläsaren).</p>
+      <div class="sectionTitle"><span id="coachTitle">Förbättringar (adaptivt)</span></div>
+      <p class="sectionSub" id="coachSub">Baserat på tidigare rättningar (sparas lokalt i webbläsaren).</p>
 
       <div class="coachGrid">
         <div class="coachBox">
-          <b>Top 3 fokusområden</b>
+          <b id="weakTitle">Top 3 fokusområden</b>
           <span id="weaknesses">Ingen data ännu.</span>
         </div>
         <div class="coachBox">
-          <b>Nästa pass (10–15 min)</b>
+          <b id="nextTitle">Nästa pass (10–15 min)</b>
           <span id="nextSession">Skapa och rätta minst ett prov för att få rekommendationer.</span>
         </div>
       </div>
@@ -571,23 +718,325 @@
       </div>
     </section>
 
-    <!-- Export -->
-    <section class="card" id="export">
-      <div class="sectionTitle"><span>Export (PDF)</span></div>
-      <p class="sectionSub">PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).</p>
-      <div class="row noPrint">
-        <button class="btn" id="exportExamBtn" type="button" disabled>Exportera mockprov (PDF)</button>
-        <button class="btn" id="exportResultBtn" type="button" disabled>Exportera rättning (PDF)</button>
-      </div>
-      <div class="status" id="exportStatus"></div>
-    </section>
-
   </main>
 
-  <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
-    /* ========= App-lock ========= */
+    /* ====== i18n (full UI translation, no API) ====== */
+    const I18N = {
+      sv: {
+        brandTag: "Multimodal • OCR • Mockprov",
+        menuTitle: "Meny",
+        mMaterial:"Material + OCR", mMaterialS:"steg 1",
+        mActions:"Skapa/Rätta", mActionsS:"steg 2",
+        mExam:"Mockprov", mExamS:"steg 3",
+        mResult:"Rättning", mResultS:"steg 4",
+        mDash:"Dashboard", mDashS:"mätare",
+        mDraw:"Rita svar", mDrawS:"visuellt",
+        mLang:"English mode", mLangS:"off",
+        mLogout:"Logga ut", mLogoutS:"låser appen",
+        stepTitle:"Stegprocess",
+        chip1:"1) Material", chip2:"2) Skapa", chip3:"3) Svara", chip4:"4) Rätta",
+        stepSub:"Klistra in text. Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.",
+        s1Title:"Steg 1 – Material + OCR (multimodal)",
+        englishLabel:"English mode",
+        s1Sub:"Primärt: klistra in provmaterial. Sekundärt: lägg till bilder (bok/anteckning) och kör OCR → granska → lägg till i materialet.",
+        matPasteLabel:"Material (klistra in text)",
+        pastedPlaceholder:"Rubriker → punktlista → definitioner/formler → exempel",
+        formatHint:"Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.",
+        levelLabel:"Nivå",
+        courseLabel:"Ämne/kurs (valfritt)",
+        coursePlaceholder:"Ex: Matematik 2b / Historia 1b",
+        qTypeLabel:"Frågetyp",
+        qMix:"Blandat", qMC:"Flerval", qShort:"Kortsvar", qEssay:"Essä",
+        miniCountLabel:"Snabbtest – antal frågor",
+        attachTitle:"Bilder/filer",
+        attachSub:"Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.",
+        pickBtn:"Välj fil / ta bild",
+        pickHelp:".png .jpg .pdf .txt .md",
+        matListTitle:"Materiallista",
+        matHintEmpty:"Inga bilagor ännu.",
+        matHintHas:"Bilder kan OCR:as. Textfiler kan läggas in i materialfältet.",
+        ocrTitle:"OCR-panel",
+        ocrRunBtn:"Kör OCR",
+        ocrAppendBtn:"Lägg till i material",
+        ocrCloseBtn:"Stäng",
+        ocrTextLabel:"OCR-text (granska och justera innan du lägger till)",
+        ocrTextPlaceholder:"OCR-resultat visas här...",
+        ocrHint:"OCR kräver backend-endpoint: /api/ocr. Om den saknas visas fel i debug.",
+        ocrBestTitle:"OCR-kvalitet",
+        ocrBestSub:"För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.",
+        s2Title:"Steg 2 – Skapa och rätta",
+        s2Sub:"Skapa mockprov efter du lagt in material. Rätta när du svarat. Rättning ger även “vad som ger full poäng”, anteckningar och mätare.",
+        generateBtn:"Skapa mockprov",
+        miniBtn:"Snabbtest 3 min",
+        gradeBtn:"Rätta prov",
+        clearBtn:"Rensa",
+        ready:"Redo.",
+        working:"Arbetar…",
+        s3Title:"Steg 3 – Mockprov",
+        examEmpty:"Ingen provdata ännu.",
+        s4Title:"Steg 4 – Rättning",
+        resultEmpty:"Ingen rättning ännu.",
+        notesTitle:"Auto-anteckningar",
+        notesKeyTitle:"3 viktigaste begrepp",
+        notesMistTitle:"2 vanligaste missar",
+        notesModelTitle:"1 modellförklaring",
+        notesExTitle:"1 exempel",
+        dashTitle:"Dashboard",
+        dashSub:"Mätare och betygsprognos baserat på senaste rättning (och historik lokalt).",
+        meterTitle:"Förstå-Mätare",
+        meterNote:"senaste prov",
+        mFact:"Fakta", mExplain:"Förklaring", mAnalysis:"Analys", mExample:"Exempel",
+        meterHint:"Mätaren räknas från rättningen. Om backend inte skickar breakdown beräknas en förenklad fördelning.",
+        forecastTitle:"Betygsprognos",
+        forecastNone:"Ingen prognos ännu.",
+        drawTitle:"Visuellt svarsstöd",
+        drawSub:"Rita en skiss/diagram och bifoga som stöd när du svarar (lokalt i webbläsaren).",
+        pen:"Penna", eraser:"Sudd", clearCanvas:"Rensa", saveCanvas:"Spara bild",
+        exportTitle:"Export (PDF)",
+        exportSub:"PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).",
+        exportExam:"Exportera mockprov (PDF)",
+        exportResult:"Exportera rättning (PDF)",
+        exportHint:"Öppnar utskriftsdialog. Välj “Spara som PDF”.",
+        coachTitle:"Förbättringar (adaptivt)",
+        coachSub:"Baserat på tidigare rättningar (sparas lokalt i webbläsaren).",
+        weakTitle:"Top 3 fokusområden",
+        nextTitle:"Nästa pass (10–15 min)",
+        noData:"Ingen data ännu.",
+        needOne:"Skapa och rätta minst ett prov för att få rekommendationer.",
+        resetCoach:"Nollställ statistik",
+        footer:"ProvKlar UF är studiestöd och ger ingen officiell betygssättning.",
+        lockTitle:"ProvKlar UF",
+        lockSub:"Åtkomst krävs för att använda appen",
+        lockLabel:"Åtkomstkod",
+        lockPlaceholder:"Skriv koden…",
+        unlock:"Lås upp",
+        toInfo:"Till infosidan",
+        lockHint:"Tryck Enter för att låsa upp.",
+        lockErr:"Fel kod.",
+        statusPasteFirst:"Klistra in material först.",
+        statusAddedText:"Text från fil inlagd i materialfältet.",
+        statusAddedFiles:"Bilagor tillagda i materiallistan.",
+        statusGenerating:"Skapar mockprov…",
+        statusMini:"Skapar snabbtest…",
+        statusExamReady:"Mockprov klart.",
+        statusMiniReady:"Snabbtest klart.",
+        statusGrade:"Rättar prov…",
+        statusGradeDone:"Rättning klar.",
+        statusCleared:"Rensat.",
+        statusOcrPreview:"Förhandsvisning klar. Kör OCR för att extrahera text.",
+        statusOcrRunning:"OCR pågår…",
+        statusOcrOk:"OCR klar. Granska och lägg till i materialet.",
+        statusOcrWarn:"OCR klar med varningar. Granska texten innan du lägger till.",
+        statusOcrEmpty:"OCR gav tom text. Prova en skarpare bild med bättre ljus.",
+        statusOcrNoImg:"Ingen bild vald.",
+        statusOcrAdded:"OCR-text tillagd i materialfältet.",
+        qPlaceholder:"Skriv ditt svar här…",
+        forecastLikely:"Nuvarande sannolik nivå:",
+        trendUp:"uppåt", trendDown:"nedåt", trendFlat:"stabilt",
+      },
+      en: {
+        brandTag: "Multimodal • OCR • Mock exams",
+        menuTitle: "Menu",
+        mMaterial:"Material + OCR", mMaterialS:"step 1",
+        mActions:"Generate/Grade", mActionsS:"step 2",
+        mExam:"Mock exam", mExamS:"step 3",
+        mResult:"Grading", mResultS:"step 4",
+        mDash:"Dashboard", mDashS:"meters",
+        mDraw:"Draw answer", mDrawS:"visual",
+        mLang:"English mode", mLangS:"on",
+        mLogout:"Log out", mLogoutS:"locks app",
+        stepTitle:"Steps",
+        chip1:"1) Material", chip2:"2) Generate", chip3:"3) Answer", chip4:"4) Grade",
+        stepSub:"Paste text. Add images and run OCR if needed. Generate a mock exam, answer, grade, and get model answers + improvements.",
+        s1Title:"Step 1 – Material + OCR (multimodal)",
+        englishLabel:"English mode",
+        s1Sub:"Primary: paste study material. Secondary: add images and run OCR → review → append to material.",
+        matPasteLabel:"Material (paste text)",
+        pastedPlaceholder:"Headings → bullet points → definitions/formulas → examples",
+        formatHint:"Tip: headings + bullet points produce better questions and more accurate grading.",
+        levelLabel:"Target level",
+        courseLabel:"Subject/course (optional)",
+        coursePlaceholder:"e.g., Math / History",
+        qTypeLabel:"Question type",
+        qMix:"Mixed", qMC:"Multiple choice", qShort:"Short answer", qEssay:"Essay",
+        miniCountLabel:"Quick test – number of questions",
+        attachTitle:"Files/images",
+        attachSub:"Mobile: pick image or take photo. Desktop: choose files. Images can be OCR’d.",
+        pickBtn:"Choose file / take photo",
+        pickHelp:".png .jpg .pdf .txt .md",
+        matListTitle:"Material list",
+        matHintEmpty:"No attachments yet.",
+        matHintHas:"Images can be OCR’d. Text files can be inserted into the material field.",
+        ocrTitle:"OCR panel",
+        ocrRunBtn:"Run OCR",
+        ocrAppendBtn:"Append to material",
+        ocrCloseBtn:"Close",
+        ocrTextLabel:"OCR text (review and edit before appending)",
+        ocrTextPlaceholder:"OCR result appears here...",
+        ocrHint:"OCR requires backend endpoint: /api/ocr. If missing, debug shows the error.",
+        ocrBestTitle:"OCR quality",
+        ocrBestSub:"Best OCR: fill the image with the page, good light, close enough for readable text.",
+        s2Title:"Step 2 – Generate and grade",
+        s2Sub:"Generate after adding material. Grade after answering. Grading also gives “full score criteria”, notes, and meters.",
+        generateBtn:"Generate mock exam",
+        miniBtn:"3-min quick test",
+        gradeBtn:"Grade exam",
+        clearBtn:"Reset",
+        ready:"Ready.",
+        working:"Working…",
+        s3Title:"Step 3 – Mock exam",
+        examEmpty:"No exam yet.",
+        s4Title:"Step 4 – Grading",
+        resultEmpty:"No grading yet.",
+        notesTitle:"Auto notes",
+        notesKeyTitle:"Top 3 key concepts",
+        notesMistTitle:"Top 2 common misses",
+        notesModelTitle:"1 model explanation",
+        notesExTitle:"1 example",
+        dashTitle:"Dashboard",
+        dashSub:"Meters and grade forecast based on the latest grading (and local history).",
+        meterTitle:"Knowledge meter",
+        meterNote:"latest exam",
+        mFact:"Facts", mExplain:"Explanation", mAnalysis:"Analysis", mExample:"Examples",
+        meterHint:"Computed from grading. If backend doesn’t send a breakdown, a simplified split is used.",
+        forecastTitle:"Grade forecast",
+        forecastNone:"No forecast yet.",
+        drawTitle:"Visual answer support",
+        drawSub:"Draw a sketch/diagram and attach it as support (stored locally in the browser).",
+        pen:"Pen", eraser:"Eraser", clearCanvas:"Clear", saveCanvas:"Save image",
+        exportTitle:"Export (PDF)",
+        exportSub:"Use browser print → “Save as PDF”.",
+        exportExam:"Export mock exam (PDF)",
+        exportResult:"Export grading (PDF)",
+        exportHint:"Opening print dialog. Choose “Save as PDF”.",
+        coachTitle:"Adaptive improvements",
+        coachSub:"Based on previous graded attempts (stored locally).",
+        weakTitle:"Top 3 focus areas",
+        nextTitle:"Next session (10–15 min)",
+        noData:"No data yet.",
+        needOne:"Generate and grade at least one exam to get recommendations.",
+        resetCoach:"Reset stats",
+        footer:"ProvKlar UF is study support and does not provide official grading.",
+        lockTitle:"ProvKlar UF",
+        lockSub:"Access required to use the app",
+        lockLabel:"Access code",
+        lockPlaceholder:"Enter the code…",
+        unlock:"Unlock",
+        toInfo:"Info page",
+        lockHint:"Press Enter to unlock.",
+        lockErr:"Wrong code.",
+        statusPasteFirst:"Paste material first.",
+        statusAddedText:"Inserted file text into the material field.",
+        statusAddedFiles:"Attachments added to the list.",
+        statusGenerating:"Generating mock exam…",
+        statusMini:"Generating quick test…",
+        statusExamReady:"Mock exam ready.",
+        statusMiniReady:"Quick test ready.",
+        statusGrade:"Grading…",
+        statusGradeDone:"Grading complete.",
+        statusCleared:"Reset complete.",
+        statusOcrPreview:"Preview ready. Run OCR to extract text.",
+        statusOcrRunning:"OCR in progress…",
+        statusOcrOk:"OCR complete. Review and append to material.",
+        statusOcrWarn:"OCR complete with warnings. Review before appending.",
+        statusOcrEmpty:"OCR returned empty text. Try a sharper photo with better light.",
+        statusOcrNoImg:"No image selected.",
+        statusOcrAdded:"OCR text appended to the material field.",
+        qPlaceholder:"Write your answer here…",
+        forecastLikely:"Likely level:",
+        trendUp:"up", trendDown:"down", trendFlat:"stable",
+      }
+    };
+
+    let LANG = localStorage.getItem("provklar_lang") || "sv";
+    function t(k){ return (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : k; }
+    function setLang(next){
+      LANG = next;
+      localStorage.setItem("provklar_lang", LANG);
+      document.documentElement.lang = (LANG === "en") ? "en" : "sv";
+
+      // Static text
+      const ids = [
+        ["brandTag","brandTag"],["menuTitle","menuTitle"],
+        ["mMaterial","mMaterial"],["mMaterialS","mMaterialS"],
+        ["mActions","mActions"],["mActionsS","mActionsS"],
+        ["mExam","mExam"],["mExamS","mExamS"],
+        ["mResult","mResult"],["mResultS","mResultS"],
+        ["mDash","mDash"],["mDashS","mDashS"],
+        ["mDraw","mDraw"],["mDrawS","mDrawS"],
+        ["mLang","mLang"],["mLangS","mLangS"],
+        ["mLogout","mLogout"],["mLogoutS","mLogoutS"],
+        ["stepTitle","stepTitle"],["chip1","chip1"],["chip2","chip2"],["chip3","chip3"],["chip4","chip4"],
+        ["stepSub","stepSub"],
+        ["s1Title","s1Title"],["englishLabel","englishLabel"],["s1Sub","s1Sub"],
+        ["matPasteLabel","matPasteLabel"],["formatHint","formatHint"],
+        ["levelLabel","levelLabel"],["courseLabel","courseLabel"],
+        ["qTypeLabel","qTypeLabel"],["miniCountLabel","miniCountLabel"],
+        ["attachTitle","attachTitle"],["attachSub","attachSub"],
+        ["pickBtn","pickBtn"],["pickHelp","pickHelp"],
+        ["matListTitle","matListTitle"],
+        ["ocrTitle","ocrTitle"],["ocrRunBtn","ocrRunBtn"],["ocrAppendBtn","ocrAppendBtn"],["ocrCloseBtn","ocrCloseBtn"],
+        ["ocrTextLabel","ocrTextLabel"],
+        ["ocrHint","ocrHint"],["ocrBestTitle","ocrBestTitle"],["ocrBestSub","ocrBestSub"],
+        ["s2Title","s2Title"],["s2Sub","s2Sub"],
+        ["generateBtn","generateBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
+        ["s3Title","s3Title"],["s4Title","s4Title"],
+        ["notesTitle","notesTitle"],["notesKeyTitle","notesKeyTitle"],["notesMistTitle","notesMistTitle"],["notesModelTitle","notesModelTitle"],["notesExTitle","notesExTitle"],
+        ["dashTitle","dashTitle"],["dashSub","dashSub"],
+        ["meterTitle","meterTitle"],["meterNote","meterNote"],
+        ["mFact","mFact"],["mExplain","mExplain"],["mAnalysis","mAnalysis"],["mExample","mExample"],
+        ["meterHint","meterHint"],
+        ["forecastTitle","forecastTitle"],
+        ["drawTitle","drawTitle"],["drawSub","drawSub"],
+        ["penBtn","pen"],["eraserBtn","eraser"],["clearCanvasBtn","clearCanvas"],["saveCanvasBtn","saveCanvas"],
+        ["exportTitle","exportTitle"],["exportSub","exportSub"],
+        ["exportExamBtn","exportExam"],["exportResultBtn","exportResult"],
+        ["coachTitle","coachTitle"],["coachSub","coachSub"],
+        ["weakTitle","weakTitle"],["nextTitle","nextTitle"],["resetCoachBtn","resetCoach"],
+        ["footerText","footer"],
+        ["lockTitle","lockTitle"],["lockSub","lockSub"],["lockLabel","lockLabel"],["unlockBtn","unlock"],["toInfoBtn","toInfo"],["lockHint","lockHint"],
+      ];
+      ids.forEach(([id,key])=>{
+        const el = document.getElementById(id);
+        if(el) el.textContent = t(key);
+      });
+
+      // Option labels
+      const opt = (id, key) => { const el = document.getElementById(id); if(el) el.textContent = t(key); };
+      opt("qMix","qMix"); opt("qMC","qMC"); opt("qShort","qShort"); opt("qEssay","qEssay");
+
+      // Placeholders
+      const pasted = document.getElementById("pastedText");
+      if(pasted) pasted.placeholder = t("pastedPlaceholder");
+      const course = document.getElementById("course");
+      if(course) course.placeholder = t("coursePlaceholder");
+      const ocrText = document.getElementById("ocrText");
+      if(ocrText) ocrText.placeholder = t("ocrTextPlaceholder");
+      const access = document.getElementById("accessCode");
+      if(access) access.placeholder = t("lockPlaceholder");
+
+      // Language toggles state labels
+      document.getElementById("englishToggle").checked = (LANG === "en");
+      document.getElementById("mLangS").textContent = (LANG === "en") ? "on" : "off";
+
+      // Empty states that depend on language
+      if(materials.length === 0) document.getElementById("matHint").textContent = t("matHintEmpty");
+      if(!currentExam) document.getElementById("examMeta").textContent = t("examEmpty");
+      if(!lastResult) document.getElementById("resultMeta").textContent = t("resultEmpty");
+      if(!forecastState.ready) document.getElementById("forecastText").textContent = t("forecastNone");
+      if(!profileHasData()) {
+        document.getElementById("weaknesses").textContent = t("noData");
+        document.getElementById("nextSession").textContent = t("needOne");
+      }
+
+      // Update any existing answer placeholders
+      document.querySelectorAll("textarea.answer").forEach(a => a.placeholder = t("qPlaceholder"));
+    }
+
+    /* ====== App lock ====== */
     const CORRECT_CODE = "provklar123";
     function checkCode(){
       const inp = document.getElementById("accessCode");
@@ -598,7 +1047,7 @@
         document.getElementById("loginScreen").style.display = "none";
         msg.textContent = "";
       } else {
-        msg.textContent = "Fel kod.";
+        msg.textContent = t("lockErr");
       }
     }
     function lockOut(){
@@ -607,6 +1056,8 @@
       document.getElementById("accessCode").value = "";
       document.getElementById("errorMsg").textContent = "";
     }
+
+    document.getElementById("unlockBtn").addEventListener("click", checkCode);
     document.addEventListener("keydown", (e) => {
       const visible = document.getElementById("loginScreen").style.display !== "none";
       if(visible && e.key === "Enter") checkCode();
@@ -615,19 +1066,37 @@
       document.getElementById("loginScreen").style.display = "none";
     }
 
-    /* ========= Menu close behavior ========= */
+    /* ====== Menu navigation (buttons, not anchors) ====== */
     const navToggleApp = document.getElementById("navToggleApp");
+    function closeMenu(){ navToggleApp.checked = false; }
+    function jumpTo(sel){
+      const el = document.querySelector(sel);
+      if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+    }
     document.addEventListener("click", (e) => {
-      const link = e.target.closest(".dropdown a");
-      if(link) navToggleApp.checked = false;
+      const btn = e.target.closest("[data-jump]");
+      if(btn){
+        const target = btn.getAttribute("data-jump");
+        closeMenu();
+        jumpTo(target);
+      }
     });
     document.getElementById("logoutMenuBtn").addEventListener("click", () => {
-      navToggleApp.checked = false;
+      closeMenu();
       lockOut();
       window.location.href = "index.html";
     });
 
-    /* ========= Utilities ========= */
+    /* Language toggles */
+    document.getElementById("englishToggle").addEventListener("change", (e) => {
+      setLang(e.target.checked ? "en" : "sv");
+    });
+    document.getElementById("langToggleMenu").addEventListener("click", () => {
+      setLang(LANG === "en" ? "sv" : "en");
+      closeMenu();
+    });
+
+    /* ====== Utilities ====== */
     const $ = (id) => document.getElementById(id);
     function escapeHtml(s){
       return String(s ?? "")
@@ -637,7 +1106,6 @@
         .replaceAll('"',"&quot;")
         .replaceAll("'","&#039;");
     }
-
     async function postJson(path, payload){
       const resp = await fetch(path, {
         method:"POST",
@@ -650,27 +1118,28 @@
       return { status: resp.status, ok: resp.ok, raw, data };
     }
 
-    /* ========= State ========= */
+    /* ====== State ====== */
     let currentExam = null;
     let lastResult = null;
 
     const materials = [];
     const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
 
-    /* ========= UI refs ========= */
     const spinnerEl = $("spinner");
     const miniStateEl = $("miniState");
     const statusEl = $("status");
     const debugEl = $("debug");
 
     const generateBtn = $("generateBtn");
+    const miniBtn = $("miniBtn");
     const gradeBtn = $("gradeBtn");
     const clearBtn = $("clearBtn");
 
     const levelEl = $("level");
     const courseEl = $("course");
     const pastedTextEl = $("pastedText");
-    const langToggleEl = $("langToggle");
+    const qTypeEl = $("qType");
+    const miniCountEl = $("miniCount");
 
     const fileInput = $("fileInput");
     const matListEl = $("matList");
@@ -679,7 +1148,7 @@
 
     const ocrPanel = $("ocrPanel");
     const ocrPreviewImg = $("ocrPreviewImg");
-    const ocrText = $("ocrText");
+    const ocrTextEl = $("ocrText");
     const ocrStatus = $("ocrStatus");
     const ocrRunBtn = $("ocrRunBtn");
     const ocrAppendBtn = $("ocrAppendBtn");
@@ -692,48 +1161,55 @@
     const resultMetaEl = $("resultMeta");
     const resultBodyEl = $("resultBody");
 
-    const weaknessesEl = $("weaknesses");
-    const nextSessionEl = $("nextSession");
-    const resetCoachBtn = $("resetCoachBtn");
+    const autoNotesBox = $("autoNotesBox");
+    const notesKey = $("notesKey");
+    const notesMist = $("notesMist");
+    const notesModel = $("notesModel");
+    const notesEx = $("notesEx");
 
     const exportExamBtn = $("exportExamBtn");
     const exportResultBtn = $("exportResultBtn");
     const exportStatus = $("exportStatus");
 
-    /* ========= Busy/status ========= */
+    const weaknessesEl = $("weaknesses");
+    const nextSessionEl = $("nextSession");
+    const resetCoachBtn = $("resetCoachBtn");
+
+    /* ====== Busy/status ====== */
     function setBusy(isBusy, label){
       spinnerEl.style.display = isBusy ? "inline-block" : "none";
-      miniStateEl.textContent = label || (isBusy ? "Arbetar..." : "Redo.");
+      miniStateEl.textContent = label || (isBusy ? t("working") : t("ready"));
       generateBtn.disabled = isBusy;
+      miniBtn.disabled = isBusy;
       gradeBtn.disabled = isBusy || !currentExam;
       clearBtn.disabled = isBusy;
       ocrRunBtn.disabled = isBusy;
       exportExamBtn.disabled = isBusy || !currentExam;
       exportResultBtn.disabled = isBusy || !lastResult;
     }
-    function setStatus(t, kind){
+    function setStatus(tText, kind){
       statusEl.className = "status" + (kind ? (" " + kind) : "");
-      statusEl.textContent = t || "";
+      statusEl.textContent = tText || "";
     }
-    function showDebug(t){
+    function showDebug(tText){
       debugEl.style.display = "block";
-      debugEl.textContent = t || "";
+      debugEl.textContent = tText || "";
     }
     function hideDebug(){
       debugEl.style.display = "none";
       debugEl.textContent = "";
     }
 
-    /* ========= Materials UI ========= */
+    /* ====== Materials UI ====== */
     function updateMaterialUI(){
-      matCountEl.textContent = `${materials.length} objekt`;
+      matCountEl.textContent = `${materials.length} ${LANG === "en" ? "items" : "objekt"}`;
       matListEl.innerHTML = "";
 
       if(materials.length === 0){
-        matHintEl.textContent = "Inga bilagor ännu.";
+        matHintEl.textContent = t("matHintEmpty");
         return;
       }
-      matHintEl.textContent = "Bilder kan OCR:as. Textfiler kan läggas in i materialfältet.";
+      matHintEl.textContent = t("matHintHas");
 
       for(const m of materials){
         const row = document.createElement("div");
@@ -760,7 +1236,7 @@
           const preview = document.createElement("button");
           preview.type="button";
           preview.className="tinyBtn";
-          preview.textContent="OCR / förhandsvisa";
+          preview.textContent = (LANG === "en") ? "OCR / preview" : "OCR / förhandsvisa";
           preview.addEventListener("click", () => openOcrPanel(m));
           actions.appendChild(preview);
         }
@@ -769,13 +1245,13 @@
           const insert = document.createElement("button");
           insert.type="button";
           insert.className="tinyBtn";
-          insert.textContent="Lägg i material";
+          insert.textContent = (LANG === "en") ? "Insert into material" : "Lägg i material";
           insert.addEventListener("click", () => {
             const cur = pastedTextEl.value.trim();
             const add = m.contentText.trim();
             pastedTextEl.value = (cur ? (cur + "\n\n") : "") + add;
-            setStatus("Text från fil inlagd i materialfältet.", "ok");
-            $("material").scrollIntoView({behavior:"smooth", block:"start"});
+            setStatus(t("statusAddedText"), "ok");
+            jumpTo("#material");
           });
           actions.appendChild(insert);
         }
@@ -783,7 +1259,7 @@
         const remove = document.createElement("button");
         remove.type="button";
         remove.className="tinyBtn danger";
-        remove.textContent="Ta bort";
+        remove.textContent = (LANG === "en") ? "Remove" : "Ta bort";
         remove.addEventListener("click", () => {
           const idx = materials.findIndex(x => x.id === m.id);
           if(idx >= 0) materials.splice(idx, 1);
@@ -819,7 +1295,7 @@
         }
       }
       updateMaterialUI();
-      setStatus("Bilagor tillagda i materiallistan.", "ok");
+      setStatus(t("statusAddedFiles"), "ok");
     }
 
     fileInput.addEventListener("change", async () => {
@@ -828,45 +1304,52 @@
         await addSelectedFiles(fileInput.files);
         fileInput.value = "";
       }catch(e){
-        setStatus("Kunde inte läsa fil.", "bad");
+        setStatus(LANG === "en" ? "Could not read file." : "Kunde inte läsa fil.", "bad");
         showDebug(String(e));
       }
     });
 
-    /* ========= OCR panel (multimodal) ========= */
+    /* ====== OCR panel ====== */
     let activeOcrImage = null;
 
     function openOcrPanel(imageItem){
       activeOcrImage = imageItem;
       ocrPanel.style.display = "block";
       ocrPreviewImg.src = imageItem.dataUrl;
-      ocrText.value = "";
+      ocrTextEl.value = "";
       ocrAppendBtn.disabled = true;
       ocrStatus.className = "status";
-      ocrStatus.textContent = "Förhandsvisning klar. Kör OCR för att extrahera text.";
+      ocrStatus.textContent = t("statusOcrPreview");
       qualityBadges.innerHTML = "";
 
-      // Quality checks
       runQualityChecks(imageItem.dataUrl).then((q) => renderQualityBadges(q)).catch(()=>{});
-      ocrPanel.scrollIntoView({behavior:"smooth", block:"start"});
+      jumpTo("#material");
+      setTimeout(()=>ocrPanel.scrollIntoView({behavior:"smooth", block:"start"}), 50);
     }
 
     ocrCloseBtn.addEventListener("click", () => {
       ocrPanel.style.display = "none";
       activeOcrImage = null;
       ocrPreviewImg.src = "";
-      ocrText.value = "";
+      ocrTextEl.value = "";
       qualityBadges.innerHTML = "";
       ocrStatus.textContent = "";
       ocrAppendBtn.disabled = true;
     });
 
+    function loadImage(dataUrl){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+    }
     async function runQualityChecks(dataUrl){
       const img = await loadImage(dataUrl);
       const w = img.naturalWidth || img.width;
       const h = img.naturalHeight || img.height;
 
-      // draw to canvas for brightness/contrast estimate
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       canvas.width = Math.min(w, 1200);
@@ -874,47 +1357,44 @@
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      // compute brightness mean and variance (rough)
       let sum = 0, sum2 = 0;
       for(let i=0;i<data.length;i+=4){
         const r=data[i], g=data[i+1], b=data[i+2];
         const y = 0.2126*r + 0.7152*g + 0.0722*b;
-        sum += y;
-        sum2 += y*y;
+        sum += y; sum2 += y*y;
       }
       const n = data.length/4;
       const mean = sum/n;
       const varr = Math.max(0, (sum2/n) - (mean*mean));
       const std = Math.sqrt(varr);
 
-      // heuristics
       const resolutionOk = (w >= 1200 || h >= 1200);
       const brightnessOk = (mean >= 70 && mean <= 210);
       const contrastOk = (std >= 35);
 
       return {
         width:w, height:h,
-        resolutionOk,
-        brightnessOk,
-        contrastOk,
-        mean:Math.round(mean),
-        std:Math.round(std)
+        resolutionOk, brightnessOk, contrastOk,
+        mean:Math.round(mean), std:Math.round(std)
       };
     }
-
     function renderQualityBadges(q){
       const badges = [];
+      const resTxt = (LANG === "en") ? "Resolution" : "Upplösning";
+      const briTxt = (LANG === "en") ? "Brightness" : "Ljusstyrka";
+      const conTxt = (LANG === "en") ? "Contrast" : "Kontrast";
+
       badges.push(q.resolutionOk
-        ? {t:`Upplösning OK (${q.width}×${q.height})`, c:"ok"}
-        : {t:`Låg upplösning (${q.width}×${q.height})`, c:"warn"}
+        ? {t:`${resTxt} OK (${q.width}×${q.height})`, c:"ok"}
+        : {t:`${resTxt}: low (${q.width}×${q.height})`, c:"warn"}
       );
       badges.push(q.brightnessOk
-        ? {t:`Ljusstyrka OK (≈${q.mean})`, c:"ok"}
-        : {t:`Ljusstyrka avvikande (≈${q.mean})`, c:"warn"}
+        ? {t:`${briTxt} OK (≈${q.mean})`, c:"ok"}
+        : {t:`${briTxt}: off (≈${q.mean})`, c:"warn"}
       );
       badges.push(q.contrastOk
-        ? {t:`Kontrast OK (≈${q.std})`, c:"ok"}
-        : {t:`Låg kontrast (≈${q.std})`, c:"warn"}
+        ? {t:`${conTxt} OK (≈${q.std})`, c:"ok"}
+        : {t:`${conTxt}: low (≈${q.std})`, c:"warn"}
       );
 
       qualityBadges.innerHTML = "";
@@ -925,156 +1405,88 @@
         qualityBadges.appendChild(el);
       });
 
-      // extra guidance
       if(!q.resolutionOk || !q.brightnessOk || !q.contrastOk){
         ocrStatus.className = "status warn";
-        ocrStatus.textContent = "Kvalitet kan vara för låg för bra OCR. Testa: mer ljus, närmare, och att sidan fyller bilden.";
+        ocrStatus.textContent = (LANG === "en")
+          ? "OCR quality may be low. Try: more light, closer, and fill the frame with the page."
+          : "Kvalitet kan vara för låg för bra OCR. Testa: mer ljus, närmare, och att sidan fyller bilden.";
       }
-    }
-
-    function loadImage(dataUrl){
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = dataUrl;
-      });
     }
 
     ocrRunBtn.addEventListener("click", async () => {
       hideDebug();
       if(!activeOcrImage){
         ocrStatus.className = "status bad";
-        ocrStatus.textContent = "Ingen bild vald.";
+        ocrStatus.textContent = t("statusOcrNoImg");
         return;
       }
-      setBusy(true, "Kör OCR...");
+      setBusy(true, t("statusOcrRunning"));
       ocrStatus.className = "status";
-      ocrStatus.textContent = "OCR pågår...";
+      ocrStatus.textContent = t("statusOcrRunning");
       ocrAppendBtn.disabled = true;
 
       try{
-        const lang = langToggleEl.checked ? "en" : "sv";
         const r = await postJson("/api/ocr", {
           imageDataUrl: activeOcrImage.dataUrl,
-          lang
+          lang: (LANG === "en") ? "en" : "sv"
         });
 
         if(!r.ok || !r.data){
-          setBusy(false, "Redo.");
+          setBusy(false, t("ready"));
           ocrStatus.className = "status bad";
-          ocrStatus.textContent = `OCR fel (HTTP ${r.status}).`;
+          ocrStatus.textContent = `OCR error (HTTP ${r.status}).`;
           showDebug(r.raw);
           return;
         }
-
-        // Expected shape: { ok:true, text:"...", warnings:[...] }
         if(!r.data.ok){
-          setBusy(false, "Redo.");
+          setBusy(false, t("ready"));
           ocrStatus.className = "status bad";
-          ocrStatus.textContent = "OCR misslyckades.";
+          ocrStatus.textContent = "OCR failed.";
           showDebug(r.raw);
           return;
         }
 
         const text = String(r.data.text || "").trim();
-        ocrText.value = text;
+        ocrTextEl.value = text;
         ocrAppendBtn.disabled = text.length === 0;
 
         const warnings = Array.isArray(r.data.warnings) ? r.data.warnings : [];
         if(text.length === 0){
           ocrStatus.className = "status warn";
-          ocrStatus.textContent = "OCR gav tom text. Prova en skarpare bild med bättre ljus.";
+          ocrStatus.textContent = t("statusOcrEmpty");
         } else if(warnings.length){
           ocrStatus.className = "status warn";
-          ocrStatus.textContent = "OCR klar med varningar. Granska texten innan du lägger till.";
+          ocrStatus.textContent = t("statusOcrWarn");
         } else {
           ocrStatus.className = "status ok";
-          ocrStatus.textContent = "OCR klar. Granska och lägg till i materialet.";
+          ocrStatus.textContent = t("statusOcrOk");
         }
 
-        setBusy(false, "Redo.");
+        setBusy(false, t("ready"));
       }catch(e){
-        setBusy(false, "Redo.");
+        setBusy(false, t("ready"));
         ocrStatus.className = "status bad";
-        ocrStatus.textContent = "OCR fel.";
+        ocrStatus.textContent = "OCR error.";
         showDebug(String(e));
       }
     });
 
     ocrAppendBtn.addEventListener("click", () => {
-      const add = ocrText.value.trim();
+      const add = ocrTextEl.value.trim();
       if(!add){
         ocrStatus.className = "status warn";
-        ocrStatus.textContent = "Ingen text att lägga till.";
+        ocrStatus.textContent = (LANG === "en") ? "No text to append." : "Ingen text att lägga till.";
         return;
       }
       const cur = pastedTextEl.value.trim();
       pastedTextEl.value = (cur ? (cur + "\n\n") : "") + add;
       ocrStatus.className = "status ok";
-      ocrStatus.textContent = "OCR-text tillagd i materialfältet.";
+      ocrStatus.textContent = t("statusOcrAdded");
       ocrAppendBtn.disabled = true;
-      $("material").scrollIntoView({behavior:"smooth", block:"start"});
+      jumpTo("#material");
     });
 
-    /* ========= Exam rendering + voice input ========= */
-    function supportsSpeech(){
-      return ("webkitSpeechRecognition" in window) || ("SpeechRecognition" in window);
-    }
-
-    function createMicButton(textarea){
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "tinyBtn";
-      btn.textContent = "🎤";
-      btn.title = "Tala ditt svar (tal-till-text)";
-      btn.style.padding = "8px 10px";
-
-      if(!supportsSpeech()){
-        btn.disabled = true;
-        btn.title = "Tal-till-text stöds inte i denna webbläsare.";
-        return btn;
-      }
-
-      btn.addEventListener("click", () => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const rec = new SpeechRecognition();
-        rec.lang = langToggleEl.checked ? "en-US" : "sv-SE";
-        rec.interimResults = true;
-        rec.continuous = false;
-
-        btn.disabled = true;
-        btn.textContent = "…";
-
-        let finalText = "";
-
-        rec.onresult = (event) => {
-          let interim = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) finalText += transcript + " ";
-            else interim += transcript;
-          }
-          const base = textarea.value.trim();
-          const combined = (base ? base + " " : "") + (finalText + interim).trim();
-          textarea.value = combined;
-        };
-
-        rec.onerror = () => {
-          btn.disabled = false;
-          btn.textContent = "🎤";
-        };
-        rec.onend = () => {
-          btn.disabled = false;
-          btn.textContent = "🎤";
-        };
-
-        rec.start();
-      });
-
-      return btn;
-    }
-
+    /* ====== Exam rendering ====== */
     function renderExam(exam){
       currentExam = exam;
       lastResult = null;
@@ -1083,7 +1495,7 @@
       exportResultBtn.disabled = true;
 
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
-      examMetaEl.textContent = `${exam.title || "Mockprov"} • Nivå: ${exam.level || "—"} • Frågor: ${qs.length}`;
+      examMetaEl.textContent = `${exam.title || (LANG === "en" ? "Mock exam" : "Mockprov")} • ${LANG === "en" ? "Level" : "Nivå"}: ${exam.level || "—"} • ${LANG === "en" ? "Questions" : "Frågor"}: ${qs.length}`;
       examBodyEl.innerHTML = "";
 
       qs.forEach((q, idx) => {
@@ -1099,32 +1511,61 @@
 
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${q.id ?? (idx+1)} • Poäng: ${q.points ?? "—"}`;
+        meta.textContent = `ID: ${q.id ?? (idx+1)} • ${LANG === "en" ? "Points" : "Poäng"}: ${q.points ?? "—"} • ${LANG === "en" ? "Type" : "Typ"}: ${q.type ?? qTypeEl.value}`;
 
-        const micSlot = document.createElement("div");
-        micSlot.className = "noPrint";
-        micSlot.style.display = "flex";
-        micSlot.style.gap = "8px";
-        micSlot.style.alignItems = "center";
+        top.appendChild(meta);
 
         const text = document.createElement("div");
         text.className = "qText";
         text.textContent = q.question ?? "";
 
+        const ansWrap = document.createElement("div");
+        ansWrap.className = "ansRow";
+
         const answer = document.createElement("textarea");
         answer.className = "answer";
-        answer.placeholder = langToggleEl.checked ? "Write your answer here..." : "Skriv ditt svar här...";
+        answer.placeholder = t("qPlaceholder");
         answer.dataset.qid = String(q.id ?? (idx+1));
+        answer.style.minHeight = (q.type === "essay") ? "150px" : "110px";
 
-        const micBtn = createMicButton(answer);
-        micSlot.appendChild(micBtn);
+        // Optional: attach saved sketch quick-link
+        const actions = document.createElement("div");
+        actions.className = "ansActions noPrint";
 
-        top.appendChild(meta);
-        top.appendChild(micSlot);
+        const attachSketch = document.createElement("button");
+        attachSketch.type = "button";
+        attachSketch.className = "tinyBtn";
+        attachSketch.textContent = (LANG === "en") ? "Attach sketch" : "Bifoga skiss";
+        attachSketch.addEventListener("click", () => {
+          const img = localStorage.getItem("provklar_sketch_png");
+          if(!img){
+            setStatus(LANG === "en" ? "No saved sketch yet. Use the drawing section and save." : "Ingen sparad skiss ännu. Rita i visuella delen och spara.", "warn");
+            jumpTo("#draw");
+            return;
+          }
+          // Store as note appended to answer (link placeholder)
+          const note = (LANG === "en") ? "\n\n[Sketch attached in browser storage]\n" : "\n\n[Skiss bifogad i webbläsarlagring]\n";
+          if(!answer.value.includes("Sketch attached") && !answer.value.includes("Skiss bifogad")){
+            answer.value = (answer.value.trim() ? (answer.value.trim() + note) : note);
+          }
+          setStatus(LANG === "en" ? "Sketch attached (stored locally)." : "Skiss bifogad (sparas lokalt).", "ok");
+        });
+
+        const jumpDraw = document.createElement("button");
+        jumpDraw.type = "button";
+        jumpDraw.className = "tinyBtn";
+        jumpDraw.textContent = (LANG === "en") ? "Open drawing" : "Öppna ritverktyg";
+        jumpDraw.addEventListener("click", () => jumpTo("#draw"));
+
+        actions.appendChild(attachSketch);
+        actions.appendChild(jumpDraw);
+
+        ansWrap.appendChild(answer);
+        ansWrap.appendChild(actions);
 
         box.appendChild(top);
         box.appendChild(text);
-        box.appendChild(answer);
+        box.appendChild(ansWrap);
         examBodyEl.appendChild(box);
       });
 
@@ -1135,7 +1576,7 @@
       lastResult = r;
       exportResultBtn.disabled = false;
 
-      resultMetaEl.textContent = `Rättning: ${r.total_points}/${r.max_points}`;
+      resultMetaEl.textContent = `${LANG === "en" ? "Grading" : "Rättning"}: ${r.total_points}/${r.max_points}`;
       const wrap = document.createElement("div");
 
       (r.per_question || []).forEach(item => {
@@ -1145,7 +1586,9 @@
         const model = String(item.model_answer || "").trim();
         const full = model
           ? `<div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
-               <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">Vad som ger full poäng (modellsvar)</div>
+               <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">
+                 ${LANG === "en" ? "Full-score answer (model)" : "Vad som ger full poäng (modellsvar)"}
+               </div>
                <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
              </div>`
           : "";
@@ -1162,9 +1605,202 @@
       resultBodyEl.appendChild(wrap);
     }
 
-    /* ========= Adaptive learning (local profile) ========= */
-    const PROFILE_KEY = "provklar_profile_v1";
+    /* ====== Auto-notes ====== */
+    function renderAutoNotes(exam, result){
+      // Prefer backend fields if present
+      const auto = result && result.auto_notes ? result.auto_notes : null;
 
+      const keys = [];
+      const misses = [];
+      let model = "";
+      let ex = "";
+
+      if(auto){
+        if(Array.isArray(auto.key_concepts)) keys.push(...auto.key_concepts.slice(0,3));
+        if(Array.isArray(auto.common_misses)) misses.push(...auto.common_misses.slice(0,2));
+        model = String(auto.model_explanation || "");
+        ex = String(auto.example || "");
+      } else {
+        // Fallback: derive from questions + missed points (simple)
+        const qMap = new Map();
+        (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
+        const missSorted = (result.per_question || []).map(pq=>{
+          const q = qMap.get(String(pq.id));
+          const maxP = Number(pq.max_points||0)||0;
+          const gotP = Number(pq.points||0)||0;
+          const missP = Math.max(0, maxP - gotP);
+          return { missP, q };
+        }).sort((a,b)=> b.missP - a.missP);
+
+        // key concepts: pull from tags or keywords in question text
+        const tagPool = [];
+        missSorted.forEach(x=>{
+          const tags = Array.isArray(x.q?.tags) ? x.q.tags : [];
+          tags.forEach(t=> tagPool.push(String(t)));
+        });
+        const unique = [...new Set(tagPool)].slice(0,3);
+        if(unique.length){
+          keys.push(...unique);
+        } else {
+          // last resort: generic
+          keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
+        }
+
+        misses.push(
+          LANG==="en" ? "Missing key concepts/terms in the answer" : "Saknar nyckelbegrepp i svaret",
+          LANG==="en" ? "Too little explanation or examples" : "För lite förklaring eller exempel"
+        );
+
+        model = LANG==="en"
+          ? "A full-score answer typically defines key terms, explains the mechanism/why, and adds a relevant example."
+          : "Ett fullpoängssvar definierar nyckelbegrepp, förklarar varför/hur och lägger till ett relevant exempel.";
+        ex = LANG==="en"
+          ? "Example: start with a definition → explain the process → finish with a concrete scenario."
+          : "Exempel: börja med definition → förklara processen → avsluta med ett konkret scenario.";
+      }
+
+      // Render
+      autoNotesBox.style.display = "block";
+      notesKey.innerHTML = "";
+      keys.slice(0,3).forEach(k=>{
+        const li = document.createElement("li"); li.textContent = k; notesKey.appendChild(li);
+      });
+
+      notesMist.innerHTML = "";
+      misses.slice(0,2).forEach(m=>{
+        const li = document.createElement("li"); li.textContent = m; notesMist.appendChild(li);
+      });
+
+      notesModel.textContent = model;
+      notesEx.textContent = ex;
+    }
+
+    /* ====== Knowledge meter + forecast ====== */
+    const meterEls = {
+      fact: {bar:$("barFact"), pct:$("pctFact")},
+      explain: {bar:$("barExplain"), pct:$("pctExplain")},
+      analysis: {bar:$("barAnalysis"), pct:$("pctAnalysis")},
+      example: {bar:$("barExample"), pct:$("pctExample")},
+    };
+
+    function setMeter(m){
+      const clamp = (x)=> Math.max(0, Math.min(100, Math.round(x)));
+      const setOne = (k,v)=>{
+        const val = clamp(v);
+        meterEls[k].bar.style.width = val + "%";
+        meterEls[k].pct.textContent = val + "%";
+      };
+      setOne("fact", m.fact);
+      setOne("explain", m.explain);
+      setOne("analysis", m.analysis);
+      setOne("example", m.example);
+    }
+
+    const forecastState = { ready:false, level:"C", trend:"flat", detail:"" };
+    function setForecast(level, trend, detail){
+      forecastState.ready = true;
+      forecastState.level = level;
+      forecastState.trend = trend;
+      forecastState.detail = detail || "";
+
+      const pill = $("trendPill");
+      pill.classList.remove("trendUp","trendDown","trendFlat");
+      if(trend === "up"){ pill.classList.add("trendUp"); pill.textContent = "↑ " + t("trendUp"); }
+      else if(trend === "down"){ pill.classList.add("trendDown"); pill.textContent = "↓ " + t("trendDown"); }
+      else { pill.classList.add("trendFlat"); pill.textContent = "≈ " + t("trendFlat"); }
+
+      $("forecastText").textContent = `${t("forecastLikely")} ${level}`;
+      $("forecastDetail").textContent = detail ? detail : "";
+    }
+
+    function computeMeterFromResult(exam, result){
+      // Prefer backend result.meter if present: {fact, explain, analysis, example} in 0..100 or 0..1
+      if(result && result.meter && typeof result.meter === "object"){
+        const m = result.meter;
+        const scale = (v)=> (v<=1 ? v*100 : v);
+        return {
+          fact: scale(Number(m.fact)||0),
+          explain: scale(Number(m.explain)||0),
+          analysis: scale(Number(m.analysis)||0),
+          example: scale(Number(m.example)||0),
+        };
+      }
+
+      // Fallback: split by question.type or tags (simplified)
+      const qMap = new Map();
+      (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
+      const buckets = { fact:[0,0], explain:[0,0], analysis:[0,0], example:[0,0] }; // [got,max]
+
+      (result.per_question || []).forEach(pq=>{
+        const q = qMap.get(String(pq.id)) || {};
+        const maxP = Number(pq.max_points||0)||0;
+        const gotP = Number(pq.points||0)||0;
+
+        // Heuristic mapping
+        let cat = "explain";
+        const type = String(q.type || "").toLowerCase();
+        const tags = Array.isArray(q.tags) ? q.tags.map(x=>String(x).toLowerCase()) : [];
+
+        if(type.includes("mc") || type.includes("multiple") || type.includes("flerval")) cat = "fact";
+        else if(type.includes("essay") || type.includes("essä")) cat = "analysis";
+        else if(type.includes("short") || type.includes("kortsvar")) cat = "explain";
+
+        if(tags.some(tg => tg.includes("exempel") || tg.includes("example"))) cat = "example";
+        if(tags.some(tg => tg.includes("analys") || tg.includes("analysis"))) cat = "analysis";
+        if(tags.some(tg => tg.includes("definition") || tg.includes("begrepp") || tg.includes("term"))) cat = "fact";
+
+        buckets[cat][0] += gotP;
+        buckets[cat][1] += maxP;
+      });
+
+      const pct = (got,max)=> max>0 ? (got/max)*100 : 0;
+      return {
+        fact: pct(...buckets.fact),
+        explain: pct(...buckets.explain),
+        analysis: pct(...buckets.analysis),
+        example: pct(...buckets.example),
+      };
+    }
+
+    function computeForecast(exam, result){
+      // Prefer backend result.forecast if present: {level, trend, detail}
+      if(result && result.forecast && typeof result.forecast === "object"){
+        const f = result.forecast;
+        return {
+          level: String(f.level || "C"),
+          trend: String(f.trend || "flat"),
+          detail: String(f.detail || "")
+        };
+      }
+
+      // Fallback: map total percent to level
+      const maxP = Number(result.max_points||0)||0;
+      const gotP = Number(result.total_points||0)||0;
+      const pct = maxP>0 ? (gotP/maxP)*100 : 0;
+
+      let lvl = "C";
+      if(pct >= 85) lvl = "A";
+      else if(pct >= 60) lvl = "C";
+      else lvl = "E";
+
+      // Trend from last attempts in localStorage
+      const histKey = "provklar_score_hist";
+      const hist = (()=>{ try{ return JSON.parse(localStorage.getItem(histKey)||"[]"); }catch{return [];} })();
+      const last = hist.length ? hist[hist.length-1] : null;
+      const trend = (last == null) ? "flat" : (pct > last+3 ? "up" : (pct < last-3 ? "down" : "flat"));
+      hist.push(pct);
+      while(hist.length > 12) hist.shift();
+      localStorage.setItem(histKey, JSON.stringify(hist));
+
+      const detail = (LANG === "en")
+        ? `Score: ${pct.toFixed(0)}%. Improve analysis + examples to raise the forecast.`
+        : `Poäng: ${pct.toFixed(0)}%. Förbättra analys + exempel för att höja prognosen.`;
+
+      return { level:lvl, trend, detail };
+    }
+
+    /* ====== Adaptive learning (local profile) ====== */
+    const PROFILE_KEY = "provklar_profile_v2";
     function loadProfile(){
       try{
         const raw = localStorage.getItem(PROFILE_KEY);
@@ -1178,13 +1814,13 @@
         return { tags:{}, attempts:0, lastUpdated:0 };
       }
     }
-    function saveProfile(p){
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+    function saveProfile(p){ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+    function profileHasData(){
+      const p = loadProfile();
+      return p && p.tags && Object.keys(p.tags).length>0;
     }
 
     function updateProfileFromResult(exam, result){
-      // Expected: exam.questions may include tags per question (optional)
-      // If no tags exist, fallback to course bucket.
       const p = loadProfile();
       p.attempts += 1;
       p.lastUpdated = Date.now();
@@ -1194,13 +1830,13 @@
 
       (result.per_question || []).forEach(item => {
         const q = qMap.get(String(item.id));
-        const tags = Array.isArray(q?.tags) && q.tags.length ? q.tags : [ (courseEl.value.trim() || "Allmänt") ];
+        const tags = Array.isArray(q?.tags) && q.tags.length ? q.tags : [ (courseEl.value.trim() || (LANG==="en"?"General":"Allmänt")) ];
         const maxP = Number(item.max_points || 0) || 0;
         const gotP = Number(item.points || 0) || 0;
         const miss = Math.max(0, maxP - gotP);
 
-        tags.forEach(t => {
-          const key = String(t);
+        tags.forEach(tg => {
+          const key = String(tg);
           if(!p.tags[key]) p.tags[key] = { miss:0, total:0, seen:0 };
           p.tags[key].miss += miss;
           p.tags[key].total += maxP;
@@ -1216,74 +1852,74 @@
       const p = loadProfile();
       const entries = Object.entries(p.tags || {});
       if(!entries.length){
-        weaknessesEl.textContent = "Ingen data ännu.";
-        nextSessionEl.textContent = "Skapa och rätta minst ett prov för att få rekommendationer.";
+        weaknessesEl.textContent = t("noData");
+        nextSessionEl.textContent = t("needOne");
         return;
       }
-
-      // score = miss/total (higher = worse)
       const scored = entries.map(([tag, v]) => {
         const total = Math.max(1, Number(v.total || 1));
         const miss = Number(v.miss || 0);
         const ratio = miss / total;
-        return { tag, ratio, seen: Number(v.seen||0) };
+        return { tag, ratio };
       }).sort((a,b)=> b.ratio - a.ratio);
 
       const top = scored.slice(0,3);
-      weaknessesEl.innerHTML = top.map(x => `• ${escapeHtml(x.tag)} (svårighet ≈ ${(x.ratio*100).toFixed(0)}%)`).join("\n");
+      weaknessesEl.textContent = top.map(x => `• ${x.tag} (${(x.ratio*100).toFixed(0)}%)`).join("\n");
 
-      // next session suggestion
       const focus = top.map(x=>x.tag);
       nextSessionEl.textContent =
-        `Fokus: ${focus.join(", ")}. Skapa ett nytt prov på samma nivå och försök att inkludera fler definitioner, samband och exempel i svaren.`;
+        (LANG === "en")
+          ? `Focus: ${focus.join(", ")}. Generate a new exam and include definitions, explanations, and one concrete example per answer.`
+          : `Fokus: ${focus.join(", ")}. Skapa ett nytt prov och inkludera definition, förklaring och ett konkret exempel per svar.`;
     }
 
     resetCoachBtn.addEventListener("click", () => {
       localStorage.removeItem(PROFILE_KEY);
       renderCoaching();
-      setStatus("Statistik nollställd.", "ok");
+      setStatus(LANG === "en" ? "Stats reset." : "Statistik nollställd.", "ok");
     });
 
-    /* ========= Export (PDF via print) ========= */
+    /* ====== Export (PDF via print) ====== */
     function exportMode(mode){
-      // mode: "exam" or "result"
-      // hide/show by adding a temporary attribute
-      document.body.setAttribute("data-export", mode);
-
-      // For print: keep everything visible, but user can choose what to print by collapsing sections if needed.
-      // Here we just scroll to relevant section and print.
-      if(mode === "exam") $("exam").scrollIntoView({behavior:"instant", block:"start"});
-      if(mode === "result") $("result").scrollIntoView({behavior:"instant", block:"start"});
-
+      if(mode === "exam") jumpTo("#exam");
+      if(mode === "result") jumpTo("#result");
       exportStatus.className = "status ok";
-      exportStatus.textContent = "Öppnar utskriftsdialog. Välj “Spara som PDF”.";
+      exportStatus.textContent = t("exportHint");
       setTimeout(() => window.print(), 150);
-      setTimeout(() => {
-        document.body.removeAttribute("data-export");
-      }, 600);
     }
-    exportExamBtn.addEventListener("click", () => {
-      if(!currentExam) return;
-      exportMode("exam");
-    });
-    exportResultBtn.addEventListener("click", () => {
-      if(!lastResult) return;
-      exportMode("result");
-    });
+    $("exportExamBtn").addEventListener("click", () => { if(currentExam) exportMode("exam"); });
+    $("exportResultBtn").addEventListener("click", () => { if(lastResult) exportMode("result"); });
 
-    /* ========= Core app flow ========= */
+    /* ====== Clear ====== */
     function clearExam(){
       currentExam = null;
-      examMetaEl.textContent = "Ingen provdata ännu.";
+      examMetaEl.textContent = t("examEmpty");
       examBodyEl.innerHTML = "";
       gradeBtn.disabled = true;
       exportExamBtn.disabled = true;
     }
     function clearResult(){
       lastResult = null;
-      resultMetaEl.textContent = "Ingen rättning ännu.";
+      resultMetaEl.textContent = t("resultEmpty");
       resultBodyEl.innerHTML = "";
       exportResultBtn.disabled = true;
+      autoNotesBox.style.display = "none";
+      $("forecastText").textContent = t("forecastNone");
+      $("forecastDetail").textContent = "";
+      forecastState.ready = false;
+      setMeter({fact:0, explain:0, analysis:0, example:0});
+    }
+
+    /* ====== Generate / Mini / Grade ====== */
+    function buildPayloadBase(){
+      return {
+        lang: (LANG==="en") ? "en" : "sv",
+        level: levelEl.value,
+        course: courseEl.value.trim(),
+        qType: qTypeEl.value,
+        pastedText: pastedTextEl.value.trim(),
+        materials: materials.map(m => ({ type:m.type, name:m.name }))
+      };
     }
 
     generateBtn.addEventListener("click", async () => {
@@ -1293,39 +1929,72 @@
 
       const pastedText = pastedTextEl.value.trim();
       if(!pastedText){
-        setStatus(langToggleEl.checked ? "Paste material first." : "Klistra in material först.", "bad");
-        $("material").scrollIntoView({behavior:"smooth", block:"start"});
+        setStatus(t("statusPasteFirst"), "bad");
+        jumpTo("#material");
         return;
       }
 
-      setBusy(true, langToggleEl.checked ? "Generating mock exam..." : "Skapar mockprov...");
-      setStatus(langToggleEl.checked ? "Generating..." : "Skapar mockprov...", "");
+      setBusy(true, t("statusGenerating"));
+      setStatus(t("statusGenerating"), "");
 
       try{
-        const lang = langToggleEl.checked ? "en" : "sv";
-        const r = await postJson("/api/generate-exam", {
-          lang,
-          level: levelEl.value,
-          course: courseEl.value.trim(),
-          pastedText,
-          // Optional: include material summaries (lightweight metadata only)
-          materials: materials.map(m => ({ type:m.type, name:m.name }))
-        });
+        const payload = buildPayloadBase();
+        payload.mode = "full";
+        const r = await postJson("/api/generate-exam", payload);
 
         if(!r.ok || !r.data || !r.data.ok){
-          setBusy(false, "Redo.");
-          setStatus(`Fel vid generering (HTTP ${r.status}).`, "bad");
+          setBusy(false, t("ready"));
+          setStatus(`Error (HTTP ${r.status}).`, "bad");
           showDebug(r.raw);
           return;
         }
 
         renderExam(r.data.exam);
-        setBusy(false, "Redo.");
-        setStatus(langToggleEl.checked ? "Mock exam ready." : "Mockprov klart.", "ok");
-        $("exam").scrollIntoView({behavior:"smooth", block:"start"});
+        setBusy(false, t("ready"));
+        setStatus(t("statusExamReady"), "ok");
+        jumpTo("#exam");
       }catch(e){
-        setBusy(false, "Redo.");
-        setStatus(langToggleEl.checked ? "Generation error." : "Fel vid generering.", "bad");
+        setBusy(false, t("ready"));
+        setStatus(LANG==="en" ? "Generation error." : "Fel vid generering.", "bad");
+        showDebug(String(e));
+      }
+    });
+
+    miniBtn.addEventListener("click", async () => {
+      hideDebug();
+      clearResult();
+      clearExam();
+
+      const pastedText = pastedTextEl.value.trim();
+      if(!pastedText){
+        setStatus(t("statusPasteFirst"), "bad");
+        jumpTo("#material");
+        return;
+      }
+
+      setBusy(true, t("statusMini"));
+      setStatus(t("statusMini"), "");
+
+      try{
+        const payload = buildPayloadBase();
+        payload.mode = "mini";
+        payload.numQuestions = Number(miniCountEl.value || 5);
+        const r = await postJson("/api/generate-exam", payload);
+
+        if(!r.ok || !r.data || !r.data.ok){
+          setBusy(false, t("ready"));
+          setStatus(`Error (HTTP ${r.status}).`, "bad");
+          showDebug(r.raw);
+          return;
+        }
+
+        renderExam(r.data.exam);
+        setBusy(false, t("ready"));
+        setStatus(t("statusMiniReady"), "ok");
+        jumpTo("#exam");
+      }catch(e){
+        setBusy(false, t("ready"));
+        setStatus(LANG==="en" ? "Quick test error." : "Fel vid snabbtest.", "bad");
         showDebug(String(e));
       }
     });
@@ -1335,45 +2004,55 @@
       clearResult();
 
       if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length===0){
-        setStatus(langToggleEl.checked ? "Generate an exam first." : "Skapa mockprov först.", "bad");
+        setStatus(LANG==="en" ? "Generate an exam first." : "Skapa mockprov först.", "bad");
         return;
       }
 
       const answers = Array.from(document.querySelectorAll("textarea.answer"))
         .map(el => ({ id: el.dataset.qid, answer: el.value.trim() }));
 
-      setBusy(true, langToggleEl.checked ? "Grading..." : "Rättar prov...");
-      setStatus(langToggleEl.checked ? "Grading..." : "Rättar prov...", "");
+      setBusy(true, t("statusGrade"));
+      setStatus(t("statusGrade"), "");
 
       try{
-        const lang = langToggleEl.checked ? "en" : "sv";
-        const r = await postJson("/api/grade", {
-          lang,
-          level: levelEl.value,
-          course: courseEl.value.trim(),
-          pastedText: pastedTextEl.value.trim(),
-          questions: currentExam.questions,
-          answers
-        });
+        const payload = buildPayloadBase();
+        payload.questions = currentExam.questions;
+        payload.answers = answers;
+
+        // attach sketch if saved (optional, backend may ignore)
+        const sketchPng = localStorage.getItem("provklar_sketch_png");
+        if(sketchPng) payload.sketch = { pngDataUrl: sketchPng };
+
+        const r = await postJson("/api/grade", payload);
 
         if(!r.ok || !r.data || !r.data.ok){
-          setBusy(false, "Redo.");
-          setStatus(`Fel vid rättning (HTTP ${r.status}).`, "bad");
+          setBusy(false, t("ready"));
+          setStatus(`Error (HTTP ${r.status}).`, "bad");
           showDebug(r.raw);
           return;
         }
 
         renderResult(r.data.result);
 
-        // Update adaptive profile (local)
+        // Auto notes
+        renderAutoNotes(currentExam, r.data.result);
+
+        // Meter + forecast
+        const meter = computeMeterFromResult(currentExam, r.data.result);
+        setMeter(meter);
+
+        const f = computeForecast(currentExam, r.data.result);
+        setForecast(f.level, f.trend, f.detail);
+
+        // Adaptive profile
         updateProfileFromResult(currentExam, r.data.result);
 
-        setBusy(false, "Redo.");
-        setStatus(langToggleEl.checked ? "Grading complete." : "Rättning klar.", "ok");
-        $("result").scrollIntoView({behavior:"smooth", block:"start"});
+        setBusy(false, t("ready"));
+        setStatus(t("statusGradeDone"), "ok");
+        jumpTo("#result");
       }catch(e){
-        setBusy(false, "Redo.");
-        setStatus(langToggleEl.checked ? "Grading error." : "Fel vid rättning.", "bad");
+        setBusy(false, t("ready"));
+        setStatus(LANG==="en" ? "Grading error." : "Fel vid rättning.", "bad");
         showDebug(String(e));
       }
     });
@@ -1383,7 +2062,8 @@
       pastedTextEl.value = "";
       courseEl.value = "";
       levelEl.value = "C";
-      langToggleEl.checked = false;
+      qTypeEl.value = "mix";
+      miniCountEl.value = "5";
 
       materials.length = 0;
       updateMaterialUI();
@@ -1391,25 +2071,92 @@
       ocrPanel.style.display = "none";
       activeOcrImage = null;
       ocrPreviewImg.src = "";
-      ocrText.value = "";
+      ocrTextEl.value = "";
       qualityBadges.innerHTML = "";
       ocrStatus.textContent = "";
       ocrAppendBtn.disabled = true;
 
       clearExam();
       clearResult();
-      setStatus("");
+      setStatus(t("statusCleared"), "ok");
       exportStatus.textContent = "";
       renderCoaching();
-
-      $("material").scrollIntoView({behavior:"smooth", block:"start"});
+      jumpTo("#material");
     });
 
-    /* ========= Init ========= */
+    /* ====== Drawing canvas (visual answer support) ====== */
+    const canvas = $("sketch");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+    let erasing = false;
+    let last = null;
+
+    function canvasPos(e){
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+      return {x,y};
+    }
+    function startDraw(e){
+      drawing = true;
+      last = canvasPos(e);
+    }
+    function endDraw(){
+      drawing = false;
+      last = null;
+    }
+    function moveDraw(e){
+      if(!drawing) return;
+      const p = canvasPos(e);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = erasing ? 26 : 5;
+      ctx.strokeStyle = erasing ? "#ffffff" : "#0B1F3A";
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      last = p;
+    }
+
+    canvas.addEventListener("pointerdown", (e)=>{ canvas.setPointerCapture(e.pointerId); startDraw(e); });
+    canvas.addEventListener("pointerup", endDraw);
+    canvas.addEventListener("pointercancel", endDraw);
+    canvas.addEventListener("pointermove", moveDraw);
+
+    $("penBtn").addEventListener("click", ()=>{
+      erasing = false;
+      $("canvasStatus").textContent = (LANG==="en") ? "Pen mode." : "Pennläge.";
+    });
+    $("eraserBtn").addEventListener("click", ()=>{
+      erasing = true;
+      $("canvasStatus").textContent = (LANG==="en") ? "Eraser mode." : "Sudd-läge.";
+    });
+    $("clearCanvasBtn").addEventListener("click", ()=>{
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      localStorage.removeItem("provklar_sketch_png");
+      $("canvasStatus").textContent = (LANG==="en") ? "Canvas cleared." : "Rityta rensad.";
+    });
+    $("saveCanvasBtn").addEventListener("click", ()=>{
+      const png = canvas.toDataURL("image/png");
+      localStorage.setItem("provklar_sketch_png", png);
+      $("canvasStatus").textContent = (LANG==="en") ? "Saved locally (browser storage)." : "Sparad lokalt (webbläsarlagring).";
+    });
+
+    /* ====== Logout ====== */
+    $("logoutMenuBtn").addEventListener("click", ()=>{});
+    // (Top bar has no extra logout button; menu item used.)
+
+    /* ====== Init ====== */
     updateMaterialUI();
     renderCoaching();
-    setBusy(false, "Redo.");
+    setMeter({fact:0, explain:0, analysis:0, example:0});
+    $("forecastText").textContent = t("forecastNone");
+    setBusy(false, t("ready"));
     setStatus("");
+
+    // Apply language (loads from localStorage)
+    setLang(LANG);
   </script>
 </body>
 </html>
