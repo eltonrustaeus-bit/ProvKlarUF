@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar – App</title>
   <meta name="description" content="ProvKlar – material → OCR → mockprov → rättning + modellsvar + förbättringar." />
-
   <style>
     :root{
       --navy:#0B1F3A;
@@ -489,10 +488,11 @@
               </select>
             </div>
             <div>
-              <label for="examSpan" id="examSpanLabel">Prov-längd (spann)</label>
-              <select id="examSpan">
-                <option value="quick" selected id="spanQuick">Snabbprov (10–12 frågor)</option>
-                <option value="normal" id="spanNormal">Vanligt prov (13–20 frågor)</option>
+              <label for="questionRange" id="questionRangeLabel">Antal provfrågor (spann)</label>
+              <select id="questionRange">
+                <option value="3-5" selected>3–5</option>
+                <option value="6-8">6–8</option>
+                <option value="9-12">9–12</option>
               </select>
             </div>
           </div>
@@ -506,8 +506,8 @@
               </select>
             </div>
             <div>
-              <label id="spanPreviewLabel">Valt spann</label>
-              <input id="spanPreview" value="10–12" readonly />
+              <label id="rangePreviewLabel">Valt spann</label>
+              <input id="rangePreview" value="3–5" readonly />
             </div>
           </div>
         </div>
@@ -575,7 +575,7 @@
     <!-- Actions -->
     <section class="card" id="actions">
       <div class="sectionTitle"><span id="s2Title">Steg 2 – Skapa och rätta</span></div>
-      <p class="sectionSub" id="s2Sub">Skapa prov efter du lagt in material. Välj snabbprov (10–12) eller vanligt prov (13–20). Rätta när du svarat.</p>
+      <p class="sectionSub" id="s2Sub">Skapa prov efter du lagt in material. Välj antal frågor (3–5 / 6–8 / 9–12). Rätta när du svarat.</p>
 
       <div class="actionCard">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -584,8 +584,7 @@
         </div>
 
         <div class="row noPrint">
-          <button class="btn btnPrimary" id="quickExamBtn" type="button">Skapa snabbprov (10–12)</button>
-          <button class="btn btnPrimary" id="normalExamBtn" type="button">Skapa vanligt prov (13–20)</button>
+          <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
           <button class="btn" id="miniBtn" type="button">Snabbtest 3 min</button>
           <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
           <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
@@ -738,11 +737,11 @@
   <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
-    /* ====== i18n (full UI translation, no API) ====== */
+    /* ====== i18n ====== */
     const I18N = {
       sv: {
-        brandTag: "Multimodal • OCR • Mockprov",
-        menuTitle: "Meny",
+        brandTag:"Multimodal • OCR • Mockprov",
+        menuTitle:"Meny",
         mMaterial:"Material + OCR", mMaterialS:"steg 1",
         mActions:"Skapa/Rätta", mActionsS:"steg 2",
         mExam:"Mockprov", mExamS:"steg 3",
@@ -756,7 +755,7 @@
         stepSub:"Klistra in text. Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.",
         s1Title:"Steg 1 – Material + OCR (multimodal)",
         englishLabel:"English mode",
-        s1Sub:"Primärt: klistra in provmaterial. Sekundärt: lägg till bilder (bok/anteckning) och kör OCR → granska → lägg till i materialet.",
+        s1Sub:"Primärt: klistra in provmaterial. Sekundärt: lägg till bilder och kör OCR → granska → lägg till i materialet.",
         matPasteLabel:"Material (klistra in text)",
         pastedPlaceholder:"Rubriker → punktlista → definitioner/formler → exempel",
         formatHint:"Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.",
@@ -765,10 +764,8 @@
         coursePlaceholder:"Ex: Matematik 2b / Historia 1b",
         qTypeLabel:"Frågetyp",
         qMix:"Blandat", qMC:"Flerval", qShort:"Kortsvar", qEssay:"Essä",
-        examSpanLabel:"Prov-längd (spann)",
-        spanQuick:"Snabbprov (10–12 frågor)",
-        spanNormal:"Vanligt prov (13–20 frågor)",
-        spanPreviewLabel:"Valt spann",
+        questionRangeLabel:"Antal provfrågor (spann)",
+        rangePreviewLabel:"Valt spann",
         attachTitle:"Bilder/filer",
         attachSub:"Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.",
         pickBtn:"Välj fil / ta bild",
@@ -786,9 +783,8 @@
         ocrBestTitle:"OCR-kvalitet",
         ocrBestSub:"För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.",
         s2Title:"Steg 2 – Skapa och rätta",
-        s2Sub:"Skapa prov efter du lagt in material. Välj snabbprov (10–12) eller vanligt prov (13–20). Rätta när du svarat.",
-        quickExamBtn:"Skapa snabbprov (10–12)",
-        normalExamBtn:"Skapa vanligt prov (13–20)",
+        s2Sub:"Skapa prov efter du lagt in material. Välj antal frågor (3–5 / 6–8 / 9–12). Rätta när du svarat.",
+        generateExamBtn:"Skapa mockprov",
         miniBtn:"Snabbtest 3 min",
         gradeBtn:"Rätta prov",
         clearBtn:"Rensa",
@@ -838,8 +834,7 @@
         statusPasteFirst:"Klistra in material först.",
         statusAddedText:"Text från fil inlagd i materialfältet.",
         statusAddedFiles:"Bilagor tillagda i materiallistan.",
-        statusGeneratingQuick:"Skapar snabbprov (10–12)…",
-        statusGeneratingNormal:"Skapar vanligt prov (13–20)…",
+        statusGenerating:"Skapar mockprov…",
         statusMini:"Skapar snabbtest…",
         statusExamReady:"Mockprov klart.",
         statusMiniReady:"Snabbtest klart.",
@@ -862,8 +857,8 @@
         sketchAttached:"Skiss bifogad (sparas lokalt).",
       },
       en: {
-        brandTag: "Multimodal • OCR • Mock exams",
-        menuTitle: "Menu",
+        brandTag:"Multimodal • OCR • Mock exams",
+        menuTitle:"Menu",
         mMaterial:"Material + OCR", mMaterialS:"step 1",
         mActions:"Generate/Grade", mActionsS:"step 2",
         mExam:"Mock exam", mExamS:"step 3",
@@ -880,16 +875,14 @@
         s1Sub:"Primary: paste study material. Secondary: add images and run OCR → review → append to material.",
         matPasteLabel:"Material (paste text)",
         pastedPlaceholder:"Headings → bullet points → definitions/formulas → examples",
-        formatHint:"Tip: headings + bullet points produce better questions and more accurate grading.",
+        formatHint:"Tip: headings + bullets produce better questions and more accurate grading.",
         levelLabel:"Target level",
         courseLabel:"Subject/course (optional)",
         coursePlaceholder:"e.g., Math / History",
         qTypeLabel:"Question type",
         qMix:"Mixed", qMC:"Multiple choice", qShort:"Short answer", qEssay:"Essay",
-        examSpanLabel:"Exam length (range)",
-        spanQuick:"Quick exam (10–12 questions)",
-        spanNormal:"Normal exam (13–20 questions)",
-        spanPreviewLabel:"Selected range",
+        questionRangeLabel:"Number of questions (range)",
+        rangePreviewLabel:"Selected range",
         attachTitle:"Files/images",
         attachSub:"Mobile: pick image or take photo. Desktop: choose files. Images can be OCR’d.",
         pickBtn:"Choose file / take photo",
@@ -907,9 +900,8 @@
         ocrBestTitle:"OCR quality",
         ocrBestSub:"Best OCR: fill the image with the page, good light, close enough for readable text.",
         s2Title:"Step 2 – Generate and grade",
-        s2Sub:"Generate after adding material. Choose quick exam (10–12) or normal exam (13–20). Grade after answering.",
-        quickExamBtn:"Generate quick exam (10–12)",
-        normalExamBtn:"Generate normal exam (13–20)",
+        s2Sub:"Generate after adding material. Choose number of questions (3–5 / 6–8 / 9–12). Grade after answering.",
+        generateExamBtn:"Generate mock exam",
         miniBtn:"3-min quick test",
         gradeBtn:"Grade exam",
         clearBtn:"Reset",
@@ -959,8 +951,7 @@
         statusPasteFirst:"Paste material first.",
         statusAddedText:"Inserted file text into the material field.",
         statusAddedFiles:"Attachments added to the list.",
-        statusGeneratingQuick:"Generating quick exam (10–12)…",
-        statusGeneratingNormal:"Generating normal exam (13–20)…",
+        statusGenerating:"Generating mock exam…",
         statusMini:"Generating quick test…",
         statusExamReady:"Mock exam ready.",
         statusMiniReady:"Quick test ready.",
@@ -1009,7 +1000,7 @@
         ["s1Title","s1Title"],["englishLabel","englishLabel"],["s1Sub","s1Sub"],
         ["matPasteLabel","matPasteLabel"],["formatHint","formatHint"],
         ["levelLabel","levelLabel"],["courseLabel","courseLabel"],
-        ["qTypeLabel","qTypeLabel"],["examSpanLabel","examSpanLabel"],["spanPreviewLabel","spanPreviewLabel"],
+        ["qTypeLabel","qTypeLabel"],["questionRangeLabel","questionRangeLabel"],["rangePreviewLabel","rangePreviewLabel"],
         ["attachTitle","attachTitle"],["attachSub","attachSub"],
         ["pickBtn","pickBtn"],["pickHelp","pickHelp"],
         ["matListTitle","matListTitle"],
@@ -1017,7 +1008,7 @@
         ["ocrTextLabel","ocrTextLabel"],
         ["ocrHint","ocrHint"],["ocrBestTitle","ocrBestTitle"],["ocrBestSub","ocrBestSub"],
         ["s2Title","s2Title"],["s2Sub","s2Sub"],
-        ["quickExamBtn","quickExamBtn"],["normalExamBtn","normalExamBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
+        ["generateExamBtn","generateExamBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
         ["s3Title","s3Title"],["s4Title","s4Title"],
         ["notesTitle","notesTitle"],["notesKeyTitle","notesKeyTitle"],["notesMistTitle","notesMistTitle"],["notesModelTitle","notesModelTitle"],["notesExTitle","notesExTitle"],
         ["dashTitle","dashTitle"],["dashSub","dashSub"],
@@ -1037,7 +1028,6 @@
 
       const opt = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=t(key); };
       opt("qMix","qMix"); opt("qMC","qMC"); opt("qShort","qShort"); opt("qEssay","qEssay");
-      opt("spanQuick","spanQuick"); opt("spanNormal","spanNormal");
 
       const pasted = document.getElementById("pastedText");
       if(pasted) pasted.placeholder = t("pastedPlaceholder");
@@ -1051,8 +1041,7 @@
       document.getElementById("englishToggle").checked = (LANG === "en");
       document.getElementById("mLangS").textContent = (LANG === "en") ? "on" : "off";
 
-      // Update span preview label value
-      syncSpanPreview();
+      syncRangePreview();
 
       if(materials.length === 0) document.getElementById("matHint").textContent = t("matHintEmpty");
       if(!currentExam) document.getElementById("examMeta").textContent = t("examEmpty");
@@ -1161,8 +1150,7 @@
     const statusEl = $("status");
     const debugEl = $("debug");
 
-    const quickExamBtn = $("quickExamBtn");
-    const normalExamBtn = $("normalExamBtn");
+    const generateExamBtn = $("generateExamBtn");
     const miniBtn = $("miniBtn");
     const gradeBtn = $("gradeBtn");
     const clearBtn = $("clearBtn");
@@ -1173,8 +1161,8 @@
     const qTypeEl = $("qType");
     const miniCountEl = $("miniCount");
 
-    const examSpanEl = $("examSpan");
-    const spanPreviewEl = $("spanPreview");
+    const questionRangeEl = $("questionRange");
+    const rangePreviewEl = $("rangePreview");
 
     const fileInput = $("fileInput");
     const matListEl = $("matList");
@@ -1210,26 +1198,24 @@
     const nextSessionEl = $("nextSession");
     const resetCoachBtn = $("resetCoachBtn");
 
-    /* ====== Exam span (range) handling ====== */
-    function getSelectedSpan(){
-      // quick => 10-12, normal => 13-20
-      const v = examSpanEl.value;
-      if(v === "normal") return { key:"normal", min:13, max:20 };
-      return { key:"quick", min:10, max:12 };
+    /* ====== Question range (3–5 / 6–8 / 9–12) ====== */
+    function parseRange(val){
+      const m = String(val||"").match(/^(\d+)\s*-\s*(\d+)$/);
+      if(!m) return {min:3,max:5};
+      return {min:Number(m[1]), max:Number(m[2])};
     }
-    function syncSpanPreview(){
-      const s = getSelectedSpan();
-      spanPreviewEl.value = `${s.min}–${s.max}`;
+    function syncRangePreview(){
+      const r = parseRange(questionRangeEl.value);
+      rangePreviewEl.value = `${r.min}–${r.max}`;
     }
-    examSpanEl.addEventListener("change", syncSpanPreview);
+    questionRangeEl.addEventListener("change", syncRangePreview);
 
     /* ====== Busy/status ====== */
     function setBusy(isBusy, label){
       spinnerEl.style.display = isBusy ? "inline-block" : "none";
       miniStateEl.textContent = label || (isBusy ? t("working") : t("ready"));
 
-      quickExamBtn.disabled = isBusy;
-      normalExamBtn.disabled = isBusy;
+      generateExamBtn.disabled = isBusy;
       miniBtn.disabled = isBusy;
 
       gradeBtn.disabled = isBusy || !currentExam;
@@ -1239,13 +1225,13 @@
       exportExamBtn.disabled = isBusy || !currentExam;
       exportResultBtn.disabled = isBusy || !lastResult;
     }
-    function setStatus(tText, kind){
+    function setStatus(txt, kind){
       statusEl.className = "status" + (kind ? (" " + kind) : "");
-      statusEl.textContent = tText || "";
+      statusEl.textContent = txt || "";
     }
-    function showDebug(tText){
+    function showDebug(txt){
       debugEl.style.display = "block";
-      debugEl.textContent = tText || "";
+      debugEl.textContent = txt || "";
     }
     function hideDebug(){
       debugEl.style.display = "none";
@@ -1431,23 +1417,15 @@
       };
     }
     function renderQualityBadges(q){
-      const badges = [];
       const resTxt = (LANG === "en") ? "Resolution" : "Upplösning";
       const briTxt = (LANG === "en") ? "Brightness" : "Ljusstyrka";
       const conTxt = (LANG === "en") ? "Contrast" : "Kontrast";
 
-      badges.push(q.resolutionOk
-        ? {t:`${resTxt} OK (${q.width}×${q.height})`, c:"ok"}
-        : {t:`${resTxt}: low (${q.width}×${q.height})`, c:"warn"}
-      );
-      badges.push(q.brightnessOk
-        ? {t:`${briTxt} OK (≈${q.mean})`, c:"ok"}
-        : {t:`${briTxt}: off (≈${q.mean})`, c:"warn"}
-      );
-      badges.push(q.contrastOk
-        ? {t:`${conTxt} OK (≈${q.std})`, c:"ok"}
-        : {t:`${conTxt}: low (≈${q.std})`, c:"warn"}
-      );
+      const badges = [
+        q.resolutionOk ? {t:`${resTxt} OK (${q.width}×${q.height})`, c:"ok"} : {t:`${resTxt}: low (${q.width}×${q.height})`, c:"warn"},
+        q.brightnessOk ? {t:`${briTxt} OK (≈${q.mean})`, c:"ok"} : {t:`${briTxt}: off (≈${q.mean})`, c:"warn"},
+        q.contrastOk ? {t:`${conTxt} OK (≈${q.std})`, c:"ok"} : {t:`${conTxt}: low (≈${q.std})`, c:"warn"},
+      ];
 
       qualityBadges.innerHTML = "";
       badges.forEach(b=>{
@@ -1460,7 +1438,7 @@
       if(!q.resolutionOk || !q.brightnessOk || !q.contrastOk){
         ocrStatus.className = "status warn";
         ocrStatus.textContent = (LANG === "en")
-          ? "OCR quality may be low. Try: more light, closer, and fill the frame with the page."
+          ? "OCR quality may be low. Try: more light, closer, fill the frame with the page."
           : "Kvalitet kan vara för låg för bra OCR. Testa: mer ljus, närmare, och att sidan fyller bilden.";
       }
     }
@@ -1661,30 +1639,11 @@
         model = String(auto.model_explanation || "");
         ex = String(auto.example || "");
       } else {
-        const qMap = new Map();
-        (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
-        const missSorted = (result.per_question || []).map(pq=>{
-          const q = qMap.get(String(pq.id));
-          const maxP = Number(pq.max_points||0)||0;
-          const gotP = Number(pq.points||0)||0;
-          const missP = Math.max(0, maxP - gotP);
-          return { missP, q };
-        }).sort((a,b)=> b.missP - a.missP);
-
-        const tagPool = [];
-        missSorted.forEach(x=>{
-          const tags = Array.isArray(x.q?.tags) ? x.q.tags : [];
-          tags.forEach(t=> tagPool.push(String(t)));
-        });
-        const unique = [...new Set(tagPool)].slice(0,3);
-        if(unique.length) keys.push(...unique);
-        else keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
-
+        keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
         misses.push(
           LANG==="en" ? "Missing key concepts/terms in the answer" : "Saknar nyckelbegrepp i svaret",
           LANG==="en" ? "Too little explanation or examples" : "För lite förklaring eller exempel"
         );
-
         model = LANG==="en"
           ? "A full-score answer typically defines key terms, explains the mechanism/why, and adds a relevant example."
           : "Ett fullpoängssvar definierar nyckelbegrepp, förklarar varför/hur och lägger till ett relevant exempel.";
@@ -1732,10 +1691,6 @@
     const forecastState = { ready:false, level:"C", trend:"flat", detail:"" };
     function setForecast(level, trend, detail){
       forecastState.ready = true;
-      forecastState.level = level;
-      forecastState.trend = trend;
-      forecastState.detail = detail || "";
-
       const pill = $("trendPill");
       pill.classList.remove("trendUp","trendDown","trendFlat");
       if(trend === "up"){ pill.classList.add("trendUp"); pill.textContent = "↑ " + t("trendUp"); }
@@ -1747,61 +1702,19 @@
     }
 
     function computeMeterFromResult(exam, result){
-      if(result && result.meter && typeof result.meter === "object"){
-        const m = result.meter;
-        const scale = (v)=> (v<=1 ? v*100 : v);
-        return {
-          fact: scale(Number(m.fact)||0),
-          explain: scale(Number(m.explain)||0),
-          analysis: scale(Number(m.analysis)||0),
-          example: scale(Number(m.example)||0),
-        };
-      }
+      const maxP = Number(result.max_points||0)||0;
+      const gotP = Number(result.total_points||0)||0;
+      const pct = maxP>0 ? (gotP/maxP)*100 : 0;
 
-      const qMap = new Map();
-      (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
-      const buckets = { fact:[0,0], explain:[0,0], analysis:[0,0], example:[0,0] };
-
-      (result.per_question || []).forEach(pq=>{
-        const q = qMap.get(String(pq.id)) || {};
-        const maxP = Number(pq.max_points||0)||0;
-        const gotP = Number(pq.points||0)||0;
-
-        let cat = "explain";
-        const type = String(q.type || "").toLowerCase();
-        const tags = Array.isArray(q.tags) ? q.tags.map(x=>String(x).toLowerCase()) : [];
-
-        if(type.includes("mc") || type.includes("multiple") || type.includes("flerval")) cat = "fact";
-        else if(type.includes("essay") || type.includes("essä")) cat = "analysis";
-        else if(type.includes("short") || type.includes("kortsvar")) cat = "explain";
-
-        if(tags.some(tg => tg.includes("exempel") || tg.includes("example"))) cat = "example";
-        if(tags.some(tg => tg.includes("analys") || tg.includes("analysis"))) cat = "analysis";
-        if(tags.some(tg => tg.includes("definition") || tg.includes("begrepp") || tg.includes("term"))) cat = "fact";
-
-        buckets[cat][0] += gotP;
-        buckets[cat][1] += maxP;
-      });
-
-      const pct = (got,max)=> max>0 ? (got/max)*100 : 0;
+      // simple split fallback
       return {
-        fact: pct(...buckets.fact),
-        explain: pct(...buckets.explain),
-        analysis: pct(...buckets.analysis),
-        example: pct(...buckets.example),
+        fact: Math.max(0, Math.min(100, pct)),
+        explain: Math.max(0, Math.min(100, pct)),
+        analysis: Math.max(0, Math.min(100, pct)),
+        example: Math.max(0, Math.min(100, pct)),
       };
     }
-
-    function computeForecast(exam, result){
-      if(result && result.forecast && typeof result.forecast === "object"){
-        const f = result.forecast;
-        return {
-          level: String(f.level || "C"),
-          trend: String(f.trend || "flat"),
-          detail: String(f.detail || "")
-        };
-      }
-
+    function computeForecast(result){
       const maxP = Number(result.max_points||0)||0;
       const gotP = Number(result.total_points||0)||0;
       const pct = maxP>0 ? (gotP/maxP)*100 : 0;
@@ -1820,13 +1733,13 @@
       localStorage.setItem(histKey, JSON.stringify(hist));
 
       const detail = (LANG === "en")
-        ? `Score: ${pct.toFixed(0)}%. Improve analysis + examples to raise the forecast.`
-        : `Poäng: ${pct.toFixed(0)}%. Förbättra analys + exempel för att höja prognosen.`;
+        ? `Score: ${pct.toFixed(0)}%.`
+        : `Poäng: ${pct.toFixed(0)}%.`;
 
       return { level:lvl, trend, detail };
     }
 
-    /* ====== Adaptive learning (local profile) ====== */
+    /* ====== Adaptive profile ====== */
     const PROFILE_KEY = "provklar_profile_v2";
     function loadProfile(){
       try{
@@ -1851,24 +1764,17 @@
       const p = loadProfile();
       p.attempts += 1;
       p.lastUpdated = Date.now();
-
-      const qMap = new Map();
-      (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
+      const courseFallback = courseEl.value.trim() || (LANG==="en"?"General":"Allmänt");
 
       (result.per_question || []).forEach(item => {
-        const q = qMap.get(String(item.id));
-        const tags = Array.isArray(q?.tags) && q.tags.length ? q.tags : [ (courseEl.value.trim() || (LANG==="en"?"General":"Allmänt")) ];
         const maxP = Number(item.max_points || 0) || 0;
         const gotP = Number(item.points || 0) || 0;
         const miss = Math.max(0, maxP - gotP);
-
-        tags.forEach(tg => {
-          const key = String(tg);
-          if(!p.tags[key]) p.tags[key] = { miss:0, total:0, seen:0 };
-          p.tags[key].miss += miss;
-          p.tags[key].total += maxP;
-          p.tags[key].seen += 1;
-        });
+        const key = courseFallback;
+        if(!p.tags[key]) p.tags[key] = { miss:0, total:0, seen:0 };
+        p.tags[key].miss += miss;
+        p.tags[key].total += maxP;
+        p.tags[key].seen += 1;
       });
 
       saveProfile(p);
@@ -1893,11 +1799,10 @@
       const top = scored.slice(0,3);
       weaknessesEl.textContent = top.map(x => `• ${x.tag} (${(x.ratio*100).toFixed(0)}%)`).join("\n");
 
-      const focus = top.map(x=>x.tag);
       nextSessionEl.textContent =
         (LANG === "en")
-          ? `Focus: ${focus.join(", ")}. Generate a new exam and include definitions, explanations, and one concrete example per answer.`
-          : `Fokus: ${focus.join(", ")}. Skapa ett nytt prov och inkludera definition, förklaring och ett konkret exempel per svar.`;
+          ? `Focus: ${top.map(x=>x.tag).join(", ")}.`
+          : `Fokus: ${top.map(x=>x.tag).join(", ")}.`;
     }
 
     resetCoachBtn.addEventListener("click", () => {
@@ -1906,12 +1811,12 @@
       setStatus(LANG === "en" ? "Stats reset." : "Statistik nollställd.", "ok");
     });
 
-    /* ====== Export (PDF via print) ====== */
+    /* ====== Export (PDF) ====== */
     function exportMode(mode){
       if(mode === "exam") jumpTo("#exam");
       if(mode === "result") jumpTo("#result");
       exportStatus.className = "status ok";
-      exportStatus.textContent = t("exportHint");
+      exportStatus.textContent = (LANG==="en") ? "Opening print dialog. Choose “Save as PDF”." : "Öppnar utskriftsdialog. Välj “Spara som PDF”.";
       setTimeout(() => window.print(), 150);
     }
     $("exportExamBtn").addEventListener("click", () => { if(currentExam) exportMode("exam"); });
@@ -1937,7 +1842,7 @@
       setMeter({fact:0, explain:0, analysis:0, example:0});
     }
 
-    /* ====== Generate / Mini / Grade ====== */
+    /* ====== Build payload ====== */
     function buildPayloadBase(){
       return {
         lang: (LANG==="en") ? "en" : "sv",
@@ -1949,7 +1854,8 @@
       };
     }
 
-    async function generateByRange(kind){
+    /* ====== Generate exam (single place, user chooses range) ====== */
+    generateExamBtn.addEventListener("click", async () => {
       hideDebug();
       clearResult();
       clearExam();
@@ -1961,35 +1867,29 @@
         return;
       }
 
-      // If user has chosen a span in dropdown, respect it.
-      // But the buttons force the intended span (quick/normal).
-      const span = (kind === "normal") ? {min:13,max:20, key:"normal"} : {min:10,max:12, key:"quick"};
-      examSpanEl.value = span.key;
-      syncSpanPreview();
+      const r = parseRange(questionRangeEl.value);
+      const numQuestions = randInt(r.min, r.max);
 
-      const numQuestions = randInt(span.min, span.max);
-
-      setBusy(true, kind === "normal" ? t("statusGeneratingNormal") : t("statusGeneratingQuick"));
-      setStatus(kind === "normal" ? t("statusGeneratingNormal") : t("statusGeneratingQuick"), "");
+      setBusy(true, t("statusGenerating"));
+      setStatus(`${t("statusGenerating")} (${r.min}–${r.max})`, "");
 
       try{
         const payload = buildPayloadBase();
         payload.mode = "full";
-        payload.variant = kind; // quick | normal (backend may ignore)
         payload.numQuestions = numQuestions;
-        payload.minQuestions = span.min; // backend may use
-        payload.maxQuestions = span.max;
+        payload.minQuestions = r.min;
+        payload.maxQuestions = r.max;
 
-        const r = await postJson("/api/generate-exam", payload);
+        const res = await postJson("/api/generate-exam", payload);
 
-        if(!r.ok || !r.data || !r.data.ok){
+        if(!res.ok || !res.data || !res.data.ok){
           setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${r.status}).`, "bad");
-          showDebug(r.raw);
+          setStatus(`Error (HTTP ${res.status}).`, "bad");
+          showDebug(res.raw);
           return;
         }
 
-        renderExam(r.data.exam);
+        renderExam(res.data.exam);
         setBusy(false, t("ready"));
         setStatus(t("statusExamReady"), "ok");
         jumpTo("#exam");
@@ -1998,11 +1898,9 @@
         setStatus(LANG==="en" ? "Generation error." : "Fel vid generering.", "bad");
         showDebug(String(e));
       }
-    }
+    });
 
-    quickExamBtn.addEventListener("click", () => generateByRange("quick"));
-    normalExamBtn.addEventListener("click", () => generateByRange("normal"));
-
+    /* ====== Mini test (kept) ====== */
     miniBtn.addEventListener("click", async () => {
       hideDebug();
       clearResult();
@@ -2023,16 +1921,16 @@
         payload.mode = "mini";
         payload.numQuestions = Number(miniCountEl.value || 5);
 
-        const r = await postJson("/api/generate-exam", payload);
+        const res = await postJson("/api/generate-exam", payload);
 
-        if(!r.ok || !r.data || !r.data.ok){
+        if(!res.ok || !res.data || !res.data.ok){
           setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${r.status}).`, "bad");
-          showDebug(r.raw);
+          setStatus(`Error (HTTP ${res.status}).`, "bad");
+          showDebug(res.raw);
           return;
         }
 
-        renderExam(r.data.exam);
+        renderExam(res.data.exam);
         setBusy(false, t("ready"));
         setStatus(t("statusMiniReady"), "ok");
         jumpTo("#exam");
@@ -2043,6 +1941,7 @@
       }
     });
 
+    /* ====== Grade ====== */
     gradeBtn.addEventListener("click", async () => {
       hideDebug();
       clearResult();
@@ -2066,25 +1965,25 @@
         const sketchPng = localStorage.getItem("provklar_sketch_png");
         if(sketchPng) payload.sketch = { pngDataUrl: sketchPng };
 
-        const r = await postJson("/api/grade", payload);
+        const res = await postJson("/api/grade", payload);
 
-        if(!r.ok || !r.data || !r.data.ok){
+        if(!res.ok || !res.data || !res.data.ok){
           setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${r.status}).`, "bad");
-          showDebug(r.raw);
+          setStatus(`Error (HTTP ${res.status}).`, "bad");
+          showDebug(res.raw);
           return;
         }
 
-        renderResult(r.data.result);
-        renderAutoNotes(currentExam, r.data.result);
+        renderResult(res.data.result);
+        renderAutoNotes(currentExam, res.data.result);
 
-        const meter = computeMeterFromResult(currentExam, r.data.result);
+        const meter = computeMeterFromResult(currentExam, res.data.result);
         setMeter(meter);
 
-        const f = computeForecast(currentExam, r.data.result);
+        const f = computeForecast(res.data.result);
         setForecast(f.level, f.trend, f.detail);
 
-        updateProfileFromResult(currentExam, r.data.result);
+        updateProfileFromResult(currentExam, res.data.result);
 
         setBusy(false, t("ready"));
         setStatus(t("statusGradeDone"), "ok");
@@ -2096,14 +1995,15 @@
       }
     });
 
+    /* ====== Clear ====== */
     clearBtn.addEventListener("click", () => {
       hideDebug();
       pastedTextEl.value = "";
       courseEl.value = "";
       levelEl.value = "C";
       qTypeEl.value = "mix";
-      examSpanEl.value = "quick";
-      syncSpanPreview();
+      questionRangeEl.value = "3-5";
+      syncRangePreview();
       miniCountEl.value = "5";
 
       materials.length = 0;
@@ -2185,14 +2085,14 @@
       $("canvasStatus").textContent = (LANG==="en") ? "Saved locally (browser storage)." : "Sparad lokalt (webbläsarlagring).";
     });
 
-    /* ====== Init ====== */
+    /* ====== init ====== */
     updateMaterialUI();
     renderCoaching();
     setMeter({fact:0, explain:0, analysis:0, example:0});
     $("forecastText").textContent = t("forecastNone");
     setBusy(false, t("ready"));
     setStatus("");
-    syncSpanPreview();
+    syncRangePreview();
     setLang(LANG);
   </script>
 </body>
