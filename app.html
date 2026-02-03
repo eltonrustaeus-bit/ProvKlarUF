@@ -34,7 +34,7 @@
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
+    .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.1}
 
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
@@ -113,7 +113,7 @@
     .bars{width:18px;height:12px;display:grid;gap:3px}
     .bars span{display:block;height:2px;background:var(--navy);border-radius:2px;opacity:.9}
     .dropdown{
-      position:absolute;right:0;top:54px;min-width:260px;
+      position:absolute;right:0;top:54px;min-width:270px;
       background:rgba(255,255,255,.98);
       border:1px solid var(--border);
       border-radius:16px;
@@ -153,7 +153,7 @@
       display:flex;align-items:center;justify-content:center;padding:18px;
     }
     .loginCard{
-      width:min(580px, 100%);
+      width:min(600px, 100%);
       background:rgba(255,255,255,.92);
       border:1px solid rgba(255,255,255,.22);
       border-radius:22px;
@@ -200,6 +200,7 @@
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
           <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
+          <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
           <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
@@ -227,6 +228,10 @@
           <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
           <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
           <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
+
+          <!-- NY: Förbättring-sida -->
+          <a href="förbättring.html" id="menuImproveLink"><span id="mImprove">Förbättring</span><span class="pill">Nivå</span></a>
+
           <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
           <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
         </div>
@@ -263,7 +268,11 @@
 
     <!-- Steg 2 -->
     <section class="card" id="settings">
-      <div class="sectionTitle"><span id="tStep2">Steg 2 – Inställningar</span></div>
+      <div class="sectionTitle">
+        <span id="tStep2">Steg 2 – Inställningar</span>
+        <!-- NY: Snabb länk till förbättring från själva innehållet -->
+        <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
+      </div>
       <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor. AI ska följa dina val.</p>
 
       <div class="grid2">
@@ -352,11 +361,13 @@
         lockLabel: "Åtkomstkod",
         unlock: "Lås upp",
         toInfo: "Till infosidan",
+        toImprove: "Förbättring",
         logout: "Logga ut",
         m1: "1) Material",
         m2: "2) Inställningar",
         m3: "3) Mockprov",
         m4: "4) Rättning",
+        mImprove: "Förbättring",
         mLang: "English",
         step1: "Steg 1 – Material",
         step1Sub: "Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
@@ -410,11 +421,13 @@
         lockLabel: "Access code",
         unlock: "Unlock",
         toInfo: "Go to info page",
+        toImprove: "Improve",
         logout: "Log out",
         m1: "1) Material",
         m2: "2) Settings",
         m3: "3) Mock exam",
         m4: "4) Grading",
+        mImprove: "Improve",
         mLang: "Svenska",
         step1: "Step 1 – Material",
         step1Sub: "Paste text. Optional: choose an image or take a photo → OCR adds the text into your material.",
@@ -472,12 +485,14 @@
       $("lockLabel").textContent = t.lockLabel;
       $("unlockBtn").textContent = t.unlock;
       $("toInfoBtn").textContent = t.toInfo;
+      $("toImproveBtn").textContent = t.toImprove;
       $("logoutBtn").textContent = t.logout;
 
       $("m1").textContent = t.m1;
       $("m2").textContent = t.m2;
       $("m3").textContent = t.m3;
       $("m4").textContent = t.m4;
+      $("mImprove").textContent = t.mImprove;
       $("mLang").textContent = t.mLang;
 
       $("tStep1").textContent = t.step1;
@@ -518,7 +533,6 @@
 
       $("langPill").textContent = LANG.toUpperCase();
 
-      // default meta texts
       if(!$("examBody").children.length) $("examMeta").textContent = t.noExamYet;
       if(!$("resultBody").children.length) $("resultMeta").textContent = t.noGradeYet;
     }
@@ -544,7 +558,6 @@
       closeMenu();
     });
 
-    // event delegation for menu links
     menu.addEventListener("click", (e) => {
       const a = e.target.closest("a[data-scroll]");
       if(a){
@@ -553,6 +566,11 @@
         closeMenu();
         const el = document.querySelector(sel);
         if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      }
+      const link = e.target.closest("a[href='förbättring.html']");
+      if(link){
+        // default navigation; just close menu for polish
+        closeMenu();
       }
     });
 
@@ -834,11 +852,11 @@
 
       const payload = {
         lang: LANG,
-        level: levelEl.value,                 // E/C/A
+        level: levelEl.value,
         course: courseEl.value.trim(),
-        qType: qTypeEl.value,                 // mix/mc/short/essay
+        qType: qTypeEl.value,
         pastedText,
-        numQuestions: Number(numQuestionsEl.value) // exakt 3–12
+        numQuestions: Number(numQuestionsEl.value)
       };
 
       setBusy(true, t.genWorking);
@@ -896,6 +914,14 @@
       }
 
       renderResult(res.data.result);
+
+      // Optional: spara till localStorage för förbättring.html auto-import
+      try{
+        localStorage.setItem("provklar_exam", JSON.stringify(currentExam));
+        localStorage.setItem("provklar_result", JSON.stringify(res.data.result));
+        localStorage.setItem("provklar_material", pastedTextEl.value.trim());
+      }catch{}
+
       setBusy(false, t.ready);
       setStatus(t.gradeDone, "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
