@@ -4,43 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar – App</title>
-  <meta name="description" content="ProvKlar – material → OCR → mockprov → rättning + modellsvar + förbättringar." />
+  <meta name="description" content="ProvKlar – material → mockprov → rättning + modellsvar." />
   <style>
     :root{
-      --navy:#0B1F3A;
-      --teal:#18B88A;
-      --bg:#F6F8FB;
-      --muted:#556072;
-      --border:rgba(11,31,58,.12);
-      --shadow:0 18px 50px rgba(11,31,58,.14);
-      --radius:18px;
-      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --max:1080px;
-      --danger:#8b1d1d;
-      --ok:#0f7a5a;
-      --warn:#946200;
-      --card:#ffffff;
+      --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --muted:#556072; --border:rgba(11,31,58,.12);
+      --shadow:0 18px 50px rgba(11,31,58,.14); --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200; --max:1080px;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
+    :target{scroll-margin-top:92px}
     body{
-      margin:0;
-      font-family:var(--font);
-      background:
+      margin:0;font-family:var(--font);background:
         radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%),
         radial-gradient(700px 380px at 95% 20%, rgba(24,184,138,.10), transparent 55%),
         var(--bg);
       color:#0C1220;
     }
     a{text-decoration:none;color:inherit}
-    :target{scroll-margin-top:92px}
-
     header{
-      background:rgba(255,255,255,.86);
-      backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:1000;
-      overflow:visible;
+      background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);
+      border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1000;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -48,82 +32,19 @@
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
-
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid var(--border);
-      cursor:pointer;white-space:nowrap;
-      background:rgba(255,255,255,.92);
-      color:var(--navy);
-      transition:transform .06s ease, opacity .06s ease;
-      user-select:none;
+      cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.92);color:var(--navy);
     }
-    .btn:active{transform:translateY(1px)}
     .btnPrimary{
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
-    .btnGhost{background:#fff;border-color:var(--border);color:var(--navy)}
+    .btnGhost{background:#fff}
     .btnDanger{background:#fff;border-color:rgba(139,29,29,.22);color:var(--danger)}
     .btn:disabled{opacity:.55;cursor:not-allowed}
-
-    .menuWrap{position:relative;z-index:2000}
-    #navToggleApp{position:absolute;left:-9999px}
-    .menuBtn{
-      width:46px;height:46px;border-radius:14px;
-      display:inline-flex;align-items:center;justify-content:center;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.92);
-      cursor:pointer;
-    }
-    .burger{width:18px;height:12px;position:relative}
-    .burger span{
-      position:absolute;left:0;right:0;height:2px;border-radius:2px;background:var(--navy);
-      transition:transform .12s ease, top .12s ease, opacity .12s ease;
-    }
-    .burger span:nth-child(1){top:0}
-    .burger span:nth-child(2){top:5px}
-    .burger span:nth-child(3){top:10px}
-    #navToggleApp:checked + label .burger span:nth-child(1){top:5px;transform:rotate(45deg)}
-    #navToggleApp:checked + label .burger span:nth-child(2){opacity:0}
-    #navToggleApp:checked + label .burger span:nth-child(3){top:5px;transform:rotate(-45deg)}
-    .overlay{
-      position:fixed;inset:0;
-      background:transparent;
-      z-index:1500;
-      display:none;
-    }
-    #navToggleApp:checked ~ .overlay{display:block}
-    .dropdown{
-      position:absolute;right:0;top:56px;
-      width:min(420px, calc(100vw - 28px));
-      background:rgba(255,255,255,.97);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:0 18px 60px rgba(11,31,58,.18);
-      padding:10px;
-      display:none;
-      z-index:2001;
-      pointer-events:auto;
-    }
-    #navToggleApp:checked ~ .dropdown{display:block}
-    .dropHead{
-      padding:10px 10px 8px;
-      font-weight:1100;color:var(--navy);
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-    }
-    .dropList{display:grid;gap:8px;padding:0 6px 8px}
-    .dropItem{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px;border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:1000;color:var(--navy);
-    }
-    .dropItem small{color:var(--muted);font-weight:800}
-    .dropItem.danger{color:var(--danger);border-color:rgba(139,29,29,.22);cursor:pointer}
-
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -142,183 +63,31 @@
       pointer-events:none;
     }
     .sectionTitle{
-      margin:0 0 8px;
-      font-weight:1100;
-      letter-spacing:-.01em;
-      color:var(--navy);
-      font-size:16px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin:0 0 8px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);
+      font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
-
-    .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .chip{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:10px 12px;border-radius:999px;
-      background:#fff;border:1px solid var(--border);
-      color:var(--navy);font-weight:950;font-size:12px;
-      cursor:pointer;
-    }
-    .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
-
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
     select,input,textarea{
-      width:100%;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-family:inherit;
-      font-size:14px;
-      outline:none;
+      width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff;
+      font-family:inherit;font-size:14px;outline:none;
     }
     textarea{min-height:165px;resize:vertical}
-    input:focus, textarea:focus, select:focus{
-      border-color:rgba(24,184,138,.45);
-      box-shadow:0 0 0 5px rgba(24,184,138,.14);
-    }
-
+    input:focus, textarea:focus, select:focus{border-color:rgba(24,184,138,.45);box-shadow:0 0 0 5px rgba(24,184,138,.14)}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width: 920px){ .grid2{grid-template-columns:1fr} }
-
-    .pickBox{
-      border:1px dashed rgba(11,31,58,.28);
-      border-radius:16px;
-      background:rgba(255,255,255,.92);
-      padding:14px;
-      display:grid;gap:10px;
-    }
-    .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .fileBtn{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:12px 14px;border-radius:14px;
-      border:1px solid rgba(24,184,138,.28);
-      background:var(--teal);
-      color:#fff;font-weight:1000;font-size:14px;
-      box-shadow:0 14px 28px rgba(24,184,138,.22);
-      cursor:pointer;user-select:none;
-    }
-    .fileHelp{color:var(--muted);font-weight:800;font-size:12px}
-    .hiddenInput{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
-
-    .list{
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:#fff;
-      padding:12px;
-    }
-    .listHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .listHeader b{color:var(--navy)}
-    .listHeader small{color:var(--muted);font-weight:800}
-    .item{
-      margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:14px;
-      display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
-    }
-    .meta{display:flex;flex-direction:column;gap:2px;min-width:0}
-    .name{font-weight:950;color:#0C1220;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
-    .desc{font-size:12px;color:var(--muted);font-weight:820}
-    .itemActions{display:flex;gap:8px;flex-wrap:wrap}
-    .tinyBtn{
-      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
-      background:#fff;color:var(--navy);font-weight:950;font-size:12px;cursor:pointer
-    }
-    .tinyBtn.danger{color:var(--danger);border-color:rgba(139,29,29,.22)}
-
-    .preview{
-      margin-top:10px;border:1px solid var(--border);border-radius:16px;background:#fff;padding:12px;display:none;
-    }
-    .previewGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width: 920px){ .previewGrid{grid-template-columns:1fr} }
-    .preview img{
-      max-width:100%;height:auto;border-radius:14px;border:1px solid var(--border);
-      background:#fff;
-    }
-    .badgeRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;border-radius:999px;
-      border:1px solid var(--border);
-      background:#fff;
-      font-weight:950;font-size:12px;color:var(--navy);
-    }
-    .badge.ok{border-color:rgba(15,122,90,.24);color:var(--ok)}
-    .badge.warn{border-color:rgba(148,98,0,.24);color:var(--warn)}
-    .badge.bad{border-color:rgba(139,29,29,.24);color:var(--danger)}
-
-    .actionCard{
-      border:1px solid var(--border);
-      border-radius:18px;
-      background:rgba(255,255,255,.92);
-      padding:14px;
-    }
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    @media (max-width:920px){ .grid2{grid-template-columns:1fr} }
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
-    .status.ok{color:var(--ok)}
-    .status.bad{color:var(--danger)}
-    .status.warn{color:var(--warn)}
+    .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
     pre{
       margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-      background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
-      display:none;
+      background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;display:none;
     }
-    .spinner{
-      width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);
-      border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite;display:none;
-    }
+    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite;display:none}
     @keyframes spin{to{transform:rotate(360deg)}}
-
     .qBox{margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff}
     .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
     .qText{font-weight:900;color:#0C1220;line-height:1.45}
-    .ansRow{display:grid;grid-template-columns:1fr;gap:10px}
-    .ansActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-
-    .coachGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    @media (max-width: 920px){ .coachGrid{grid-template-columns:1fr} }
-    .coachBox{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
-    .coachBox b{display:block;color:var(--navy);font-weight:1100}
-    .coachBox span{display:block;margin-top:6px;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45;white-space:pre-wrap}
-
-    .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    @media (max-width: 920px){ .dashGrid{grid-template-columns:1fr} }
-    .metricBox{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
-    .metricTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .metricTop b{color:var(--navy)}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;border-radius:999px;border:1px solid var(--border);
-      background:#fff;font-weight:950;font-size:12px;color:var(--navy);
-    }
-    .trendUp{border-color:rgba(15,122,90,.24);color:var(--ok)}
-    .trendDown{border-color:rgba(139,29,29,.22);color:var(--danger)}
-    .trendFlat{border-color:rgba(148,98,0,.24);color:var(--warn)}
-
-    .barWrap{margin-top:10px;display:grid;gap:10px}
-    .barRow{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center}
-    @media (max-width: 520px){ .barRow{grid-template-columns:120px 1fr 44px} }
-    .barLabel{color:var(--navy);font-weight:950;font-size:12px}
-    .barTrack{height:10px;border-radius:999px;background:rgba(11,31,58,.10);overflow:hidden;border:1px solid rgba(11,31,58,.06)}
-    .barFill{height:100%;background:var(--teal);width:0%}
-    .barPct{color:var(--muted);font-weight:900;font-size:12px;text-align:right}
-
-    .notesBox{
-      margin-top:12px;border:1px solid var(--border);border-radius:16px;background:#fff;padding:14px
-    }
-    .notesBox h4{margin:0 0 8px;color:var(--navy);font-size:13px}
-    .notesBox ul{margin:0;padding-left:18px}
-    .notesBox li{color:#0C1220;font-weight:800;font-size:12px;line-height:1.45;margin:4px 0}
-    .notesBox p{margin:8px 0 0;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45;white-space:pre-wrap}
-
-    .canvasWrap{display:grid;gap:10px;margin-top:12px}
-    canvas{
-      width:100%;
-      height:240px;
-      border-radius:16px;
-      border:1px solid var(--border);
-      background:#fff;
-      touch-action:none;
-    }
-
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -344,842 +113,194 @@
     .field{width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:14px}
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
-    .hint{margin-top:10px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
-    .kbd{display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--navy);font-weight:1000;font-size:11px}
-
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-
-    @media print{
-      header, .noPrint {display:none !important;}
-      body{background:#fff}
-      .card{box-shadow:none;border-color:#ddd}
-      .wrap{max-width:none;padding:0}
-    }
   </style>
 </head>
-
 <body>
 
   <!-- App lock -->
-  <div id="loginScreen" class="loginOverlay" aria-hidden="false">
+  <div id="loginScreen" class="loginOverlay">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
         <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
-          <div class="ltTitle" id="lockTitle">ProvKlar UF</div>
-          <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
+          <div class="ltTitle">ProvKlar UF</div>
+          <div class="ltSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
       <div class="loginBody">
-        <label class="fieldLabel" for="accessCode" id="lockLabel">Åtkomstkod</label>
+        <label class="fieldLabel" for="accessCode">Åtkomstkod</label>
         <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
-          <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
+          <a class="btn" href="index.html">Till infosidan</a>
+          <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
-        <div class="hint" id="lockHint">Tryck <span class="kbd">Enter</span> för att låsa upp.</div>
       </div>
     </div>
   </div>
 
   <header>
     <div class="wrap topbar">
-      <a class="brand" href="index.html" aria-label="Till infosidan">
+      <a class="brand" href="index.html">
         <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
           <div class="name">ProvKlar</div>
-          <div class="tag" id="brandTag">Multimodal • OCR • Mockprov</div>
+          <div class="tag">Mockprov • Rättning • Modellsvar</div>
         </div>
       </a>
 
-      <div class="menuWrap">
-        <input id="navToggleApp" type="checkbox" />
-        <label class="menuBtn" for="navToggleApp" aria-label="Meny">
-          <div class="burger" aria-hidden="true"><span></span><span></span><span></span></div>
-        </label>
-
-        <label class="overlay" for="navToggleApp" aria-hidden="true"></label>
-
-        <nav class="dropdown" aria-label="Meny">
-          <div class="dropHead"><span id="menuTitle">Meny</span><small id="menuSub">App</small></div>
-          <div class="dropList">
-            <button class="dropItem" type="button" data-jump="#material"><span id="mMaterial">Material + OCR</span><small id="mMaterialS">steg 1</small></button>
-            <button class="dropItem" type="button" data-jump="#actions"><span id="mActions">Skapa/Rätta</span><small id="mActionsS">steg 2</small></button>
-            <button class="dropItem" type="button" data-jump="#exam"><span id="mExam">Mockprov</span><small id="mExamS">steg 3</small></button>
-            <button class="dropItem" type="button" data-jump="#result"><span id="mResult">Rättning</span><small id="mResultS">steg 4</small></button>
-            <button class="dropItem" type="button" data-jump="#dashboard"><span id="mDash">Dashboard</span><small id="mDashS">mätare</small></button>
-            <button class="dropItem" type="button" data-jump="#draw"><span id="mDraw">Rita svar</span><small id="mDrawS">visuellt</small></button>
-
-            <button class="dropItem" type="button" id="langToggleMenu">
-              <span id="mLang">English mode</span>
-              <small id="mLangS">off</small>
-            </button>
-
-            <div class="dropItem danger" id="logoutMenuBtn"><span id="mLogout">Logga ut</span><small id="mLogoutS">låser appen</small></div>
-          </div>
-        </nav>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" href="#material">Material</a>
+        <a class="btn" href="#exam">Mockprov</a>
+        <a class="btn" href="#result">Rättning</a>
       </div>
     </div>
   </header>
 
   <main class="wrap">
 
-    <!-- Guide -->
-    <section class="card" id="top">
-      <div class="sectionTitle">
-        <span id="stepTitle">Stegprocess</span>
-        <div class="chipRow">
-          <button class="chip" type="button" data-jump="#material"><span class="dot"></span><span id="chip1">1) Material</span></button>
-          <button class="chip" type="button" data-jump="#actions"><span class="dot"></span><span id="chip2">2) Skapa</span></button>
-          <button class="chip" type="button" data-jump="#exam"><span class="dot"></span><span id="chip3">3) Svara</span></button>
-          <button class="chip" type="button" data-jump="#result"><span class="dot"></span><span id="chip4">4) Rätta</span></button>
-        </div>
-      </div>
-      <p class="sectionSub" id="stepSub">
-        Klistra in text. Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.
-      </p>
-    </section>
-
-    <!-- Material + OCR -->
     <section class="card" id="material">
-      <div class="sectionTitle">
-        <span id="s1Title">Steg 1 – Material + OCR (multimodal)</span>
-        <div class="noPrint" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <label class="chip" style="cursor:pointer">
-            <input type="checkbox" id="englishToggle" style="margin:0 6px 0 0;transform:translateY(1px)">
-            <span id="englishLabel">English mode</span>
-          </label>
-        </div>
-      </div>
-      <p class="sectionSub" id="s1Sub">
-        Primärt: klistra in provmaterial. Sekundärt: lägg till bilder (bok/anteckning) och kör OCR → granska → lägg till i materialet.
-      </p>
+      <div class="sectionTitle"><span>Steg 1 – Material</span></div>
+      <p class="sectionSub">Klistra in provmaterial. Välj frågetyp och exakt antal frågor. Tryck “Skapa mockprov”.</p>
+
+      <label for="pastedText">Material (klistra in text)</label>
+      <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
 
       <div class="grid2" style="margin-top:12px">
         <div>
-          <label for="pastedText" id="matPasteLabel">Material (klistra in text)</label>
-          <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
-          <div class="status warn" style="margin-top:10px" id="formatHint">Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.</div>
-
-          <div class="grid2" style="margin-top:12px">
-            <div>
-              <label for="level" id="levelLabel">Nivå</label>
-              <select id="level">
-                <option value="E">E</option>
-                <option value="C" selected>C</option>
-                <option value="A">A</option>
-              </select>
-            </div>
-            <div>
-              <label for="course" id="courseLabel">Ämne/kurs (valfritt)</label>
-              <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
-            </div>
-          </div>
-
-          <div class="grid2" style="margin-top:12px">
-            <div>
-              <label for="qType" id="qTypeLabel">Frågetyp</label>
-              <select id="qType">
-                <option value="mix" selected id="qMix">Blandat</option>
-                <option value="mc" id="qMC">Flerval</option>
-                <option value="short" id="qShort">Kortsvar</option>
-                <option value="essay" id="qEssay">Essä</option>
-              </select>
-            </div>
-            <div>
-              <label for="questionRange" id="questionRangeLabel">Antal provfrågor (spann)</label>
-              <select id="questionRange">
-                <option value="3-5" selected>3–5</option>
-                <option value="6-8">6–8</option>
-                <option value="9-12">9–12</option>
-              </select>
-            </div>
-          </div>
+          <label for="level">Nivå</label>
+          <select id="level">
+            <option value="E">E</option>
+            <option value="C" selected>C</option>
+            <option value="A">A</option>
+          </select>
         </div>
-
         <div>
-          <div class="pickBox">
-            <div>
-              <b style="color:var(--navy)" id="attachTitle">Bilder/filer</b>
-              <div class="sectionSub" style="margin-top:6px" id="attachSub">
-                Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.
-              </div>
-            </div>
-            <div class="fileRow">
-              <label class="fileBtn" for="fileInput" id="pickBtn">Välj fil / ta bild</label>
-              <span class="fileHelp" id="pickHelp">.png .jpg .pdf .txt .md</span>
-              <input id="fileInput" class="hiddenInput" type="file" multiple accept=".txt,.md,text/plain,application/pdf,image/*" />
-            </div>
-
-            <div class="list">
-              <div class="listHeader"><b id="matListTitle">Materiallista</b><small id="matCount">0 objekt</small></div>
-              <div id="matList"></div>
-              <div class="status" id="matHint" style="margin-top:10px">Inga bilagor ännu.</div>
-
-              <div class="preview" id="ocrPanel">
-                <div class="sectionTitle" style="margin:0 0 8px">
-                  <span id="ocrTitle">OCR-panel</span>
-                  <div class="noPrint" style="display:flex;gap:8px;flex-wrap:wrap">
-                    <button class="tinyBtn" type="button" id="ocrRunBtn">Kör OCR</button>
-                    <button class="tinyBtn" type="button" id="ocrAppendBtn" disabled>Lägg till i material</button>
-                    <button class="tinyBtn danger" type="button" id="ocrCloseBtn">Stäng</button>
-                  </div>
-                </div>
-
-                <div class="previewGrid">
-                  <div>
-                    <img id="ocrPreviewImg" alt="OCR-förhandsvisning">
-                    <div class="badgeRow" id="qualityBadges"></div>
-                    <div class="status" id="ocrStatus"></div>
-                  </div>
-                  <div>
-                    <label for="ocrText" id="ocrTextLabel">OCR-text (granska och justera innan du lägger till)</label>
-                    <textarea id="ocrText" placeholder="OCR-resultat visas här..." style="min-height:210px"></textarea>
-                    <div class="status warn" id="ocrHint" style="margin-top:10px">
-                      OCR kräver backend-endpoint: <code>/api/ocr</code>. Om den saknas visas fel i debug.
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <div class="pickBox" style="margin-top:12px">
-            <div>
-              <b style="color:var(--navy)" id="ocrBestTitle">OCR-kvalitet</b>
-              <div class="sectionSub" style="margin-top:6px" id="ocrBestSub">
-                För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.
-              </div>
-            </div>
-          </div>
+          <label for="course">Ämne/kurs (valfritt)</label>
+          <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
         </div>
+      </div>
+
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <label for="qType">Frågetyp</label>
+          <select id="qType">
+            <option value="mix" selected>Blandat</option>
+            <option value="mc">Flervalsfrågor</option>
+            <option value="short">Kortsvar</option>
+            <option value="essay">Essä</option>
+          </select>
+        </div>
+        <div>
+          <label for="numQuestions">Antal frågor</label>
+          <select id="numQuestions">
+            <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option selected>12</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="status warn" id="formatHint" style="margin-top:12px">
+        Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.
       </div>
     </section>
 
-    <!-- Actions -->
     <section class="card" id="actions">
-      <div class="sectionTitle"><span id="s2Title">Steg 2 – Skapa och rätta</span></div>
-      <p class="sectionSub" id="s2Sub">Skapa prov efter du lagt in material. Välj antal frågor (3–5 / 6–8 / 9–12). Rätta när du svarat.</p>
+      <div class="sectionTitle"><span>Steg 2 – Skapa och rätta</span></div>
+      <p class="sectionSub">AI genererar exakt antal frågor och rätt frågetyp utifrån dina val.</p>
 
-      <div class="actionCard">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div class="spinner" id="spinner"></div>
-          <span class="sectionSub" id="miniState">Redo.</span>
-        </div>
-
-        <div class="row noPrint">
-          <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-          <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-          <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
-        </div>
-
-        <div class="status" id="status"></div>
-        <pre id="debug"></pre>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="spinner" id="spinner"></div>
+        <span class="sectionSub" id="miniState">Redo.</span>
       </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
+        <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
+        <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
+      </div>
+
+      <div class="status" id="status"></div>
+      <pre id="debug"></pre>
     </section>
 
-    <!-- Exam -->
     <section class="card" id="exam">
-      <div class="sectionTitle"><span id="s3Title">Steg 3 – Mockprov</span></div>
+      <div class="sectionTitle"><span>Steg 3 – Mockprov</span></div>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
       <div id="examBody"></div>
     </section>
 
-    <!-- Result -->
     <section class="card" id="result">
-      <div class="sectionTitle"><span id="s4Title">Steg 4 – Rättning</span></div>
+      <div class="sectionTitle"><span>Steg 4 – Rättning</span></div>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
       <div id="resultBody"></div>
-
-      <div class="notesBox" id="autoNotesBox" style="display:none">
-        <h4 id="notesTitle">Auto-anteckningar</h4>
-        <div class="grid2" style="margin-top:10px">
-          <div>
-            <h4 id="notesKeyTitle" style="margin:0 0 6px;color:var(--navy);font-size:13px">3 viktigaste begrepp</h4>
-            <ul id="notesKey"></ul>
-          </div>
-          <div>
-            <h4 id="notesMistTitle" style="margin:0 0 6px;color:var(--navy);font-size:13px">2 vanligaste missar</h4>
-            <ul id="notesMist"></ul>
-          </div>
-        </div>
-        <div style="margin-top:10px">
-          <h4 id="notesModelTitle">1 modellförklaring</h4>
-          <p id="notesModel"></p>
-        </div>
-        <div style="margin-top:10px">
-          <h4 id="notesExTitle">1 exempel</h4>
-          <p id="notesEx"></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Dashboard -->
-    <section class="card" id="dashboard">
-      <div class="sectionTitle"><span id="dashTitle">Dashboard</span></div>
-      <p class="sectionSub" id="dashSub">Mätare och betygsprognos baserat på senaste rättning (och historik lokalt).</p>
-
-      <div class="dashGrid">
-        <div class="metricBox">
-          <div class="metricTop">
-            <b id="meterTitle">Förstå-Mätare</b>
-            <span class="pill" id="meterNote">senaste prov</span>
-          </div>
-
-          <div class="barWrap" aria-label="Förstå-mätare">
-            <div class="barRow">
-              <div class="barLabel" id="mFact">Fakta</div>
-              <div class="barTrack"><div class="barFill" id="barFact"></div></div>
-              <div class="barPct" id="pctFact">0%</div>
-            </div>
-            <div class="barRow">
-              <div class="barLabel" id="mExplain">Förklaring</div>
-              <div class="barTrack"><div class="barFill" id="barExplain"></div></div>
-              <div class="barPct" id="pctExplain">0%</div>
-            </div>
-            <div class="barRow">
-              <div class="barLabel" id="mAnalysis">Analys</div>
-              <div class="barTrack"><div class="barFill" id="barAnalysis"></div></div>
-              <div class="barPct" id="pctAnalysis">0%</div>
-            </div>
-            <div class="barRow">
-              <div class="barLabel" id="mExample">Exempel</div>
-              <div class="barTrack"><div class="barFill" id="barExample"></div></div>
-              <div class="barPct" id="pctExample">0%</div>
-            </div>
-          </div>
-
-          <div class="status" id="meterHint" style="margin-top:10px">
-            Mätaren räknas från rättningen. Om backend inte skickar breakdown beräknas en förenklad fördelning.
-          </div>
-        </div>
-
-        <div class="metricBox">
-          <div class="metricTop">
-            <b id="forecastTitle">Betygsprognos</b>
-            <span class="pill trendFlat" id="trendPill">≈</span>
-          </div>
-          <div class="status" id="forecastText" style="margin-top:10px">
-            Ingen prognos ännu.
-          </div>
-          <div class="status" id="forecastDetail"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Draw -->
-    <section class="card" id="draw">
-      <div class="sectionTitle"><span id="drawTitle">Visuellt svarsstöd</span></div>
-      <p class="sectionSub" id="drawSub">Rita en skiss/diagram och bifoga som stöd när du svarar (lokalt i webbläsaren).</p>
-
-      <div class="canvasWrap">
-        <canvas id="sketch" width="1200" height="600"></canvas>
-        <div class="row noPrint">
-          <button class="btn" id="penBtn" type="button">Penna</button>
-          <button class="btn" id="eraserBtn" type="button">Sudd</button>
-          <button class="btn" id="clearCanvasBtn" type="button">Rensa</button>
-          <button class="btn btnGhost" id="saveCanvasBtn" type="button">Spara bild</button>
-        </div>
-        <div class="status" id="canvasStatus"></div>
-      </div>
-    </section>
-
-    <!-- Export -->
-    <section class="card" id="export">
-      <div class="sectionTitle"><span id="exportTitle">Export (PDF)</span></div>
-      <p class="sectionSub" id="exportSub">PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).</p>
-      <div class="row noPrint">
-        <button class="btn" id="exportExamBtn" type="button" disabled>Exportera mockprov (PDF)</button>
-        <button class="btn" id="exportResultBtn" type="button" disabled>Exportera rättning (PDF)</button>
-      </div>
-      <div class="status" id="exportStatus"></div>
-    </section>
-
-    <section class="card" id="coach">
-      <div class="sectionTitle"><span id="coachTitle">Förbättringar (adaptivt)</span></div>
-      <p class="sectionSub" id="coachSub">Baserat på tidigare rättningar (sparas lokalt i webbläsaren).</p>
-
-      <div class="coachGrid">
-        <div class="coachBox">
-          <b id="weakTitle">Top 3 fokusområden</b>
-          <span id="weaknesses">Ingen data ännu.</span>
-        </div>
-        <div class="coachBox">
-          <b id="nextTitle">Nästa pass (10–15 min)</b>
-          <span id="nextSession">Skapa och rätta minst ett prov för att få rekommendationer.</span>
-        </div>
-      </div>
-
-      <div class="row noPrint" style="margin-top:12px">
-        <button class="btn btnGhost" id="resetCoachBtn" type="button">Nollställ statistik</button>
-      </div>
     </section>
 
   </main>
 
-  <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
-    /* ====== i18n ====== */
-    const I18N = {
-      sv: {
-        brandTag:"Multimodal • OCR • Mockprov",
-        menuTitle:"Meny",
-        mMaterial:"Material + OCR", mMaterialS:"steg 1",
-        mActions:"Skapa/Rätta", mActionsS:"steg 2",
-        mExam:"Mockprov", mExamS:"steg 3",
-        mResult:"Rättning", mResultS:"steg 4",
-        mDash:"Dashboard", mDashS:"mätare",
-        mDraw:"Rita svar", mDrawS:"visuellt",
-        mLang:"English mode", mLangS:"off",
-        mLogout:"Logga ut", mLogoutS:"låser appen",
-        stepTitle:"Stegprocess",
-        chip1:"1) Material", chip2:"2) Skapa", chip3:"3) Svara", chip4:"4) Rätta",
-        stepSub:"Klistra in text. Lägg till bilder och kör OCR vid behov. Skapa mockprov, svara, rätta och få modellsvar + förbättringar.",
-        s1Title:"Steg 1 – Material + OCR (multimodal)",
-        englishLabel:"English mode",
-        s1Sub:"Primärt: klistra in provmaterial. Sekundärt: lägg till bilder och kör OCR → granska → lägg till i materialet.",
-        matPasteLabel:"Material (klistra in text)",
-        pastedPlaceholder:"Rubriker → punktlista → definitioner/formler → exempel",
-        formatHint:"Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.",
-        levelLabel:"Nivå",
-        courseLabel:"Ämne/kurs (valfritt)",
-        coursePlaceholder:"Ex: Matematik 2b / Historia 1b",
-        qTypeLabel:"Frågetyp",
-        qMix:"Blandat", qMC:"Flerval", qShort:"Kortsvar", qEssay:"Essä",
-        questionRangeLabel:"Antal provfrågor (spann)",
-        attachTitle:"Bilder/filer",
-        attachSub:"Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.",
-        pickBtn:"Välj fil / ta bild",
-        pickHelp:".png .jpg .pdf .txt .md",
-        matListTitle:"Materiallista",
-        matHintEmpty:"Inga bilagor ännu.",
-        matHintHas:"Bilder kan OCR:as. Textfiler kan läggas in i materialfältet.",
-        ocrTitle:"OCR-panel",
-        ocrRunBtn:"Kör OCR",
-        ocrAppendBtn:"Lägg till i material",
-        ocrCloseBtn:"Stäng",
-        ocrTextLabel:"OCR-text (granska och justera innan du lägger till)",
-        ocrTextPlaceholder:"OCR-resultat visas här...",
-        ocrHint:"OCR kräver backend-endpoint: /api/ocr. Om den saknas visas fel i debug.",
-        ocrBestTitle:"OCR-kvalitet",
-        ocrBestSub:"För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.",
-        s2Title:"Steg 2 – Skapa och rätta",
-        s2Sub:"Skapa prov efter du lagt in material. Välj antal frågor (3–5 / 6–8 / 9–12). Rätta när du svarat.",
-        generateExamBtn:"Skapa mockprov",
-        gradeBtn:"Rätta prov",
-        clearBtn:"Rensa",
-        ready:"Redo.",
-        working:"Arbetar…",
-        s3Title:"Steg 3 – Mockprov",
-        examEmpty:"Ingen provdata ännu.",
-        s4Title:"Steg 4 – Rättning",
-        resultEmpty:"Ingen rättning ännu.",
-        notesTitle:"Auto-anteckningar",
-        notesKeyTitle:"3 viktigaste begrepp",
-        notesMistTitle:"2 vanligaste missar",
-        notesModelTitle:"1 modellförklaring",
-        notesExTitle:"1 exempel",
-        dashTitle:"Dashboard",
-        dashSub:"Mätare och betygsprognos baserat på senaste rättning (och historik lokalt).",
-        meterTitle:"Förstå-Mätare",
-        meterNote:"senaste prov",
-        mFact:"Fakta", mExplain:"Förklaring", mAnalysis:"Analys", mExample:"Exempel",
-        meterHint:"Mätaren räknas från rättningen. Om backend inte skickar breakdown beräknas en förenklad fördelning.",
-        forecastTitle:"Betygsprognos",
-        forecastNone:"Ingen prognos ännu.",
-        drawTitle:"Visuellt svarsstöd",
-        drawSub:"Rita en skiss/diagram och bifoga som stöd när du svarar (lokalt i webbläsaren).",
-        pen:"Penna", eraser:"Sudd", clearCanvas:"Rensa", saveCanvas:"Spara bild",
-        exportTitle:"Export (PDF)",
-        exportSub:"PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).",
-        exportExam:"Exportera mockprov (PDF)",
-        exportResult:"Exportera rättning (PDF)",
-        coachTitle:"Förbättringar (adaptivt)",
-        coachSub:"Baserat på tidigare rättningar (sparas lokalt i webbläsaren).",
-        weakTitle:"Top 3 fokusområden",
-        nextTitle:"Nästa pass (10–15 min)",
-        noData:"Ingen data ännu.",
-        needOne:"Skapa och rätta minst ett prov för att få rekommendationer.",
-        resetCoach:"Nollställ statistik",
-        footer:"ProvKlar UF är studiestöd och ger ingen officiell betygssättning.",
-        lockTitle:"ProvKlar UF",
-        lockSub:"Åtkomst krävs för att använda appen",
-        lockLabel:"Åtkomstkod",
-        lockPlaceholder:"Skriv koden…",
-        unlock:"Lås upp",
-        toInfo:"Till infosidan",
-        lockHint:"Tryck Enter för att låsa upp.",
-        lockErr:"Fel kod.",
-        statusPasteFirst:"Klistra in material först.",
-        statusAddedText:"Text från fil inlagd i materialfältet.",
-        statusAddedFiles:"Bilagor tillagda i materiallistan.",
-        statusGenerating:"Skapar mockprov…",
-        statusExamReady:"Mockprov klart.",
-        statusGrade:"Rättar prov…",
-        statusGradeDone:"Rättning klar.",
-        statusCleared:"Rensat.",
-        statusOcrPreview:"Förhandsvisning klar. Kör OCR för att extrahera text.",
-        statusOcrRunning:"OCR pågår…",
-        statusOcrOk:"OCR klar. Granska och lägg till i materialet.",
-        statusOcrWarn:"OCR klar med varningar. Granska texten innan du lägger till.",
-        statusOcrEmpty:"OCR gav tom text. Prova en skarpare bild med bättre ljus.",
-        statusOcrNoImg:"Ingen bild vald.",
-        statusOcrAdded:"OCR-text tillagd i materialfältet.",
-        qPlaceholder:"Skriv ditt svar här…",
-        forecastLikely:"Nuvarande sannolik nivå:",
-        trendUp:"uppåt", trendDown:"nedåt", trendFlat:"stabilt",
-        attachSketch:"Bifoga skiss",
-        openDrawing:"Öppna ritverktyg",
-        sketchMissing:"Ingen sparad skiss ännu. Rita i visuella delen och spara.",
-        sketchAttached:"Skiss bifogad (sparas lokalt).",
-      },
-      en: {
-        brandTag:"Multimodal • OCR • Mock exams",
-        menuTitle:"Menu",
-        mMaterial:"Material + OCR", mMaterialS:"step 1",
-        mActions:"Generate/Grade", mActionsS:"step 2",
-        mExam:"Mock exam", mExamS:"step 3",
-        mResult:"Grading", mResultS:"step 4",
-        mDash:"Dashboard", mDashS:"meters",
-        mDraw:"Draw answer", mDrawS:"visual",
-        mLang:"English mode", mLangS:"on",
-        mLogout:"Log out", mLogoutS:"locks app",
-        stepTitle:"Steps",
-        chip1:"1) Material", chip2:"2) Generate", chip3:"3) Answer", chip4:"4) Grade",
-        stepSub:"Paste text. Add images and run OCR if needed. Generate a mock exam, answer, grade, and get model answers + improvements.",
-        s1Title:"Step 1 – Material + OCR (multimodal)",
-        englishLabel:"English mode",
-        s1Sub:"Primary: paste study material. Secondary: add images and run OCR → review → append to material.",
-        matPasteLabel:"Material (paste text)",
-        pastedPlaceholder:"Headings → bullet points → definitions/formulas → examples",
-        formatHint:"Tip: headings + bullets produce better questions and more accurate grading.",
-        levelLabel:"Target level",
-        courseLabel:"Subject/course (optional)",
-        coursePlaceholder:"e.g., Math / History",
-        qTypeLabel:"Question type",
-        qMix:"Mixed", qMC:"Multiple choice", qShort:"Short answer", qEssay:"Essay",
-        questionRangeLabel:"Number of questions (range)",
-        attachTitle:"Files/images",
-        attachSub:"Mobile: pick image or take photo. Desktop: choose files. Images can be OCR’d.",
-        pickBtn:"Choose file / take photo",
-        pickHelp:".png .jpg .pdf .txt .md",
-        matListTitle:"Material list",
-        matHintEmpty:"No attachments yet.",
-        matHintHas:"Images can be OCR’d. Text files can be inserted into the material field.",
-        ocrTitle:"OCR panel",
-        ocrRunBtn:"Run OCR",
-        ocrAppendBtn:"Append to material",
-        ocrCloseBtn:"Close",
-        ocrTextLabel:"OCR text (review and edit before appending)",
-        ocrTextPlaceholder:"OCR result appears here...",
-        ocrHint:"OCR requires backend endpoint: /api/ocr. If missing, debug shows the error.",
-        ocrBestTitle:"OCR quality",
-        ocrBestSub:"Best OCR: fill the image with the page, good light, close enough for readable text.",
-        s2Title:"Step 2 – Generate and grade",
-        s2Sub:"Generate after adding material. Choose number of questions (3–5 / 6–8 / 9–12). Grade after answering.",
-        generateExamBtn:"Generate mock exam",
-        gradeBtn:"Grade exam",
-        clearBtn:"Reset",
-        ready:"Ready.",
-        working:"Working…",
-        s3Title:"Step 3 – Mock exam",
-        examEmpty:"No exam yet.",
-        s4Title:"Step 4 – Grading",
-        resultEmpty:"No grading yet.",
-        notesTitle:"Auto notes",
-        notesKeyTitle:"Top 3 key concepts",
-        notesMistTitle:"Top 2 common misses",
-        notesModelTitle:"1 model explanation",
-        notesExTitle:"1 example",
-        dashTitle:"Dashboard",
-        dashSub:"Meters and grade forecast based on the latest grading (and local history).",
-        meterTitle:"Knowledge meter",
-        meterNote:"latest exam",
-        mFact:"Facts", mExplain:"Explanation", mAnalysis:"Analysis", mExample:"Examples",
-        meterHint:"Computed from grading. If backend doesn’t send a breakdown, a simplified split is used.",
-        forecastTitle:"Grade forecast",
-        forecastNone:"No forecast yet.",
-        drawTitle:"Visual answer support",
-        drawSub:"Draw a sketch/diagram and attach it as support (stored locally in the browser).",
-        pen:"Pen", eraser:"Eraser", clearCanvas:"Clear", saveCanvas:"Save image",
-        exportTitle:"Export (PDF)",
-        exportSub:"Use browser print → “Save as PDF”.",
-        exportExam:"Export mock exam (PDF)",
-        exportResult:"Export grading (PDF)",
-        coachTitle:"Adaptive improvements",
-        coachSub:"Based on previous graded attempts (stored locally).",
-        weakTitle:"Top 3 focus areas",
-        nextTitle:"Next session (10–15 min)",
-        noData:"No data yet.",
-        needOne:"Generate and grade at least one exam to get recommendations.",
-        resetCoach:"Reset stats",
-        footer:"ProvKlar UF is study support and does not provide official grading.",
-        lockTitle:"ProvKlar UF",
-        lockSub:"Access required to use the app",
-        lockLabel:"Access code",
-        lockPlaceholder:"Enter the code…",
-        unlock:"Unlock",
-        toInfo:"Info page",
-        lockHint:"Press Enter to unlock.",
-        lockErr:"Wrong code.",
-        statusPasteFirst:"Paste material first.",
-        statusAddedText:"Inserted file text into the material field.",
-        statusAddedFiles:"Attachments added to the list.",
-        statusGenerating:"Generating mock exam…",
-        statusExamReady:"Mock exam ready.",
-        statusGrade:"Grading…",
-        statusGradeDone:"Grading complete.",
-        statusCleared:"Reset complete.",
-        statusOcrPreview:"Preview ready. Run OCR to extract text.",
-        statusOcrRunning:"OCR in progress…",
-        statusOcrOk:"OCR complete. Review and append to material.",
-        statusOcrWarn:"OCR complete with warnings. Review before appending.",
-        statusOcrEmpty:"OCR returned empty text. Try a sharper photo with better light.",
-        statusOcrNoImg:"No image selected.",
-        statusOcrAdded:"OCR text appended to the material field.",
-        qPlaceholder:"Write your answer here…",
-        forecastLikely:"Likely level:",
-        trendUp:"up", trendDown:"down", trendFlat:"stable",
-        attachSketch:"Attach sketch",
-        openDrawing:"Open drawing",
-        sketchMissing:"No saved sketch yet. Use the drawing section and save.",
-        sketchAttached:"Sketch attached (stored locally).",
-      }
-    };
+    const $ = (id) => document.getElementById(id);
 
-    let LANG = localStorage.getItem("provklar_lang") || "sv";
-    function t(k){ return (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : k; }
-
-    function setLang(next){
-      LANG = next;
-      localStorage.setItem("provklar_lang", LANG);
-      document.documentElement.lang = (LANG === "en") ? "en" : "sv";
-
-      const setText = (id,key)=>{ const el=document.getElementById(id); if(el) el.textContent=t(key); };
-
-      [
-        ["brandTag","brandTag"],["menuTitle","menuTitle"],
-        ["mMaterial","mMaterial"],["mMaterialS","mMaterialS"],
-        ["mActions","mActions"],["mActionsS","mActionsS"],
-        ["mExam","mExam"],["mExamS","mExamS"],
-        ["mResult","mResult"],["mResultS","mResultS"],
-        ["mDash","mDash"],["mDashS","mDashS"],
-        ["mDraw","mDraw"],["mDrawS","mDrawS"],
-        ["mLang","mLang"],["mLangS","mLangS"],
-        ["mLogout","mLogout"],["mLogoutS","mLogoutS"],
-        ["stepTitle","stepTitle"],["chip1","chip1"],["chip2","chip2"],["chip3","chip3"],["chip4","chip4"],
-        ["stepSub","stepSub"],
-        ["s1Title","s1Title"],["englishLabel","englishLabel"],["s1Sub","s1Sub"],
-        ["matPasteLabel","matPasteLabel"],["formatHint","formatHint"],
-        ["levelLabel","levelLabel"],["courseLabel","courseLabel"],
-        ["qTypeLabel","qTypeLabel"],["questionRangeLabel","questionRangeLabel"],
-        ["attachTitle","attachTitle"],["attachSub","attachSub"],
-        ["pickBtn","pickBtn"],["pickHelp","pickHelp"],
-        ["matListTitle","matListTitle"],
-        ["ocrTitle","ocrTitle"],["ocrRunBtn","ocrRunBtn"],["ocrAppendBtn","ocrAppendBtn"],["ocrCloseBtn","ocrCloseBtn"],
-        ["ocrTextLabel","ocrTextLabel"],
-        ["ocrHint","ocrHint"],["ocrBestTitle","ocrBestTitle"],["ocrBestSub","ocrBestSub"],
-        ["s2Title","s2Title"],["s2Sub","s2Sub"],
-        ["generateExamBtn","generateExamBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
-        ["s3Title","s3Title"],["s4Title","s4Title"],
-        ["notesTitle","notesTitle"],["notesKeyTitle","notesKeyTitle"],["notesMistTitle","notesMistTitle"],["notesModelTitle","notesModelTitle"],["notesExTitle","notesExTitle"],
-        ["dashTitle","dashTitle"],["dashSub","dashSub"],
-        ["meterTitle","meterTitle"],["meterNote","meterNote"],
-        ["mFact","mFact"],["mExplain","mExplain"],["mAnalysis","mAnalysis"],["mExample","mExample"],
-        ["meterHint","meterHint"],
-        ["forecastTitle","forecastTitle"],
-        ["drawTitle","drawTitle"],["drawSub","drawSub"],
-        ["penBtn","pen"],["eraserBtn","eraser"],["clearCanvasBtn","clearCanvas"],["saveCanvasBtn","saveCanvas"],
-        ["exportTitle","exportTitle"],["exportSub","exportSub"],
-        ["exportExamBtn","exportExam"],["exportResultBtn","exportResult"],
-        ["coachTitle","coachTitle"],["coachSub","coachSub"],
-        ["weakTitle","weakTitle"],["nextTitle","nextTitle"],["resetCoachBtn","resetCoach"],
-        ["footerText","footer"],
-        ["lockTitle","lockTitle"],["lockSub","lockSub"],["lockLabel","lockLabel"],["unlockBtn","unlock"],["toInfoBtn","toInfo"],["lockHint","lockHint"],
-      ].forEach(([id,key])=>setText(id,key));
-
-      const opt = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=t(key); };
-      opt("qMix","qMix"); opt("qMC","qMC"); opt("qShort","qShort"); opt("qEssay","qEssay");
-
-      const pasted = document.getElementById("pastedText");
-      if(pasted) pasted.placeholder = t("pastedPlaceholder");
-      const course = document.getElementById("course");
-      if(course) course.placeholder = t("coursePlaceholder");
-      const ocrText = document.getElementById("ocrText");
-      if(ocrText) ocrText.placeholder = t("ocrTextPlaceholder");
-      const access = document.getElementById("accessCode");
-      if(access) access.placeholder = t("lockPlaceholder");
-
-      document.getElementById("englishToggle").checked = (LANG === "en");
-      document.getElementById("mLangS").textContent = (LANG === "en") ? "on" : "off";
-
-      if(materials.length === 0) document.getElementById("matHint").textContent = t("matHintEmpty");
-      if(!currentExam) document.getElementById("examMeta").textContent = t("examEmpty");
-      if(!lastResult) document.getElementById("resultMeta").textContent = t("resultEmpty");
-      if(!forecastState.ready) document.getElementById("forecastText").textContent = t("forecastNone");
-      if(!profileHasData()) {
-        document.getElementById("weaknesses").textContent = t("noData");
-        document.getElementById("nextSession").textContent = t("needOne");
-      }
-      document.querySelectorAll("textarea.answer").forEach(a => a.placeholder = t("qPlaceholder"));
-    }
-
-    /* ====== App lock ====== */
+    // ===== App lock =====
     const CORRECT_CODE = "provklar123";
-    function checkCode(){
-      const inp = document.getElementById("accessCode");
-      const msg = document.getElementById("errorMsg");
-      const val = (inp.value || "").trim();
-      if(val === CORRECT_CODE){
-        localStorage.setItem("provklar_app_access", "true");
-        document.getElementById("loginScreen").style.display = "none";
-        msg.textContent = "";
+    function unlock(){
+      const v = ($("accessCode").value || "").trim();
+      if(v === CORRECT_CODE){
+        localStorage.setItem("provklar_app_access","true");
+        $("loginScreen").style.display = "none";
+        $("errorMsg").textContent = "";
       } else {
-        msg.textContent = t("lockErr");
+        $("errorMsg").textContent = "Fel kod.";
       }
     }
-    function lockOut(){
+    function lock(){
       localStorage.removeItem("provklar_app_access");
-      document.getElementById("loginScreen").style.display = "flex";
-      document.getElementById("accessCode").value = "";
-      document.getElementById("errorMsg").textContent = "";
+      $("loginScreen").style.display = "flex";
+      $("accessCode").value = "";
+      $("errorMsg").textContent = "";
     }
-    document.getElementById("unlockBtn").addEventListener("click", checkCode);
+    $("unlockBtn").addEventListener("click", unlock);
+    $("logoutBtn").addEventListener("click", () => { lock(); window.location.href="index.html"; });
     document.addEventListener("keydown", (e) => {
-      const visible = document.getElementById("loginScreen").style.display !== "none";
-      if(visible && e.key === "Enter") checkCode();
+      if($("loginScreen").style.display !== "none" && e.key === "Enter") unlock();
     });
     if(localStorage.getItem("provklar_app_access") === "true"){
-      document.getElementById("loginScreen").style.display = "none";
+      $("loginScreen").style.display = "none";
     }
 
-    /* ====== Menu navigation ====== */
-    const navToggleApp = document.getElementById("navToggleApp");
-    function closeMenu(){ navToggleApp.checked = false; }
-    function jumpTo(sel){
-      const el = document.querySelector(sel);
-      if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-    document.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-jump]");
-      if(btn){
-        const target = btn.getAttribute("data-jump");
-        closeMenu();
-        jumpTo(target);
-      }
-    });
-    document.getElementById("logoutMenuBtn").addEventListener("click", () => {
-      closeMenu();
-      lockOut();
-      window.location.href = "index.html";
-    });
-
-    document.getElementById("englishToggle").addEventListener("change", (e) => {
-      setLang(e.target.checked ? "en" : "sv");
-    });
-    document.getElementById("langToggleMenu").addEventListener("click", () => {
-      setLang(LANG === "en" ? "sv" : "en");
-      closeMenu();
-    });
-
-    /* ====== Utilities ====== */
-    const $ = (id) => document.getElementById(id);
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-    async function postJson(path, payload){
-      const resp = await fetch(path, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const raw = await resp.text();
-      let data = null;
-      try{ data = JSON.parse(raw); } catch {}
-      return { status: resp.status, ok: resp.ok, raw, data };
-    }
-    function randInt(min, max){
-      const a = Math.min(min, max), b = Math.max(min, max);
-      return Math.floor(a + Math.random() * (b - a + 1));
-    }
-
-    /* ====== State ====== */
-    let currentExam = null;
-    let lastResult = null;
-
-    const materials = [];
-    const makeId = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
-
+    // ===== UI state =====
     const spinnerEl = $("spinner");
     const miniStateEl = $("miniState");
     const statusEl = $("status");
     const debugEl = $("debug");
 
+    const pastedTextEl = $("pastedText");
+    const levelEl = $("level");
+    const courseEl = $("course");
+    const qTypeEl = $("qType");
+    const numQuestionsEl = $("numQuestions");
+
     const generateExamBtn = $("generateExamBtn");
     const gradeBtn = $("gradeBtn");
     const clearBtn = $("clearBtn");
 
-    const levelEl = $("level");
-    const courseEl = $("course");
-    const pastedTextEl = $("pastedText");
-    const qTypeEl = $("qType");
-
-    const questionRangeEl = $("questionRange");
-
-    const fileInput = $("fileInput");
-    const matListEl = $("matList");
-    const matCountEl = $("matCount");
-    const matHintEl = $("matHint");
-
-    const ocrPanel = $("ocrPanel");
-    const ocrPreviewImg = $("ocrPreviewImg");
-    const ocrTextEl = $("ocrText");
-    const ocrStatus = $("ocrStatus");
-    const ocrRunBtn = $("ocrRunBtn");
-    const ocrAppendBtn = $("ocrAppendBtn");
-    const ocrCloseBtn = $("ocrCloseBtn");
-    const qualityBadges = $("qualityBadges");
-
     const examMetaEl = $("examMeta");
     const examBodyEl = $("examBody");
-
     const resultMetaEl = $("resultMeta");
     const resultBodyEl = $("resultBody");
 
-    const autoNotesBox = $("autoNotesBox");
-    const notesKey = $("notesKey");
-    const notesMist = $("notesMist");
-    const notesModel = $("notesModel");
-    const notesEx = $("notesEx");
+    let currentExam = null;
+    let lastResult = null;
 
-    const exportExamBtn = $("exportExamBtn");
-    const exportResultBtn = $("exportResultBtn");
-    const exportStatus = $("exportStatus");
-
-    const weaknessesEl = $("weaknesses");
-    const nextSessionEl = $("nextSession");
-    const resetCoachBtn = $("resetCoachBtn");
-
-    /* ====== Busy/status ====== */
     function setBusy(isBusy, label){
       spinnerEl.style.display = isBusy ? "inline-block" : "none";
-      miniStateEl.textContent = label || (isBusy ? t("working") : t("ready"));
-
+      miniStateEl.textContent = label || (isBusy ? "Arbetar…" : "Redo.");
       generateExamBtn.disabled = isBusy;
       gradeBtn.disabled = isBusy || !currentExam;
       clearBtn.disabled = isBusy;
-      ocrRunBtn.disabled = isBusy;
-
-      exportExamBtn.disabled = isBusy || !currentExam;
-      exportResultBtn.disabled = isBusy || !lastResult;
     }
     function setStatus(txt, kind){
       statusEl.className = "status" + (kind ? (" " + kind) : "");
@@ -1193,295 +314,29 @@
       debugEl.style.display = "none";
       debugEl.textContent = "";
     }
-
-    /* ====== Materials UI ====== */
-    function updateMaterialUI(){
-      matCountEl.textContent = `${materials.length} ${LANG === "en" ? "items" : "objekt"}`;
-      matListEl.innerHTML = "";
-
-      if(materials.length === 0){
-        matHintEl.textContent = t("matHintEmpty");
-        return;
-      }
-      matHintEl.textContent = t("matHintHas");
-
-      for(const m of materials){
-        const row = document.createElement("div");
-        row.className = "item";
-
-        const meta = document.createElement("div");
-        meta.className = "meta";
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = m.name;
-
-        const desc = document.createElement("div");
-        desc.className = "desc";
-        desc.textContent = `${m.type.toUpperCase()} • ${(m.size/1024).toFixed(1)} KB`;
-
-        meta.appendChild(name);
-        meta.appendChild(desc);
-
-        const actions = document.createElement("div");
-        actions.className = "itemActions";
-
-        if(m.type === "image"){
-          const preview = document.createElement("button");
-          preview.type="button";
-          preview.className="tinyBtn";
-          preview.textContent = (LANG === "en") ? "OCR / preview" : "OCR / förhandsvisa";
-          preview.addEventListener("click", () => openOcrPanel(m));
-          actions.appendChild(preview);
-        }
-
-        if(m.type === "text" && m.contentText){
-          const insert = document.createElement("button");
-          insert.type="button";
-          insert.className="tinyBtn";
-          insert.textContent = (LANG === "en") ? "Insert into material" : "Lägg i material";
-          insert.addEventListener("click", () => {
-            const cur = pastedTextEl.value.trim();
-            const add = m.contentText.trim();
-            pastedTextEl.value = (cur ? (cur + "\n\n") : "") + add;
-            setStatus(t("statusAddedText"), "ok");
-            jumpTo("#material");
-          });
-          actions.appendChild(insert);
-        }
-
-        const remove = document.createElement("button");
-        remove.type="button";
-        remove.className="tinyBtn danger";
-        remove.textContent = (LANG === "en") ? "Remove" : "Ta bort";
-        remove.addEventListener("click", () => {
-          const idx = materials.findIndex(x => x.id === m.id);
-          if(idx >= 0) materials.splice(idx, 1);
-          updateMaterialUI();
-        });
-        actions.appendChild(remove);
-
-        row.appendChild(meta);
-        row.appendChild(actions);
-        matListEl.appendChild(row);
-      }
-    }
-
-    async function addSelectedFiles(fileList){
-      const files = Array.from(fileList || []);
-      for(const f of files){
-        const ext = (f.name.split(".").pop() || "").toLowerCase();
-        const isText = f.type.startsWith("text/") || ["txt","md","csv","json"].includes(ext);
-        const isImage = f.type.startsWith("image/");
-        if(isText){
-          const text = await f.text();
-          materials.push({ id: makeId(), type:"text", name:f.name, size:f.size, contentText:text });
-        } else if(isImage){
-          const dataUrl = await new Promise((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => resolve(String(r.result));
-            r.onerror = reject;
-            r.readAsDataURL(f);
-          });
-          materials.push({ id: makeId(), type:"image", name:f.name, size:f.size, dataUrl });
-        } else {
-          materials.push({ id: makeId(), type:"file", name:f.name, size:f.size });
-        }
-      }
-      updateMaterialUI();
-      setStatus(t("statusAddedFiles"), "ok");
-    }
-
-    fileInput.addEventListener("change", async () => {
-      hideDebug();
-      try{
-        await addSelectedFiles(fileInput.files);
-        fileInput.value = "";
-      }catch(e){
-        setStatus(LANG === "en" ? "Could not read file." : "Kunde inte läsa fil.", "bad");
-        showDebug(String(e));
-      }
-    });
-
-    /* ====== OCR panel ====== */
-    let activeOcrImage = null;
-
-    function openOcrPanel(imageItem){
-      activeOcrImage = imageItem;
-      ocrPanel.style.display = "block";
-      ocrPreviewImg.src = imageItem.dataUrl;
-      ocrTextEl.value = "";
-      ocrAppendBtn.disabled = true;
-      ocrStatus.className = "status";
-      ocrStatus.textContent = t("statusOcrPreview");
-      qualityBadges.innerHTML = "";
-
-      runQualityChecks(imageItem.dataUrl).then((q) => renderQualityBadges(q)).catch(()=>{});
-      jumpTo("#material");
-      setTimeout(()=>ocrPanel.scrollIntoView({behavior:"smooth", block:"start"}), 50);
-    }
-
-    ocrCloseBtn.addEventListener("click", () => {
-      ocrPanel.style.display = "none";
-      activeOcrImage = null;
-      ocrPreviewImg.src = "";
-      ocrTextEl.value = "";
-      qualityBadges.innerHTML = "";
-      ocrStatus.textContent = "";
-      ocrAppendBtn.disabled = true;
-    });
-
-    function loadImage(dataUrl){
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = dataUrl;
+    async function postJson(path, payload){
+      const resp = await fetch(path, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
       });
+      const raw = await resp.text();
+      let data = null;
+      try{ data = JSON.parse(raw); } catch {}
+      return { ok: resp.ok, status: resp.status, raw, data };
     }
-    async function runQualityChecks(dataUrl){
-      const img = await loadImage(dataUrl);
-      const w = img.naturalWidth || img.width;
-      const h = img.naturalHeight || img.height;
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      canvas.width = Math.min(w, 1200);
-      canvas.height = Math.round(canvas.width * (h / w));
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-      let sum = 0, sum2 = 0;
-      for(let i=0;i<data.length;i+=4){
-        const r=data[i], g=data[i+1], b=data[i+2];
-        const y = 0.2126*r + 0.7152*g + 0.0722*b;
-        sum += y; sum2 += y*y;
-      }
-      const n = data.length/4;
-      const mean = sum/n;
-      const varr = Math.max(0, (sum2/n) - (mean*mean));
-      const std = Math.sqrt(varr);
-
-      const resolutionOk = (w >= 1200 || h >= 1200);
-      const brightnessOk = (mean >= 70 && mean <= 210);
-      const contrastOk = (std >= 35);
-
-      return {
-        width:w, height:h,
-        resolutionOk, brightnessOk, contrastOk,
-        mean:Math.round(mean), std:Math.round(std)
-      };
-    }
-    function renderQualityBadges(q){
-      const resTxt = (LANG === "en") ? "Resolution" : "Upplösning";
-      const briTxt = (LANG === "en") ? "Brightness" : "Ljusstyrka";
-      const conTxt = (LANG === "en") ? "Contrast" : "Kontrast";
-
-      const badges = [
-        q.resolutionOk ? {t:`${resTxt} OK (${q.width}×${q.height})`, c:"ok"} : {t:`${resTxt}: low (${q.width}×${q.height})`, c:"warn"},
-        q.brightnessOk ? {t:`${briTxt} OK (≈${q.mean})`, c:"ok"} : {t:`${briTxt}: off (≈${q.mean})`, c:"warn"},
-        q.contrastOk ? {t:`${conTxt} OK (≈${q.std})`, c:"ok"} : {t:`${conTxt}: low (≈${q.std})`, c:"warn"},
-      ];
-
-      qualityBadges.innerHTML = "";
-      badges.forEach(b=>{
-        const el = document.createElement("div");
-        el.className = "badge " + (b.c || "");
-        el.textContent = b.t;
-        qualityBadges.appendChild(el);
-      });
-
-      if(!q.resolutionOk || !q.brightnessOk || !q.contrastOk){
-        ocrStatus.className = "status warn";
-        ocrStatus.textContent = (LANG === "en")
-          ? "OCR quality may be low. Try: more light, closer, fill the frame with the page."
-          : "Kvalitet kan vara för låg för bra OCR. Testa: mer ljus, närmare, och att sidan fyller bilden.";
-      }
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
-    ocrRunBtn.addEventListener("click", async () => {
-      hideDebug();
-      if(!activeOcrImage){
-        ocrStatus.className = "status bad";
-        ocrStatus.textContent = t("statusOcrNoImg");
-        return;
-      }
-      setBusy(true, t("statusOcrRunning"));
-      ocrStatus.className = "status";
-      ocrStatus.textContent = t("statusOcrRunning");
-      ocrAppendBtn.disabled = true;
-
-      try{
-        const r = await postJson("/api/ocr", {
-          imageDataUrl: activeOcrImage.dataUrl,
-          lang: (LANG === "en") ? "en" : "sv"
-        });
-
-        if(!r.ok || !r.data){
-          setBusy(false, t("ready"));
-          ocrStatus.className = "status bad";
-          ocrStatus.textContent = `OCR error (HTTP ${r.status}).`;
-          showDebug(r.raw);
-          return;
-        }
-        if(!r.data.ok){
-          setBusy(false, t("ready"));
-          ocrStatus.className = "status bad";
-          ocrStatus.textContent = "OCR failed.";
-          showDebug(r.raw);
-          return;
-        }
-
-        const text = String(r.data.text || "").trim();
-        ocrTextEl.value = text;
-        ocrAppendBtn.disabled = text.length === 0;
-
-        const warnings = Array.isArray(r.data.warnings) ? r.data.warnings : [];
-        if(text.length === 0){
-          ocrStatus.className = "status warn";
-          ocrStatus.textContent = t("statusOcrEmpty");
-        } else if(warnings.length){
-          ocrStatus.className = "status warn";
-          ocrStatus.textContent = t("statusOcrWarn");
-        } else {
-          ocrStatus.className = "status ok";
-          ocrStatus.textContent = t("statusOcrOk");
-        }
-
-        setBusy(false, t("ready"));
-      }catch(e){
-        setBusy(false, t("ready"));
-        ocrStatus.className = "status bad";
-        ocrStatus.textContent = "OCR error.";
-        showDebug(String(e));
-      }
-    });
-
-    ocrAppendBtn.addEventListener("click", () => {
-      const add = ocrTextEl.value.trim();
-      if(!add){
-        ocrStatus.className = "status warn";
-        ocrStatus.textContent = (LANG === "en") ? "No text to append." : "Ingen text att lägga till.";
-        return;
-      }
-      const cur = pastedTextEl.value.trim();
-      pastedTextEl.value = (cur ? (cur + "\n\n") : "") + add;
-      ocrStatus.className = "status ok";
-      ocrStatus.textContent = t("statusOcrAdded");
-      ocrAppendBtn.disabled = true;
-      jumpTo("#material");
-    });
-
-    /* ====== Exam rendering ====== */
     function renderExam(exam){
       currentExam = exam;
       lastResult = null;
 
-      exportExamBtn.disabled = false;
-      exportResultBtn.disabled = true;
-
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
-      examMetaEl.textContent = `${exam.title || (LANG === "en" ? "Mock exam" : "Mockprov")} • ${LANG === "en" ? "Level" : "Nivå"}: ${exam.level || "—"} • ${LANG === "en" ? "Questions" : "Frågor"}: ${qs.length}`;
+      examMetaEl.textContent = `${exam.title || "Mockprov"} • Nivå: ${exam.level || "—"} • Frågor: ${qs.length}`;
       examBodyEl.innerHTML = "";
 
       qs.forEach((q, idx) => {
@@ -1490,57 +345,29 @@
 
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${q.id ?? (idx+1)} • ${LANG === "en" ? "Points" : "Poäng"}: ${q.points ?? "—"} • ${LANG === "en" ? "Type" : "Typ"}: ${q.type ?? qTypeEl.value}`;
+        meta.textContent = `ID: ${q.id ?? (idx+1)} • Poäng: ${q.points ?? "—"} • Typ: ${q.type ?? qTypeEl.value}`;
 
         const text = document.createElement("div");
         text.className = "qText";
         text.textContent = q.question ?? "";
 
-        const ansWrap = document.createElement("div");
-        ansWrap.className = "ansRow";
+        const ans = document.createElement("textarea");
+        ans.className = "answer";
+        ans.placeholder = "Skriv ditt svar här…";
+        ans.dataset.qid = String(q.id ?? (idx+1));
+        ans.style.minHeight = (String(q.type||"").includes("essay") || String(q.type||"").includes("essä")) ? "150px" : "110px";
 
-        const answer = document.createElement("textarea");
-        answer.className = "answer";
-        answer.placeholder = t("qPlaceholder");
-        answer.dataset.qid = String(q.id ?? (idx+1));
-        answer.style.minHeight = (String(q.type||"").toLowerCase().includes("essay") || String(q.type||"").toLowerCase().includes("essä")) ? "150px" : "110px";
+        // Om flerval: visa alternativen
+        if(Array.isArray(q.options) && q.options.length){
+          const opt = document.createElement("div");
+          opt.className = "status";
+          opt.style.marginTop = "8px";
+          opt.innerHTML = q.options.map((o,i)=>`<div><b>${String.fromCharCode(65+i)}.</b> ${escapeHtml(o)}</div>`).join("");
+          box.appendChild(meta); box.appendChild(text); box.appendChild(opt); box.appendChild(ans);
+        } else {
+          box.appendChild(meta); box.appendChild(text); box.appendChild(ans);
+        }
 
-        const actions = document.createElement("div");
-        actions.className = "ansActions noPrint";
-
-        const attachSketch = document.createElement("button");
-        attachSketch.type = "button";
-        attachSketch.className = "tinyBtn";
-        attachSketch.textContent = t("attachSketch");
-        attachSketch.addEventListener("click", () => {
-          const img = localStorage.getItem("provklar_sketch_png");
-          if(!img){
-            setStatus(t("sketchMissing"), "warn");
-            jumpTo("#draw");
-            return;
-          }
-          const note = (LANG === "en") ? "\n\n[Sketch attached in browser storage]\n" : "\n\n[Skiss bifogad i webbläsarlagring]\n";
-          if(!answer.value.includes("Sketch attached") && !answer.value.includes("Skiss bifogad")){
-            answer.value = (answer.value.trim() ? (answer.value.trim() + note) : note);
-          }
-          setStatus(t("sketchAttached"), "ok");
-        });
-
-        const jumpDraw = document.createElement("button");
-        jumpDraw.type = "button";
-        jumpDraw.className = "tinyBtn";
-        jumpDraw.textContent = t("openDrawing");
-        jumpDraw.addEventListener("click", () => jumpTo("#draw"));
-
-        actions.appendChild(attachSketch);
-        actions.appendChild(jumpDraw);
-
-        ansWrap.appendChild(answer);
-        ansWrap.appendChild(actions);
-
-        box.appendChild(meta);
-        box.appendChild(text);
-        box.appendChild(ansWrap);
         examBodyEl.appendChild(box);
       });
 
@@ -1549,9 +376,7 @@
 
     function renderResult(r){
       lastResult = r;
-      exportResultBtn.disabled = false;
-
-      resultMetaEl.textContent = `${LANG === "en" ? "Grading" : "Rättning"}: ${r.total_points}/${r.max_points}`;
+      resultMetaEl.textContent = `Rättning: ${r.total_points}/${r.max_points}`;
       const wrap = document.createElement("div");
 
       (r.per_question || []).forEach(item => {
@@ -1561,9 +386,7 @@
         const model = String(item.model_answer || "").trim();
         const full = model
           ? `<div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
-               <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">
-                 ${LANG === "en" ? "Full-score answer (model)" : "Vad som ger full poäng (modellsvar)"}
-               </div>
+               <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">Vad som ger full poäng (modellsvar)</div>
                <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
              </div>`
           : "";
@@ -1580,432 +403,101 @@
       resultBodyEl.appendChild(wrap);
     }
 
-    /* ====== Auto-notes ====== */
-    function renderAutoNotes(exam, result){
-      const auto = result && result.auto_notes ? result.auto_notes : null;
+    function clearAll(){
+      pastedTextEl.value = "";
+      courseEl.value = "";
+      levelEl.value = "C";
+      qTypeEl.value = "mix";
+      numQuestionsEl.value = "12";
 
-      const keys = [];
-      const misses = [];
-      let model = "";
-      let ex = "";
-
-      if(auto){
-        if(Array.isArray(auto.key_concepts)) keys.push(...auto.key_concepts.slice(0,3));
-        if(Array.isArray(auto.common_misses)) misses.push(...auto.common_misses.slice(0,2));
-        model = String(auto.model_explanation || "");
-        ex = String(auto.example || "");
-      } else {
-        keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
-        misses.push(
-          LANG==="en" ? "Missing key concepts/terms in the answer" : "Saknar nyckelbegrepp i svaret",
-          LANG==="en" ? "Too little explanation or examples" : "För lite förklaring eller exempel"
-        );
-        model = LANG==="en"
-          ? "A full-score answer typically defines key terms, explains the mechanism/why, and adds a relevant example."
-          : "Ett fullpoängssvar definierar nyckelbegrepp, förklarar varför/hur och lägger till ett relevant exempel.";
-        ex = LANG==="en"
-          ? "Example: start with a definition → explain the process → finish with a concrete scenario."
-          : "Exempel: börja med definition → förklara processen → avsluta med ett konkret scenario.";
-      }
-
-      autoNotesBox.style.display = "block";
-      notesKey.innerHTML = "";
-      keys.slice(0,3).forEach(k=>{
-        const li = document.createElement("li"); li.textContent = k; notesKey.appendChild(li);
-      });
-
-      notesMist.innerHTML = "";
-      misses.slice(0,2).forEach(m=>{
-        const li = document.createElement("li"); li.textContent = m; notesMist.appendChild(li);
-      });
-
-      notesModel.textContent = model;
-      notesEx.textContent = ex;
-    }
-
-    /* ====== Knowledge meter + forecast ====== */
-    const meterEls = {
-      fact: {bar:$("barFact"), pct:$("pctFact")},
-      explain: {bar:$("barExplain"), pct:$("pctExplain")},
-      analysis: {bar:$("barAnalysis"), pct:$("pctAnalysis")},
-      example: {bar:$("barExample"), pct:$("pctExample")},
-    };
-
-    function setMeter(m){
-      const clamp = (x)=> Math.max(0, Math.min(100, Math.round(x)));
-      const setOne = (k,v)=>{
-        const val = clamp(v);
-        meterEls[k].bar.style.width = val + "%";
-        meterEls[k].pct.textContent = val + "%";
-      };
-      setOne("fact", m.fact);
-      setOne("explain", m.explain);
-      setOne("analysis", m.analysis);
-      setOne("example", m.example);
-    }
-
-    const forecastState = { ready:false, level:"C", trend:"flat", detail:"" };
-    function setForecast(level, trend, detail){
-      forecastState.ready = true;
-      const pill = $("trendPill");
-      pill.classList.remove("trendUp","trendDown","trendFlat");
-      if(trend === "up"){ pill.classList.add("trendUp"); pill.textContent = "↑ " + t("trendUp"); }
-      else if(trend === "down"){ pill.classList.add("trendDown"); pill.textContent = "↓ " + t("trendDown"); }
-      else { pill.classList.add("trendFlat"); pill.textContent = "≈ " + t("trendFlat"); }
-
-      $("forecastText").textContent = `${t("forecastLikely")} ${level}`;
-      $("forecastDetail").textContent = detail ? detail : "";
-    }
-
-    function computeMeterFromResult(exam, result){
-      const maxP = Number(result.max_points||0)||0;
-      const gotP = Number(result.total_points||0)||0;
-      const pct = maxP>0 ? (gotP/maxP)*100 : 0;
-
-      return { fact:pct, explain:pct, analysis:pct, example:pct };
-    }
-    function computeForecast(result){
-      const maxP = Number(result.max_points||0)||0;
-      const gotP = Number(result.total_points||0)||0;
-      const pct = maxP>0 ? (gotP/maxP)*100 : 0;
-
-      let lvl = "C";
-      if(pct >= 85) lvl = "A";
-      else if(pct >= 60) lvl = "C";
-      else lvl = "E";
-
-      const histKey = "provklar_score_hist";
-      const hist = (()=>{ try{ return JSON.parse(localStorage.getItem(histKey)||"[]"); }catch{return [];} })();
-      const last = hist.length ? hist[hist.length-1] : null;
-      const trend = (last == null) ? "flat" : (pct > last+3 ? "up" : (pct < last-3 ? "down" : "flat"));
-      hist.push(pct);
-      while(hist.length > 12) hist.shift();
-      localStorage.setItem(histKey, JSON.stringify(hist));
-
-      const detail = (LANG === "en")
-        ? `Score: ${pct.toFixed(0)}%.`
-        : `Poäng: ${pct.toFixed(0)}%.`;
-
-      return { level:lvl, trend, detail };
-    }
-
-    /* ====== Adaptive profile ====== */
-    const PROFILE_KEY = "provklar_profile_v2";
-    function loadProfile(){
-      try{
-        const raw = localStorage.getItem(PROFILE_KEY);
-        if(!raw) return { tags:{}, attempts:0, lastUpdated:0 };
-        const obj = JSON.parse(raw);
-        if(!obj || typeof obj !== "object") return { tags:{}, attempts:0, lastUpdated:0 };
-        if(!obj.tags) obj.tags = {};
-        if(!obj.attempts) obj.attempts = 0;
-        return obj;
-      }catch{
-        return { tags:{}, attempts:0, lastUpdated:0 };
-      }
-    }
-    function saveProfile(p){ localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
-    function profileHasData(){
-      const p = loadProfile();
-      return p && p.tags && Object.keys(p.tags).length>0;
-    }
-
-    function updateProfileFromResult(exam, result){
-      const p = loadProfile();
-      p.attempts += 1;
-      p.lastUpdated = Date.now();
-      const courseFallback = courseEl.value.trim() || (LANG==="en"?"General":"Allmänt");
-
-      (result.per_question || []).forEach(item => {
-        const maxP = Number(item.max_points || 0) || 0;
-        const gotP = Number(item.points || 0) || 0;
-        const miss = Math.max(0, maxP - gotP);
-        const key = courseFallback;
-        if(!p.tags[key]) p.tags[key] = { miss:0, total:0, seen:0 };
-        p.tags[key].miss += miss;
-        p.tags[key].total += maxP;
-        p.tags[key].seen += 1;
-      });
-
-      saveProfile(p);
-      renderCoaching();
-    }
-
-    function renderCoaching(){
-      const p = loadProfile();
-      const entries = Object.entries(p.tags || {});
-      if(!entries.length){
-        weaknessesEl.textContent = t("noData");
-        nextSessionEl.textContent = t("needOne");
-        return;
-      }
-      const scored = entries.map(([tag, v]) => {
-        const total = Math.max(1, Number(v.total || 1));
-        const miss = Number(v.miss || 0);
-        const ratio = miss / total;
-        return { tag, ratio };
-      }).sort((a,b)=> b.ratio - a.ratio);
-
-      const top = scored.slice(0,3);
-      weaknessesEl.textContent = top.map(x => `• ${x.tag} (${(x.ratio*100).toFixed(0)}%)`).join("\n");
-
-      nextSessionEl.textContent =
-        (LANG === "en")
-          ? `Focus: ${top.map(x=>x.tag).join(", ")}.`
-          : `Fokus: ${top.map(x=>x.tag).join(", ")}.`;
-    }
-
-    resetCoachBtn.addEventListener("click", () => {
-      localStorage.removeItem(PROFILE_KEY);
-      renderCoaching();
-      setStatus(LANG === "en" ? "Stats reset." : "Statistik nollställd.", "ok");
-    });
-
-    /* ====== Export (PDF) ====== */
-    function exportMode(mode){
-      if(mode === "exam") jumpTo("#exam");
-      if(mode === "result") jumpTo("#result");
-      exportStatus.className = "status ok";
-      exportStatus.textContent = (LANG==="en") ? "Opening print dialog. Choose “Save as PDF”." : "Öppnar utskriftsdialog. Välj “Spara som PDF”.";
-      setTimeout(() => window.print(), 150);
-    }
-    $("exportExamBtn").addEventListener("click", () => { if(currentExam) exportMode("exam"); });
-    $("exportResultBtn").addEventListener("click", () => { if(lastResult) exportMode("result"); });
-
-    /* ====== Clear ====== */
-    function clearExam(){
       currentExam = null;
-      examMetaEl.textContent = t("examEmpty");
-      examBodyEl.innerHTML = "";
-      gradeBtn.disabled = true;
-      exportExamBtn.disabled = true;
-    }
-    function clearResult(){
       lastResult = null;
-      resultMetaEl.textContent = t("resultEmpty");
+      examMetaEl.textContent = "Ingen provdata ännu.";
+      examBodyEl.innerHTML = "";
+      resultMetaEl.textContent = "Ingen rättning ännu.";
       resultBodyEl.innerHTML = "";
-      exportResultBtn.disabled = true;
-      autoNotesBox.style.display = "none";
-      $("forecastText").textContent = t("forecastNone");
-      $("forecastDetail").textContent = "";
-      forecastState.ready = false;
-      setMeter({fact:0, explain:0, analysis:0, example:0});
-    }
+      gradeBtn.disabled = true;
 
-    /* ====== Build payload ====== */
-    function buildPayloadBase(){
-      return {
-        lang: (LANG==="en") ? "en" : "sv",
-        level: levelEl.value,
-        course: courseEl.value.trim(),
-        qType: qTypeEl.value,
-        pastedText: pastedTextEl.value.trim(),
-        materials: materials.map(m => ({ type:m.type, name:m.name }))
-      };
-    }
-
-    /* ====== Generate exam (single place, user chooses range) ====== */
-    function parseRange(val){
-      const m = String(val||"").match(/^(\d+)\s*-\s*(\d+)$/);
-      if(!m) return {min:3,max:5};
-      return {min:Number(m[1]), max:Number(m[2])};
+      setStatus("Rensat.", "ok");
+      hideDebug();
     }
 
     generateExamBtn.addEventListener("click", async () => {
       hideDebug();
-      clearResult();
-      clearExam();
-
       const pastedText = pastedTextEl.value.trim();
       if(!pastedText){
-        setStatus(t("statusPasteFirst"), "bad");
-        jumpTo("#material");
+        setStatus("Klistra in material först.", "bad");
+        document.querySelector("#material").scrollIntoView({behavior:"smooth"});
         return;
       }
 
-      const r = parseRange(questionRangeEl.value);
-      const numQuestions = randInt(r.min, r.max);
+      const payload = {
+        lang:"sv",
+        level: levelEl.value,
+        course: courseEl.value.trim(),
+        qType: qTypeEl.value,
+        pastedText,
+        numQuestions: Number(numQuestionsEl.value)
+      };
 
-      setBusy(true, t("statusGenerating"));
-      setStatus(`${t("statusGenerating")} (${r.min}–${r.max})`, "");
+      setBusy(true, "Skapar mockprov…");
+      setStatus(`Skapar mockprov… (${payload.qType}, ${payload.numQuestions} frågor)`, "");
 
-      try{
-        const payload = buildPayloadBase();
-        payload.mode = "full";
-        payload.numQuestions = numQuestions;
-        payload.minQuestions = r.min;
-        payload.maxQuestions = r.max;
-
-        const res = await postJson("/api/generate-exam", payload);
-
-        if(!res.ok || !res.data || !res.data.ok){
-          setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${res.status}).`, "bad");
-          showDebug(res.raw);
-          return;
-        }
-
-        renderExam(res.data.exam);
-        setBusy(false, t("ready"));
-        setStatus(t("statusExamReady"), "ok");
-        jumpTo("#exam");
-      }catch(e){
-        setBusy(false, t("ready"));
-        setStatus(LANG==="en" ? "Generation error." : "Fel vid generering.", "bad");
-        showDebug(String(e));
+      const res = await postJson("/api/generate-exam", payload);
+      if(!res.ok || !res.data || !res.data.ok){
+        setBusy(false, "Redo.");
+        setStatus(`Fel vid generering (HTTP ${res.status}).`, "bad");
+        showDebug(res.raw);
+        return;
       }
+
+      renderExam(res.data.exam);
+      setBusy(false, "Redo.");
+      setStatus("Mockprov klart.", "ok");
+      document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
     });
 
-    /* ====== Grade ====== */
     gradeBtn.addEventListener("click", async () => {
       hideDebug();
-      clearResult();
-
-      if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length===0){
-        setStatus(LANG==="en" ? "Generate an exam first." : "Skapa mockprov först.", "bad");
+      if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
+        setStatus("Skapa mockprov först.", "bad");
         return;
       }
 
       const answers = Array.from(document.querySelectorAll("textarea.answer"))
         .map(el => ({ id: el.dataset.qid, answer: el.value.trim() }));
 
-      setBusy(true, t("statusGrade"));
-      setStatus(t("statusGrade"), "");
+      const payload = {
+        lang:"sv",
+        level: levelEl.value,
+        course: courseEl.value.trim(),
+        qType: qTypeEl.value,
+        pastedText: pastedTextEl.value.trim(),
+        questions: currentExam.questions,
+        answers
+      };
 
-      try{
-        const payload = buildPayloadBase();
-        payload.questions = currentExam.questions;
-        payload.answers = answers;
+      setBusy(true, "Rättar prov…");
+      setStatus("Rättar prov…", "");
 
-        const sketchPng = localStorage.getItem("provklar_sketch_png");
-        if(sketchPng) payload.sketch = { pngDataUrl: sketchPng };
-
-        const res = await postJson("/api/grade", payload);
-
-        if(!res.ok || !res.data || !res.data.ok){
-          setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${res.status}).`, "bad");
-          showDebug(res.raw);
-          return;
-        }
-
-        renderResult(res.data.result);
-        renderAutoNotes(currentExam, res.data.result);
-
-        const meter = computeMeterFromResult(currentExam, res.data.result);
-        setMeter(meter);
-
-        const f = computeForecast(res.data.result);
-        setForecast(f.level, f.trend, f.detail);
-
-        updateProfileFromResult(currentExam, res.data.result);
-
-        setBusy(false, t("ready"));
-        setStatus(t("statusGradeDone"), "ok");
-        jumpTo("#result");
-      }catch(e){
-        setBusy(false, t("ready"));
-        setStatus(LANG==="en" ? "Grading error." : "Fel vid rättning.", "bad");
-        showDebug(String(e));
+      const res = await postJson("/api/grade", payload);
+      if(!res.ok || !res.data || !res.data.ok){
+        setBusy(false, "Redo.");
+        setStatus(`Fel vid rättning (HTTP ${res.status}).`, "bad");
+        showDebug(res.raw);
+        return;
       }
+
+      renderResult(res.data.result);
+      setBusy(false, "Redo.");
+      setStatus("Rättning klar.", "ok");
+      document.querySelector("#result").scrollIntoView({behavior:"smooth"});
     });
 
-    /* ====== Clear ====== */
-    clearBtn.addEventListener("click", () => {
-      hideDebug();
-      pastedTextEl.value = "";
-      courseEl.value = "";
-      levelEl.value = "C";
-      qTypeEl.value = "mix";
-      questionRangeEl.value = "3-5";
+    clearBtn.addEventListener("click", clearAll);
 
-      materials.length = 0;
-      updateMaterialUI();
-
-      ocrPanel.style.display = "none";
-      activeOcrImage = null;
-      ocrPreviewImg.src = "";
-      ocrTextEl.value = "";
-      qualityBadges.innerHTML = "";
-      ocrStatus.textContent = "";
-      ocrAppendBtn.disabled = true;
-
-      clearExam();
-      clearResult();
-
-      setStatus(t("statusCleared"), "ok");
-      exportStatus.textContent = "";
-      renderCoaching();
-      jumpTo("#material");
-    });
-
-    /* ====== Drawing canvas ====== */
-    const canvas = $("sketch");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-    let erasing = false;
-    let last = null;
-
-    function canvasPos(e){
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-      return {x,y};
-    }
-    function startDraw(e){
-      drawing = true;
-      last = canvasPos(e);
-    }
-    function endDraw(){
-      drawing = false;
-      last = null;
-    }
-    function moveDraw(e){
-      if(!drawing) return;
-      const p = canvasPos(e);
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.lineWidth = erasing ? 26 : 5;
-      ctx.strokeStyle = erasing ? "#ffffff" : "#0B1F3A";
-      ctx.beginPath();
-      ctx.moveTo(last.x, last.y);
-      ctx.lineTo(p.x, p.y);
-      ctx.stroke();
-      last = p;
-    }
-
-    canvas.addEventListener("pointerdown", (e)=>{ canvas.setPointerCapture(e.pointerId); startDraw(e); });
-    canvas.addEventListener("pointerup", endDraw);
-    canvas.addEventListener("pointercancel", endDraw);
-    canvas.addEventListener("pointermove", moveDraw);
-
-    $("penBtn").addEventListener("click", ()=>{
-      erasing = false;
-      $("canvasStatus").textContent = (LANG==="en") ? "Pen mode." : "Pennläge.";
-    });
-    $("eraserBtn").addEventListener("click", ()=>{
-      erasing = true;
-      $("canvasStatus").textContent = (LANG==="en") ? "Eraser mode." : "Sudd-läge.";
-    });
-    $("clearCanvasBtn").addEventListener("click", ()=>{
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      localStorage.removeItem("provklar_sketch_png");
-      $("canvasStatus").textContent = (LANG==="en") ? "Canvas cleared." : "Rityta rensad.";
-    });
-    $("saveCanvasBtn").addEventListener("click", ()=>{
-      const png = canvas.toDataURL("image/png");
-      localStorage.setItem("provklar_sketch_png", png);
-      $("canvasStatus").textContent = (LANG==="en") ? "Saved locally (browser storage)." : "Sparad lokalt (webbläsarlagring).";
-    });
-
-    /* ====== init ====== */
-    updateMaterialUI();
-    renderCoaching();
-    setMeter({fact:0, explain:0, analysis:0, example:0});
-    $("forecastText").textContent = t("forecastNone");
-    setBusy(false, t("ready"));
+    setBusy(false, "Redo.");
     setStatus("");
-    setLang(LANG);
   </script>
 </body>
 </html>
