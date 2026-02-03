@@ -158,6 +158,7 @@
       padding:10px 12px;border-radius:999px;
       background:#fff;border:1px solid var(--border);
       color:var(--navy);font-weight:950;font-size:12px;
+      cursor:pointer;
     }
     .dot{width:9px;height:9px;border-radius:999px;background:var(--teal);box-shadow:0 0 0 6px rgba(24,184,138,.16)}
 
@@ -270,7 +271,6 @@
     .qBox{margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff}
     .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
     .qText{font-weight:900;color:#0C1220;line-height:1.45}
-    .answer{margin-top:10px}
     .ansRow{display:grid;grid-template-columns:1fr;gap:10px}
     .ansActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
@@ -278,7 +278,7 @@
     @media (max-width: 920px){ .coachGrid{grid-template-columns:1fr} }
     .coachBox{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
     .coachBox b{display:block;color:var(--navy);font-weight:1100}
-    .coachBox span{display:block;margin-top:6px;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45}
+    .coachBox span{display:block;margin-top:6px;color:var(--muted);font-weight:820;font-size:12px;line-height:1.45;white-space:pre-wrap}
 
     .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
     @media (max-width: 920px){ .dashGrid{grid-template-columns:1fr} }
@@ -489,11 +489,25 @@
               </select>
             </div>
             <div>
+              <label for="examSpan" id="examSpanLabel">Prov-längd (spann)</label>
+              <select id="examSpan">
+                <option value="quick" selected id="spanQuick">Snabbprov (10–12 frågor)</option>
+                <option value="normal" id="spanNormal">Vanligt prov (13–20 frågor)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:12px">
+            <div>
               <label for="miniCount" id="miniCountLabel">Snabbtest – antal frågor</label>
               <select id="miniCount">
                 <option value="3">3</option>
                 <option value="5" selected>5</option>
               </select>
+            </div>
+            <div>
+              <label id="spanPreviewLabel">Valt spann</label>
+              <input id="spanPreview" value="10–12" readonly />
             </div>
           </div>
         </div>
@@ -561,7 +575,7 @@
     <!-- Actions -->
     <section class="card" id="actions">
       <div class="sectionTitle"><span id="s2Title">Steg 2 – Skapa och rätta</span></div>
-      <p class="sectionSub" id="s2Sub">Skapa mockprov efter du lagt in material. Rätta när du svarat. Rättning ger även “vad som ger full poäng”, anteckningar och mätare.</p>
+      <p class="sectionSub" id="s2Sub">Skapa prov efter du lagt in material. Välj snabbprov (10–12) eller vanligt prov (13–20). Rätta när du svarat.</p>
 
       <div class="actionCard">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -570,7 +584,8 @@
         </div>
 
         <div class="row noPrint">
-          <button class="btn btnPrimary" id="generateBtn" type="button">Skapa mockprov</button>
+          <button class="btn btnPrimary" id="quickExamBtn" type="button">Skapa snabbprov (10–12)</button>
+          <button class="btn btnPrimary" id="normalExamBtn" type="button">Skapa vanligt prov (13–20)</button>
           <button class="btn" id="miniBtn" type="button">Snabbtest 3 min</button>
           <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
           <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
@@ -750,7 +765,10 @@
         coursePlaceholder:"Ex: Matematik 2b / Historia 1b",
         qTypeLabel:"Frågetyp",
         qMix:"Blandat", qMC:"Flerval", qShort:"Kortsvar", qEssay:"Essä",
-        miniCountLabel:"Snabbtest – antal frågor",
+        examSpanLabel:"Prov-längd (spann)",
+        spanQuick:"Snabbprov (10–12 frågor)",
+        spanNormal:"Vanligt prov (13–20 frågor)",
+        spanPreviewLabel:"Valt spann",
         attachTitle:"Bilder/filer",
         attachSub:"Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.",
         pickBtn:"Välj fil / ta bild",
@@ -768,8 +786,9 @@
         ocrBestTitle:"OCR-kvalitet",
         ocrBestSub:"För bästa OCR: fyll hela bilden med sidan, bra ljus, nära nog för att texten ska vara tydlig.",
         s2Title:"Steg 2 – Skapa och rätta",
-        s2Sub:"Skapa mockprov efter du lagt in material. Rätta när du svarat. Rättning ger även “vad som ger full poäng”, anteckningar och mätare.",
-        generateBtn:"Skapa mockprov",
+        s2Sub:"Skapa prov efter du lagt in material. Välj snabbprov (10–12) eller vanligt prov (13–20). Rätta när du svarat.",
+        quickExamBtn:"Skapa snabbprov (10–12)",
+        normalExamBtn:"Skapa vanligt prov (13–20)",
         miniBtn:"Snabbtest 3 min",
         gradeBtn:"Rätta prov",
         clearBtn:"Rensa",
@@ -819,7 +838,8 @@
         statusPasteFirst:"Klistra in material först.",
         statusAddedText:"Text från fil inlagd i materialfältet.",
         statusAddedFiles:"Bilagor tillagda i materiallistan.",
-        statusGenerating:"Skapar mockprov…",
+        statusGeneratingQuick:"Skapar snabbprov (10–12)…",
+        statusGeneratingNormal:"Skapar vanligt prov (13–20)…",
         statusMini:"Skapar snabbtest…",
         statusExamReady:"Mockprov klart.",
         statusMiniReady:"Snabbtest klart.",
@@ -836,6 +856,10 @@
         qPlaceholder:"Skriv ditt svar här…",
         forecastLikely:"Nuvarande sannolik nivå:",
         trendUp:"uppåt", trendDown:"nedåt", trendFlat:"stabilt",
+        attachSketch:"Bifoga skiss",
+        openDrawing:"Öppna ritverktyg",
+        sketchMissing:"Ingen sparad skiss ännu. Rita i visuella delen och spara.",
+        sketchAttached:"Skiss bifogad (sparas lokalt).",
       },
       en: {
         brandTag: "Multimodal • OCR • Mock exams",
@@ -862,7 +886,10 @@
         coursePlaceholder:"e.g., Math / History",
         qTypeLabel:"Question type",
         qMix:"Mixed", qMC:"Multiple choice", qShort:"Short answer", qEssay:"Essay",
-        miniCountLabel:"Quick test – number of questions",
+        examSpanLabel:"Exam length (range)",
+        spanQuick:"Quick exam (10–12 questions)",
+        spanNormal:"Normal exam (13–20 questions)",
+        spanPreviewLabel:"Selected range",
         attachTitle:"Files/images",
         attachSub:"Mobile: pick image or take photo. Desktop: choose files. Images can be OCR’d.",
         pickBtn:"Choose file / take photo",
@@ -880,8 +907,9 @@
         ocrBestTitle:"OCR quality",
         ocrBestSub:"Best OCR: fill the image with the page, good light, close enough for readable text.",
         s2Title:"Step 2 – Generate and grade",
-        s2Sub:"Generate after adding material. Grade after answering. Grading also gives “full score criteria”, notes, and meters.",
-        generateBtn:"Generate mock exam",
+        s2Sub:"Generate after adding material. Choose quick exam (10–12) or normal exam (13–20). Grade after answering.",
+        quickExamBtn:"Generate quick exam (10–12)",
+        normalExamBtn:"Generate normal exam (13–20)",
         miniBtn:"3-min quick test",
         gradeBtn:"Grade exam",
         clearBtn:"Reset",
@@ -931,7 +959,8 @@
         statusPasteFirst:"Paste material first.",
         statusAddedText:"Inserted file text into the material field.",
         statusAddedFiles:"Attachments added to the list.",
-        statusGenerating:"Generating mock exam…",
+        statusGeneratingQuick:"Generating quick exam (10–12)…",
+        statusGeneratingNormal:"Generating normal exam (13–20)…",
         statusMini:"Generating quick test…",
         statusExamReady:"Mock exam ready.",
         statusMiniReady:"Quick test ready.",
@@ -948,18 +977,24 @@
         qPlaceholder:"Write your answer here…",
         forecastLikely:"Likely level:",
         trendUp:"up", trendDown:"down", trendFlat:"stable",
+        attachSketch:"Attach sketch",
+        openDrawing:"Open drawing",
+        sketchMissing:"No saved sketch yet. Use the drawing section and save.",
+        sketchAttached:"Sketch attached (stored locally).",
       }
     };
 
     let LANG = localStorage.getItem("provklar_lang") || "sv";
     function t(k){ return (I18N[LANG] && I18N[LANG][k]) ? I18N[LANG][k] : k; }
+
     function setLang(next){
       LANG = next;
       localStorage.setItem("provklar_lang", LANG);
       document.documentElement.lang = (LANG === "en") ? "en" : "sv";
 
-      // Static text
-      const ids = [
+      const setText = (id,key)=>{ const el=document.getElementById(id); if(el) el.textContent=t(key); };
+
+      [
         ["brandTag","brandTag"],["menuTitle","menuTitle"],
         ["mMaterial","mMaterial"],["mMaterialS","mMaterialS"],
         ["mActions","mActions"],["mActionsS","mActionsS"],
@@ -974,7 +1009,7 @@
         ["s1Title","s1Title"],["englishLabel","englishLabel"],["s1Sub","s1Sub"],
         ["matPasteLabel","matPasteLabel"],["formatHint","formatHint"],
         ["levelLabel","levelLabel"],["courseLabel","courseLabel"],
-        ["qTypeLabel","qTypeLabel"],["miniCountLabel","miniCountLabel"],
+        ["qTypeLabel","qTypeLabel"],["examSpanLabel","examSpanLabel"],["spanPreviewLabel","spanPreviewLabel"],
         ["attachTitle","attachTitle"],["attachSub","attachSub"],
         ["pickBtn","pickBtn"],["pickHelp","pickHelp"],
         ["matListTitle","matListTitle"],
@@ -982,7 +1017,7 @@
         ["ocrTextLabel","ocrTextLabel"],
         ["ocrHint","ocrHint"],["ocrBestTitle","ocrBestTitle"],["ocrBestSub","ocrBestSub"],
         ["s2Title","s2Title"],["s2Sub","s2Sub"],
-        ["generateBtn","generateBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
+        ["quickExamBtn","quickExamBtn"],["normalExamBtn","normalExamBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
         ["s3Title","s3Title"],["s4Title","s4Title"],
         ["notesTitle","notesTitle"],["notesKeyTitle","notesKeyTitle"],["notesMistTitle","notesMistTitle"],["notesModelTitle","notesModelTitle"],["notesExTitle","notesExTitle"],
         ["dashTitle","dashTitle"],["dashSub","dashSub"],
@@ -998,17 +1033,12 @@
         ["weakTitle","weakTitle"],["nextTitle","nextTitle"],["resetCoachBtn","resetCoach"],
         ["footerText","footer"],
         ["lockTitle","lockTitle"],["lockSub","lockSub"],["lockLabel","lockLabel"],["unlockBtn","unlock"],["toInfoBtn","toInfo"],["lockHint","lockHint"],
-      ];
-      ids.forEach(([id,key])=>{
-        const el = document.getElementById(id);
-        if(el) el.textContent = t(key);
-      });
+      ].forEach(([id,key])=>setText(id,key));
 
-      // Option labels
-      const opt = (id, key) => { const el = document.getElementById(id); if(el) el.textContent = t(key); };
+      const opt = (id, key) => { const el=document.getElementById(id); if(el) el.textContent=t(key); };
       opt("qMix","qMix"); opt("qMC","qMC"); opt("qShort","qShort"); opt("qEssay","qEssay");
+      opt("spanQuick","spanQuick"); opt("spanNormal","spanNormal");
 
-      // Placeholders
       const pasted = document.getElementById("pastedText");
       if(pasted) pasted.placeholder = t("pastedPlaceholder");
       const course = document.getElementById("course");
@@ -1018,11 +1048,12 @@
       const access = document.getElementById("accessCode");
       if(access) access.placeholder = t("lockPlaceholder");
 
-      // Language toggles state labels
       document.getElementById("englishToggle").checked = (LANG === "en");
       document.getElementById("mLangS").textContent = (LANG === "en") ? "on" : "off";
 
-      // Empty states that depend on language
+      // Update span preview label value
+      syncSpanPreview();
+
       if(materials.length === 0) document.getElementById("matHint").textContent = t("matHintEmpty");
       if(!currentExam) document.getElementById("examMeta").textContent = t("examEmpty");
       if(!lastResult) document.getElementById("resultMeta").textContent = t("resultEmpty");
@@ -1031,8 +1062,6 @@
         document.getElementById("weaknesses").textContent = t("noData");
         document.getElementById("nextSession").textContent = t("needOne");
       }
-
-      // Update any existing answer placeholders
       document.querySelectorAll("textarea.answer").forEach(a => a.placeholder = t("qPlaceholder"));
     }
 
@@ -1056,7 +1085,6 @@
       document.getElementById("accessCode").value = "";
       document.getElementById("errorMsg").textContent = "";
     }
-
     document.getElementById("unlockBtn").addEventListener("click", checkCode);
     document.addEventListener("keydown", (e) => {
       const visible = document.getElementById("loginScreen").style.display !== "none";
@@ -1066,7 +1094,7 @@
       document.getElementById("loginScreen").style.display = "none";
     }
 
-    /* ====== Menu navigation (buttons, not anchors) ====== */
+    /* ====== Menu navigation ====== */
     const navToggleApp = document.getElementById("navToggleApp");
     function closeMenu(){ navToggleApp.checked = false; }
     function jumpTo(sel){
@@ -1087,7 +1115,6 @@
       window.location.href = "index.html";
     });
 
-    /* Language toggles */
     document.getElementById("englishToggle").addEventListener("change", (e) => {
       setLang(e.target.checked ? "en" : "sv");
     });
@@ -1117,6 +1144,10 @@
       try{ data = JSON.parse(raw); } catch {}
       return { status: resp.status, ok: resp.ok, raw, data };
     }
+    function randInt(min, max){
+      const a = Math.min(min, max), b = Math.max(min, max);
+      return Math.floor(a + Math.random() * (b - a + 1));
+    }
 
     /* ====== State ====== */
     let currentExam = null;
@@ -1130,7 +1161,8 @@
     const statusEl = $("status");
     const debugEl = $("debug");
 
-    const generateBtn = $("generateBtn");
+    const quickExamBtn = $("quickExamBtn");
+    const normalExamBtn = $("normalExamBtn");
     const miniBtn = $("miniBtn");
     const gradeBtn = $("gradeBtn");
     const clearBtn = $("clearBtn");
@@ -1140,6 +1172,9 @@
     const pastedTextEl = $("pastedText");
     const qTypeEl = $("qType");
     const miniCountEl = $("miniCount");
+
+    const examSpanEl = $("examSpan");
+    const spanPreviewEl = $("spanPreview");
 
     const fileInput = $("fileInput");
     const matListEl = $("matList");
@@ -1175,15 +1210,32 @@
     const nextSessionEl = $("nextSession");
     const resetCoachBtn = $("resetCoachBtn");
 
+    /* ====== Exam span (range) handling ====== */
+    function getSelectedSpan(){
+      // quick => 10-12, normal => 13-20
+      const v = examSpanEl.value;
+      if(v === "normal") return { key:"normal", min:13, max:20 };
+      return { key:"quick", min:10, max:12 };
+    }
+    function syncSpanPreview(){
+      const s = getSelectedSpan();
+      spanPreviewEl.value = `${s.min}–${s.max}`;
+    }
+    examSpanEl.addEventListener("change", syncSpanPreview);
+
     /* ====== Busy/status ====== */
     function setBusy(isBusy, label){
       spinnerEl.style.display = isBusy ? "inline-block" : "none";
       miniStateEl.textContent = label || (isBusy ? t("working") : t("ready"));
-      generateBtn.disabled = isBusy;
+
+      quickExamBtn.disabled = isBusy;
+      normalExamBtn.disabled = isBusy;
       miniBtn.disabled = isBusy;
+
       gradeBtn.disabled = isBusy || !currentExam;
       clearBtn.disabled = isBusy;
       ocrRunBtn.disabled = isBusy;
+
       exportExamBtn.disabled = isBusy || !currentExam;
       exportResultBtn.disabled = isBusy || !lastResult;
     }
@@ -1502,18 +1554,9 @@
         const box = document.createElement("div");
         box.className = "qBox";
 
-        const top = document.createElement("div");
-        top.style.display = "flex";
-        top.style.alignItems = "center";
-        top.style.justifyContent = "space-between";
-        top.style.gap = "10px";
-        top.style.flexWrap = "wrap";
-
         const meta = document.createElement("div");
         meta.className = "qMeta";
         meta.textContent = `ID: ${q.id ?? (idx+1)} • ${LANG === "en" ? "Points" : "Poäng"}: ${q.points ?? "—"} • ${LANG === "en" ? "Type" : "Typ"}: ${q.type ?? qTypeEl.value}`;
-
-        top.appendChild(meta);
 
         const text = document.createElement("div");
         text.className = "qText";
@@ -1526,35 +1569,33 @@
         answer.className = "answer";
         answer.placeholder = t("qPlaceholder");
         answer.dataset.qid = String(q.id ?? (idx+1));
-        answer.style.minHeight = (q.type === "essay") ? "150px" : "110px";
+        answer.style.minHeight = (String(q.type||"").toLowerCase().includes("essay") || String(q.type||"").toLowerCase().includes("essä")) ? "150px" : "110px";
 
-        // Optional: attach saved sketch quick-link
         const actions = document.createElement("div");
         actions.className = "ansActions noPrint";
 
         const attachSketch = document.createElement("button");
         attachSketch.type = "button";
         attachSketch.className = "tinyBtn";
-        attachSketch.textContent = (LANG === "en") ? "Attach sketch" : "Bifoga skiss";
+        attachSketch.textContent = t("attachSketch");
         attachSketch.addEventListener("click", () => {
           const img = localStorage.getItem("provklar_sketch_png");
           if(!img){
-            setStatus(LANG === "en" ? "No saved sketch yet. Use the drawing section and save." : "Ingen sparad skiss ännu. Rita i visuella delen och spara.", "warn");
+            setStatus(t("sketchMissing"), "warn");
             jumpTo("#draw");
             return;
           }
-          // Store as note appended to answer (link placeholder)
           const note = (LANG === "en") ? "\n\n[Sketch attached in browser storage]\n" : "\n\n[Skiss bifogad i webbläsarlagring]\n";
           if(!answer.value.includes("Sketch attached") && !answer.value.includes("Skiss bifogad")){
             answer.value = (answer.value.trim() ? (answer.value.trim() + note) : note);
           }
-          setStatus(LANG === "en" ? "Sketch attached (stored locally)." : "Skiss bifogad (sparas lokalt).", "ok");
+          setStatus(t("sketchAttached"), "ok");
         });
 
         const jumpDraw = document.createElement("button");
         jumpDraw.type = "button";
         jumpDraw.className = "tinyBtn";
-        jumpDraw.textContent = (LANG === "en") ? "Open drawing" : "Öppna ritverktyg";
+        jumpDraw.textContent = t("openDrawing");
         jumpDraw.addEventListener("click", () => jumpTo("#draw"));
 
         actions.appendChild(attachSketch);
@@ -1563,7 +1604,7 @@
         ansWrap.appendChild(answer);
         ansWrap.appendChild(actions);
 
-        box.appendChild(top);
+        box.appendChild(meta);
         box.appendChild(text);
         box.appendChild(ansWrap);
         examBodyEl.appendChild(box);
@@ -1607,7 +1648,6 @@
 
     /* ====== Auto-notes ====== */
     function renderAutoNotes(exam, result){
-      // Prefer backend fields if present
       const auto = result && result.auto_notes ? result.auto_notes : null;
 
       const keys = [];
@@ -1621,7 +1661,6 @@
         model = String(auto.model_explanation || "");
         ex = String(auto.example || "");
       } else {
-        // Fallback: derive from questions + missed points (simple)
         const qMap = new Map();
         (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
         const missSorted = (result.per_question || []).map(pq=>{
@@ -1632,19 +1671,14 @@
           return { missP, q };
         }).sort((a,b)=> b.missP - a.missP);
 
-        // key concepts: pull from tags or keywords in question text
         const tagPool = [];
         missSorted.forEach(x=>{
           const tags = Array.isArray(x.q?.tags) ? x.q.tags : [];
           tags.forEach(t=> tagPool.push(String(t)));
         });
         const unique = [...new Set(tagPool)].slice(0,3);
-        if(unique.length){
-          keys.push(...unique);
-        } else {
-          // last resort: generic
-          keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
-        }
+        if(unique.length) keys.push(...unique);
+        else keys.push(LANG==="en"?"Key terms":"Nyckelbegrepp", LANG==="en"?"Definitions":"Definitioner", LANG==="en"?"Examples":"Exempel");
 
         misses.push(
           LANG==="en" ? "Missing key concepts/terms in the answer" : "Saknar nyckelbegrepp i svaret",
@@ -1659,7 +1693,6 @@
           : "Exempel: börja med definition → förklara processen → avsluta med ett konkret scenario.";
       }
 
-      // Render
       autoNotesBox.style.display = "block";
       notesKey.innerHTML = "";
       keys.slice(0,3).forEach(k=>{
@@ -1714,7 +1747,6 @@
     }
 
     function computeMeterFromResult(exam, result){
-      // Prefer backend result.meter if present: {fact, explain, analysis, example} in 0..100 or 0..1
       if(result && result.meter && typeof result.meter === "object"){
         const m = result.meter;
         const scale = (v)=> (v<=1 ? v*100 : v);
@@ -1726,17 +1758,15 @@
         };
       }
 
-      // Fallback: split by question.type or tags (simplified)
       const qMap = new Map();
       (exam.questions || []).forEach(q => qMap.set(String(q.id), q));
-      const buckets = { fact:[0,0], explain:[0,0], analysis:[0,0], example:[0,0] }; // [got,max]
+      const buckets = { fact:[0,0], explain:[0,0], analysis:[0,0], example:[0,0] };
 
       (result.per_question || []).forEach(pq=>{
         const q = qMap.get(String(pq.id)) || {};
         const maxP = Number(pq.max_points||0)||0;
         const gotP = Number(pq.points||0)||0;
 
-        // Heuristic mapping
         let cat = "explain";
         const type = String(q.type || "").toLowerCase();
         const tags = Array.isArray(q.tags) ? q.tags.map(x=>String(x).toLowerCase()) : [];
@@ -1763,7 +1793,6 @@
     }
 
     function computeForecast(exam, result){
-      // Prefer backend result.forecast if present: {level, trend, detail}
       if(result && result.forecast && typeof result.forecast === "object"){
         const f = result.forecast;
         return {
@@ -1773,7 +1802,6 @@
         };
       }
 
-      // Fallback: map total percent to level
       const maxP = Number(result.max_points||0)||0;
       const gotP = Number(result.total_points||0)||0;
       const pct = maxP>0 ? (gotP/maxP)*100 : 0;
@@ -1783,7 +1811,6 @@
       else if(pct >= 60) lvl = "C";
       else lvl = "E";
 
-      // Trend from last attempts in localStorage
       const histKey = "provklar_score_hist";
       const hist = (()=>{ try{ return JSON.parse(localStorage.getItem(histKey)||"[]"); }catch{return [];} })();
       const last = hist.length ? hist[hist.length-1] : null;
@@ -1922,7 +1949,7 @@
       };
     }
 
-    generateBtn.addEventListener("click", async () => {
+    async function generateByRange(kind){
       hideDebug();
       clearResult();
       clearExam();
@@ -1934,12 +1961,25 @@
         return;
       }
 
-      setBusy(true, t("statusGenerating"));
-      setStatus(t("statusGenerating"), "");
+      // If user has chosen a span in dropdown, respect it.
+      // But the buttons force the intended span (quick/normal).
+      const span = (kind === "normal") ? {min:13,max:20, key:"normal"} : {min:10,max:12, key:"quick"};
+      examSpanEl.value = span.key;
+      syncSpanPreview();
+
+      const numQuestions = randInt(span.min, span.max);
+
+      setBusy(true, kind === "normal" ? t("statusGeneratingNormal") : t("statusGeneratingQuick"));
+      setStatus(kind === "normal" ? t("statusGeneratingNormal") : t("statusGeneratingQuick"), "");
 
       try{
         const payload = buildPayloadBase();
         payload.mode = "full";
+        payload.variant = kind; // quick | normal (backend may ignore)
+        payload.numQuestions = numQuestions;
+        payload.minQuestions = span.min; // backend may use
+        payload.maxQuestions = span.max;
+
         const r = await postJson("/api/generate-exam", payload);
 
         if(!r.ok || !r.data || !r.data.ok){
@@ -1958,7 +1998,10 @@
         setStatus(LANG==="en" ? "Generation error." : "Fel vid generering.", "bad");
         showDebug(String(e));
       }
-    });
+    }
+
+    quickExamBtn.addEventListener("click", () => generateByRange("quick"));
+    normalExamBtn.addEventListener("click", () => generateByRange("normal"));
 
     miniBtn.addEventListener("click", async () => {
       hideDebug();
@@ -1979,6 +2022,7 @@
         const payload = buildPayloadBase();
         payload.mode = "mini";
         payload.numQuestions = Number(miniCountEl.value || 5);
+
         const r = await postJson("/api/generate-exam", payload);
 
         if(!r.ok || !r.data || !r.data.ok){
@@ -2019,7 +2063,6 @@
         payload.questions = currentExam.questions;
         payload.answers = answers;
 
-        // attach sketch if saved (optional, backend may ignore)
         const sketchPng = localStorage.getItem("provklar_sketch_png");
         if(sketchPng) payload.sketch = { pngDataUrl: sketchPng };
 
@@ -2033,18 +2076,14 @@
         }
 
         renderResult(r.data.result);
-
-        // Auto notes
         renderAutoNotes(currentExam, r.data.result);
 
-        // Meter + forecast
         const meter = computeMeterFromResult(currentExam, r.data.result);
         setMeter(meter);
 
         const f = computeForecast(currentExam, r.data.result);
         setForecast(f.level, f.trend, f.detail);
 
-        // Adaptive profile
         updateProfileFromResult(currentExam, r.data.result);
 
         setBusy(false, t("ready"));
@@ -2063,6 +2102,8 @@
       courseEl.value = "";
       levelEl.value = "C";
       qTypeEl.value = "mix";
+      examSpanEl.value = "quick";
+      syncSpanPreview();
       miniCountEl.value = "5";
 
       materials.length = 0;
@@ -2078,13 +2119,14 @@
 
       clearExam();
       clearResult();
+
       setStatus(t("statusCleared"), "ok");
       exportStatus.textContent = "";
       renderCoaching();
       jumpTo("#material");
     });
 
-    /* ====== Drawing canvas (visual answer support) ====== */
+    /* ====== Drawing canvas ====== */
     const canvas = $("sketch");
     const ctx = canvas.getContext("2d");
     let drawing = false;
@@ -2143,10 +2185,6 @@
       $("canvasStatus").textContent = (LANG==="en") ? "Saved locally (browser storage)." : "Sparad lokalt (webbläsarlagring).";
     });
 
-    /* ====== Logout ====== */
-    $("logoutMenuBtn").addEventListener("click", ()=>{});
-    // (Top bar has no extra logout button; menu item used.)
-
     /* ====== Init ====== */
     updateMaterialUI();
     renderCoaching();
@@ -2154,8 +2192,7 @@
     $("forecastText").textContent = t("forecastNone");
     setBusy(false, t("ready"));
     setStatus("");
-
-    // Apply language (loads from localStorage)
+    syncSpanPreview();
     setLang(LANG);
   </script>
 </body>
