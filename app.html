@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProvKlar – App</title>
   <meta name="description" content="ProvKlar – material → mockprov → rättning + modellsvar." />
+
   <style>
     :root{
       --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --muted:#556072; --border:rgba(11,31,58,.12);
@@ -15,7 +16,8 @@
     html{scroll-behavior:smooth}
     :target{scroll-margin-top:92px}
     body{
-      margin:0;font-family:var(--font);background:
+      margin:0;font-family:var(--font);
+      background:
         radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%),
         radial-gradient(700px 380px at 95% 20%, rgba(24,184,138,.10), transparent 55%),
         var(--bg);
@@ -24,27 +26,30 @@
     a{text-decoration:none;color:inherit}
     header{
       background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1000;
+      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:1000;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .brand img{height:54px;width:auto;display:block}
     .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
+
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid var(--border);
-      cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.92);color:var(--navy);
+      cursor:pointer;white-space:nowrap;
+      background:rgba(255,255,255,.92);color:var(--navy);
     }
     .btnPrimary{
       background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
       box-shadow:0 14px 28px rgba(24,184,138,.22)
     }
-    .btnGhost{background:#fff}
     .btnDanger{background:#fff;border-color:rgba(139,29,29,.22);color:var(--danger)}
     .btn:disabled{opacity:.55;cursor:not-allowed}
+
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -63,31 +68,82 @@
       pointer-events:none;
     }
     .sectionTitle{
-      margin:0 0 8px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);
+      margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);
       font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
+
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
     select,input,textarea{
       width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff;
       font-family:inherit;font-size:14px;outline:none;
     }
-    textarea{min-height:165px;resize:vertical}
+    textarea{min-height:160px;resize:vertical}
     input:focus, textarea:focus, select:focus{border-color:rgba(24,184,138,.45);box-shadow:0 0 0 5px rgba(24,184,138,.14)}
+
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:920px){ .grid2{grid-template-columns:1fr} }
+
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
+
+    details{margin-top:10px}
+    summary{cursor:pointer;font-weight:1000;color:var(--navy);font-size:13px}
     pre{
       margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-      background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;display:none;
+      background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
     }
-    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite;display:none}
+
+    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(11,31,58,.18);border-top-color:rgba(24,184,138,.95);animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+
     .qBox{margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff}
     .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
     .qText{font-weight:900;color:#0C1220;line-height:1.45}
+    .optLine{font-weight:850;font-size:13px;line-height:1.45;margin:3px 0}
+
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
+
+    /* Menu */
+    .menuWrap{position:relative}
+    .iconBtn{
+      width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
+    }
+    .bars{width:18px;height:12px;display:grid;gap:3px}
+    .bars span{display:block;height:2px;background:var(--navy);border-radius:2px;opacity:.9}
+    .dropdown{
+      position:absolute;right:0;top:54px;min-width:240px;
+      background:rgba(255,255,255,.98);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:0 22px 60px rgba(11,31,58,.18);
+      padding:8px;
+      display:none;
+      z-index:2000;
+    }
+    .dropdown a, .dropdown button{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      cursor:pointer;
+      font-weight:950;
+      color:var(--navy);
+      font-size:13px;
+      text-align:left;
+    }
+    .dropdown a:hover, .dropdown button:hover{background:rgba(24,184,138,.10);border-color:rgba(24,184,138,.18)}
+    .pill{
+      font-size:11px;font-weight:1000;color:var(--muted);
+      border:1px solid var(--border);
+      border-radius:999px;padding:4px 8px;background:#fff;
+    }
+
+    /* Lock */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -109,12 +165,21 @@
     .loginTop .ltTitle{font-weight:1000;color:var(--navy);font-size:20px;line-height:1.1}
     .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
     .loginBody{padding:12px 18px 18px}
-    .fieldLabel{display:block;font-weight:1000;color:var(--navy);font-size:13px;margin:10px 0 6px}
-    .field{width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:14px}
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
+
+    /* Upload box */
+    .uploadBox{
+      border:1px dashed rgba(11,31,58,.22);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.7);
+    }
+    .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
   </style>
 </head>
+
 <body>
 
   <!-- App lock -->
@@ -123,16 +188,16 @@
       <div class="loginTop">
         <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
-          <div class="ltTitle">ProvKlar UF</div>
-          <div class="ltSub">Åtkomst krävs för att använda appen</div>
+          <div class="ltTitle" id="lockTitle">ProvKlar UF</div>
+          <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
       <div class="loginBody">
-        <label class="fieldLabel" for="accessCode">Åtkomstkod</label>
+        <label class="fieldLabel" for="accessCode" id="lockLabel">Åtkomstkod</label>
         <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
-          <a class="btn" href="index.html">Till infosidan</a>
+          <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
           <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
@@ -145,15 +210,24 @@
       <a class="brand" href="index.html">
         <img src="image/provklar-logo.png" alt="ProvKlar logga">
         <div>
-          <div class="name">ProvKlar</div>
-          <div class="tag">Mockprov • Rättning • Modellsvar</div>
+          <div class="name" id="brandName">ProvKlar</div>
+          <div class="tag" id="brandTag">Mockprov • Rättning • Modellsvar</div>
         </div>
       </a>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="#material">Material</a>
-        <a class="btn" href="#exam">Mockprov</a>
-        <a class="btn" href="#result">Rättning</a>
+      <div class="menuWrap">
+        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
+          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+        </button>
+
+        <div class="dropdown" id="menu">
+          <a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
+          <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Typ/antal</span></a>
+          <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Generera</span></a>
+          <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Feedback</span></a>
+          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
+          <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+        </div>
       </div>
     </div>
   </header>
@@ -161,15 +235,32 @@
   <main class="wrap">
 
     <section class="card" id="material">
-      <div class="sectionTitle"><span>Steg 1 – Material</span></div>
-      <p class="sectionSub">Klistra in provmaterial. Välj frågetyp och exakt antal frågor. Tryck “Skapa mockprov”.</p>
+      <div class="sectionTitle"><span id="tStep1">Steg 1 – Material</span></div>
+      <p class="sectionSub" id="tStep1Sub">Klistra in text. Om du vill: ladda upp en bild eller ta foto → OCR lägger in texten automatiskt.</p>
 
-      <label for="pastedText">Material (klistra in text)</label>
+      <label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
       <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
 
-      <div class="grid2" style="margin-top:12px">
+      <div class="uploadBox" style="margin-top:12px">
+        <div class="uploadTop">
+          <div style="font-weight:1000;color:var(--navy);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <input id="imageInput" type="file" accept="image/*" capture="environment" />
+            <button class="btn" id="ocrBtn" type="button">OCR till material</button>
+          </div>
+        </div>
+        <div class="smallHint" id="tOcrHint">Tips: ta en tydlig bild rakt ovanifrån med bra ljus.</div>
+        <div class="status" id="ocrStatus"></div>
+      </div>
+    </section>
+
+    <section class="card" id="settings">
+      <div class="sectionTitle"><span id="tStep2">Steg 2 – Inställningar</span></div>
+      <p class="sectionSub" id="tStep2Sub">Välj nivå, frågetyp och exakt antal frågor. AI ska följa dina val.</p>
+
+      <div class="grid2">
         <div>
-          <label for="level">Nivå</label>
+          <label for="level" id="tLevel">Nivå</label>
           <select id="level">
             <option value="E">E</option>
             <option value="C" selected>C</option>
@@ -177,23 +268,23 @@
           </select>
         </div>
         <div>
-          <label for="course">Ämne/kurs (valfritt)</label>
+          <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
           <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
         <div>
-          <label for="qType">Frågetyp</label>
+          <label for="qType" id="tQType">Frågetyp</label>
           <select id="qType">
-            <option value="mix" selected>Blandat</option>
-            <option value="mc">Flervalsfrågor</option>
-            <option value="short">Kortsvar</option>
-            <option value="essay">Essä</option>
+            <option value="mix" selected id="qtMix">Blandat</option>
+            <option value="mc" id="qtMc">Flervalsfrågor</option>
+            <option value="short" id="qtShort">Kortsvar</option>
+            <option value="essay" id="qtEssay">Essä</option>
           </select>
         </div>
         <div>
-          <label for="numQuestions">Antal frågor</label>
+          <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
           <select id="numQuestions">
             <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
             <option>9</option><option>10</option><option>11</option><option selected>12</option>
@@ -201,50 +292,235 @@
         </div>
       </div>
 
-      <div class="status warn" id="formatHint" style="margin-top:12px">
-        Tips: rubriker + punktlistor ger bättre frågor och mer exakt rättning.
-      </div>
-    </section>
-
-    <section class="card" id="actions">
-      <div class="sectionTitle"><span>Steg 2 – Skapa och rätta</span></div>
-      <p class="sectionSub">AI genererar exakt antal frågor och rätt frågetyp utifrån dina val.</p>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <div class="spinner" id="spinner"></div>
-        <span class="sectionSub" id="miniState">Redo.</span>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
         <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
         <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-        <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
+        <button class="btn" id="clearBtn" type="button">Rensa</button>
+        <span style="display:flex;gap:10px;align-items:center">
+          <span id="spinWrap" style="display:none"><span class="spinner"></span></span>
+          <span class="sectionSub" id="miniState">Redo.</span>
+        </span>
+      </div>
+
+      <div class="status warn" id="formatHint" style="margin-top:10px">
+        Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
       </div>
 
       <div class="status" id="status"></div>
-      <pre id="debug"></pre>
+      <details id="debugWrap" style="display:none">
+        <summary id="debugTitle">Debug</summary>
+        <pre id="debug"></pre>
+      </details>
     </section>
 
     <section class="card" id="exam">
-      <div class="sectionTitle"><span>Steg 3 – Mockprov</span></div>
+      <div class="sectionTitle"><span id="tStep3">Steg 3 – Mockprov</span></div>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
       <div id="examBody"></div>
     </section>
 
     <section class="card" id="result">
-      <div class="sectionTitle"><span>Steg 4 – Rättning</span></div>
+      <div class="sectionTitle"><span id="tStep4">Steg 4 – Rättning</span></div>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
       <div id="resultBody"></div>
     </section>
 
   </main>
 
-  <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
     const $ = (id) => document.getElementById(id);
 
-    // ===== App lock =====
+    /* =========================
+       i18n (SV/EN)
+    ========================== */
+    let LANG = localStorage.getItem("provklar_lang") || "sv";
+
+    const I18N = {
+      sv: {
+        brandTag: "Mockprov • Rättning • Modellsvar",
+        lockSub: "Åtkomst krävs för att använda appen",
+        lockLabel: "Åtkomstkod",
+        unlock: "Lås upp",
+        toInfo: "Till infosidan",
+        logout: "Logga ut",
+        m1: "1) Material",
+        m2: "2) Inställningar",
+        m3: "3) Mockprov",
+        m4: "4) Rättning",
+        mLang: "English",
+        step1: "Steg 1 – Material",
+        step1Sub: "Klistra in text. Om du vill: ladda upp en bild eller ta foto → OCR lägger in texten automatiskt.",
+        pasteLabel: "Material (klistra in text)",
+        ocrTitle: "Bild → OCR (valfritt)",
+        ocrBtn: "OCR till material",
+        ocrHint: "Tips: ta en tydlig bild rakt ovanifrån med bra ljus.",
+        step2: "Steg 2 – Inställningar",
+        step2Sub: "Välj nivå, frågetyp och exakt antal frågor. AI ska följa dina val.",
+        level: "Nivå",
+        course: "Ämne/kurs (valfritt)",
+        qType: "Frågetyp",
+        qtMix: "Blandat",
+        qtMc: "Flervalsfrågor",
+        qtShort: "Kortsvar",
+        qtEssay: "Essä",
+        num: "Antal frågor (exakt)",
+        gen: "Skapa mockprov",
+        grade: "Rätta prov",
+        clear: "Rensa",
+        ready: "Redo.",
+        debug: "Debug",
+        step3: "Steg 3 – Mockprov",
+        step4: "Steg 4 – Rättning",
+        footer: "ProvKlar UF är studiestöd och ger ingen officiell betygssättning.",
+        tip: "Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.",
+        needMaterial: "Klistra in material först.",
+        genWorking: "Skapar mockprov…",
+        gradeWorking: "Rättar prov…",
+        genDone: "Mockprov klart.",
+        gradeDone: "Rättning klar.",
+        errCode: "Fel kod.",
+        ocrNoFile: "Välj en bild först.",
+        ocrWorking: "OCR pågår…",
+        ocrDone: "OCR klart. Texten lades in i materialet."
+      },
+      en: {
+        brandTag: "Mock exams • Grading • Model answers",
+        lockSub: "Access is required to use the app",
+        lockLabel: "Access code",
+        unlock: "Unlock",
+        toInfo: "Go to info page",
+        logout: "Log out",
+        m1: "1) Material",
+        m2: "2) Settings",
+        m3: "3) Mock exam",
+        m4: "4) Grading",
+        mLang: "Svenska",
+        step1: "Step 1 – Material",
+        step1Sub: "Paste text. Optional: upload an image or take a photo → OCR adds the extracted text automatically.",
+        pasteLabel: "Material (paste text)",
+        ocrTitle: "Image → OCR (optional)",
+        ocrBtn: "OCR into material",
+        ocrHint: "Tip: take a sharp photo from straight above with good lighting.",
+        step2: "Step 2 – Settings",
+        step2Sub: "Choose level, question type, and an exact number of questions. The AI should follow your choices.",
+        level: "Level",
+        course: "Subject/course (optional)",
+        qType: "Question type",
+        qtMix: "Mixed",
+        qtMc: "Multiple choice",
+        qtShort: "Short answer",
+        qtEssay: "Essay",
+        num: "Number of questions (exact)",
+        gen: "Generate mock exam",
+        grade: "Grade exam",
+        clear: "Clear",
+        ready: "Ready.",
+        debug: "Debug",
+        step3: "Step 3 – Mock exam",
+        step4: "Step 4 – Grading",
+        footer: "ProvKlar UF is study support and does not provide official grades.",
+        tip: "Tip: headings + bullet points produce more accurate questions and grading.",
+        needMaterial: "Paste material first.",
+        genWorking: "Generating mock exam…",
+        gradeWorking: "Grading…",
+        genDone: "Mock exam ready.",
+        gradeDone: "Grading ready.",
+        errCode: "Wrong code.",
+        ocrNoFile: "Choose an image first.",
+        ocrWorking: "Running OCR…",
+        ocrDone: "OCR done. Text was added to the material."
+      }
+    };
+
+    function applyI18N(){
+      const t = I18N[LANG];
+
+      $("brandTag").textContent = t.brandTag;
+      $("lockSub").textContent = t.lockSub;
+      $("lockLabel").textContent = t.lockLabel;
+      $("unlockBtn").textContent = t.unlock;
+      $("toInfoBtn").textContent = t.toInfo;
+      $("logoutBtn").textContent = t.logout;
+
+      $("m1").textContent = t.m1;
+      $("m2").textContent = t.m2;
+      $("m3").textContent = t.m3;
+      $("m4").textContent = t.m4;
+      $("mLang").textContent = t.mLang;
+
+      $("tStep1").textContent = t.step1;
+      $("tStep1Sub").textContent = t.step1Sub;
+      $("tPasteLabel").textContent = t.pasteLabel;
+      $("tOcrTitle").textContent = t.ocrTitle;
+      $("ocrBtn").textContent = t.ocrBtn;
+      $("tOcrHint").textContent = t.ocrHint;
+
+      $("tStep2").textContent = t.step2;
+      $("tStep2Sub").textContent = t.step2Sub;
+      $("tLevel").textContent = t.level;
+      $("tCourse").textContent = t.course;
+      $("tQType").textContent = t.qType;
+      $("qtMix").textContent = t.qtMix;
+      $("qtMc").textContent = t.qtMc;
+      $("qtShort").textContent = t.qtShort;
+      $("qtEssay").textContent = t.qtEssay;
+      $("tNum").textContent = t.num;
+
+      $("generateExamBtn").textContent = t.gen;
+      $("gradeBtn").textContent = t.grade;
+      $("clearBtn").textContent = t.clear;
+      $("miniState").textContent = t.ready;
+      $("debugTitle").textContent = t.debug;
+
+      $("tStep3").textContent = t.step3;
+      $("tStep4").textContent = t.step4;
+
+      $("footerText").textContent = t.footer;
+      $("formatHint").textContent = t.tip;
+
+      $("langPill").textContent = LANG.toUpperCase();
+    }
+
+    /* =========================
+       Menu
+    ========================== */
+    const menuBtn = $("menuBtn");
+    const menu = $("menu");
+    function openMenu(){ menu.style.display = "block"; }
+    function closeMenu(){ menu.style.display = "none"; }
+
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if(menu.style.display === "block") closeMenu();
+      else openMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if(menu.style.display === "block" && !menu.contains(e.target) && e.target !== menuBtn) closeMenu();
+    });
+
+    menu.querySelectorAll("[data-scroll]").forEach(a => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const sel = a.getAttribute("data-scroll");
+        const el = document.querySelector(sel);
+        closeMenu();
+        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+
+    $("langBtn").addEventListener("click", () => {
+      LANG = (LANG === "sv") ? "en" : "sv";
+      localStorage.setItem("provklar_lang", LANG);
+      applyI18N();
+      closeMenu();
+    });
+
+    /* =========================
+       Lock
+    ========================== */
     const CORRECT_CODE = "provklar123";
     function unlock(){
       const v = ($("accessCode").value || "").trim();
@@ -253,7 +529,7 @@
         $("loginScreen").style.display = "none";
         $("errorMsg").textContent = "";
       } else {
-        $("errorMsg").textContent = "Fel kod.";
+        $("errorMsg").textContent = I18N[LANG].errCode;
       }
     }
     function lock(){
@@ -264,17 +540,23 @@
     }
     $("unlockBtn").addEventListener("click", unlock);
     $("logoutBtn").addEventListener("click", () => { lock(); window.location.href="index.html"; });
+    $("logoutTopBtn").addEventListener("click", () => { closeMenu(); lock(); window.location.href="index.html"; });
+
     document.addEventListener("keydown", (e) => {
       if($("loginScreen").style.display !== "none" && e.key === "Enter") unlock();
     });
+
     if(localStorage.getItem("provklar_app_access") === "true"){
       $("loginScreen").style.display = "none";
     }
 
-    // ===== UI state =====
-    const spinnerEl = $("spinner");
+    /* =========================
+       Helpers / UI state
+    ========================== */
+    const spinWrap = $("spinWrap");
     const miniStateEl = $("miniState");
     const statusEl = $("status");
+    const debugWrap = $("debugWrap");
     const debugEl = $("debug");
 
     const pastedTextEl = $("pastedText");
@@ -292,28 +574,37 @@
     const resultMetaEl = $("resultMeta");
     const resultBodyEl = $("resultBody");
 
+    const imageInput = $("imageInput");
+    const ocrBtn = $("ocrBtn");
+    const ocrStatus = $("ocrStatus");
+
     let currentExam = null;
-    let lastResult = null;
 
     function setBusy(isBusy, label){
-      spinnerEl.style.display = isBusy ? "inline-block" : "none";
-      miniStateEl.textContent = label || (isBusy ? "Arbetar…" : "Redo.");
+      spinWrap.style.display = isBusy ? "inline-flex" : "none";
+      miniStateEl.textContent = label || (isBusy ? "…" : I18N[LANG].ready);
       generateExamBtn.disabled = isBusy;
       gradeBtn.disabled = isBusy || !currentExam;
       clearBtn.disabled = isBusy;
+      ocrBtn.disabled = isBusy;
     }
     function setStatus(txt, kind){
       statusEl.className = "status" + (kind ? (" " + kind) : "");
       statusEl.textContent = txt || "";
     }
+    function setOcrStatus(txt, kind){
+      ocrStatus.className = "status" + (kind ? (" " + kind) : "");
+      ocrStatus.textContent = txt || "";
+    }
     function showDebug(txt){
-      debugEl.style.display = "block";
+      debugWrap.style.display = "block";
       debugEl.textContent = txt || "";
     }
     function hideDebug(){
-      debugEl.style.display = "none";
+      debugWrap.style.display = "none";
       debugEl.textContent = "";
     }
+
     async function postJson(path, payload){
       const resp = await fetch(path, {
         method:"POST",
@@ -325,6 +616,7 @@
       try{ data = JSON.parse(raw); } catch {}
       return { ok: resp.ok, status: resp.status, raw, data };
     }
+
     function escapeHtml(s){
       return String(s ?? "")
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -333,10 +625,9 @@
 
     function renderExam(exam){
       currentExam = exam;
-      lastResult = null;
-
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
-      examMetaEl.textContent = `${exam.title || "Mockprov"} • Nivå: ${exam.level || "—"} • Frågor: ${qs.length}`;
+
+      examMetaEl.textContent = `${exam.title || "Mockprov"} • ${I18N[LANG].level}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv" ? "frågor" : "questions"}`;
       examBodyEl.innerHTML = "";
 
       qs.forEach((q, idx) => {
@@ -345,29 +636,30 @@
 
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${q.id ?? (idx+1)} • Poäng: ${q.points ?? "—"} • Typ: ${q.type ?? qTypeEl.value}`;
+        meta.textContent = `ID: ${q.id ?? String(idx+1)} • ${LANG==="sv" ? "Poäng" : "Points"}: ${q.points ?? "—"} • ${LANG==="sv" ? "Typ" : "Type"}: ${q.type ?? qTypeEl.value}`;
 
         const text = document.createElement("div");
         text.className = "qText";
         text.textContent = q.question ?? "";
 
-        const ans = document.createElement("textarea");
-        ans.className = "answer";
-        ans.placeholder = "Skriv ditt svar här…";
-        ans.dataset.qid = String(q.id ?? (idx+1));
-        ans.style.minHeight = (String(q.type||"").includes("essay") || String(q.type||"").includes("essä")) ? "150px" : "110px";
+        box.appendChild(meta);
+        box.appendChild(text);
 
-        // Om flerval: visa alternativen
         if(Array.isArray(q.options) && q.options.length){
           const opt = document.createElement("div");
-          opt.className = "status";
           opt.style.marginTop = "8px";
-          opt.innerHTML = q.options.map((o,i)=>`<div><b>${String.fromCharCode(65+i)}.</b> ${escapeHtml(o)}</div>`).join("");
-          box.appendChild(meta); box.appendChild(text); box.appendChild(opt); box.appendChild(ans);
-        } else {
-          box.appendChild(meta); box.appendChild(text); box.appendChild(ans);
+          opt.innerHTML = q.options.map((o,i)=>`<div class="optLine"><b>${String.fromCharCode(65+i)}.</b> ${escapeHtml(o)}</div>`).join("");
+          box.appendChild(opt);
         }
 
+        const ans = document.createElement("textarea");
+        ans.className = "answer";
+        ans.placeholder = LANG==="sv" ? "Skriv ditt svar här…" : "Write your answer here…";
+        ans.dataset.qid = String(q.id ?? (idx+1));
+        ans.style.marginTop = "10px";
+        ans.style.minHeight = (q.type === "essay") ? "150px" : "110px";
+
+        box.appendChild(ans);
         examBodyEl.appendChild(box);
       });
 
@@ -375,8 +667,7 @@
     }
 
     function renderResult(r){
-      lastResult = r;
-      resultMetaEl.textContent = `Rättning: ${r.total_points}/${r.max_points}`;
+      resultMetaEl.textContent = `${LANG==="sv" ? "Rättning" : "Grading"}: ${r.total_points}/${r.max_points}`;
       const wrap = document.createElement("div");
 
       (r.per_question || []).forEach(item => {
@@ -384,17 +675,15 @@
         d.className = "qBox";
 
         const model = String(item.model_answer || "").trim();
-        const full = model
-          ? `<div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
-               <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">Vad som ger full poäng (modellsvar)</div>
-               <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
-             </div>`
-          : "";
-
         d.innerHTML = `
           <div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
           <div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
-          ${full}
+          <div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
+            <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">
+              ${LANG==="sv" ? "Vad som ger full poäng (modellsvar)" : "Full-score model answer"}
+            </div>
+            <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
+          </div>
         `;
         wrap.appendChild(d);
       });
@@ -409,30 +698,85 @@
       levelEl.value = "C";
       qTypeEl.value = "mix";
       numQuestionsEl.value = "12";
+      imageInput.value = "";
 
       currentExam = null;
-      lastResult = null;
-      examMetaEl.textContent = "Ingen provdata ännu.";
+      examMetaEl.textContent = LANG==="sv" ? "Ingen provdata ännu." : "No exam data yet.";
       examBodyEl.innerHTML = "";
-      resultMetaEl.textContent = "Ingen rättning ännu.";
+      resultMetaEl.textContent = LANG==="sv" ? "Ingen rättning ännu." : "No grading yet.";
       resultBodyEl.innerHTML = "";
       gradeBtn.disabled = true;
 
-      setStatus("Rensat.", "ok");
+      setStatus(LANG==="sv" ? "Rensat." : "Cleared.", "ok");
+      setOcrStatus("");
       hideDebug();
     }
 
+    /* =========================
+       OCR (image -> text -> append)
+    ========================== */
+    async function fileToDataUrl(file){
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(String(fr.result || ""));
+        fr.onerror = () => reject(new Error("FileReader error"));
+        fr.readAsDataURL(file);
+      });
+    }
+
+    ocrBtn.addEventListener("click", async () => {
+      hideDebug();
+      const file = imageInput.files && imageInput.files[0];
+      if(!file){
+        setOcrStatus(I18N[LANG].ocrNoFile, "bad");
+        return;
+      }
+
+      setBusy(true, I18N[LANG].ocrWorking);
+      setOcrStatus(I18N[LANG].ocrWorking, "warn");
+
+      try{
+        const dataUrl = await fileToDataUrl(file);
+        const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
+
+        if(!res.ok || !res.data || !res.data.ok){
+          setBusy(false, I18N[LANG].ready);
+          setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
+          showDebug(res.raw);
+          return;
+        }
+
+        const extracted = String(res.data.text || "").trim();
+        if(extracted){
+          const prefix = LANG==="sv" ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
+          pastedTextEl.value = (pastedTextEl.value.trim() ? (pastedTextEl.value.trim() + prefix) : "") + extracted + "\n";
+        }
+
+        setBusy(false, I18N[LANG].ready);
+        setOcrStatus(I18N[LANG].ocrDone, "ok");
+      }catch(e){
+        setBusy(false, I18N[LANG].ready);
+        setOcrStatus("OCR error.", "bad");
+        showDebug(String(e));
+      }
+    });
+
+    /* =========================
+       Generate / Grade
+    ========================== */
     generateExamBtn.addEventListener("click", async () => {
       hideDebug();
+      setStatus("");
+
       const pastedText = pastedTextEl.value.trim();
       if(!pastedText){
-        setStatus("Klistra in material först.", "bad");
+        setStatus(I18N[LANG].needMaterial, "bad");
         document.querySelector("#material").scrollIntoView({behavior:"smooth"});
         return;
       }
 
       const payload = {
-        lang:"sv",
+        lang: LANG,
         level: levelEl.value,
         course: courseEl.value.trim(),
         qType: qTypeEl.value,
@@ -440,27 +784,29 @@
         numQuestions: Number(numQuestionsEl.value)
       };
 
-      setBusy(true, "Skapar mockprov…");
-      setStatus(`Skapar mockprov… (${payload.qType}, ${payload.numQuestions} frågor)`, "");
+      setBusy(true, I18N[LANG].genWorking);
+      setStatus(`${I18N[LANG].genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
 
       const res = await postJson("/api/generate-exam", payload);
       if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, "Redo.");
-        setStatus(`Fel vid generering (HTTP ${res.status}).`, "bad");
+        setBusy(false, I18N[LANG].ready);
+        setStatus(`Error (HTTP ${res.status}).`, "bad");
         showDebug(res.raw);
         return;
       }
 
       renderExam(res.data.exam);
-      setBusy(false, "Redo.");
-      setStatus("Mockprov klart.", "ok");
+      setBusy(false, I18N[LANG].ready);
+      setStatus(I18N[LANG].genDone, "ok");
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
     });
 
     gradeBtn.addEventListener("click", async () => {
       hideDebug();
+      setStatus("");
+
       if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-        setStatus("Skapa mockprov först.", "bad");
+        setStatus(LANG==="sv" ? "Skapa mockprov först." : "Generate an exam first.", "bad");
         return;
       }
 
@@ -468,7 +814,7 @@
         .map(el => ({ id: el.dataset.qid, answer: el.value.trim() }));
 
       const payload = {
-        lang:"sv",
+        lang: LANG,
         level: levelEl.value,
         course: courseEl.value.trim(),
         qType: qTypeEl.value,
@@ -477,26 +823,28 @@
         answers
       };
 
-      setBusy(true, "Rättar prov…");
-      setStatus("Rättar prov…", "");
+      setBusy(true, I18N[LANG].gradeWorking);
+      setStatus(I18N[LANG].gradeWorking, "");
 
       const res = await postJson("/api/grade", payload);
       if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, "Redo.");
-        setStatus(`Fel vid rättning (HTTP ${res.status}).`, "bad");
+        setBusy(false, I18N[LANG].ready);
+        setStatus(`Error (HTTP ${res.status}).`, "bad");
         showDebug(res.raw);
         return;
       }
 
       renderResult(res.data.result);
-      setBusy(false, "Redo.");
-      setStatus("Rättning klar.", "ok");
+      setBusy(false, I18N[LANG].ready);
+      setStatus(I18N[LANG].gradeDone, "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
     });
 
     clearBtn.addEventListener("click", clearAll);
 
-    setBusy(false, "Redo.");
+    /* Init */
+    applyI18N();
+    setBusy(false, I18N[LANG].ready);
     setStatus("");
   </script>
 </body>
