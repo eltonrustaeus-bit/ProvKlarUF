@@ -195,8 +195,8 @@
         </div>
       </div>
       <div class="loginBody">
-        <label class="fieldLabel" for="accessCode" id="lockLabel">Åtkomstkod</label>
-        <input class="field" id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
+        <label for="accessCode" id="lockLabel">Åtkomstkod</label>
+        <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
           <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
           <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
@@ -229,7 +229,6 @@
           <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
           <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
 
-          <!-- NY: Förbättring-sida -->
           <a href="förbättring.html" id="menuImproveLink"><span id="mImprove">Förbättring</span><span class="pill">Nivå</span></a>
 
           <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
@@ -270,7 +269,6 @@
     <section class="card" id="settings">
       <div class="sectionTitle">
         <span id="tStep2">Steg 2 – Inställningar</span>
-        <!-- NY: Snabb länk till förbättring från själva innehållet -->
         <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
       </div>
       <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor. AI ska följa dina val.</p>
@@ -350,7 +348,7 @@
     const $ = (id) => document.getElementById(id);
 
     // =========================
-    // i18n (SV/EN) – översätter UI
+    // i18n (SV/EN)
     // =========================
     let LANG = localStorage.getItem("provklar_lang") || "sv";
 
@@ -369,6 +367,7 @@
         m4: "4) Rättning",
         mImprove: "Förbättring",
         mLang: "English",
+        mLogout: "Logga ut",
         step1: "Steg 1 – Material",
         step1Sub: "Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
         pasteLabel: "Material (klistra in text)",
@@ -390,6 +389,7 @@
         gen: "Skapa mockprov",
         grade: "Rätta prov",
         clear: "Rensa",
+        improve: "Förbättring",
         ready: "Redo.",
         debug: "Debug",
         step3: "Steg 3 – Mockprov",
@@ -413,7 +413,8 @@
         questionsWord: "frågor",
         writeAnswer: "Skriv ditt svar här…",
         fullScore: "Vad som ger full poäng (modellsvar)",
-        genFirst: "Skapa mockprov först."
+        genFirst: "Skapa mockprov först.",
+        clearedAll: "Allt rensat. Börja om."
       },
       en: {
         brandTag: "Mock exams • Grading • Model answers",
@@ -429,6 +430,7 @@
         m4: "4) Grading",
         mImprove: "Improve",
         mLang: "Svenska",
+        mLogout: "Log out",
         step1: "Step 1 – Material",
         step1Sub: "Paste text. Optional: choose an image or take a photo → OCR adds the text into your material.",
         pasteLabel: "Material (paste text)",
@@ -450,6 +452,7 @@
         gen: "Generate mock exam",
         grade: "Grade exam",
         clear: "Clear",
+        improve: "Improve",
         ready: "Ready.",
         debug: "Debug",
         step3: "Step 3 – Mock exam",
@@ -473,7 +476,8 @@
         questionsWord: "questions",
         writeAnswer: "Write your answer here…",
         fullScore: "Full-score model answer",
-        genFirst: "Generate an exam first."
+        genFirst: "Generate an exam first.",
+        clearedAll: "Cleared. Start again."
       }
     };
 
@@ -494,6 +498,7 @@
       $("m4").textContent = t.m4;
       $("mImprove").textContent = t.mImprove;
       $("mLang").textContent = t.mLang;
+      $("mLogout").textContent = t.mLogout;
 
       $("tStep1").textContent = t.step1;
       $("tStep1Sub").textContent = t.step1Sub;
@@ -521,6 +526,7 @@
       $("generateExamBtn").textContent = t.gen;
       $("gradeBtn").textContent = t.grade;
       $("clearBtn").textContent = t.clear;
+      $("improveBtnInline").textContent = t.improve;
 
       $("miniState").textContent = t.ready;
       $("debugTitle").textContent = t.debug;
@@ -569,7 +575,6 @@
       }
       const link = e.target.closest("a[href='förbättring.html']");
       if(link){
-        // default navigation; just close menu for polish
         closeMenu();
       }
     });
@@ -584,7 +589,7 @@
     // =========================
     // App lock
     // =========================
-    const CORRECT_CODE = "provklar123";
+    const CORRECT_CODE = "provklar123"; // Ändra denna kod om du vill.
 
     function unlock(){
       const v = ($("accessCode").value || "").trim();
@@ -759,32 +764,50 @@
       resultBodyEl.appendChild(wrap);
     }
 
+    // =========================
+    // FULL RENS / STARTA OM
+    // =========================
     function clearAll(){
       const t = I18N[LANG];
 
+      // Text / inputs
       pastedTextEl.value = "";
       courseEl.value = "";
       levelEl.value = "C";
       qTypeEl.value = "mix";
       numQuestionsEl.value = "12";
+
+      // OCR
       imageInput.value = "";
+      setOcrStatus("");
 
+      // Exam state
       currentExam = null;
-
       examMetaEl.textContent = t.noExamYet;
       examBodyEl.innerHTML = "";
+
+      // Result state
       resultMetaEl.textContent = t.noGradeYet;
       resultBodyEl.innerHTML = "";
 
+      // Buttons / status / debug
       gradeBtn.disabled = true;
-
-      setStatus(LANG==="sv" ? "Rensat." : "Cleared.", "ok");
-      setOcrStatus("");
+      setStatus(t.clearedAll, "ok");
       hideDebug();
+
+      // LocalStorage (för förbättring.html också)
+      try {
+        localStorage.removeItem("provklar_exam");
+        localStorage.removeItem("provklar_result");
+        localStorage.removeItem("provklar_material");
+      } catch(e) {}
+
+      // Scroll top
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     // =========================
-    // OCR (bild -> text -> lägg in i material)
+    // OCR (bild -> text -> material)
     // =========================
     async function fileToDataUrl(file){
       return new Promise((resolve, reject) => {
@@ -836,7 +859,7 @@
     });
 
     // =========================
-    // Generate exam (respekterar nivå, typ, exakt antal)
+    // Generate exam
     // =========================
     generateExamBtn.addEventListener("click", async () => {
       hideDebug();
@@ -877,7 +900,7 @@
     });
 
     // =========================
-    // Grade exam (poäng + feedback + modellsvar/full-poäng-svar)
+    // Grade exam
     // =========================
     gradeBtn.addEventListener("click", async () => {
       hideDebug();
@@ -915,7 +938,7 @@
 
       renderResult(res.data.result);
 
-      // Optional: spara till localStorage för förbättring.html auto-import
+      // Spara till localStorage för förbättring.html auto-import
       try{
         localStorage.setItem("provklar_exam", JSON.stringify(currentExam));
         localStorage.setItem("provklar_result", JSON.stringify(res.data.result));
@@ -927,9 +950,14 @@
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
     });
 
+    // =========================
+    // Button bindings
+    // =========================
     clearBtn.addEventListener("click", clearAll);
 
+    // =========================
     // Init
+    // =========================
     applyI18N();
     setBusy(false, I18N[LANG].ready);
     setStatus("");
