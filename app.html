@@ -496,20 +496,6 @@
               </select>
             </div>
           </div>
-
-          <div class="grid2" style="margin-top:12px">
-            <div>
-              <label for="miniCount" id="miniCountLabel">Snabbtest – antal frågor</label>
-              <select id="miniCount">
-                <option value="3">3</option>
-                <option value="5" selected>5</option>
-              </select>
-            </div>
-            <div>
-              <label id="rangePreviewLabel">Valt spann</label>
-              <input id="rangePreview" value="3–5" readonly />
-            </div>
-          </div>
         </div>
 
         <div>
@@ -585,7 +571,6 @@
 
         <div class="row noPrint">
           <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-          <button class="btn" id="miniBtn" type="button">Snabbtest 3 min</button>
           <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
           <button class="btn btnGhost" id="clearBtn" type="button">Rensa</button>
         </div>
@@ -765,7 +750,6 @@
         qTypeLabel:"Frågetyp",
         qMix:"Blandat", qMC:"Flerval", qShort:"Kortsvar", qEssay:"Essä",
         questionRangeLabel:"Antal provfrågor (spann)",
-        rangePreviewLabel:"Valt spann",
         attachTitle:"Bilder/filer",
         attachSub:"Mobil: välj bild eller ta foto. Desktop: välj filer. Bilder kan OCR:as.",
         pickBtn:"Välj fil / ta bild",
@@ -785,7 +769,6 @@
         s2Title:"Steg 2 – Skapa och rätta",
         s2Sub:"Skapa prov efter du lagt in material. Välj antal frågor (3–5 / 6–8 / 9–12). Rätta när du svarat.",
         generateExamBtn:"Skapa mockprov",
-        miniBtn:"Snabbtest 3 min",
         gradeBtn:"Rätta prov",
         clearBtn:"Rensa",
         ready:"Redo.",
@@ -814,7 +797,6 @@
         exportSub:"PDF via webbläsarens “Skriv ut” (välj “Spara som PDF”).",
         exportExam:"Exportera mockprov (PDF)",
         exportResult:"Exportera rättning (PDF)",
-        exportHint:"Öppnar utskriftsdialog. Välj “Spara som PDF”.",
         coachTitle:"Förbättringar (adaptivt)",
         coachSub:"Baserat på tidigare rättningar (sparas lokalt i webbläsaren).",
         weakTitle:"Top 3 fokusområden",
@@ -835,9 +817,7 @@
         statusAddedText:"Text från fil inlagd i materialfältet.",
         statusAddedFiles:"Bilagor tillagda i materiallistan.",
         statusGenerating:"Skapar mockprov…",
-        statusMini:"Skapar snabbtest…",
         statusExamReady:"Mockprov klart.",
-        statusMiniReady:"Snabbtest klart.",
         statusGrade:"Rättar prov…",
         statusGradeDone:"Rättning klar.",
         statusCleared:"Rensat.",
@@ -882,7 +862,6 @@
         qTypeLabel:"Question type",
         qMix:"Mixed", qMC:"Multiple choice", qShort:"Short answer", qEssay:"Essay",
         questionRangeLabel:"Number of questions (range)",
-        rangePreviewLabel:"Selected range",
         attachTitle:"Files/images",
         attachSub:"Mobile: pick image or take photo. Desktop: choose files. Images can be OCR’d.",
         pickBtn:"Choose file / take photo",
@@ -902,7 +881,6 @@
         s2Title:"Step 2 – Generate and grade",
         s2Sub:"Generate after adding material. Choose number of questions (3–5 / 6–8 / 9–12). Grade after answering.",
         generateExamBtn:"Generate mock exam",
-        miniBtn:"3-min quick test",
         gradeBtn:"Grade exam",
         clearBtn:"Reset",
         ready:"Ready.",
@@ -931,7 +909,6 @@
         exportSub:"Use browser print → “Save as PDF”.",
         exportExam:"Export mock exam (PDF)",
         exportResult:"Export grading (PDF)",
-        exportHint:"Opening print dialog. Choose “Save as PDF”.",
         coachTitle:"Adaptive improvements",
         coachSub:"Based on previous graded attempts (stored locally).",
         weakTitle:"Top 3 focus areas",
@@ -952,9 +929,7 @@
         statusAddedText:"Inserted file text into the material field.",
         statusAddedFiles:"Attachments added to the list.",
         statusGenerating:"Generating mock exam…",
-        statusMini:"Generating quick test…",
         statusExamReady:"Mock exam ready.",
-        statusMiniReady:"Quick test ready.",
         statusGrade:"Grading…",
         statusGradeDone:"Grading complete.",
         statusCleared:"Reset complete.",
@@ -1000,7 +975,7 @@
         ["s1Title","s1Title"],["englishLabel","englishLabel"],["s1Sub","s1Sub"],
         ["matPasteLabel","matPasteLabel"],["formatHint","formatHint"],
         ["levelLabel","levelLabel"],["courseLabel","courseLabel"],
-        ["qTypeLabel","qTypeLabel"],["questionRangeLabel","questionRangeLabel"],["rangePreviewLabel","rangePreviewLabel"],
+        ["qTypeLabel","qTypeLabel"],["questionRangeLabel","questionRangeLabel"],
         ["attachTitle","attachTitle"],["attachSub","attachSub"],
         ["pickBtn","pickBtn"],["pickHelp","pickHelp"],
         ["matListTitle","matListTitle"],
@@ -1008,7 +983,7 @@
         ["ocrTextLabel","ocrTextLabel"],
         ["ocrHint","ocrHint"],["ocrBestTitle","ocrBestTitle"],["ocrBestSub","ocrBestSub"],
         ["s2Title","s2Title"],["s2Sub","s2Sub"],
-        ["generateExamBtn","generateExamBtn"],["miniBtn","miniBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
+        ["generateExamBtn","generateExamBtn"],["gradeBtn","gradeBtn"],["clearBtn","clearBtn"],
         ["s3Title","s3Title"],["s4Title","s4Title"],
         ["notesTitle","notesTitle"],["notesKeyTitle","notesKeyTitle"],["notesMistTitle","notesMistTitle"],["notesModelTitle","notesModelTitle"],["notesExTitle","notesExTitle"],
         ["dashTitle","dashTitle"],["dashSub","dashSub"],
@@ -1040,8 +1015,6 @@
 
       document.getElementById("englishToggle").checked = (LANG === "en");
       document.getElementById("mLangS").textContent = (LANG === "en") ? "on" : "off";
-
-      syncRangePreview();
 
       if(materials.length === 0) document.getElementById("matHint").textContent = t("matHintEmpty");
       if(!currentExam) document.getElementById("examMeta").textContent = t("examEmpty");
@@ -1151,7 +1124,6 @@
     const debugEl = $("debug");
 
     const generateExamBtn = $("generateExamBtn");
-    const miniBtn = $("miniBtn");
     const gradeBtn = $("gradeBtn");
     const clearBtn = $("clearBtn");
 
@@ -1159,10 +1131,8 @@
     const courseEl = $("course");
     const pastedTextEl = $("pastedText");
     const qTypeEl = $("qType");
-    const miniCountEl = $("miniCount");
 
     const questionRangeEl = $("questionRange");
-    const rangePreviewEl = $("rangePreview");
 
     const fileInput = $("fileInput");
     const matListEl = $("matList");
@@ -1198,26 +1168,12 @@
     const nextSessionEl = $("nextSession");
     const resetCoachBtn = $("resetCoachBtn");
 
-    /* ====== Question range (3–5 / 6–8 / 9–12) ====== */
-    function parseRange(val){
-      const m = String(val||"").match(/^(\d+)\s*-\s*(\d+)$/);
-      if(!m) return {min:3,max:5};
-      return {min:Number(m[1]), max:Number(m[2])};
-    }
-    function syncRangePreview(){
-      const r = parseRange(questionRangeEl.value);
-      rangePreviewEl.value = `${r.min}–${r.max}`;
-    }
-    questionRangeEl.addEventListener("change", syncRangePreview);
-
     /* ====== Busy/status ====== */
     function setBusy(isBusy, label){
       spinnerEl.style.display = isBusy ? "inline-block" : "none";
       miniStateEl.textContent = label || (isBusy ? t("working") : t("ready"));
 
       generateExamBtn.disabled = isBusy;
-      miniBtn.disabled = isBusy;
-
       gradeBtn.disabled = isBusy || !currentExam;
       clearBtn.disabled = isBusy;
       ocrRunBtn.disabled = isBusy;
@@ -1706,13 +1662,7 @@
       const gotP = Number(result.total_points||0)||0;
       const pct = maxP>0 ? (gotP/maxP)*100 : 0;
 
-      // simple split fallback
-      return {
-        fact: Math.max(0, Math.min(100, pct)),
-        explain: Math.max(0, Math.min(100, pct)),
-        analysis: Math.max(0, Math.min(100, pct)),
-        example: Math.max(0, Math.min(100, pct)),
-      };
+      return { fact:pct, explain:pct, analysis:pct, example:pct };
     }
     function computeForecast(result){
       const maxP = Number(result.max_points||0)||0;
@@ -1855,6 +1805,12 @@
     }
 
     /* ====== Generate exam (single place, user chooses range) ====== */
+    function parseRange(val){
+      const m = String(val||"").match(/^(\d+)\s*-\s*(\d+)$/);
+      if(!m) return {min:3,max:5};
+      return {min:Number(m[1]), max:Number(m[2])};
+    }
+
     generateExamBtn.addEventListener("click", async () => {
       hideDebug();
       clearResult();
@@ -1896,47 +1852,6 @@
       }catch(e){
         setBusy(false, t("ready"));
         setStatus(LANG==="en" ? "Generation error." : "Fel vid generering.", "bad");
-        showDebug(String(e));
-      }
-    });
-
-    /* ====== Mini test (kept) ====== */
-    miniBtn.addEventListener("click", async () => {
-      hideDebug();
-      clearResult();
-      clearExam();
-
-      const pastedText = pastedTextEl.value.trim();
-      if(!pastedText){
-        setStatus(t("statusPasteFirst"), "bad");
-        jumpTo("#material");
-        return;
-      }
-
-      setBusy(true, t("statusMini"));
-      setStatus(t("statusMini"), "");
-
-      try{
-        const payload = buildPayloadBase();
-        payload.mode = "mini";
-        payload.numQuestions = Number(miniCountEl.value || 5);
-
-        const res = await postJson("/api/generate-exam", payload);
-
-        if(!res.ok || !res.data || !res.data.ok){
-          setBusy(false, t("ready"));
-          setStatus(`Error (HTTP ${res.status}).`, "bad");
-          showDebug(res.raw);
-          return;
-        }
-
-        renderExam(res.data.exam);
-        setBusy(false, t("ready"));
-        setStatus(t("statusMiniReady"), "ok");
-        jumpTo("#exam");
-      }catch(e){
-        setBusy(false, t("ready"));
-        setStatus(LANG==="en" ? "Quick test error." : "Fel vid snabbtest.", "bad");
         showDebug(String(e));
       }
     });
@@ -2003,8 +1918,6 @@
       levelEl.value = "C";
       qTypeEl.value = "mix";
       questionRangeEl.value = "3-5";
-      syncRangePreview();
-      miniCountEl.value = "5";
 
       materials.length = 0;
       updateMaterialUI();
@@ -2092,7 +2005,6 @@
     $("forecastText").textContent = t("forecastNone");
     setBusy(false, t("ready"));
     setStatus("");
-    syncRangePreview();
     setLang(LANG);
   </script>
 </body>
