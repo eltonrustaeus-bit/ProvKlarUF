@@ -3,52 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProvKlar – Förbättring</title>
-  <meta name="description" content="ProvKlar förbättringsöversikt: styrkor, svagheter, nivå, plan." />
+  <title>ProviaAi – Förbättring</title>
 
   <style>
     :root{
-      --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --muted:#556072; --border:rgba(11,31,58,.12);
-      --shadow:0 18px 50px rgba(11,31,58,.14); --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200; --max:1080px;
+      --deep:#052A1E; --deep2:#041E16;
+      --mint:#2BE38C; --mint2:#16B876;
+      --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
+      --shadow:0 18px 55px rgba(5,42,30,.14);
+      --radius:18px; --max:980px;
+      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     }
     *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    :target{scroll-margin-top:92px}
     body{
-      margin:0;font-family:var(--font);
+      margin:0;font-family:var(--font);color:#071812;background:var(--bg);
       background:
-        radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%),
-        radial-gradient(700px 380px at 95% 20%, rgba(24,184,138,.10), transparent 55%),
+        radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
+        radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
         var(--bg);
-      color:#0C1220;
     }
     a{text-decoration:none;color:inherit}
     header{
-      background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:3000;
+      background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
+      border-bottom:1px solid var(--border);
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .brand img{height:54px;width:auto;display:block}
-    .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
+    .brand img{height:52px;width:auto;display:block}
+    .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
+    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
-      background:rgba(255,255,255,.92);color:var(--navy);
+      background:rgba(255,255,255,.92);color:var(--deep);
     }
     .btnPrimary{
-      background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
-      box-shadow:0 14px 28px rgba(24,184,138,.22)
+      background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
+      box-shadow:0 14px 28px rgba(22,184,118,.22)
     }
-    .btnDanger{background:#fff;border-color:rgba(139,29,29,.22);color:var(--danger)}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -63,878 +59,72 @@
       content:"";
       position:absolute;inset:-70px -70px auto auto;
       width:190px;height:190px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.16), transparent 60%);
+      background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
     }
-    .sectionTitle{
-      margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--navy);
-      font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    }
-    .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
+    .title{margin:0 0 6px;font-weight:1100;color:var(--deep);letter-spacing:-.01em;font-size:18px}
+    .sub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    @media (max-width:920px){ .grid2,.grid3{grid-template-columns:1fr} }
-
-    label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--navy);font-size:13px}
-    input,select,textarea{
-      width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:#fff;
-      font-family:inherit;font-size:14px;outline:none;
-    }
-    textarea{min-height:140px;resize:vertical}
-    input:focus, textarea:focus, select:focus{border-color:rgba(24,184,138,.45);box-shadow:0 0 0 5px rgba(24,184,138,.14)}
-
-    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
-    .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
-
-    details{margin-top:10px}
-    summary{cursor:pointer;font-weight:1000;color:var(--navy);font-size:13px}
-    pre{
-      margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-      background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
-    }
-
-    /* Menu */
-    .menuWrap{position:relative;z-index:4000}
-    .iconBtn{
-      width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-      background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
-    }
-    .bars{width:18px;height:12px;display:grid;gap:3px}
-    .bars span{display:block;height:2px;background:var(--navy);border-radius:2px;opacity:.9}
-    .dropdown{
-      position:absolute;right:0;top:54px;min-width:280px;
-      background:rgba(255,255,255,.98);
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow:0 22px 60px rgba(11,31,58,.18);
-      padding:8px;
-      display:none;
-      z-index:5000;
-    }
-    .dropdown a, .dropdown button{
-      width:100%;
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid transparent;
-      background:transparent;
-      cursor:pointer;
-      font-weight:950;
-      color:var(--navy);
-      font-size:13px;
-      text-align:left;
-    }
-    .dropdown a:hover, .dropdown button:hover{background:rgba(24,184,138,.10);border-color:rgba(24,184,138,.18)}
-    .pill{
-      font-size:11px;font-weight:1000;color:var(--muted);
-      border:1px solid var(--border);
-      border-radius:999px;padding:4px 8px;background:#fff;
-    }
-
-    /* KPI cards */
-    .kpi{
-      border:1px solid var(--border);border-radius:18px;background:#fff;
-      padding:14px;box-shadow:0 10px 30px rgba(11,31,58,.08);
-    }
-    .kpi .k{color:var(--muted);font-weight:900;font-size:12px}
-    .kpi .v{margin-top:6px;font-weight:1100;color:var(--navy);font-size:20px;letter-spacing:-.02em}
-    .kpi .s{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
-
-    /* Tables */
-    table{width:100%;border-collapse:separate;border-spacing:0 10px}
-    th{font-size:12px;color:var(--muted);text-align:left;font-weight:1000;padding:0 10px}
-    td{
-      background:#fff;border:1px solid var(--border);
-      padding:10px;border-left-width:0;border-right-width:0;
-      font-size:13px;font-weight:850;vertical-align:top;
-    }
-    tr td:first-child{border-left-width:1px;border-top-left-radius:14px;border-bottom-left-radius:14px}
-    tr td:last-child{border-right-width:1px;border-top-right-radius:14px;border-bottom-right-radius:14px}
-
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid var(--border);background:#fff;
-      font-size:12px;font-weight:1000;color:var(--navy);
-    }
-    .dot{width:10px;height:10px;border-radius:999px;background:var(--muted);opacity:.55}
-    .dot.ok{background:var(--ok);opacity:.9}
-    .dot.warn{background:var(--warn);opacity:.9}
-    .dot.bad{background:var(--danger);opacity:.9}
-
-    .qBox{margin-top:12px;padding:12px;border:1px solid rgba(11,31,58,.12);border-radius:16px;background:#fff}
-    .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
-    .qText{font-weight:900;color:#0C1220;line-height:1.45}
-    .qActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
-    .mini{font-size:12px;font-weight:900;color:var(--muted)}
+    @media (max-width:900px){ .grid2{grid-template-columns:1fr} }
+    .box{border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:12px;background:#fff}
+    .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px}
+    .boxText{margin:0;color:#071812;font-weight:850;font-size:12px;line-height:1.45}
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
-
 <body>
   <header>
     <div class="wrap topbar">
       <a class="brand" href="index.html">
-        <img src="image/provklar-logo.png" alt="ProvKlar logga">
+        <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
-          <div class="name" id="brandName">ProvKlar</div>
-          <div class="tag" id="brandTag">Förbättring • Kunskapskarta • Plan</div>
+          <div class="name">ProviaAi</div>
+          <div class="tag">Förbättring • Nivå • Fokus</div>
         </div>
       </a>
-
-      <div class="menuWrap">
-        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
-          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-        </button>
-
-        <div class="dropdown" id="menu" aria-label="Menyval">
-          <a href="#import" data-scroll="#import"><span id="m1">Import</span><span class="pill">Data</span></a>
-          <a href="#overview" data-scroll="#overview"><span id="m2">Översikt</span><span class="pill">Nivå</span></a>
-          <a href="#map" data-scroll="#map"><span id="m3">Kunskapskarta</span><span class="pill">Områden</span></a>
-          <a href="#plan" data-scroll="#plan"><span id="m4">Plan</span><span class="pill">Repetition</span></a>
-          <a href="#questions" data-scroll="#questions"><span id="m5">Frågor</span><span class="pill">Tagga</span></a>
-          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-          <button type="button" id="printBtn"><span id="mPrint">Export (print)</span><span class="pill">PDF</span></button>
-          <button type="button" id="clearBtn" class="btnDanger"><span id="mClear">Rensa data</span><span class="pill">Reset</span></button>
-        </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <a class="btn" href="app.html">Till appen</a>
+        <a class="btn btnPrimary" href="index.html">Infosida</a>
       </div>
     </div>
   </header>
 
   <main class="wrap">
+    <section class="card">
+      <h1 class="title">Förbättring</h1>
+      <p class="sub">Sida för att se vad du behöver förbättra och hur du når nästa nivå.</p>
 
-    <section class="card" id="import">
-      <div class="sectionTitle"><span id="tImport">Import</span></div>
-      <p class="sectionSub" id="tImportSub">
-        Den här sidan kan läsa senaste prov + rättning från localStorage om appen sparar det.
-        Alternativt: klistra in JSON manuellt.
-      </p>
-
-      <div class="grid2">
-        <div>
-          <div class="sectionTitle" style="font-size:14px"><span id="tAuto">Auto-import</span></div>
-          <p class="sectionSub" id="tAutoSub">Läser nycklarna: <b>provklar_exam</b> och <b>provklar_result</b> (valfritt: <b>provklar_material</b>).</p>
-          <div class="qActions">
-            <button class="btn btnPrimary" type="button" id="loadBtn">Importera från app</button>
-            <button class="btn" type="button" id="saveBackBtn">Spara taggar</button>
-          </div>
-          <div class="status" id="importStatus"></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="box">
+          <div class="boxTitle">Din nivå (översikt)</div>
+          <p class="boxText">Visar nuläge och vad som saknas för att nå E/C/A.</p>
         </div>
-
-        <div>
-          <div class="sectionTitle" style="font-size:14px"><span id="tManual">Manuell import</span></div>
-          <p class="sectionSub" id="tManualSub">Klistra in JSON i formatet: <code>{ "exam": {...}, "result": {...} }</code>.</p>
-          <label for="jsonBox" id="tJsonLabel">JSON</label>
-          <textarea id="jsonBox" placeholder='{"exam": {...}, "result": {...}}'></textarea>
-          <div class="qActions">
-            <button class="btn" type="button" id="parseBtn">Läs in JSON</button>
-          </div>
-          <details id="debugWrap" style="display:none">
-            <summary id="debugTitle">Debug</summary>
-            <pre id="debug"></pre>
-          </details>
+        <div class="box">
+          <div class="boxTitle">Svaga områden</div>
+          <p class="boxText">Samlar återkommande missar och föreslår vad du ska repetera.</p>
+        </div>
+        <div class="box">
+          <div class="boxTitle">Rekommenderad plan</div>
+          <p class="boxText">Kort plan för nästa pass: vad du ska läsa, öva och testa.</p>
+        </div>
+        <div class="box">
+          <div class="boxTitle">Mål för nästa prov</div>
+          <p class="boxText">Konkreta delmål kopplade till poäng och betygskrav.</p>
         </div>
       </div>
     </section>
 
-    <section class="card" id="overview">
-      <div class="sectionTitle"><span id="tOverview">Översikt</span></div>
-      <p class="sectionSub" id="tOverviewSub">
-        Indikativ nivå baserat på procentgränser du kan justera (inte officiell betygssättning).
-      </p>
-
-      <div class="grid3">
-        <div class="kpi">
-          <div class="k" id="kScore">Resultat</div>
-          <div class="v" id="scoreValue">—</div>
-          <div class="s" id="scoreSub">—</div>
-        </div>
-        <div class="kpi">
-          <div class="k" id="kLevel">Indikativ nivå</div>
-          <div class="v" id="levelValue">—</div>
-          <div class="s" id="levelSub">—</div>
-        </div>
-        <div class="kpi">
-          <div class="k" id="kFocus">Fokus nu</div>
-          <div class="v" id="focusValue">—</div>
-          <div class="s" id="focusSub">—</div>
-        </div>
-      </div>
-
-      <div class="grid3" style="margin-top:14px">
-        <div>
-          <label for="thE" id="tThE">E-gräns (%)</label>
-          <input id="thE" type="number" min="0" max="100" value="50" />
-        </div>
-        <div>
-          <label for="thC" id="tThC">C-gräns (%)</label>
-          <input id="thC" type="number" min="0" max="100" value="70" />
-        </div>
-        <div>
-          <label for="thA" id="tThA">A-gräns (%)</label>
-          <input id="thA" type="number" min="0" max="100" value="85" />
-        </div>
-      </div>
-
-      <div class="qActions" style="margin-top:12px">
-        <button class="btn" type="button" id="recalcBtn">Uppdatera nivå</button>
-      </div>
-
-      <div class="status warn" id="overviewHint" style="margin-top:10px">
-        För bäst “kunskapskarta”: tagga frågor med område (t.ex. “Procent”, “Nervsystemet”, “Källkritik”).
+    <section class="card">
+      <h2 class="title" style="font-size:16px">Hur du använder sidan</h2>
+      <p class="sub">Använd efter rättning i appen.</p>
+      <div class="box" style="margin-top:12px">
+        <p class="boxText">
+          1) Gör ett mockprov i appen. 2) Rätta provet. 3) Gå hit och följ planen och “svaga områden”.
+        </p>
       </div>
     </section>
-
-    <section class="card" id="map">
-      <div class="sectionTitle"><span id="tMap">Kunskapskarta</span></div>
-      <p class="sectionSub" id="tMapSub">Sammanställning per område baserat på dina taggar.</p>
-
-      <div id="mapEmpty" class="status warn">Ingen data ännu.</div>
-
-      <div id="mapTableWrap" style="display:none">
-        <table>
-          <thead>
-            <tr>
-              <th id="hArea">Område</th>
-              <th id="hCount">Antal</th>
-              <th id="hAvg">Snitt %</th>
-              <th id="hStatus">Status</th>
-              <th id="hAction">Rekommendation</th>
-            </tr>
-          </thead>
-          <tbody id="mapTbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card" id="plan">
-      <div class="sectionTitle"><span id="tPlan">Plan</span></div>
-      <p class="sectionSub" id="tPlanSub">Automatisk repetitionsplan för svaga områden.</p>
-
-      <div id="planEmpty" class="status warn">Ingen plan ännu.</div>
-
-      <div id="planWrap" style="display:none">
-        <table>
-          <thead>
-            <tr>
-              <th id="hWhen">När</th>
-              <th id="hWhat">Vad</th>
-              <th id="hHow">Hur</th>
-            </tr>
-          </thead>
-          <tbody id="planTbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card" id="questions">
-      <div class="sectionTitle"><span id="tQuestions">Frågor</span></div>
-      <p class="sectionSub" id="tQuestionsSub">
-        Tagga varje fråga med område för bättre analys. Taggar sparas lokalt i webbläsaren.
-      </p>
-
-      <div class="grid2" style="margin-top:10px">
-        <div>
-          <label for="newTag" id="tNewTag">Skapa ny tagg</label>
-          <input id="newTag" placeholder="Ex: Procent, Algebra, Nervsystemet, Källkritik" />
-          <div class="qActions">
-            <button class="btn" type="button" id="addTagBtn">Lägg till tagg</button>
-          </div>
-        </div>
-        <div>
-          <label for="tagList" id="tTagList">Taggar</label>
-          <select id="tagList" multiple size="5"></select>
-          <div class="mini" id="tagHint">Håll Ctrl/⌘ för att markera flera.</div>
-        </div>
-      </div>
-
-      <div id="qEmpty" class="status warn" style="margin-top:12px">Inga frågor inlästa ännu.</div>
-      <div id="qWrap"></div>
-    </section>
-
   </main>
 
-  <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
-
-  <script>
-    const $ = (id) => document.getElementById(id);
-
-    // ========= i18n =========
-    let LANG = localStorage.getItem("provklar_lang") || "sv";
-
-    const I18N = {
-      sv: {
-        brandTag:"Förbättring • Kunskapskarta • Plan",
-        m1:"Import", m2:"Översikt", m3:"Kunskapskarta", m4:"Plan", m5:"Frågor",
-        mLang:"English", mPrint:"Export (print)", mClear:"Rensa data",
-        tImport:"Import", tImportSub:"Den här sidan kan läsa senaste prov + rättning från localStorage om appen sparar det. Alternativt: klistra in JSON manuellt.",
-        tAuto:"Auto-import", tAutoSub:"Läser nycklarna: provklar_exam och provklar_result (valfritt: provklar_material).",
-        loadBtn:"Importera från app", saveBackBtn:"Spara taggar",
-        tManual:"Manuell import", tManualSub:"Klistra in JSON i formatet: { \"exam\": {...}, \"result\": {...} }.",
-        tJsonLabel:"JSON", parseBtn:"Läs in JSON",
-        debugTitle:"Debug",
-        tOverview:"Översikt", tOverviewSub:"Indikativ nivå baserat på procentgränser du kan justera (inte officiell betygssättning).",
-        kScore:"Resultat", kLevel:"Indikativ nivå", kFocus:"Fokus nu",
-        tThE:"E-gräns (%)", tThC:"C-gräns (%)", tThA:"A-gräns (%)", recalcBtn:"Uppdatera nivå",
-        overviewHint:"För bäst “kunskapskarta”: tagga frågor med område (t.ex. “Procent”, “Nervsystemet”, “Källkritik”).",
-        tMap:"Kunskapskarta", tMapSub:"Sammanställning per område baserat på dina taggar.",
-        mapEmpty:"Ingen data ännu.",
-        hArea:"Område", hCount:"Antal", hAvg:"Snitt %", hStatus:"Status", hAction:"Rekommendation",
-        tPlan:"Plan", tPlanSub:"Automatisk repetitionsplan för svaga områden.",
-        planEmpty:"Ingen plan ännu.",
-        hWhen:"När", hWhat:"Vad", hHow:"Hur",
-        tQuestions:"Frågor", tQuestionsSub:"Tagga varje fråga med område för bättre analys. Taggar sparas lokalt i webbläsaren.",
-        tNewTag:"Skapa ny tagg", addTagBtn:"Lägg till tagg",
-        tTagList:"Taggar", tagHint:"Håll Ctrl/⌘ för att markera flera.",
-        qEmpty:"Inga frågor inlästa ännu.",
-        footerText:"ProvKlar UF är studiestöd och ger ingen officiell betygssättning.",
-        importOk:"Import klar.",
-        importFail:"Import misslyckades: saknar provklar_exam eller provklar_result.",
-        parsedOk:"JSON inläst.",
-        parsedFail:"Kunde inte läsa JSON.",
-        levelIndicator:"Indikativ nivå",
-        noData:"Ingen data.",
-        statusStrong:"Stark", statusMid:"OK", statusWeak:"Svag",
-        actionStrong:"Underhåll: blandat prov",
-        actionMid:"Öva: 1–2 prov på området",
-        actionWeak:"Fokusera: sammanfattning + 2 prov",
-        planHow:"Gör 1 kort repetition + 1 mini-prov på området",
-        tagSelect:"Tagg",
-        saveTagsOk:"Taggar sparade.",
-        cleared:"All data rensad."
-      },
-      en: {
-        brandTag:"Improve • Knowledge map • Plan",
-        m1:"Import", m2:"Overview", m3:"Knowledge map", m4:"Plan", m5:"Questions",
-        mLang:"Svenska", mPrint:"Export (print)", mClear:"Clear data",
-        tImport:"Import", tImportSub:"This page can read the latest exam + grading from localStorage if the app saves it. Or paste JSON manually.",
-        tAuto:"Auto import", tAutoSub:"Reads keys: provklar_exam and provklar_result (optional: provklar_material).",
-        loadBtn:"Import from app", saveBackBtn:"Save tags",
-        tManual:"Manual import", tManualSub:"Paste JSON in this format: { \"exam\": {...}, \"result\": {...} }.",
-        tJsonLabel:"JSON", parseBtn:"Load JSON",
-        debugTitle:"Debug",
-        tOverview:"Overview", tOverviewSub:"Indicative level based on thresholds you can edit (not official grading).",
-        kScore:"Score", kLevel:"Indicative level", kFocus:"Focus now",
-        tThE:"E threshold (%)", tThC:"C threshold (%)", tThA:"A threshold (%)", recalcBtn:"Recalculate level",
-        overviewHint:"For best map: tag questions by topic (e.g., “Percent”, “Nervous system”, “Source critique”).",
-        tMap:"Knowledge map", tMapSub:"Per-topic summary based on your tags.",
-        mapEmpty:"No data yet.",
-        hArea:"Topic", hCount:"Count", hAvg:"Avg %", hStatus:"Status", hAction:"Recommendation",
-        tPlan:"Plan", tPlanSub:"Automatic repetition plan for weak topics.",
-        planEmpty:"No plan yet.",
-        hWhen:"When", hWhat:"What", hHow:"How",
-        tQuestions:"Questions", tQuestionsSub:"Tag each question by topic for better analysis. Tags are stored locally in your browser.",
-        tNewTag:"Create new tag", addTagBtn:"Add tag",
-        tTagList:"Tags", tagHint:"Hold Ctrl/⌘ to select multiple.",
-        qEmpty:"No questions loaded yet.",
-        footerText:"ProvKlar UF is study support and does not provide official grades.",
-        importOk:"Import complete.",
-        importFail:"Import failed: missing provklar_exam or provklar_result.",
-        parsedOk:"JSON loaded.",
-        parsedFail:"Could not parse JSON.",
-        levelIndicator:"Indicative level",
-        noData:"No data.",
-        statusStrong:"Strong", statusMid:"OK", statusWeak:"Weak",
-        actionStrong:"Maintain: mixed exam",
-        actionMid:"Practice: 1–2 exams in topic",
-        actionWeak:"Focus: summary + 2 exams",
-        planHow:"Do a short review + a mini-exam in the topic",
-        tagSelect:"Tag",
-        saveTagsOk:"Tags saved.",
-        cleared:"All data cleared."
-      }
-    };
-
-    function applyI18N(){
-      const t = I18N[LANG];
-      $("brandTag").textContent = t.brandTag;
-      $("m1").textContent = t.m1; $("m2").textContent = t.m2; $("m3").textContent = t.m3; $("m4").textContent = t.m4; $("m5").textContent = t.m5;
-      $("mLang").textContent = t.mLang; $("mPrint").textContent = t.mPrint; $("mClear").textContent = t.mClear;
-
-      $("tImport").textContent = t.tImport; $("tImportSub").textContent = t.tImportSub;
-      $("tAuto").textContent = t.tAuto; $("tAutoSub").textContent = t.tAutoSub;
-      $("loadBtn").textContent = t.loadBtn; $("saveBackBtn").textContent = t.saveBackBtn;
-
-      $("tManual").textContent = t.tManual; $("tManualSub").textContent = t.tManualSub;
-      $("tJsonLabel").textContent = t.tJsonLabel; $("parseBtn").textContent = t.parseBtn;
-      $("debugTitle").textContent = t.debugTitle;
-
-      $("tOverview").textContent = t.tOverview; $("tOverviewSub").textContent = t.tOverviewSub;
-      $("kScore").textContent = t.kScore; $("kLevel").textContent = t.kLevel; $("kFocus").textContent = t.kFocus;
-      $("tThE").textContent = t.tThE; $("tThC").textContent = t.tThC; $("tThA").textContent = t.tThA;
-      $("recalcBtn").textContent = t.recalcBtn;
-      $("overviewHint").textContent = t.overviewHint;
-
-      $("tMap").textContent = t.tMap; $("tMapSub").textContent = t.tMapSub;
-      $("mapEmpty").textContent = t.mapEmpty;
-      $("hArea").textContent = t.hArea; $("hCount").textContent = t.hCount; $("hAvg").textContent = t.hAvg; $("hStatus").textContent = t.hStatus; $("hAction").textContent = t.hAction;
-
-      $("tPlan").textContent = t.tPlan; $("tPlanSub").textContent = t.tPlanSub;
-      $("planEmpty").textContent = t.planEmpty;
-      $("hWhen").textContent = t.hWhen; $("hWhat").textContent = t.hWhat; $("hHow").textContent = t.hHow;
-
-      $("tQuestions").textContent = t.tQuestions; $("tQuestionsSub").textContent = t.tQuestionsSub;
-      $("tNewTag").textContent = t.tNewTag; $("addTagBtn").textContent = t.addTagBtn;
-      $("tTagList").textContent = t.tTagList; $("tagHint").textContent = t.tagHint;
-      $("qEmpty").textContent = t.qEmpty;
-
-      $("footerText").textContent = t.footerText;
-      $("langPill").textContent = LANG.toUpperCase();
-    }
-
-    // ========= Menu =========
-    const menuBtn = $("menuBtn");
-    const menu = $("menu");
-    function openMenu(){ menu.style.display = "block"; }
-    function closeMenu(){ menu.style.display = "none"; }
-
-    menuBtn.addEventListener("click", (e) => {
-      e.preventDefault(); e.stopPropagation();
-      menu.style.display === "block" ? closeMenu() : openMenu();
-    });
-
-    document.addEventListener("click", (e) => {
-      if(menu.style.display !== "block") return;
-      if(menu.contains(e.target) || menuBtn.contains(e.target)) return;
-      closeMenu();
-    });
-
-    menu.addEventListener("click", (e) => {
-      const a = e.target.closest("a[data-scroll]");
-      if(a){
-        e.preventDefault();
-        const sel = a.getAttribute("data-scroll");
-        closeMenu();
-        const el = document.querySelector(sel);
-        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-      }
-    });
-
-    $("langBtn").addEventListener("click", () => {
-      LANG = (LANG === "sv") ? "en" : "sv";
-      localStorage.setItem("provklar_lang", LANG);
-      applyI18N();
-      renderAll();
-      closeMenu();
-    });
-
-    $("printBtn").addEventListener("click", () => { closeMenu(); window.print(); });
-
-    // ========= Data model =========
-    // Expecting:
-    //   exam: { questions:[{id, points, question, ...}] }
-    //   result: { total_points, max_points, per_question:[{id, points, max_points, feedback, model_answer}] }
-    // Optional: provklar_material (string)
-    let EXAM = null;
-    let RESULT = null;
-
-    // tags
-    const TAGS_KEY = "provklar_tags";
-    const QTAG_KEY = "provklar_question_tags"; // map: qid -> tag string
-    function loadTags(){ try{ return JSON.parse(localStorage.getItem(TAGS_KEY) || "[]"); }catch{ return []; } }
-    function saveTags(tags){ localStorage.setItem(TAGS_KEY, JSON.stringify(tags)); }
-    function loadQTags(){ try{ return JSON.parse(localStorage.getItem(QTAG_KEY) || "{}"); }catch{ return {}; } }
-    function saveQTags(map){ localStorage.setItem(QTAG_KEY, JSON.stringify(map)); }
-
-    function showDebug(txt){
-      $("debugWrap").style.display = "block";
-      $("debug").textContent = txt || "";
-    }
-    function hideDebug(){
-      $("debugWrap").style.display = "none";
-      $("debug").textContent = "";
-    }
-
-    function setImportStatus(text, kind){
-      const el = $("importStatus");
-      el.className = "status" + (kind ? (" " + kind) : "");
-      el.textContent = text || "";
-    }
-
-    function safeParse(s){
-      try{ return { ok:true, v: JSON.parse(s) }; }catch(e){ return { ok:false, err:String(e) }; }
-    }
-
-    function loadFromLocalStorage(){
-      hideDebug();
-      const examRaw = localStorage.getItem("provklar_exam");
-      const resRaw = localStorage.getItem("provklar_result");
-      if(!examRaw || !resRaw){
-        setImportStatus(I18N[LANG].importFail, "bad");
-        return false;
-      }
-      const e1 = safeParse(examRaw);
-      const e2 = safeParse(resRaw);
-      if(!e1.ok || !e2.ok){
-        setImportStatus(I18N[LANG].importFail, "bad");
-        showDebug((!e1.ok ? ("exam: "+e1.err+"\n") : "") + (!e2.ok ? ("result: "+e2.err) : ""));
-        return false;
-      }
-      EXAM = e1.v;
-      RESULT = e2.v;
-      setImportStatus(I18N[LANG].importOk, "ok");
-      return true;
-    }
-
-    function loadFromJsonBox(){
-      hideDebug();
-      const raw = $("jsonBox").value.trim();
-      const t = I18N[LANG];
-      if(!raw){ setImportStatus(t.parsedFail, "bad"); return false; }
-      const p = safeParse(raw);
-      if(!p.ok){ setImportStatus(t.parsedFail, "bad"); showDebug(p.err); return false; }
-      if(!p.v || !p.v.exam || !p.v.result){
-        setImportStatus(t.parsedFail, "bad");
-        showDebug("Expected JSON shape: { exam:{...}, result:{...} }");
-        return false;
-      }
-      EXAM = p.v.exam;
-      RESULT = p.v.result;
-      setImportStatus(t.parsedOk, "ok");
-      return true;
-    }
-
-    function clearAllData(){
-      EXAM = null; RESULT = null;
-      localStorage.removeItem("provklar_exam");
-      localStorage.removeItem("provklar_result");
-      localStorage.removeItem("provklar_material");
-      localStorage.removeItem(TAGS_KEY);
-      localStorage.removeItem(QTAG_KEY);
-      setImportStatus(I18N[LANG].cleared, "ok");
-      renderAll();
-    }
-
-    $("loadBtn").addEventListener("click", () => { if(loadFromLocalStorage()) renderAll(); });
-    $("parseBtn").addEventListener("click", () => { if(loadFromJsonBox()) renderAll(); });
-    $("clearBtn").addEventListener("click", () => { closeMenu(); clearAllData(); });
-
-    // ========= Tag UI =========
-    function refreshTagList(){
-      const tags = loadTags();
-      const sel = $("tagList");
-      sel.innerHTML = "";
-      tags.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t; opt.textContent = t;
-        sel.appendChild(opt);
-      });
-    }
-
-    $("addTagBtn").addEventListener("click", () => {
-      const v = ($("newTag").value || "").trim();
-      if(!v) return;
-      const tags = loadTags();
-      if(!tags.includes(v)){
-        tags.push(v);
-        tags.sort((a,b)=>a.localeCompare(b));
-        saveTags(tags);
-      }
-      $("newTag").value = "";
-      refreshTagList();
-      renderAll();
-    });
-
-    $("saveBackBtn").addEventListener("click", () => {
-      // tags already stored as user picks; this just confirms
-      setImportStatus(I18N[LANG].saveTagsOk, "ok");
-    });
-
-    // ========= Scoring / indicators =========
-    function pct(points, max){
-      const p = Number(points), m = Number(max);
-      if(!isFinite(p) || !isFinite(m) || m <= 0) return null;
-      return Math.round((p / m) * 1000) / 10; // 1 decimal
-    }
-
-    function indicativeLevel(percent, thE, thC, thA){
-      // Not official. purely threshold-based indicator.
-      if(percent == null) return null;
-      if(percent >= thA) return "A";
-      if(percent >= thC) return "C";
-      if(percent >= thE) return "E";
-      return "F";
-    }
-
-    function statusFromPct(p){
-      if(p == null) return "none";
-      if(p >= 80) return "ok";
-      if(p >= 60) return "warn";
-      return "bad";
-    }
-
-    function labelFromStatus(st){
-      const t = I18N[LANG];
-      if(st === "ok") return t.statusStrong;
-      if(st === "warn") return t.statusMid;
-      if(st === "bad") return t.statusWeak;
-      return t.noData;
-    }
-
-    function actionFromStatus(st){
-      const t = I18N[LANG];
-      if(st === "ok") return t.actionStrong;
-      if(st === "warn") return t.actionMid;
-      if(st === "bad") return t.actionWeak;
-      return t.noData;
-    }
-
-    // ========= Rendering =========
-    function renderOverview(){
-      const t = I18N[LANG];
-
-      if(!RESULT || !isFinite(Number(RESULT.total_points)) || !isFinite(Number(RESULT.max_points))){
-        $("scoreValue").textContent = "—";
-        $("scoreSub").textContent = t.noData;
-        $("levelValue").textContent = "—";
-        $("levelSub").textContent = t.noData;
-        $("focusValue").textContent = "—";
-        $("focusSub").textContent = t.noData;
-        return;
-      }
-
-      const p = pct(RESULT.total_points, RESULT.max_points);
-      $("scoreValue").textContent = `${p}%`;
-      $("scoreSub").textContent = `${RESULT.total_points}/${RESULT.max_points}`;
-
-      const thE = Number($("thE").value || 0);
-      const thC = Number($("thC").value || 0);
-      const thA = Number($("thA").value || 0);
-
-      const lvl = indicativeLevel(p, thE, thC, thA);
-      $("levelValue").textContent = lvl ?? "—";
-      $("levelSub").textContent = t.levelIndicator;
-
-      // Focus: weakest tags (if any)
-      const agg = aggregateByTag();
-      const weak = agg.filter(x => x.avgPct != null).sort((a,b)=>a.avgPct-b.avgPct).slice(0,2);
-      if(weak.length){
-        $("focusValue").textContent = weak.map(x=>x.tag).join(", ");
-        $("focusSub").textContent = LANG==="sv" ? "Svagast områden" : "Weakest topics";
-      } else {
-        $("focusValue").textContent = "—";
-        $("focusSub").textContent = LANG==="sv" ? "Tagga frågor för områden" : "Tag questions by topic";
-      }
-    }
-
-    function aggregateByTag(){
-      // uses QTAG_KEY map and result per_question
-      const map = loadQTags();
-      const per = Array.isArray(RESULT?.per_question) ? RESULT.per_question : [];
-      const buckets = new Map();
-
-      per.forEach(q => {
-        const id = String(q.id);
-        const tag = (map[id] || "").trim() || "Untagged";
-        const p = pct(q.points, q.max_points);
-        const entry = buckets.get(tag) || { tag, count:0, pctSum:0, pctCount:0 };
-        entry.count += 1;
-        if(p != null){ entry.pctSum += p; entry.pctCount += 1; }
-        buckets.set(tag, entry);
-      });
-
-      const out = Array.from(buckets.values()).map(x => ({
-        tag: x.tag,
-        count: x.count,
-        avgPct: x.pctCount ? Math.round((x.pctSum/x.pctCount)*10)/10 : null
-      }));
-
-      // sort: Untagged last
-      out.sort((a,b) => {
-        if(a.tag==="Untagged" && b.tag!=="Untagged") return 1;
-        if(b.tag==="Untagged" && a.tag!=="Untagged") return -1;
-        return (a.avgPct ?? 999) - (b.avgPct ?? 999);
-      });
-      return out;
-    }
-
-    function renderMap(){
-      const t = I18N[LANG];
-
-      if(!RESULT || !Array.isArray(RESULT.per_question) || RESULT.per_question.length===0){
-        $("mapEmpty").style.display = "block";
-        $("mapTableWrap").style.display = "none";
-        return;
-      }
-
-      const rows = aggregateByTag();
-      if(rows.length===0){
-        $("mapEmpty").style.display = "block";
-        $("mapTableWrap").style.display = "none";
-        return;
-      }
-
-      $("mapEmpty").style.display = "none";
-      $("mapTableWrap").style.display = "block";
-
-      const tb = $("mapTbody");
-      tb.innerHTML = "";
-
-      rows.forEach(r => {
-        const st = statusFromPct(r.avgPct);
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><span class="badge"><span class="dot ${st}"></span>${escapeHtml(r.tag)}</span></td>
-          <td>${r.count}</td>
-          <td>${r.avgPct == null ? "—" : (r.avgPct + "%")}</td>
-          <td>${escapeHtml(labelFromStatus(st))}</td>
-          <td>${escapeHtml(actionFromStatus(st))}</td>
-        `;
-        tb.appendChild(tr);
-      });
-    }
-
-    function addDays(d0, days){
-      const d = new Date(d0.getTime());
-      d.setDate(d.getDate() + days);
-      return d;
-    }
-    function fmtDate(d){
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const da = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${da}`;
-    }
-
-    function renderPlan(){
-      const t = I18N[LANG];
-
-      if(!RESULT || !Array.isArray(RESULT.per_question) || RESULT.per_question.length===0){
-        $("planEmpty").style.display = "block";
-        $("planWrap").style.display = "none";
-        return;
-      }
-
-      const rows = aggregateByTag()
-        .filter(x => x.tag !== "Untagged" && x.avgPct != null)
-        .sort((a,b)=>a.avgPct-b.avgPct);
-
-      if(rows.length===0){
-        $("planEmpty").style.display = "block";
-        $("planWrap").style.display = "none";
-        return;
-      }
-
-      // choose weak topics: avg < 60 as "weak", else first 2 topics
-      const weak = rows.filter(x => x.avgPct < 60);
-      const chosen = (weak.length ? weak : rows.slice(0,2)).slice(0,3);
-
-      const base = new Date();
-      const scheduleOffsets = [1, 3, 7, 14]; // spaced repetition
-
-      const plan = [];
-      chosen.forEach(topic => {
-        scheduleOffsets.forEach(off => {
-          plan.push({
-            when: fmtDate(addDays(base, off)),
-            what: topic.tag,
-            how: t.planHow
-          });
-        });
-      });
-
-      $("planEmpty").style.display = "none";
-      $("planWrap").style.display = "block";
-
-      const tb = $("planTbody");
-      tb.innerHTML = "";
-      plan.forEach(p => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${p.when}</td><td>${escapeHtml(p.what)}</td><td>${escapeHtml(p.how)}</td>`;
-        tb.appendChild(tr);
-      });
-    }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    function renderQuestions(){
-      const t = I18N[LANG];
-      const qWrap = $("qWrap");
-      qWrap.innerHTML = "";
-
-      if(!EXAM || !RESULT || !Array.isArray(EXAM.questions) || !Array.isArray(RESULT.per_question)){
-        $("qEmpty").style.display = "block";
-        return;
-      }
-
-      const byId = new Map();
-      RESULT.per_question.forEach(x => byId.set(String(x.id), x));
-      const qtags = loadQTags();
-      const tags = loadTags();
-
-      $("qEmpty").style.display = EXAM.questions.length ? "none" : "block";
-
-      EXAM.questions.forEach((q, idx) => {
-        const id = String(q.id ?? (idx+1));
-        const r = byId.get(id);
-        const p = r ? pct(r.points, r.max_points) : null;
-        const st = statusFromPct(p);
-        const tag = qtags[id] || "";
-
-        const box = document.createElement("div");
-        box.className = "qBox";
-        box.innerHTML = `
-          <div class="qMeta">ID: ${escapeHtml(id)} • ${t.hAvg.replace("%","")} ${p==null ? "—" : (p+"%")} • ${labelFromStatus(st)}</div>
-          <div class="qText">${escapeHtml(q.question || "")}</div>
-          <div class="qActions">
-            <span class="mini">${t.tagSelect}:</span>
-            <select data-qid="${escapeHtml(id)}" class="tagPick" style="max-width:320px">
-              <option value="">—</option>
-              ${tags.map(x => `<option value="${escapeHtml(x)}"${x===tag ? " selected":""}>${escapeHtml(x)}</option>`).join("")}
-            </select>
-            <span class="badge"><span class="dot ${st}"></span>${escapeHtml(labelFromStatus(st))}</span>
-          </div>
-          <details>
-            <summary>${LANG==="sv" ? "Visa feedback + modellsvar" : "Show feedback + model answer"}</summary>
-            <div style="margin-top:10px;font-weight:850;line-height:1.45">${escapeHtml(r?.feedback || "")}</div>
-            <div style="margin-top:10px;border-top:1px solid rgba(11,31,58,.12);padding-top:10px">
-              <div style="font-weight:1100;color:#0B1F3A;margin-bottom:6px;font-size:13px">${escapeHtml(t.fullScore || (LANG==="sv"?"Vad som ger full poäng":"Full-score model answer"))}</div>
-              <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(r?.model_answer || "")}</div>
-            </div>
-          </details>
-        `;
-        qWrap.appendChild(box);
-      });
-
-      // attach change handler after render
-      qWrap.querySelectorAll(".tagPick").forEach(sel => {
-        sel.addEventListener("change", () => {
-          const qid = sel.getAttribute("data-qid");
-          const v = (sel.value || "").trim();
-          const map = loadQTags();
-          if(v) map[qid] = v;
-          else delete map[qid];
-          saveQTags(map);
-          renderAll();
-        });
-      });
-    }
-
-    function renderAll(){
-      refreshTagList();
-      renderOverview();
-      renderMap();
-      renderPlan();
-      renderQuestions();
-    }
-
-    $("recalcBtn").addEventListener("click", renderAll);
-
-    // ========= Init =========
-    applyI18N();
-    refreshTagList();
-
-    // Best-effort: auto-load if available
-    if(loadFromLocalStorage()){
-      renderAll();
-    } else {
-      renderAll();
-    }
-  </script>
+  <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 </body>
 </html>
