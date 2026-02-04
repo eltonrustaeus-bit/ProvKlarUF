@@ -370,10 +370,10 @@
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
     // ===== STORAGE KEYS (för förbättringssidan) =====
-    const LS_HISTORY = "proviaai_history";       // array
-    const LS_MISTAKES = "proviaai_mistakes";     // array
-    const LS_LAST = "proviaai_last_result";      // object
-    const LS_MATERIAL = "proviaai_last_material";// string
+    const LS_HISTORY = "proviaai_history";        // array
+    const LS_MISTAKES = "proviaai_mistakes";      // array
+    const LS_LAST = "proviaai_last_result";       // object
+    const LS_MATERIAL = "proviaai_last_material"; // string
 
     const $ = (id) => document.getElementById(id);
 
@@ -506,6 +506,76 @@
       }
     };
 
+    // ===== MENU =====
+    function openMenu(){ $("menu").style.display = "block"; }
+    function closeMenu(){ $("menu").style.display = "none"; }
+
+    // ===== LOCK / UNLOCK (robust, always active) =====
+    function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
+    function showLock(){
+      const s = $("loginScreen");
+      if(!s) return;
+      s.style.display = "flex";
+      s.setAttribute("aria-hidden","false");
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    }
+    function hideLock(){
+      const s = $("loginScreen");
+      if(!s) return;
+      s.style.display = "none";
+      s.setAttribute("aria-hidden","true");
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    function unlock(){
+      const input = $("accessCode");
+      const msg = $("errorMsg");
+      if(!input || !msg) return;
+      const v = (input.value || "").trim();
+      if(v === ACCESS_CODE){
+        localStorage.setItem(ACCESS_FLAG_KEY, "true");
+        msg.textContent = "";
+        hideLock();
+      } else {
+        msg.textContent = T[LANG].wrongCode;
+      }
+    }
+    function logout(){
+      localStorage.removeItem(ACCESS_FLAG_KEY);
+      closeMenu();
+      showLock();
+      window.location.href = "index.html";
+    }
+
+    // ===== APP STATE ELEMENTS =====
+    const spinWrap = $("spinWrap");
+    const miniStateEl = $("miniState");
+    const statusEl = $("status");
+    const debugWrap = $("debugWrap");
+    const debugEl = $("debug");
+
+    const pastedTextEl = $("pastedText");
+    const levelEl = $("level");
+    const courseEl = $("course");
+    const qTypeEl = $("qType");
+    const numQuestionsEl = $("numQuestions");
+
+    const generateExamBtn = $("generateExamBtn");
+    const gradeBtn = $("gradeBtn");
+    const clearBtn = $("clearBtn");
+
+    const examMetaEl = $("examMeta");
+    const examBodyEl = $("examBody");
+    const resultMetaEl = $("resultMeta");
+    const resultBodyEl = $("resultBody");
+
+    const imageInput = $("imageInput");
+    const ocrBtn = $("ocrBtn");
+    const ocrStatus = $("ocrStatus");
+
+    let currentExam = null;
+
     function applyLang(){
       const t = T[LANG];
       $("brandTag").textContent = t.brandTag;
@@ -558,112 +628,6 @@
       if(!examBodyEl.children.length) examMetaEl.textContent = t.noExam;
       if(!resultBodyEl.children.length) resultMetaEl.textContent = t.noGrade;
     }
-
-    // ===== MENU =====
-    const menuBtn = $("menuBtn");
-    const menu = $("menu");
-    function openMenu(){ menu.style.display = "block"; }
-    function closeMenu(){ menu.style.display = "none"; }
-    menuBtn.addEventListener("click", (e) => {
-      e.preventDefault(); e.stopPropagation();
-      menu.style.display === "block" ? closeMenu() : openMenu();
-    });
-    document.addEventListener("click", (e) => {
-      if(menu.style.display !== "block") return;
-      if(menu.contains(e.target) || menuBtn.contains(e.target)) return;
-      closeMenu();
-    });
-    menu.addEventListener("click", (e) => {
-      const a = e.target.closest("a[data-scroll]");
-      if(a){
-        e.preventDefault();
-        const sel = a.getAttribute("data-scroll");
-        closeMenu();
-        const el = document.querySelector(sel);
-        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-      }
-    });
-    document.addEventListener("keydown", (e) => {
-      if(e.key === "Escape" && menu.style.display === "block") closeMenu();
-    });
-
-    $("langBtn").addEventListener("click", () => {
-      LANG = (LANG === "sv") ? "en" : "sv";
-      localStorage.setItem("proviaai_lang", LANG);
-      applyLang();
-      closeMenu();
-    });
-
-    // ===== LOCK / UNLOCK =====
-    const loginScreen = $("loginScreen");
-    const accessCodeEl = $("accessCode");
-    const errorMsgEl = $("errorMsg");
-    function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
-    function showLock(){
-      loginScreen.style.display = "flex";
-      loginScreen.setAttribute("aria-hidden", "false");
-      errorMsgEl.textContent = "";
-      accessCodeEl.value = "";
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    }
-    function hideLock(){
-      loginScreen.style.display = "none";
-      loginScreen.setAttribute("aria-hidden", "true");
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    }
-    function unlock(){
-      const v = (accessCodeEl.value || "").trim();
-      if(v === ACCESS_CODE){
-        localStorage.setItem(ACCESS_FLAG_KEY, "true");
-        errorMsgEl.textContent = "";
-        hideLock();
-      } else {
-        errorMsgEl.textContent = T[LANG].wrongCode;
-      }
-    }
-    function logout(){
-      localStorage.removeItem(ACCESS_FLAG_KEY);
-      closeMenu();
-      showLock();
-      window.location.href = "index.html";
-    }
-    $("unlockBtn").addEventListener("click", unlock);
-    $("logoutTopBtn").addEventListener("click", logout);
-    document.addEventListener("keydown", (e) => {
-      if(loginScreen.style.display !== "none" && e.key === "Enter") unlock();
-    });
-
-    if(isUnlocked()) hideLock(); else showLock();
-
-    // ===== APP STATE =====
-    const spinWrap = $("spinWrap");
-    const miniStateEl = $("miniState");
-    const statusEl = $("status");
-    const debugWrap = $("debugWrap");
-    const debugEl = $("debug");
-
-    const pastedTextEl = $("pastedText");
-    const levelEl = $("level");
-    const courseEl = $("course");
-    const qTypeEl = $("qType");
-    const numQuestionsEl = $("numQuestions");
-
-    const generateExamBtn = $("generateExamBtn");
-    const gradeBtn = $("gradeBtn");
-    const clearBtn = $("clearBtn");
-
-    const examMetaEl = $("examMeta");
-    const examBodyEl = $("examBody");
-    const resultMetaEl = $("resultMeta");
-    const resultBodyEl = $("resultBody");
-
-    const imageInput = $("imageInput");
-    const ocrBtn = $("ocrBtn");
-    const ocrStatus = $("ocrStatus");
-
-    let currentExam = null;
 
     function setBusy(isBusy, label){
       spinWrap.style.display = isBusy ? "inline-flex" : "none";
@@ -848,7 +812,7 @@
     });
 
     // ===== GENERATE EXAM =====
-    $("generateExamBtn").addEventListener("click", async () => {
+    generateExamBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -880,7 +844,6 @@
         return;
       }
 
-      // spara material (för förbättring + träna-misstag)
       try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 
       renderExam(res.data.exam);
@@ -890,7 +853,7 @@
     });
 
     // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
-    $("gradeBtn").addEventListener("click", async () => {
+    gradeBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -934,7 +897,6 @@
       const result = res.data.result;
       renderResult(result);
 
-      // === SAVE: history + last + mistakes ===
       const ts = Date.now();
       const max = Number(result.max_points || 0);
       const total = Number(result.total_points || 0);
@@ -953,11 +915,9 @@
 
       const history = lsGetArray(LS_HISTORY);
       history.push(attempt);
-      // håll historiken rimlig (t.ex. 60 senaste)
       while(history.length > 60) history.shift();
       lsSet(LS_HISTORY, history);
 
-      // last result (för snabb visning)
       lsSet(LS_LAST, {
         ts,
         attempt,
@@ -969,7 +929,6 @@
         result
       });
 
-      // mistakes: frågor där points < max_points
       const mistakes = lsGetArray(LS_MISTAKES);
       const qById = new Map((currentExam.questions || []).map(q => [String(q.id), q]));
       const aById = new Map(answers.map(a => [String(a.id), a.answer]));
@@ -998,7 +957,6 @@
       while(mistakes.length > 200) mistakes.shift();
       lsSet(LS_MISTAKES, mistakes);
 
-      // spara material igen (för förbättringssidan)
       try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 
       setBusy(false, t.ready);
@@ -1007,17 +965,60 @@
     });
 
     // ===== CLEAR =====
-    $("clearBtn").addEventListener("click", clearAll);
+    clearBtn.addEventListener("click", clearAll);
 
-    // ===== INIT =====
-    const examMetaEl = $("examMeta");
-    const examBodyEl = $("examBody");
-    const resultMetaEl = $("resultMeta");
-    const resultBodyEl = $("resultBody");
+    // ===== DOM READY: hook events (fix for "Lås upp does nothing") =====
+    window.addEventListener("DOMContentLoaded", () => {
+      // menu
+      $("menuBtn").addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const m = $("menu");
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+      });
+      document.addEventListener("click", (e) => {
+        const m = $("menu");
+        if(m.style.display !== "block") return;
+        if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
+        m.style.display = "none";
+      });
+      $("menu").addEventListener("click", (e) => {
+        const a = e.target.closest("a[data-scroll]");
+        if(!a) return;
+        e.preventDefault();
+        const sel = a.getAttribute("data-scroll");
+        $("menu").style.display = "none";
+        const el = document.querySelector(sel);
+        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+      });
+      document.addEventListener("keydown", (e) => {
+        if(e.key === "Escape") $("menu").style.display = "none";
+      });
 
-    applyLang();
-    setBusy(false, T[LANG].ready);
-    setStatus("");
+      // language toggle
+      $("langBtn").addEventListener("click", () => {
+        LANG = (LANG === "sv") ? "en" : "sv";
+        localStorage.setItem("proviaai_lang", LANG);
+        applyLang();
+        $("menu").style.display = "none";
+      });
+
+      // logout
+      $("logoutTopBtn").addEventListener("click", logout);
+
+      // unlock
+      $("unlockBtn").addEventListener("click", unlock);
+      document.addEventListener("keydown", (e) => {
+        const s = $("loginScreen");
+        const visible = s && s.style.display !== "none";
+        if(visible && e.key === "Enter") unlock();
+      });
+
+      applyLang();
+      setBusy(false, T[LANG].ready);
+      setStatus("");
+
+      if(isUnlocked()) hideLock(); else showLock();
+    });
   </script>
 </body>
 </html>
