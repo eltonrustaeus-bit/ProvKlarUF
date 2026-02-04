@@ -1,4 +1,6 @@
-// /api/grade.js
+// api/grade.js (CommonJS / Vercel Serverless)
+// Deterministic grading for MC using correct_index.
+// AI grading only for non-MC (short/essay/mix).
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -6,189 +8,242 @@ function json(res, status, obj) {
   res.end(JSON.stringify(obj));
 }
 
-function readBody(req) {
-  return new Promise((resolve) => {
-    let data = "";
-    req.on("data", (c) => (data += c));
-    req.on("end", () => resolve(data));
-  });
-}
-
-function safeParseJSON(s) {
-  try {
-    if (!s) return null;
-    return JSON.parse(s);
-  } catch {
-    return null;
-  }
-}
-
 function pickModel() {
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
 
-async function openaiChatJSON({ messages, schema, temperature }) {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error("Missing OPENAI_API_KEY");
-
-  const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: pickModel(),
-      temperature: typeof temperature === "number" ? temperature : 0.1,
-      messages,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "grading_schema",
-          strict: true,
-          schema,
-        },
-      },
-    }),
-  });
-
-  const txt = await resp.text();
-  let data = safeParseJSON(txt);
-  if (!resp.ok) {
-    const msg = data?.error?.message || txt || "OpenAI error";
-    const e = new Error(msg);
-    e.status = resp.status;
-    e.raw = txt;
-    throw e;
-  }
-
-  const content = data?.choices?.[0]?.message?.content;
-  const obj = safeParseJSON(content);
-  if (!obj) {
-    const e = new Error("Model did not return valid JSON content");
-    e.status = 500;
-    e.raw = txt;
-    throw e;
-  }
-  return obj;
+function safeString(x, maxLen = 200000) {
+  const s = typeof x === "string" ? x : "";
+  return s.length > maxLen ? s.slice(0, maxLen) : s;
 }
 
-function buildSchema(questionCount) {
+function asEnum(x, allowed, fallback) {
+  return allowed.includes(x) ? x : fallback;
+}
+
+function normalizeChoice(ans) {
+  const a = String(ans || "").trim().toUpperCase();
+  if (!a) return "";
+  // accept "A", "A.", "A)", etc.
+  const m = a.match(/^([A-F])/);
+  return m ? m[1] : "";
+}
+
+function letterToIndex(letter) {
+  if (!letter) return -1;
+  const code = letter.charCodeAt(0);
+  const idx = code - 65; // A->0
+  return (idx >= 0 && idx <= 5) ? idx : -1;
+}
+
+function buildNonMcGradeSchema() {
   return {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      total_points: { type: "integer", minimum: 0 },
-      max_points: { type: "integer", minimum: 1 },
-      per_question: {
-        type: "array",
-        minItems: questionCount,
-        maxItems: questionCount,
-        items: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            id: { type: "string" },
-            points: { type: "integer", minimum: 0 },
-            max_points: { type: "integer", minimum: 1 },
-            feedback: { type: "string", minLength: 1 },
-            model_answer: { type: "string", minLength: 1 },
-          },
-          required: ["id", "points", "max_points", "feedback", "model_answer"],
-        },
-      },
-    },
-    required: ["total_points", "max_points", "per_question"],
+    type: "json_schema",
+    name: "grade_non_mc_schema",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["total_points", "max_points", "per_question"],
+      properties: {
+        total_points: { type: "number" },
+        max_points: { type: "number" },
+        per_question: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["id", "points", "max_points", "feedback", "model_answer"],
+            properties: {
+              id: { type: "string" },
+              points: { type: "number" },
+              max_points: { type: "number" },
+              feedback: { type: "string" },
+              model_answer: { type: "string" }
+            }
+          }
+        }
+      }
+    }
   };
 }
 
-function buildSystemPrompt() {
-  return [
-    "You are a strict exam grader.",
-    "Use ONLY the provided study material and the question text when judging correctness.",
-    "Return JSON only, matching the schema (strict).",
-    "For each question: give points, feedback, and a full-score model answer.",
-    "Be concise but complete.",
-  ].join("\n");
-}
-
-function buildUserPrompt({ pastedText, level, course, questions, answers, lang }) {
-  const courseLine = course ? `Course/subject: ${course}\n` : "";
-  const langText = lang === "en" ? "Write feedback and model answers in English." : "Skriv feedback och modellsvar på svenska.";
-
-  return [
-    "Grade the student's answers.",
-    courseLine,
-    `Target level: ${level}`,
-    langText,
-    "",
-    "Study material (only source):",
-    pastedText,
-    "",
-    "Questions:",
-    JSON.stringify(questions),
-    "",
-    "Student answers:",
-    JSON.stringify(answers),
-    "",
-    "Rules:",
-    "- Use the question's points as max_points per question (if missing, assume 1).",
-    "- total_points is sum of per_question points.",
-    "- Always provide a model_answer that would get full points.",
-  ].join("\n");
-}
-
 module.exports = async function handler(req, res) {
-  if (req.method !== "POST") return json(res, 405, { ok: false, error: "Use POST" });
-
-  const raw = req.body && typeof req.body === "object" ? null : await readBody(req);
-  const body = req.body && typeof req.body === "object" ? req.body : safeParseJSON(raw);
-  if (!body) return json(res, 400, { ok: false, error: "Invalid JSON body" });
-
-  const pastedText = String(body.pastedText || "").trim();
-  const level = String(body.level || "C").trim();
-  const course = String(body.course || "").trim();
-  const lang = String(body.lang || "sv").trim();
-
-  const questions = Array.isArray(body.questions) ? body.questions : null;
-  const answers = Array.isArray(body.answers) ? body.answers : null;
-
-  if (!pastedText) return json(res, 400, { ok: false, error: "Missing pastedText" });
-  if (!questions || questions.length === 0) return json(res, 400, { ok: false, error: "Missing questions" });
-  if (!answers) return json(res, 400, { ok: false, error: "Missing answers" });
-
-  const maxPoints = questions.reduce((s, q) => s + (Number(q.points) > 0 ? Number(q.points) : 1), 0);
-
-  const schema = buildSchema(questions.length);
-
-  const messages = [
-    { role: "system", content: buildSystemPrompt() },
-    {
-      role: "user",
-      content: buildUserPrompt({ pastedText, level, course, questions, answers, lang }),
-    },
-  ];
-
-  try {
-    const result = await openaiChatJSON({ messages, schema, temperature: 0.1 });
-
-    // Säkerställ max_points om modellen råkar missa
-    if (!Number.isFinite(result.max_points) || result.max_points <= 0) {
-      result.max_points = maxPoints;
-    }
-    // Om total_points saknas/är fel: räkna om
-    if (!Number.isFinite(result.total_points)) {
-      result.total_points = (result.per_question || []).reduce((s, x) => s + (Number(x.points) || 0), 0);
-    }
-
-    return json(res, 200, { ok: true, result });
-  } catch (e) {
-    return json(res, 500, {
-      ok: false,
-      error: "OpenAI error",
-      status: e.status || 500,
-      details: String(e.message || e),
-      raw: e.raw ? String(e.raw).slice(0, 2000) : undefined,
-    });
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return json(res, 405, { ok: false, error: "Use POST" });
   }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY" });
+
+  let body = "";
+  req.on("data", (c) => (body += c));
+  req.on("end", async () => {
+    let p;
+    try { p = body ? JSON.parse(body) : {}; }
+    catch (e) { return json(res, 400, { ok: false, error: "Invalid JSON", details: String(e) }); }
+
+    const lang = asEnum(p.lang, ["sv", "en"], "sv");
+    const pastedText = safeString(p.pastedText, 200000);
+    const questions = Array.isArray(p.questions) ? p.questions : [];
+    const answersArr = Array.isArray(p.answers) ? p.answers : [];
+
+    if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
+    if (!questions.length) return json(res, 400, { ok: false, error: "Missing questions" });
+
+    const answerMap = new Map();
+    for (const a of answersArr) {
+      const id = String(a?.id ?? "");
+      if (id) answerMap.set(id, String(a?.answer ?? ""));
+    }
+
+    // Split MC vs Non-MC
+    const per = [];
+    let total = 0;
+    let maxTotal = 0;
+
+    const nonMcPack = [];
+
+    for (const q of questions) {
+      const id = String(q.id ?? "");
+      const type = String(q.type ?? "");
+      const maxP = Number(q.points ?? 0) || 0;
+      maxTotal += maxP;
+
+      const userAns = answerMap.get(id) ?? "";
+
+      if (type === "mc") {
+        const correctIndex = Number.isInteger(q.correct_index) ? q.correct_index : -999;
+        const chosenLetter = normalizeChoice(userAns);
+        const chosenIndex = letterToIndex(chosenLetter);
+
+        let pts = 0;
+        let fb = "";
+
+        if (correctIndex >= 0 && chosenIndex >= 0) {
+          pts = (chosenIndex === correctIndex) ? maxP : 0;
+          fb = (lang === "sv")
+            ? (pts === maxP ? "Rätt." : "Fel.")
+            : (pts === maxP ? "Correct." : "Incorrect.");
+        } else {
+          // If schema is missing correct_index, we cannot deterministically grade.
+          // Keep 0 and explain.
+          pts = 0;
+          fb = (lang === "sv")
+            ? "Fel: saknar facit (correct_index) för denna flervalsfråga."
+            : "Error: missing answer key (correct_index) for this multiple-choice question.";
+        }
+
+        total += pts;
+        per.push({
+          id,
+          points: pts,
+          max_points: maxP,
+          feedback: fb,
+          model_answer: String(q.model_answer || q.rubric || "")
+        });
+      } else {
+        nonMcPack.push({
+          id,
+          type,
+          max_points: maxP,
+          question: String(q.question || ""),
+          rubric: String(q.rubric || ""),
+          model_answer: String(q.model_answer || ""),
+          user_answer: String(userAns || "")
+        });
+      }
+    }
+
+    // If no non-mc -> return only MC result
+    if (nonMcPack.length === 0) {
+      return json(res, 200, { ok: true, result: { total_points: total, max_points: maxTotal, per_question: per } });
+    }
+
+    // Grade non-mc via OpenAI
+    const model = pickModel();
+    const responseFormat = buildNonMcGradeSchema();
+
+    const systemSv =
+      "Du är en strikt provrättare. Bedöm varje elevsvar enligt frågan, maxpoäng och rubric. " +
+      "Ge points (0..max_points), kort feedback och ett fullpoängs model_answer. " +
+      "Använd ENDAST materialet som fakta. Om materialet inte räcker: säg det i feedback och dra av poäng. " +
+      "Returnera bara JSON enligt schema.";
+
+    const systemEn =
+      "You are a strict exam grader. Grade each student answer by question, max points and rubric. " +
+      "Give points (0..max_points), short feedback, and a full-score model_answer. " +
+      "Use ONLY the provided material as factual source. If material is insufficient: say so in feedback and deduct points. " +
+      "Return only JSON per schema.";
+
+    const userPayload = {
+      material: pastedText,
+      items: nonMcPack
+    };
+
+    try {
+      const payload = {
+        model,
+        input: [
+          { role: "system", content: lang === "sv" ? systemSv : systemEn },
+          { role: "user", content: JSON.stringify(userPayload) }
+        ],
+        text: { format: responseFormat }
+      };
+
+      const r = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const raw = await r.text();
+      let data;
+      try { data = JSON.parse(raw); } catch {
+        return json(res, 500, { ok: false, error: "Non-JSON from OpenAI", status: r.status, raw });
+      }
+      if (!r.ok) return json(res, 500, { ok: false, error: "OpenAI error", status: r.status, details: data, raw });
+
+      const outputText =
+        (Array.isArray(data.output) &&
+          data.output.flatMap(o => Array.isArray(o.content) ? o.content : [])
+            .find(c => c.type === "output_text")?.text) ||
+        data.output_text ||
+        null;
+
+      let graded;
+      try { graded = JSON.parse(outputText); } catch (e) {
+        return json(res, 500, { ok: false, error: "Could not parse model JSON", details: String(e), outputText });
+      }
+
+      // Merge results
+      const byId = new Map();
+      for (const x of graded.per_question || []) byId.set(String(x.id), x);
+
+      for (const item of nonMcPack) {
+        const got = byId.get(item.id);
+        if (!got) continue;
+        total += Number(got.points || 0);
+        per.push({
+          id: String(got.id),
+          points: Number(got.points || 0),
+          max_points: Number(got.max_points || item.max_points || 0),
+          feedback: String(got.feedback || ""),
+          model_answer: String(got.model_answer || item.model_answer || item.rubric || "")
+        });
+      }
+
+      return json(res, 200, {
+        ok: true,
+        result: {
+          total_points: total,
+          max_points: maxTotal,
+          per_question: per
+        }
+      });
+    } catch (e) {
+      return json(res, 500, { ok: false, error: "Server error", details: String(e) });
+    }
+  });
 };
