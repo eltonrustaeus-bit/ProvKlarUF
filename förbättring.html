@@ -11,8 +11,9 @@
       --mint:#2BE38C; --mint2:#16B876;
       --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
       --shadow:0 18px 55px rgba(5,42,30,.14);
-      --radius:18px; --max:980px;
+      --radius:18px; --max:1040px;
       --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200;
     }
     *{box-sizing:border-box}
     body{
@@ -34,6 +35,7 @@
     .brand img{height:52px;width:auto;display:block}
     .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
     .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
@@ -45,6 +47,13 @@
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
       box-shadow:0 14px 28px rgba(22,184,118,.22)
     }
+    .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.18)}
+    .pill{
+      font-size:11px;font-weight:1000;color:var(--muted);
+      border:1px solid var(--border);
+      border-radius:999px;padding:4px 8px;background:#fff;
+    }
+
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -62,13 +71,54 @@
       background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
     }
+
     .title{margin:0 0 6px;font-weight:1100;color:var(--deep);letter-spacing:-.01em;font-size:18px}
     .sub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
+
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:900px){ .grid2{grid-template-columns:1fr} }
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    @media (max-width:900px){ .grid3{grid-template-columns:1fr} }
+
     .box{border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:12px;background:#fff}
     .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px}
     .boxText{margin:0;color:#071812;font-weight:850;font-size:12px;line-height:1.45}
+
+    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
+    .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
+
+    /* DNA bars */
+    .dnaRow{display:grid;gap:10px;margin-top:10px}
+    .dnaItem{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center}
+    @media (max-width:520px){ .dnaItem{grid-template-columns:110px 1fr 44px} }
+    .dnaLabel{font-weight:1000;color:var(--deep);font-size:12px}
+    .bar{height:12px;border-radius:999px;background:rgba(5,42,30,.08);border:1px solid rgba(5,42,30,.10);overflow:hidden}
+    .barFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(22,184,118,.75), rgba(43,227,140,.95));border-radius:999px}
+    .dnaScore{font-weight:1100;color:var(--deep);font-size:12px;text-align:right}
+
+    /* readiness */
+    .meterWrap{display:grid;gap:10px;margin-top:10px}
+    .meterTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .meterLabel{font-weight:1100;color:var(--deep);font-size:13px}
+    .meterPill{font-weight:1100;font-size:12px}
+    .meter{height:14px;border-radius:999px;background:rgba(5,42,30,.08);border:1px solid rgba(5,42,30,.10);overflow:hidden}
+    .meterFill{height:100%;width:0%}
+    .meterFill.red{background:linear-gradient(90deg, rgba(139,29,29,.65), rgba(139,29,29,.95))}
+    .meterFill.yellow{background:linear-gradient(90deg, rgba(148,98,0,.55), rgba(214,168,64,.95))}
+    .meterFill.green{background:linear-gradient(90deg, rgba(15,122,90,.55), rgba(43,227,140,.95))}
+
+    /* chart */
+    canvas{width:100%;height:220px;display:block;background:#fff;border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:10px}
+
+    /* mistakes list */
+    .mistake{border:1px solid rgba(5,42,30,.12);border-radius:16px;background:#fff;padding:12px}
+    .mistakeTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .mId{font-weight:1100;color:var(--deep);font-size:12px}
+    .mMeta{font-weight:900;color:var(--muted);font-size:12px}
+    .mQ{margin-top:8px;font-weight:950;color:#071812;line-height:1.45}
+    .mSmall{margin-top:8px;color:#071812;font-weight:850;font-size:12px;line-height:1.45;white-space:pre-wrap}
+    .divider{height:1px;background:rgba(5,42,30,.10);margin:10px 0}
+
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
@@ -79,52 +129,556 @@
         <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
           <div class="name">ProviaAi</div>
-          <div class="tag">Förbättring • Nivå • Fokus</div>
+          <div class="tag" id="tagLine">Förbättring • Coach • Historik</div>
         </div>
       </a>
-      <div style="display:flex;gap:10px;align-items:center">
-        <a class="btn" href="app.html">Till appen</a>
-        <a class="btn btnPrimary" href="index.html">Infosida</a>
+
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <a class="btn" href="app.html" id="toAppBtn">Till appen</a>
+        <button class="btn" id="langBtn" type="button"><span id="langLabel">English</span><span class="pill" id="langPill">SV</span></button>
+        <button class="btn btnDanger" id="resetBtn" type="button">Rensa historik</button>
       </div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="card">
-      <h1 class="title">Förbättring</h1>
-      <p class="sub">Sida för att se vad du behöver förbättra och hur du når nästa nivå.</p>
+      <h1 class="title" id="pageTitle">Din förbättring</h1>
+      <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
+      <div class="status" id="topStatus"></div>
+    </section>
 
-      <div class="grid2" style="margin-top:12px">
+    <section class="card" id="coachCard">
+      <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
+      <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
+
+      <div class="box" style="margin-top:12px">
+        <div class="boxTitle" id="coachHeader">Rekommendation</div>
+        <p class="boxText" id="coachText">—</p>
+      </div>
+
+      <div class="grid3" style="margin-top:12px">
         <div class="box">
-          <div class="boxTitle">Din nivå (översikt)</div>
-          <p class="boxText">Visar nuläge och vad som saknas för att nå E/C/A.</p>
+          <div class="boxTitle" id="lastTitle">Senaste resultat</div>
+          <p class="boxText" id="lastText">—</p>
         </div>
         <div class="box">
-          <div class="boxTitle">Svaga områden</div>
-          <p class="boxText">Samlar återkommande missar och föreslår vad du ska repetera.</p>
+          <div class="boxTitle" id="trendTitle">Trend</div>
+          <p class="boxText" id="trendText">—</p>
         </div>
         <div class="box">
-          <div class="boxTitle">Rekommenderad plan</div>
-          <p class="boxText">Kort plan för nästa pass: vad du ska läsa, öva och testa.</p>
-        </div>
-        <div class="box">
-          <div class="boxTitle">Mål för nästa prov</div>
-          <p class="boxText">Konkreta delmål kopplade till poäng och betygskrav.</p>
+          <div class="boxTitle" id="goalTitle">Redo för prov?</div>
+          <p class="boxText" id="goalText">—</p>
         </div>
       </div>
     </section>
 
-    <section class="card">
-      <h2 class="title" style="font-size:16px">Hur du använder sidan</h2>
-      <p class="sub">Använd efter rättning i appen.</p>
-      <div class="box" style="margin-top:12px">
-        <p class="boxText">
-          1) Gör ett mockprov i appen. 2) Rätta provet. 3) Gå hit och följ planen och “svaga områden”.
-        </p>
+    <section class="card" id="dnaCard">
+      <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
+      <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
+
+      <div class="dnaRow" id="dnaRow"></div>
+    </section>
+
+    <section class="card" id="readyCard">
+      <h2 class="title" id="readyTitle" style="font-size:16px">Redo för prov</h2>
+      <p class="sub" id="readySub">En snabb mätare baserad på senaste resultat och trend.</p>
+
+      <div class="meterWrap">
+        <div class="meterTop">
+          <div class="meterLabel" id="meterLabel">Status</div>
+          <div class="pill meterPill" id="meterPill">—</div>
+        </div>
+        <div class="meter"><div class="meterFill" id="meterFill"></div></div>
       </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <a class="btn btnPrimary" href="app.html" id="trainMistakesBtn">Träna mina misstag</a>
+        <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
+      </div>
+    </section>
+
+    <section class="card" id="chartCard">
+      <h2 class="title" id="chartTitle" style="font-size:16px">Utveckling över tid</h2>
+      <p class="sub" id="chartSub">Procent per prov (senaste upp till 20).</p>
+      <canvas id="trendChart" width="900" height="260"></canvas>
+    </section>
+
+    <section class="card" id="mistakeCard">
+      <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
+      <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
+
+      <div class="status" id="mistakeStatus"></div>
+      <div class="grid2" id="mistakeList" style="margin-top:12px"></div>
     </section>
   </main>
 
-  <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+
+  <script>
+    // ===== STORAGE KEYS =====
+    const LS_HISTORY = "proviaai_history";
+    const LS_MISTAKES = "proviaai_mistakes";
+    const LS_LAST = "proviaai_last_result";
+    const LS_MATERIAL = "proviaai_last_material";
+
+    function safeJsonParse(s, fallback){
+      try{ return JSON.parse(s); } catch { return fallback; }
+    }
+    function lsGetArray(key){
+      const v = localStorage.getItem(key);
+      const arr = safeJsonParse(v, []);
+      return Array.isArray(arr) ? arr : [];
+    }
+    function lsGetObj(key){
+      const v = localStorage.getItem(key);
+      const obj = safeJsonParse(v, null);
+      return (obj && typeof obj === "object") ? obj : null;
+    }
+
+    // ===== I18N =====
+    let LANG = localStorage.getItem("proviaai_lang") || "sv";
+    const T = {
+      sv:{
+        tag:"Förbättring • Coach • Historik",
+        toApp:"Till appen",
+        reset:"Rensa historik",
+        title:"Din förbättring",
+        sub:"Bygger på prov du har rättat i appen.",
+        noData:"Ingen sparad provdata hittades. Gör ett prov i appen och tryck Rätta prov.",
+        coachTitle:"Coach (personlig sammanfattning)",
+        coachSub:"Baserad på din historik och felbank.",
+        coachHeader:"Rekommendation",
+        lastTitle:"Senaste resultat",
+        trendTitle:"Trend",
+        goalTitle:"Redo för prov?",
+        dnaTitle:"Studie-DNA",
+        dnaSub:"Fem områden som uppdateras när du gör fler prov.",
+        readyTitle:"Redo för prov",
+        readySub:"En snabb mätare baserad på senaste resultat och trend.",
+        status:"Status",
+        trainMistakes:"Träna mina misstag",
+        toMaterial:"Till material",
+        chartTitle:"Utveckling över tid",
+        chartSub:"Procent per prov (senaste upp till 20).",
+        mistakesTitle:"Felbank",
+        mistakesSub:"Frågor där du tappade poäng, med modellsvar.",
+        mistakesEmpty:"Ingen felbank ännu (inga tappade poäng).",
+        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
+        english:"English",
+        sv:"Svenska",
+        dnaLabels:["Analys","Begrepp","Struktur","Exempel","Tempo"],
+        readyRed:"Träna mer",
+        readyYellow:"Nära",
+        readyGreen:"Redo"
+      },
+      en:{
+        tag:"Improve • Coach • History",
+        toApp:"Go to app",
+        reset:"Clear history",
+        title:"Your improvement",
+        sub:"Built from exams you graded in the app.",
+        noData:"No saved exam data found. Create an exam in the app and click Grade.",
+        coachTitle:"Coach (personal summary)",
+        coachSub:"Based on your history and mistake library.",
+        coachHeader:"Recommendation",
+        lastTitle:"Latest result",
+        trendTitle:"Trend",
+        goalTitle:"Ready for the exam?",
+        dnaTitle:"Study DNA",
+        dnaSub:"Five areas that update as you take more exams.",
+        readyTitle:"Ready",
+        readySub:"A quick meter based on the latest result and trend.",
+        status:"Status",
+        trainMistakes:"Train my mistakes",
+        toMaterial:"Go to material",
+        chartTitle:"Progress over time",
+        chartSub:"Percent per exam (latest up to 20).",
+        mistakesTitle:"Mistake library",
+        mistakesSub:"Questions where you lost points, with model answers.",
+        mistakesEmpty:"No mistakes yet (no lost points).",
+        footer:"ProviaAi is study support and does not provide official grades.",
+        english:"Svenska",
+        sv:"English",
+        dnaLabels:["Analysis","Concepts","Structure","Examples","Pace"],
+        readyRed:"Train more",
+        readyYellow:"Close",
+        readyGreen:"Ready"
+      }
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function applyLang(){
+      const t = T[LANG];
+      $("tagLine").textContent = t.tag;
+      $("toAppBtn").textContent = t.toApp;
+      $("resetBtn").textContent = t.reset;
+      $("pageTitle").textContent = t.title;
+      $("pageSub").textContent = t.sub;
+
+      $("coachTitle").textContent = t.coachTitle;
+      $("coachSub").textContent = t.coachSub;
+      $("coachHeader").textContent = t.coachHeader;
+
+      $("lastTitle").textContent = t.lastTitle;
+      $("trendTitle").textContent = t.trendTitle;
+      $("goalTitle").textContent = t.goalTitle;
+
+      $("dnaTitle").textContent = t.dnaTitle;
+      $("dnaSub").textContent = t.dnaSub;
+
+      $("readyTitle").textContent = t.readyTitle;
+      $("readySub").textContent = t.readySub;
+      $("meterLabel").textContent = t.status;
+
+      $("trainMistakesBtn").textContent = t.trainMistakes;
+      $("backToMaterialBtn").textContent = t.toMaterial;
+
+      $("chartTitle").textContent = t.chartTitle;
+      $("chartSub").textContent = t.chartSub;
+
+      $("mistakesTitle").textContent = t.mistakesTitle;
+      $("mistakesSub").textContent = t.mistakesSub;
+
+      $("footerText").textContent = t.footer;
+
+      $("langLabel").textContent = t.english;
+      $("langPill").textContent = LANG.toUpperCase();
+    }
+
+    $("langBtn").addEventListener("click", () => {
+      LANG = (LANG === "sv") ? "en" : "sv";
+      localStorage.setItem("proviaai_lang", LANG);
+      applyLang();
+      renderAll();
+    });
+
+    // ===== METRICS / LOGIC =====
+    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+
+    function computeTrend(history){
+      // return +/- diff senaste 3 vs 3 före (om möjligt), annars null
+      if(history.length < 2) return null;
+      const last = history.slice(-3);
+      const prev = history.slice(-6, -3);
+      const avg = arr => arr.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,arr.length);
+      const a1 = avg(last);
+      if(prev.length === 0) return {delta: a1 - (Number(history[0].percent)||0), base: "first"};
+      const a0 = avg(prev);
+      return {delta: a1 - a0, base: "prev3"};
+    }
+
+    function readiness(percent, trendDelta){
+      // Enkel deterministisk modell:
+      // - utgår från percent
+      // - liten justering av trend (max ±6)
+      const adj = clamp((trendDelta||0), -6, 6);
+      const p = clamp(percent + adj, 0, 100);
+      if(p >= 80) return {labelKey:"readyGreen", color:"green", fill:p};
+      if(p >= 60) return {labelKey:"readyYellow", color:"yellow", fill:p};
+      return {labelKey:"readyRed", color:"red", fill:p};
+    }
+
+    function dnaFromData(history, mistakes){
+      // Deterministisk (heuristisk) DNA från:
+      // - poängnivå (percent)
+      // - qType-mix (fördelning)
+      // - mängd tappade poäng och essä/short förekomst
+      const last20 = history.slice(-20);
+      const avg = last20.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,last20.length);
+
+      const counts = {mix:0, mc:0, short:0, essay:0};
+      last20.forEach(x => { const k = String(x.qType||"mix"); if(counts[k] !== undefined) counts[k]++; });
+
+      const miss20 = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
+      const missRate = miss20.length ? clamp(miss20.length / Math.max(1,last20.length), 0, 6) : 0;
+
+      // Bas från avg
+      let analysis = avg;
+      let concepts = avg;
+      let structure = avg;
+      let examples = avg;
+      let pace = avg;
+
+      // Justeringar
+      analysis += (counts.essay * 2) - (counts.mc * 1) - (missRate * 3);
+      concepts += (counts.short * 1.5) + (counts.mc * 0.5) - (missRate * 2.5);
+      structure += (counts.mix * 1.2) - (missRate * 2);
+      examples += (counts.essay * 1.5) - (missRate * 2.2);
+      pace += (counts.mc * 1.2) - (counts.essay * 1.0) - (missRate * 1.8);
+
+      const toScore = x => Math.round(clamp(x, 0, 100));
+      return {
+        analysis: toScore(analysis),
+        concepts: toScore(concepts),
+        structure: toScore(structure),
+        examples: toScore(examples),
+        pace: toScore(pace)
+      };
+    }
+
+    function coachText(history, mistakes, dna, lastAttempt){
+      const t = T[LANG];
+      if(!history.length) return t.noData;
+
+      // hitta lägsta DNA-dimension
+      const dims = [
+        {k:"analysis", label:t.dnaLabels[0]},
+        {k:"concepts", label:t.dnaLabels[1]},
+        {k:"structure", label:t.dnaLabels[2]},
+        {k:"examples", label:t.dnaLabels[3]},
+        {k:"pace", label:t.dnaLabels[4]},
+      ];
+      dims.sort((a,b)=>(dna[a.k]-dna[b.k]));
+      const weak = dims[0];
+      const strong = dims[dims.length-1];
+
+      const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
+      const mCount = mistakes.slice(-30).length;
+
+      if(LANG === "sv"){
+        return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
+               `Fokus nästa pass: träna ${weak.label.toLowerCase()} med 1–2 korta omgångar, och gå igenom din felbank (${mCount} senaste misstag).`;
+      }
+      return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
+             `Next session focus: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} recent mistakes).`;
+    }
+
+    function drawChart(canvas, history){
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+
+      ctx.clearRect(0,0,w,h);
+
+      // data
+      const data = history.slice(-20).map(x => clamp(Number(x.percent||0), 0, 100));
+      if(data.length === 0){
+        ctx.fillStyle = "rgba(5,42,30,.65)";
+        ctx.font = "16px system-ui";
+        ctx.fillText(LANG==="sv" ? "Ingen data ännu." : "No data yet.", 18, 40);
+        return;
+      }
+
+      const padL = 36, padR = 18, padT = 18, padB = 34;
+      const gw = w - padL - padR;
+      const gh = h - padT - padB;
+
+      // grid
+      ctx.strokeStyle = "rgba(5,42,30,.10)";
+      ctx.lineWidth = 1;
+      for(let i=0;i<=5;i++){
+        const y = padT + (gh * i/5);
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL+gw, y);
+        ctx.stroke();
+      }
+
+      // axis labels
+      ctx.fillStyle = "rgba(5,42,30,.70)";
+      ctx.font = "12px system-ui";
+      ctx.fillText("100", 8, padT+4);
+      ctx.fillText("0", 14, padT+gh+4);
+
+      // line
+      const step = data.length === 1 ? 0 : (gw/(data.length-1));
+      const pt = (i) => {
+        const x = padL + (step * i);
+        const y = padT + gh - (gh * data[i]/100);
+        return {x,y};
+      };
+
+      // stroke
+      ctx.strokeStyle = "rgba(22,184,118,.95)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      data.forEach((_,i)=>{
+        const p = pt(i);
+        if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      });
+      ctx.stroke();
+
+      // dots
+      ctx.fillStyle = "rgba(43,227,140,.95)";
+      data.forEach((_,i)=>{
+        const p = pt(i);
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,4,0,Math.PI*2);
+        ctx.fill();
+      });
+
+      // x labels (1..n)
+      ctx.fillStyle = "rgba(5,42,30,.60)";
+      ctx.font = "12px system-ui";
+      ctx.fillText(LANG==="sv" ? "Prov" : "Exam", padL, padT+gh+26);
+      ctx.fillText(String(data.length), padL+gw-8, padT+gh+26);
+    }
+
+    // ===== RENDER =====
+    function renderDNA(dna){
+      const t = T[LANG];
+      const row = $("dnaRow");
+      row.innerHTML = "";
+
+      const items = [
+        {label:t.dnaLabels[0], v:dna.analysis},
+        {label:t.dnaLabels[1], v:dna.concepts},
+        {label:t.dnaLabels[2], v:dna.structure},
+        {label:t.dnaLabels[3], v:dna.examples},
+        {label:t.dnaLabels[4], v:dna.pace},
+      ];
+
+      items.forEach(it=>{
+        const div = document.createElement("div");
+        div.className = "dnaItem";
+        div.innerHTML = `
+          <div class="dnaLabel">${it.label}</div>
+          <div class="bar"><div class="barFill" style="width:${it.v}%"></div></div>
+          <div class="dnaScore">${it.v}</div>
+        `;
+        row.appendChild(div);
+      });
+    }
+
+    function renderMistakes(mistakes){
+      const t = T[LANG];
+      const list = $("mistakeList");
+      const st = $("mistakeStatus");
+      list.innerHTML = "";
+
+      if(!mistakes.length){
+        st.textContent = t.mistakesEmpty;
+        st.className = "status ok";
+        return;
+      }
+
+      st.textContent = LANG==="sv" ? `Visar ${Math.min(10, mistakes.length)} senaste.` : `Showing latest ${Math.min(10, mistakes.length)}.`;
+      st.className = "status";
+
+      mistakes.slice(-10).reverse().forEach(m=>{
+        const d = document.createElement("div");
+        d.className = "mistake";
+        const when = new Date(m.ts||Date.now());
+        const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
+        d.innerHTML = `
+          <div class="mistakeTop">
+            <div class="mId">ID: ${m.id} • ${date}</div>
+            <div class="mMeta">${(m.course||"").trim() ? escapeHtml(m.course) : (LANG==="sv"?"(ingen kurs)":"(no course)")} • ${m.points}/${m.max_points}</div>
+          </div>
+          <div class="mQ">${escapeHtml(m.question || "")}</div>
+
+          <div class="divider"></div>
+
+          <div class="mSmall"><b>${LANG==="sv"?"Ditt svar":"Your answer"}:</b> ${escapeHtml(m.user_answer || "—")}</div>
+          <div class="mSmall" style="margin-top:6px"><b>${LANG==="sv"?"Feedback":"Feedback"}:</b> ${escapeHtml(m.feedback || "—")}</div>
+
+          <div class="divider"></div>
+
+          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>\n${escapeHtml(m.model_answer || "—")}</div>
+        `;
+        list.appendChild(d);
+      });
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+    function renderAll(){
+      const t = T[LANG];
+      applyLang();
+
+      const history = lsGetArray(LS_HISTORY);
+      const mistakes = lsGetArray(LS_MISTAKES);
+      const last = lsGetObj(LS_LAST);
+
+      const topStatus = $("topStatus");
+      if(history.length === 0){
+        topStatus.textContent = t.noData;
+        topStatus.className = "status warn";
+        // render empty states
+        $("coachText").textContent = t.noData;
+        $("lastText").textContent = "—";
+        $("trendText").textContent = "—";
+        $("goalText").textContent = "—";
+        renderDNA({analysis:0,concepts:0,structure:0,examples:0,pace:0});
+        const canvas = $("trendChart");
+        drawChart(canvas, []);
+        renderMistakes([]);
+        $("meterPill").textContent = "—";
+        $("meterFill").style.width = "0%";
+        $("meterFill").className = "meterFill red";
+        return;
+      }
+
+      topStatus.textContent = LANG==="sv"
+        ? `Hittade ${history.length} sparade prov.`
+        : `Found ${history.length} saved exams.`;
+      topStatus.className = "status ok";
+
+      const lastAttempt = (last && last.attempt) ? last.attempt : history[history.length-1];
+      const trend = computeTrend(history);
+      const dna = dnaFromData(history, mistakes);
+
+      // Coach text
+      $("coachText").textContent = coachText(history, mistakes, dna, lastAttempt);
+
+      // Last summary
+      const lastP = Number(lastAttempt?.percent || 0);
+      const lastCourse = (lastAttempt?.course || "").trim();
+      $("lastText").textContent = LANG==="sv"
+        ? `${lastP}% • Nivå: ${lastAttempt?.level || "—"} • ${lastCourse || "Ingen kurs"}`
+        : `${lastP}% • Level: ${lastAttempt?.level || "—"} • ${lastCourse || "No course"}`;
+
+      // Trend summary
+      if(trend){
+        const sign = trend.delta >= 0 ? "+" : "";
+        const delta = Math.round(trend.delta);
+        $("trendText").textContent = (LANG==="sv")
+          ? `${sign}${delta} procentenheter (senaste)` 
+          : `${sign}${delta} percentage points (recent)`;
+      } else {
+        $("trendText").textContent = "—";
+      }
+
+      // Readiness
+      const r = readiness(lastP, trend ? trend.delta : 0);
+      $("goalText").textContent = t[r.labelKey];
+      $("meterPill").textContent = t[r.labelKey] + ` • ${Math.round(r.fill)}%`;
+      const mf = $("meterFill");
+      mf.className = "meterFill " + r.color;
+      mf.style.width = `${Math.round(r.fill)}%`;
+
+      // DNA
+      renderDNA(dna);
+
+      // Chart
+      drawChart($("trendChart"), history);
+
+      // Mistakes
+      renderMistakes(mistakes);
+
+      // Train mistakes link: går till appen (material finns redan sparat i appens localStorage)
+      // här kan du senare lägga params om du vill.
+      $("trainMistakesBtn").setAttribute("href", "app.html#settings");
+    }
+
+    // Reset history button
+    $("resetBtn").addEventListener("click", () => {
+      // rensa bara förbättringsdata, inte lås-koden
+      localStorage.removeItem(LS_HISTORY);
+      localStorage.removeItem(LS_MISTAKES);
+      localStorage.removeItem(LS_LAST);
+      // material lämnas kvar
+      renderAll();
+    });
+
+    // init
+    applyLang();
+    renderAll();
+  </script>
 </body>
 </html>
