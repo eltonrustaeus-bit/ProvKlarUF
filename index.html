@@ -8,17 +8,11 @@
 
   <style>
     :root{
-      --deep:#052A1E;         /* mörkgrön */
-      --deep2:#041E16;
-      --mint:#2BE38C;         /* accentgrön */
-      --mint2:#16B876;
-      --bg:#F6FBF8;
-      --muted:#556072;
-      --border:rgba(5,42,30,.14);
+      --deep:#052A1E; --deep2:#041E16;
+      --mint:#2BE38C; --mint2:#16B876;
+      --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
       --shadow:0 18px 55px rgba(5,42,30,.14);
-      --radius:18px;
-      --max:1100px;
-      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      --radius:18px; --max:1100px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -74,7 +68,7 @@
       display:none;
       z-index:5000;
     }
-    .dropdown a{
+    .dropdown a, .dropdown button{
       width:100%;
       display:flex;align-items:center;justify-content:space-between;
       gap:10px;
@@ -86,8 +80,9 @@
       font-weight:950;
       color:var(--deep);
       font-size:13px;
+      text-align:left;
     }
-    .dropdown a:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
+    .dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
     .pill{
       font-size:11px;font-weight:1000;color:var(--muted);
       border:1px solid var(--border);
@@ -105,15 +100,13 @@
     .heroBg{
       position:absolute;inset:0;
       background:url("image/proviaai-hero.png") center/cover no-repeat;
-      opacity:.92;
-      filter:saturate(115%);
+      opacity:.92;filter:saturate(115%);
     }
     .heroOverlay{
       position:absolute;inset:0;
       background:
         radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.22), transparent 60%),
         linear-gradient(135deg, rgba(5,42,30,.78), rgba(4,30,22,.72));
-      mix-blend-mode:normal;
     }
     .heroInner{
       position:relative;
@@ -132,6 +125,15 @@
     .cardRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
     @media (max-width: 900px){ .cardRow{grid-template-columns:1fr} }
 
+    .miniCard{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:18px;
+      padding:14px;
+    }
+    .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
+    .miniText{margin:8px 0 0;color:rgba(239,255,246,.86);font-weight:800;font-size:12px;line-height:1.45}
+
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -149,21 +151,11 @@
       background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
     }
-    .miniCard{
-      background:rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:18px;
-      padding:14px;
-    }
-    .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
-    .miniText{margin:8px 0 0;color:rgba(239,255,246,.86);font-weight:800;font-size:12px;line-height:1.45}
-
     .sectionTitle{
       margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
       font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
-
     .list{margin:10px 0 0;padding:0 0 0 16px;color:#0A2219;font-weight:850;line-height:1.5}
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
@@ -252,6 +244,7 @@
         <li>Rättning med poäng och förbättringstips</li>
         <li>Modellsvar: vad som ger full poäng</li>
         <li>OCR från bild till material</li>
+        <li>Förbättringssida med historik, felbank och “Redo för prov?”</li>
       </ul>
     </section>
 
@@ -269,8 +262,8 @@
       <div class="sectionTitle">FAQ</div>
       <p class="sectionSub">Kortfattat.</p>
       <ul class="list">
-        <li>Appen kräver kod för att generera prov (åtkomstkontroll).</li>
         <li>Infosidan är öppen så alla kan läsa om tjänsten.</li>
+        <li>Appen kan ha åtkomstkod för att generera prov.</li>
         <li>ProviaAi är studiestöd och ger ingen officiell betygssättning.</li>
       </ul>
     </section>
