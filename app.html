@@ -102,6 +102,7 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
+    /* menu */
     .menuWrap{position:relative;z-index:4000}
     .iconBtn{
       width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
@@ -140,6 +141,7 @@
       border-radius:999px;padding:4px 8px;background:#fff;
     }
 
+    /* lock */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -149,7 +151,7 @@
       display:flex;align-items:center;justify-content:center;padding:18px;
     }
     .loginCard{
-      width:min(600px, 100%);
+      width:min(640px, 100%);
       background:rgba(255,255,255,.92);
       border:1px solid rgba(255,255,255,.22);
       border-radius:22px;
@@ -164,6 +166,7 @@
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
 
+    /* upload */
     .uploadBox{
       border:1px dashed rgba(11,31,58,.22);
       border-radius:16px;
@@ -203,7 +206,8 @@
 
 <body>
 
-  <div id="loginScreen" class="loginOverlay">
+  <!-- LOCK SCREEN -->
+  <div id="loginScreen" class="loginOverlay" aria-hidden="false">
     <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
       <div class="loginTop">
         <img src="image/provklar-logo.png" alt="ProvKlar logga">
@@ -219,13 +223,13 @@
           <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
           <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
           <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
-          <button class="btn btnDanger" type="button" id="logoutBtn">Logga ut</button>
         </div>
         <div id="errorMsg" class="err" aria-live="polite"></div>
       </div>
     </div>
   </div>
 
+  <!-- APP -->
   <header>
     <div class="wrap topbar">
       <a class="brand" href="index.html">
@@ -256,7 +260,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="appRoot">
 
     <section class="card" id="material">
       <div class="sectionTitle"><span id="tStep1">Steg 1 – Material</span></div>
@@ -359,8 +363,33 @@
   <footer id="footerText">ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script>
+    // ===== CONFIG (LOGIN) =====
+    // Ändra koden här om du vill:
+    const ACCESS_CODE = "provklar123";
+    const ACCESS_FLAG_KEY = "provklar_app_access";
+
+    // ===== HELPERS =====
     const $ = (id) => document.getElementById(id);
 
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
+    async function postJson(path, payload){
+      const resp = await fetch(path, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      const raw = await resp.text();
+      let data = null;
+      try{ data = JSON.parse(raw); } catch {}
+      return { ok: resp.ok, status: resp.status, raw, data };
+    }
+
+    // ===== I18N =====
     let LANG = localStorage.getItem("provklar_lang") || "sv";
 
     const I18N = {
@@ -371,7 +400,6 @@
         unlock:"Lås upp",
         toInfo:"Till infosidan",
         toImprove:"Förbättring",
-        logout:"Logga ut",
         m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
         mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
         step1:"Steg 1 – Material",
@@ -422,7 +450,6 @@
         unlock:"Unlock",
         toInfo:"Go to info page",
         toImprove:"Improve",
-        logout:"Log out",
         m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
         mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
         step1:"Step 1 – Material",
@@ -471,12 +498,12 @@
     function applyI18N(){
       const t = I18N[LANG];
       $("brandTag").textContent = t.brandTag;
+
       $("lockSub").textContent = t.lockSub;
       $("lockLabel").textContent = t.lockLabel;
       $("unlockBtn").textContent = t.unlock;
       $("toInfoBtn").textContent = t.toInfo;
       $("toImproveBtn").textContent = t.toImprove;
-      $("logoutBtn").textContent = t.logout;
 
       $("m1").textContent = t.m1; $("m2").textContent = t.m2; $("m3").textContent = t.m3; $("m4").textContent = t.m4;
       $("mImprove").textContent = t.mImprove; $("mLang").textContent = t.mLang; $("mLogout").textContent = t.mLogout;
@@ -522,9 +549,10 @@
       if(!$("resultBody").children.length) $("resultMeta").textContent = t.noGradeYet;
     }
 
-    // Menu
+    // ===== MENU =====
     const menuBtn = $("menuBtn");
     const menu = $("menu");
+
     function openMenu(){ menu.style.display = "block"; }
     function closeMenu(){ menu.style.display = "none"; }
 
@@ -539,6 +567,7 @@
       closeMenu();
     });
 
+    // smooth scroll for menu anchors
     menu.addEventListener("click", (e) => {
       const a = e.target.closest("a[data-scroll]");
       if(a){
@@ -557,39 +586,64 @@
       closeMenu();
     });
 
-    // Lock
-    const CORRECT_CODE = "provklar123";
+    // ===== LOCK / UNLOCK (FIXED) =====
+    const loginScreen = $("loginScreen");
+    const accessCodeEl = $("accessCode");
+    const errorMsgEl = $("errorMsg");
+
+    function isUnlocked(){
+      return localStorage.getItem(ACCESS_FLAG_KEY) === "true";
+    }
+
+    function showLock(){
+      loginScreen.style.display = "flex";
+      loginScreen.setAttribute("aria-hidden", "false");
+      errorMsgEl.textContent = "";
+      accessCodeEl.value = "";
+      // disable background scroll
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    }
+
+    function hideLock(){
+      loginScreen.style.display = "none";
+      loginScreen.setAttribute("aria-hidden", "true");
+      // restore scroll
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
 
     function unlock(){
-      const v = ($("accessCode").value || "").trim();
-      if(v === CORRECT_CODE){
-        localStorage.setItem("provklar_app_access","true");
-        $("loginScreen").style.display = "none";
-        $("errorMsg").textContent = "";
+      const v = (accessCodeEl.value || "").trim();
+      if(v === ACCESS_CODE){
+        localStorage.setItem(ACCESS_FLAG_KEY, "true");
+        errorMsgEl.textContent = "";
+        hideLock();
       } else {
-        $("errorMsg").textContent = I18N[LANG].errCode;
+        errorMsgEl.textContent = I18N[LANG].errCode;
       }
     }
-    function lock(){
-      localStorage.removeItem("provklar_app_access");
-      $("loginScreen").style.display = "flex";
-      $("accessCode").value = "";
-      $("errorMsg").textContent = "";
+
+    function logout(){
+      localStorage.removeItem(ACCESS_FLAG_KEY);
+      closeMenu();
+      showLock();
+      // optional: redirect to info page after logout
+      window.location.href = "index.html";
     }
 
     $("unlockBtn").addEventListener("click", unlock);
-    $("logoutBtn").addEventListener("click", () => { lock(); window.location.href="index.html"; });
-    $("logoutTopBtn").addEventListener("click", () => { closeMenu(); lock(); window.location.href="index.html"; });
+    $("logoutTopBtn").addEventListener("click", logout);
 
     document.addEventListener("keydown", (e) => {
-      if($("loginScreen").style.display !== "none" && e.key === "Enter") unlock();
+      if(loginScreen.style.display !== "none" && e.key === "Enter") unlock();
+      if(e.key === "Escape" && menu.style.display === "block") closeMenu();
     });
 
-    if(localStorage.getItem("provklar_app_access") === "true"){
-      $("loginScreen").style.display = "none";
-    }
+    // initial lock state
+    if(isUnlocked()) hideLock(); else showLock();
 
-    // State / elements
+    // ===== STATE / ELEMENTS =====
     const spinWrap = $("spinWrap");
     const miniStateEl = $("miniState");
     const statusEl = $("status");
@@ -640,24 +694,6 @@
     function hideDebug(){
       debugWrap.style.display = "none";
       debugEl.textContent = "";
-    }
-
-    async function postJson(path, payload){
-      const resp = await fetch(path, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const raw = await resp.text();
-      let data = null;
-      try{ data = JSON.parse(raw); } catch {}
-      return { ok: resp.ok, status: resp.status, raw, data };
-    }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     function renderExam(exam){
@@ -801,6 +837,7 @@
       });
     }
 
+    // OCR button
     ocrBtn.addEventListener("click", async () => {
       hideDebug();
       const t = I18N[LANG];
@@ -837,6 +874,7 @@
       }
     });
 
+    // Generate exam
     generateExamBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
@@ -875,6 +913,7 @@
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
     });
 
+    // Grade exam
     gradeBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
@@ -928,10 +967,10 @@
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
     });
 
-    const menu = $("menu");
-    $("logoutTopBtn").addEventListener("click", () => { menu.style.display="none"; lock(); window.location.href="index.html"; });
-    $("clearBtn").addEventListener("click", clearAll);
+    // Clear
+    clearBtn.addEventListener("click", clearAll);
 
+    // Init
     applyI18N();
     setBusy(false, I18N[LANG].ready);
     setStatus("");
