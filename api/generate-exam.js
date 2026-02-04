@@ -1,8 +1,6 @@
-// /api/generate-exam.js
-// Vercel Serverless Function (CommonJS)
-// Fix: remove JSON Schema "oneOf" (not permitted with strict Structured Outputs)
-//
-// Docs: Responses API supports json_schema with strict subset. :contentReference[oaicite:0]{index=0}
+// api/generate-exam.js (CommonJS / Vercel Serverless)
+// Structured Outputs JSON Schema WITHOUT oneOf
+// Includes correct_index for MC so grading becomes deterministic.
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -11,8 +9,6 @@ function json(res, status, obj) {
 }
 
 function pickModel() {
-  // Use a model that supports Structured Outputs via json_schema.
-  // If your project uses a different model, change it here.
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
 
@@ -31,8 +27,6 @@ function toInt(x, fallback) {
 }
 
 function buildMockExamSchema(numQuestions) {
-  // IMPORTANT: No "oneOf" anywhere. Use a single object shape for each question.
-  // options is always present (empty array if not MC). rubric always present ("" if not used).
   return {
     type: "json_schema",
     name: "mock_exam_schema",
@@ -51,22 +45,30 @@ function buildMockExamSchema(numQuestions) {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["id", "type", "points", "question", "options", "rubric"],
+            required: ["id", "type", "points", "question", "options", "correct_index", "rubric", "model_answer"],
             properties: {
               id: { type: "string" },
               type: { type: "string", enum: ["mc", "short", "essay", "mix"] },
               points: { type: "number" },
               question: { type: "string" },
 
-              // Always present. If type !== "mc" => [].
+              // Always present. For non-mc: [].
               options: {
                 type: "array",
                 items: { type: "string" },
                 maxItems: 6
               },
 
-              // Always present: short point rubric (what gives full points).
-              rubric: { type: "string" }
+              // Always present.
+              // For mc: 0..(options.length-1)
+              // For non-mc: -1
+              correct_index: { type: "integer" },
+
+              // Always present: short "what gives full points" rubric
+              rubric: { type: "string" },
+
+              // Always present: a concise full-score answer (for short/essay), for mc you can repeat the correct option meaning
+              model_answer: { type: "string" }
             }
           }
         }
@@ -82,18 +84,16 @@ module.exports = async function handler(req, res) {
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY in environment variables" });
-  }
+  if (!apiKey) return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY" });
 
   let body = "";
-  req.on("data", (chunk) => (body += chunk));
+  req.on("data", (c) => (body += c));
   req.on("end", async () => {
     let parsed;
     try {
       parsed = body ? JSON.parse(body) : {};
     } catch (e) {
-      return json(res, 400, { ok: false, error: "Invalid JSON body", details: String(e) });
+      return json(res, 400, { ok: false, error: "Invalid JSON", details: String(e) });
     }
 
     const lang = asEnum(parsed.lang, ["sv", "en"], "sv");
@@ -105,25 +105,30 @@ module.exports = async function handler(req, res) {
     const numQuestionsRaw = toInt(parsed.numQuestions, 12);
     const numQuestions = Math.min(12, Math.max(3, numQuestionsRaw)); // 3–12
 
-    if (!pastedText.trim()) {
-      return json(res, 400, { ok: false, error: "Missing pastedText" });
-    }
+    if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
 
     const responseFormat = buildMockExamSchema(numQuestions);
+    const model = pickModel();
 
     const systemSv =
-      "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. Du måste följa JSON-schema exakt. " +
-      "VIKTIGT: 'questions' måste ha EXAKT angivet antal frågor. " +
-      "Varje fråga måste ha: id, type, points, question, options, rubric. " +
-      "Om type != 'mc' ska options vara [] (tom array). Rubric ska alltid finnas och vara kort (vad som ger full poäng). " +
-      "Ingen extra text utanför JSON.";
+      "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
+      "Du MÅSTE följa JSON-schemat exakt, och bara returnera JSON. " +
+      "EXAKT antal frågor. " +
+      "Regler per fråga: " +
+      "1) options ska vara [] om type != 'mc'. " +
+      "2) correct_index: om type=='mc' -> ett heltal som pekar på rätt alternativ (0=A,1=B,...). Om inte mc -> -1. " +
+      "3) rubric ska vara kort och poängfokuserad. " +
+      "4) model_answer ska alltid finnas: för mc kan du skriva vad rätt alternativ betyder; för short/essay skriv ett fullpoängsvar.";
 
     const systemEn =
-      "You create a realistic mock exam like a high-school teacher. You must follow the JSON schema exactly. " +
-      "IMPORTANT: 'questions' must have EXACTLY the requested number of questions. " +
-      "Each question must have: id, type, points, question, options, rubric. " +
-      "If type != 'mc', options must be [] (empty array). Rubric must always be present and be short (what earns full points). " +
-      "No extra text outside JSON.";
+      "You create a realistic mock exam like a high-school teacher. " +
+      "You MUST follow the JSON schema exactly and output only JSON. " +
+      "EXACT number of questions. " +
+      "Per-question rules: " +
+      "1) options must be [] if type != 'mc'. " +
+      "2) correct_index: if type=='mc' -> integer pointing to correct option (0=A,1=B,...). Otherwise -1. " +
+      "3) rubric must be short and point-focused. " +
+      "4) model_answer must always exist: for mc describe what the correct option means; for short/essay provide a full-score answer.";
 
     const userSv = [
       `Skapa ett mockprov på nivå ${level}.`,
@@ -131,11 +136,9 @@ module.exports = async function handler(req, res) {
       `Frågetyp-val: ${qType}.`,
       `Antal frågor: ${numQuestions}.`,
       "",
-      "Material (endast detta ska användas som fakta/underlag):",
+      "Material (använd bara detta som underlag):",
       pastedText
-    ]
-      .filter(Boolean)
-      .join("\n");
+    ].filter(Boolean).join("\n");
 
     const userEn = [
       `Create a mock exam at level ${level}.`,
@@ -143,90 +146,47 @@ module.exports = async function handler(req, res) {
       `Question type selection: ${qType}.`,
       `Number of questions: ${numQuestions}.`,
       "",
-      "Material (use only this as the factual source):",
+      "Material (use only this as the source):",
       pastedText
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const instructions = lang === "sv" ? systemSv : systemEn;
-    const prompt = lang === "sv" ? userSv : userEn;
-
-    const model = pickModel();
+    ].filter(Boolean).join("\n");
 
     try {
-      // Responses API: use text.format with json_schema for Structured Outputs. :contentReference[oaicite:1]{index=1}
       const payload = {
         model,
         input: [
-          { role: "system", content: instructions },
-          { role: "user", content: prompt }
+          { role: "system", content: lang === "sv" ? systemSv : systemEn },
+          { role: "user", content: lang === "sv" ? userSv : userEn }
         ],
-        text: {
-          format: responseFormat
-        }
+        text: { format: responseFormat }
       };
 
       const r = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       const raw = await r.text();
       let data;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        return json(res, 500, { ok: false, error: "Non-JSON response from OpenAI", status: r.status, raw });
+      try { data = JSON.parse(raw); } catch {
+        return json(res, 500, { ok: false, error: "Non-JSON from OpenAI", status: r.status, raw });
       }
+      if (!r.ok) return json(res, 500, { ok: false, error: "OpenAI error", status: r.status, details: data, raw });
 
-      if (!r.ok) {
-        return json(res, 500, {
-          ok: false,
-          error: "OpenAI error",
-          status: r.status,
-          details: data,
-          raw
-        });
-      }
-
-      // Structured Outputs returns the JSON in output_text as a string, or already-parsed depending on SDK.
-      // Here we extract the first output_text we can find.
       const outputText =
         (Array.isArray(data.output) &&
-          data.output
-            .flatMap((o) => (Array.isArray(o.content) ? o.content : []))
-            .find((c) => c.type === "output_text")?.text) ||
+          data.output.flatMap(o => Array.isArray(o.content) ? o.content : [])
+            .find(c => c.type === "output_text")?.text) ||
         data.output_text ||
         null;
 
-      let exam = null;
-      if (outputText && typeof outputText === "string") {
-        try {
-          exam = JSON.parse(outputText);
-        } catch (e) {
-          return json(res, 500, { ok: false, error: "Could not parse model JSON", details: String(e), outputText });
-        }
-      } else if (data.output_parsed) {
-        exam = data.output_parsed;
-      } else {
-        // Fallback: attempt to use response JSON directly if it already matches.
-        exam = data;
+      let exam;
+      try { exam = JSON.parse(outputText); } catch (e) {
+        return json(res, 500, { ok: false, error: "Could not parse model JSON", details: String(e), outputText });
       }
 
-      // Minimal sanity check
       if (!exam || !Array.isArray(exam.questions) || exam.questions.length !== numQuestions) {
-        return json(res, 500, {
-          ok: false,
-          error: "Schema mismatch after parse",
-          expectedQuestions: numQuestions,
-          got: exam?.questions?.length ?? null,
-          exam
-        });
+        return json(res, 500, { ok: false, error: "Schema mismatch", exam });
       }
 
       return json(res, 200, { ok: true, exam });
