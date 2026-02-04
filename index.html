@@ -3,47 +3,135 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProvKlar UF</title>
-  <meta name="description" content="ProvKlar UF – mockprov + rättning + förbättringar." />
+  <title>ProviaAi – Provträning med AI</title>
+  <meta name="description" content="ProviaAi skapar mockprov från ditt material och rättar med feedback och modellsvar." />
+
   <style>
     :root{
-      --navy:#0B1F3A; --teal:#18B88A; --bg:#F6F8FB; --muted:#556072; --border:rgba(11,31,58,.12);
-      --shadow:0 18px 50px rgba(11,31,58,.14); --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --max:1080px;
+      --deep:#052A1E;         /* mörkgrön */
+      --deep2:#041E16;
+      --mint:#2BE38C;         /* accentgrön */
+      --mint2:#16B876;
+      --bg:#F6FBF8;
+      --muted:#556072;
+      --border:rgba(5,42,30,.14);
+      --shadow:0 18px 55px rgba(5,42,30,.14);
+      --radius:18px;
+      --max:1100px;
+      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
     :target{scroll-margin-top:92px}
     body{
-      margin:0;font-family:var(--font);color:#0C1220;
+      margin:0;font-family:var(--font);color:#071812;background:var(--bg);
       background:
-        radial-gradient(900px 450px at 20% -10%, rgba(24,184,138,.18), transparent 60%),
-        radial-gradient(700px 380px at 95% 20%, rgba(24,184,138,.10), transparent 55%),
+        radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
+        radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
         var(--bg);
     }
     a{text-decoration:none;color:inherit}
+
     header{
-      background:rgba(255,255,255,.86);backdrop-filter:saturate(140%) blur(10px);
+      position:sticky;top:0;z-index:3000;
+      background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
       border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:1000;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .brand img{height:54px;width:auto;display:block}
-    .brand .name{font-weight:1000;color:var(--navy);font-size:18px;line-height:1.05}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:800;font-size:12px}
+    .brand img{height:52px;width:auto;display:block}
+    .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
+    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
       padding:12px 16px;border-radius:14px;
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
-      background:rgba(255,255,255,.92);color:var(--navy);
+      background:rgba(255,255,255,.92);color:var(--deep);
     }
     .btnPrimary{
-      background:var(--teal);color:#fff;border-color:rgba(24,184,138,.28);
-      box-shadow:0 14px 28px rgba(24,184,138,.22)
+      background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
+      box-shadow:0 14px 28px rgba(22,184,118,.22)
     }
+
+    /* menu */
+    .menuWrap{position:relative;z-index:4000}
+    .iconBtn{
+      width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
+    }
+    .bars{width:18px;height:12px;display:grid;gap:3px}
+    .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
+    .dropdown{
+      position:absolute;right:0;top:54px;min-width:280px;
+      background:rgba(255,255,255,.98);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:0 22px 60px rgba(5,42,30,.18);
+      padding:8px;
+      display:none;
+      z-index:5000;
+    }
+    .dropdown a{
+      width:100%;
+      display:flex;align-items:center;justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      cursor:pointer;
+      font-weight:950;
+      color:var(--deep);
+      font-size:13px;
+    }
+    .dropdown a:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
+    .pill{
+      font-size:11px;font-weight:1000;color:var(--muted);
+      border:1px solid var(--border);
+      border-radius:999px;padding:4px 8px;background:#fff;
+    }
+
+    .hero{
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      background:linear-gradient(135deg, rgba(5,42,30,.98), rgba(4,30,22,.92));
+      position:relative;
+    }
+    .heroBg{
+      position:absolute;inset:0;
+      background:url("image/proviaai-hero.png") center/cover no-repeat;
+      opacity:.92;
+      filter:saturate(115%);
+    }
+    .heroOverlay{
+      position:absolute;inset:0;
+      background:
+        radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.22), transparent 60%),
+        linear-gradient(135deg, rgba(5,42,30,.78), rgba(4,30,22,.72));
+      mix-blend-mode:normal;
+    }
+    .heroInner{
+      position:relative;
+      padding:clamp(18px,4vw,34px);
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+      align-items:center;
+      color:#EFFFF6;
+    }
+    @media (max-width: 900px){ .heroInner{grid-template-columns:1fr} }
+
+    .hTitle{font-size:clamp(28px,4.2vw,44px);font-weight:1100;letter-spacing:-.02em;margin:0}
+    .hSub{margin:10px 0 0;color:rgba(239,255,246,.88);font-weight:800;line-height:1.45}
+    .heroActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .cardRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
+    @media (max-width: 900px){ .cardRow{grid-template-columns:1fr} }
+
     .card{
       background:rgba(255,255,255,.92);
       border:1px solid var(--border);
@@ -58,96 +146,169 @@
       content:"";
       position:absolute;inset:-70px -70px auto auto;
       width:190px;height:190px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%, rgba(24,184,138,.16), transparent 60%);
+      background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
     }
-    .h1{margin:0;color:var(--navy);font-weight:1100;font-size:32px;letter-spacing:-.02em}
-    .p{margin:10px 0 0;color:var(--muted);font-weight:780;line-height:1.45}
-    .grid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr}}
-    .box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
-    .box b{color:var(--navy)}
-    .box ul{margin:10px 0 0;padding-left:18px}
-    .box li{margin:6px 0;color:#0C1220;font-weight:800;font-size:13px;line-height:1.4}
+    .miniCard{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:18px;
+      padding:14px;
+    }
+    .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
+    .miniText{margin:8px 0 0;color:rgba(239,255,246,.86);font-weight:800;font-size:12px;line-height:1.45}
+
+    .sectionTitle{
+      margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
+      font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
+
+    .list{margin:10px 0 0;padding:0 0 0 16px;color:#0A2219;font-weight:850;line-height:1.5}
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
+
 <body>
   <header>
     <div class="wrap topbar">
-      <a class="brand" href="#top" aria-label="Till toppen">
-        <img src="image/provklar-logo.png" alt="ProvKlar logga">
+      <a class="brand" href="index.html">
+        <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
-          <div class="name">ProvKlar</div>
-          <div class="tag">Mockprov • Rättning • Förbättringar</div>
+          <div class="name">ProviaAi</div>
+          <div class="tag">Mockprov • Rättning • Modellsvar</div>
         </div>
       </a>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" href="#funktioner">Funktioner</a>
-        <a class="btn" href="#hur">Hur det funkar</a>
-        <a class="btn btnPrimary" href="app.html">Öppna appen</a>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        <a class="btn btnPrimary" href="app.html">Öppna app</a>
+
+        <div class="menuWrap">
+          <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
+            <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+          </button>
+          <div class="dropdown" id="menu">
+            <a href="#how" data-scroll="#how"><span>Hur det funkar</span><span class="pill">Steg</span></a>
+            <a href="#features" data-scroll="#features"><span>Funktioner</span><span class="pill">AI</span></a>
+            <a href="#who" data-scroll="#who"><span>För vem</span><span class="pill">Skola</span></a>
+            <a href="#faq" data-scroll="#faq"><span>FAQ</span><span class="pill">Svar</span></a>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="wrap" id="top">
-    <section class="card">
-      <div class="grid">
+  <main class="wrap">
+    <section class="hero">
+      <div class="heroBg"></div>
+      <div class="heroOverlay"></div>
+      <div class="heroInner">
         <div>
-          <div class="h1">ProvKlar UF</div>
-          <p class="p">Skapa mockprov från ditt material och få rättning med poäng, feedback, modellsvar och förbättringar.</p>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <a class="btn btnPrimary" href="app.html">Öppna appen</a>
-            <a class="btn" href="#hur">Se hur det funkar</a>
+          <h1 class="hTitle">ProviaAi</h1>
+          <p class="hSub">
+            Klistra in material → få ett realistiskt mockprov → lämna in dina svar → få rättning, feedback och modellsvar.
+          </p>
+
+          <div class="heroActions">
+            <a class="btn btnPrimary" href="app.html">Starta ProviaAi</a>
+            <a class="btn" href="förbättring.html">Förbättring</a>
           </div>
         </div>
-        <div class="box">
-          <b>Snabbt</b>
-          <ul>
-            <li>Klistra in material</li>
-            <li>Välj frågetyp + antal frågor</li>
-            <li>Generera prov</li>
-            <li>Rätta och få modellsvar</li>
-          </ul>
+
+        <div class="cardRow">
+          <div class="miniCard">
+            <div class="miniTitle">Mockprov på nivå</div>
+            <div class="miniText">Välj E/C/A och antal frågor. Få blandat, flervals, kortsvar eller essä.</div>
+          </div>
+          <div class="miniCard">
+            <div class="miniTitle">Rättning + modellsvar</div>
+            <div class="miniText">Poäng per fråga + vad som krävs för full poäng.</div>
+          </div>
+          <div class="miniCard">
+            <div class="miniTitle">OCR från bild</div>
+            <div class="miniText">Lägg in text från foto/bild direkt till materialet.</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="card" id="funktioner">
-      <div style="font-weight:1100;color:var(--navy);font-size:18px;margin:0 0 10px">Funktioner</div>
-      <div class="grid">
-        <div class="box">
-          <b>Mockprov</b>
-          <ul>
-            <li>Flerval / kortsvar / essä / blandat</li>
-            <li>Exakt antal frågor (3–12)</li>
-            <li>Nivåval: E/C/A</li>
-          </ul>
-        </div>
-        <div class="box">
-          <b>Rättning</b>
-          <ul>
-            <li>Poäng + feedback</li>
-            <li>Modellsvar (full poäng)</li>
-            <li>Förbättringstips</li>
-          </ul>
-        </div>
-      </div>
+    <section class="card" id="how">
+      <div class="sectionTitle">Hur det funkar</div>
+      <p class="sectionSub">Enkel process med tydliga steg.</p>
+      <ol class="list">
+        <li>Klistra in det du ska kunna till provet (rubriker + punktlistor).</li>
+        <li>Välj nivå (E/C/A), frågetyp och antal frågor.</li>
+        <li>Skapa mockprov och svara direkt i appen.</li>
+        <li>Rätta och få feedback + modellsvar (fullpoäng-svar).</li>
+      </ol>
     </section>
 
-    <section class="card" id="hur">
-      <div style="font-weight:1100;color:var(--navy);font-size:18px;margin:0 0 10px">Hur det funkar</div>
-      <div class="box">
-        <ul>
-          <li>1) Klistra in text i appen (och valfritt: ladda upp bilder/filer).</li>
-          <li>2) Välj frågetyp och exakt antal frågor.</li>
-          <li>3) Tryck “Skapa mockprov”.</li>
-          <li>4) Svara och tryck “Rätta prov”.</li>
-        </ul>
-      </div>
+    <section class="card" id="features">
+      <div class="sectionTitle">Funktioner</div>
+      <p class="sectionSub">Byggt för provträning, inte chatt.</p>
+      <ul class="list">
+        <li>Mockprov från ditt material</li>
+        <li>Flervalsfrågor med klickbara A/B/C/D-alternativ</li>
+        <li>Rättning med poäng och förbättringstips</li>
+        <li>Modellsvar: vad som ger full poäng</li>
+        <li>OCR från bild till material</li>
+      </ul>
+    </section>
+
+    <section class="card" id="who">
+      <div class="sectionTitle">För vem</div>
+      <p class="sectionSub">Gymnasieelever och skolor som vill ha strukturerad provträning.</p>
+      <ul class="list">
+        <li>Elever som vill ha tydliga mockprov</li>
+        <li>Klasser som vill träna inför prov</li>
+        <li>Skolor som vill ha ett enkelt studiestöd</li>
+      </ul>
+    </section>
+
+    <section class="card" id="faq">
+      <div class="sectionTitle">FAQ</div>
+      <p class="sectionSub">Kortfattat.</p>
+      <ul class="list">
+        <li>Appen kräver kod för att generera prov (åtkomstkontroll).</li>
+        <li>Infosidan är öppen så alla kan läsa om tjänsten.</li>
+        <li>ProviaAi är studiestöd och ger ingen officiell betygssättning.</li>
+      </ul>
     </section>
   </main>
 
-  <footer>ProvKlar UF är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const menu = document.getElementById("menu");
+
+    function openMenu(){ menu.style.display = "block"; }
+    function closeMenu(){ menu.style.display = "none"; }
+
+    menuBtn.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      menu.style.display === "block" ? closeMenu() : openMenu();
+    });
+
+    document.addEventListener("click", (e) => {
+      if(menu.style.display !== "block") return;
+      if(menu.contains(e.target) || menuBtn.contains(e.target)) return;
+      closeMenu();
+    });
+
+    menu.addEventListener("click", (e) => {
+      const a = e.target.closest("a[data-scroll]");
+      if(!a) return;
+      e.preventDefault();
+      const sel = a.getAttribute("data-scroll");
+      closeMenu();
+      const el = document.querySelector(sel);
+      if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape" && menu.style.display === "block") closeMenu();
+    });
+  </script>
 </body>
 </html>
