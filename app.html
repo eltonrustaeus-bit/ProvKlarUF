@@ -404,16 +404,15 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK -->
+  <!-- Supabase SDK (ENDAST EN GÅNG) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     // ============================
-    // SUPABASE KEYS
+    // SUPABASE KEYS (FIXADE)
     // ============================
-const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8".trim();
-const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim(); // viktigt: tar bort trailing space
+    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8".trim();
 
     // ===== LOGIN CONFIG (fallback kod) =====
     const ACCESS_CODE = "provia123";
@@ -427,25 +426,29 @@ const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim(); // viktigt: tar 
 
     const $ = (id) => document.getElementById(id);
 
-    // ==== GLOBAL JS ERROR CATCHER (visar exakt fel i Debug) ====
-window.addEventListener("error", (e) => {
-  try {
-    const msg = `JS error: ${e.message}\nFile: ${e.filename}\nLine: ${e.lineno}:${e.colno}\n`;
-    const dw = document.getElementById("debugWrap");
-    const de = document.getElementById("debug");
-    if (dw && de) { dw.style.display = "block"; de.textContent = msg + (e.error?.stack ? "\n" + e.error.stack : ""); }
-  } catch {}
-});
-
-window.addEventListener("unhandledrejection", (e) => {
-  try {
-    const reason = e.reason ? (e.reason.stack || String(e.reason)) : "Unknown";
-    const msg = `Unhandled promise rejection:\n${reason}\n`;
-    const dw = document.getElementById("debugWrap");
-    const de = document.getElementById("debug");
-    if (dw && de) { dw.style.display = "block"; de.textContent = msg; }
-  } catch {}
-});
+    // ===== DEBUG/ERROR REPORTING (ENKEL & STABIL) =====
+    function showDebug(txt){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "block";
+      pre.textContent = txt || "";
+    }
+    function hideDebug(){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "none";
+      pre.textContent = "";
+    }
+    function reportErr(err){
+      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
+      showDebug(msg);
+      const s = $("status");
+      if(s){ s.className = "status bad"; s.textContent = "JS-fel: se Debug."; }
+      const em = $("errorMsg");
+      if(em) em.textContent = "JS-fel: se Debug.";
+    }
+    window.addEventListener("error", (e) => reportErr(e.error || e.message));
+    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
 
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
@@ -570,7 +573,7 @@ window.addEventListener("unhandledrejection", (e) => {
       }
     };
 
-    // ===== SAFE HELPERS (no crash if element missing) =====
+    // ===== SAFE HELPERS =====
     function onClick(id, fn){
       const el = $(id);
       if(!el) return false;
@@ -585,39 +588,11 @@ window.addEventListener("unhandledrejection", (e) => {
       });
     }
 
-    // ===== DEBUG/ERROR REPORTING =====
-    function showDebug(txt){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "block";
-      pre.textContent = txt || "";
-    }
-    function hideDebug(){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "none";
-      pre.textContent = "";
-    }
-    function reportErr(err){
-      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
-      showDebug(msg);
-      const statusEl = $("status");
-      if(statusEl){
-        statusEl.className = "status bad";
-        statusEl.textContent = "JS-fel: se Debug.";
-      }
-      const em = $("errorMsg");
-      if(em) em.textContent = "JS-fel: se Debug.";
-    }
-    window.addEventListener("error", (e) => reportErr(e.error || e.message));
-    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
-
-    // ===== SUPABASE INIT (robust) =====
+    // ===== SUPABASE INIT (FIXAD) =====
     const USE_SUPABASE =
       typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
       typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
 
-    // CDN v2 exponerar normalt window.supabase (objekt med createClient)
     const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
     const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
       ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -709,46 +684,30 @@ window.addEventListener("unhandledrejection", (e) => {
       showLock();
     }
 
-    // ===== APPROVAL CHECK =====
+    // ===== APPROVAL CHECK (FIXAD: använder db, inte "supabase") =====
     async function checkApprovalAndUnlock(session){
       if(!db) return false;
       const user = session?.user;
       if(!user?.id) return false;
 
-      const { data: prof, error } = await supabase
-  .from("profiles")
-  .select("approved, role")
-  .eq("id", user.id)
-  .maybeSingle();
-
-if (error) {
-  setLockError(String(error.message || error));
-  return false;
-}
-
-if (!prof) {
-  setLockError("Profil saknas i databasen (profiles). Skapa profilen för användaren eller lägg en trigger som skapar den automatiskt.");
-  showLock();
-  return false;
-}
-
-if (!prof.approved) {
-  setLockError(T[LANG].pending);
-  showLock();
-  return false;
-}
-
-setLockError("");
-hideLock();
-return true;
-
+      const { data: prof, error } = await db
+        .from("profiles")
+        .select("approved, role")
+        .eq("id", user.id)
+        .maybeSingle();
 
       if(error){
         setLockError(String(error.message || error));
         return false;
       }
 
-      if(!prof?.approved){
+      if(!prof){
+        setLockError("Profil saknas i databasen (profiles).");
+        showLock();
+        return false;
+      }
+
+      if(!prof.approved){
         setLockError(T[LANG].pending);
         showLock();
         return false;
@@ -799,7 +758,6 @@ return true;
         return;
       }
 
-      // Om email-confirmation är på: ingen session direkt -> visa pending/confirmation-läge
       if(data?.session){
         await checkApprovalAndUnlock(data.session);
       } else {
@@ -996,7 +954,7 @@ return true;
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // ===== INIT EVENTS (ALL IN DOMContentLoaded) =====
+    // ===== INIT EVENTS =====
     window.addEventListener("DOMContentLoaded", async () => {
       try{
         applyLang();
