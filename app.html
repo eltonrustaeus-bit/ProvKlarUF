@@ -153,7 +153,7 @@
       display:flex;align-items:center;justify-content:center;padding:18px;
     }
     .loginCard{
-      width:min(740px, 100%);
+      width:min(680px, 100%);
       background:rgba(255,255,255,.92);
       border:1px solid rgba(255,255,255,.22);
       border-radius:22px;
@@ -167,7 +167,15 @@
     .loginBody{padding:12px 18px 18px}
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
-    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
+
+    .authBox{
+      border:1px solid rgba(5,42,30,.12);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.7);
+    }
+    .authTitle{font-weight:1100;color:var(--deep);font-size:13px}
+    .miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
 
     /* upload */
     .uploadBox{
@@ -177,6 +185,7 @@
       background:rgba(255,255,255,.7);
     }
     .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .fileRow input[type="file"]{max-width:320px}
 
@@ -220,43 +229,44 @@
       </div>
 
       <div class="loginBody">
-        <!-- SUPABASE LOGIN (email/pass) -->
-        <div style="display:grid;gap:10px">
-          <div class="grid2">
+        <!-- Email/Pass login (Supabase) -->
+        <div class="authBox" id="authBox">
+          <div class="authTitle" id="authTitle">Logga in / Skapa konto</div>
+
+          <div class="grid2" style="margin-top:10px">
             <div>
               <label for="authEmail" id="authEmailLabel">E-post</label>
-              <input id="authEmail" type="email" placeholder="du@skola.se" autocomplete="email">
+              <input id="authEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
             </div>
             <div>
               <label for="authPass" id="authPassLabel">Lösenord</label>
-              <input id="authPass" type="password" placeholder="Minst 8 tecken" autocomplete="current-password">
+              <input id="authPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
             </div>
           </div>
 
           <div class="loginRow">
-            <!-- Inline onclick = robust även om någon listener strular -->
-            <button class="btn btnPrimary" type="button" id="signInBtn" onclick="window.__signIn()">Logga in</button>
-            <button class="btn" type="button" id="signUpBtn" onclick="window.__signUp()">Skapa konto</button>
+            <button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
+            <button class="btn" type="button" id="signUpBtn">Skapa konto</button>
             <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
             <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
           </div>
 
-          <div class="smallHint" id="authHint">
-            För e-post-inlogg: fyll i SUPABASE_URL + SUPABASE_ANON_KEY i app.html. Annars kan du använda åtkomstkod nedan.
+          <div class="miniHint" id="authHint">
+            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.
           </div>
-
-          <!-- ACCESS CODE fallback -->
-          <details open>
-            <summary id="lockAlt">Alternativ inloggning: kod</summary>
-            <label for="accessCode" id="lockLabel">Åtkomstkod</label>
-            <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-            <div class="loginRow">
-              <button class="btn btnPrimary" type="button" id="unlockBtn" onclick="window.__unlock()">Lås upp</button>
-            </div>
-          </details>
-
-          <div id="errorMsg" class="err" aria-live="polite"></div>
         </div>
+
+        <!-- Access code fallback -->
+        <details style="margin-top:12px" open>
+          <summary id="codeSummary">Alternativ inloggning: kod</summary>
+          <label for="accessCode" id="lockLabel">Åtkomstkod</label>
+          <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
+          <div class="loginRow">
+            <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+          </div>
+        </details>
+
+        <div id="errorMsg" class="err" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -394,39 +404,34 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK (för Logga in / Skapa konto) -->
+  <!-- Supabase SDK (krävs för email/pass) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // ===== LOGIN CONFIG (fallback-kod) =====
+    // ============================
+    // SUPABASE KEYS (FYLL I HÄR)
+    // ============================
+    // Supabase Dashboard → Settings → API
+    // Project URL -> SUPABASE_URL
+    // anon public key -> SUPABASE_ANON_KEY
+    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8 ";
+
+    // ===== LOGIN CONFIG (fallback kod) =====
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
-    // ===== SUPABASE AUTH (email/pass) =====
-    // Fyll i dessa två om du vill ha Logga in / Skapa konto.
-    // Om du lämnar dem som placeholders fungerar fortfarande åtkomstkod-inloggningen.
-    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co ";  
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8 ";
-
     // ===== STORAGE KEYS (för förbättringssidan) =====
-    const LS_HISTORY = "proviaai_history";        // array
-    const LS_MISTAKES = "proviaai_mistakes";      // array
-    const LS_LAST = "proviaai_last_result";       // object
-    const LS_MATERIAL = "proviaai_last_material"; // string
+    const LS_HISTORY = "proviaai_history";
+    const LS_MISTAKES = "proviaai_mistakes";
+    const LS_LAST = "proviaai_last_result";
+    const LS_MATERIAL = "proviaai_last_material";
 
     const $ = (id) => document.getElementById(id);
 
-    function safeJsonParse(s, fallback){
-      try{ return JSON.parse(s); } catch { return fallback; }
-    }
-    function lsGetArray(key){
-      const v = localStorage.getItem(key);
-      const arr = safeJsonParse(v, []);
-      return Array.isArray(arr) ? arr : [];
-    }
-    function lsSet(key, val){
-      try{ localStorage.setItem(key, JSON.stringify(val)); } catch {}
-    }
+    function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
+    function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
+    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
     function escapeHtml(s){
       return String(s ?? "")
@@ -446,46 +451,12 @@
       return { ok: resp.ok, status: resp.status, raw, data };
     }
 
-    // ===== Supabase init (safe) =====
-    const useSupabase =
+    // ===== Supabase init (only if keys filled) =====
+    const USE_SUPABASE =
       typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40 &&
-      window.supabase && typeof window.supabase.createClient === "function";
+      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
 
-    const sb = useSupabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    async function signIn(){
-      const msg = $("errorMsg");
-      if(!sb){ msg.textContent = "Supabase saknas/ej konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY)."; return; }
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){ msg.textContent = "Fyll i e-post och lösenord."; return; }
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if(error){ msg.textContent = error.message; return; }
-      msg.textContent = "";
-      hideLock();
-    }
-
-    async function signUp(){
-      const msg = $("errorMsg");
-      if(!sb){ msg.textContent = "Supabase saknas/ej konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY)."; return; }
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){ msg.textContent = "Fyll i e-post och lösenord."; return; }
-      const { error } = await sb.auth.signUp({ email, password });
-      if(error){ msg.textContent = error.message; return; }
-      msg.textContent = "Konto skapat. Logga in (eller bekräfta via mail om Supabase kräver det).";
-    }
-
-    async function hasSession(){
-      if(!sb) return false;
-      const { data } = await sb.auth.getSession();
-      return Boolean(data?.session?.user);
-    }
-
-    // Exponera (robust för klick)
-    window.__signIn = signIn;
-    window.__signUp = signUp;
+    const supabase = USE_SUPABASE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -535,7 +506,8 @@
         fullScore:"Vad som ger full poäng (modellsvar)",
         genFirst:"Skapa mockprov först.",
         cleared:"Allt rensat. Börja om.",
-        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning."
+        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
+        pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -582,12 +554,12 @@
         fullScore:"Full-score model answer",
         genFirst:"Generate an exam first.",
         cleared:"Cleared. Start again.",
-        footer:"ProviaAi is study support and does not provide official grades."
+        footer:"ProviaAi is study support and does not provide official grades.",
+        pending:"Waiting for admin approval. You’ll get access once approved."
       }
     };
 
     // ===== MENU =====
-    function openMenu(){ $("menu").style.display = "block"; }
     function closeMenu(){ $("menu").style.display = "none"; }
 
     // ===== LOCK / UNLOCK =====
@@ -608,28 +580,107 @@
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
-    function unlock(){
-      const input = $("accessCode");
-      const msg = $("errorMsg");
-      if(!input || !msg) return;
-      const v = (input.value || "").trim();
+
+    function setLockError(msg){ $("errorMsg").textContent = msg || ""; }
+
+    function unlockByCode(){
+      const v = ($("accessCode").value || "").trim();
       if(v === ACCESS_CODE){
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
-        msg.textContent = "";
+        setLockError("");
         hideLock();
       } else {
-        msg.textContent = T[LANG].wrongCode;
+        setLockError(T[LANG].wrongCode);
       }
     }
+
     async function logout(){
       localStorage.removeItem(ACCESS_FLAG_KEY);
       closeMenu();
-      if(sb){ try{ await sb.auth.signOut(); } catch{} }
+      if(supabase){
+        try{ await supabase.auth.signOut(); } catch {}
+      }
       showLock();
     }
 
-    // Exponera (robust för klick)
-    window.__unlock = unlock;
+    // =========================
+    // STEG 4: APPROVAL-CHECK (Supabase profiles.approved)
+    // =========================
+    async function checkApprovalAndUnlock(session){
+      if(!supabase) return false;
+      const user = session?.user;
+      if(!user?.id) return false;
+
+      const { data: prof, error } = await supabase
+        .from("profiles")
+        .select("approved, role")
+        .eq("id", user.id)
+        .single();
+
+      if(error){
+        setLockError(String(error.message || error));
+        return false;
+      }
+
+      if(!prof?.approved){
+        setLockError(T[LANG].pending);
+        // håll låset kvar (men behåll sessionen)
+        showLock();
+        return false;
+      }
+
+      setLockError("");
+      hideLock();
+      return true;
+    }
+
+    async function signInEmail(){
+      if(!supabase){
+        setLockError("Supabase är inte konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY).");
+        return;
+      }
+      const email = ($("authEmail").value || "").trim();
+      const password = $("authPass").value || "";
+      if(!email || !password){
+        setLockError("Fyll i e-post och lösenord.");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if(error){
+        setLockError(error.message);
+        return;
+      }
+
+      await checkApprovalAndUnlock(data.session);
+    }
+
+    async function signUpEmail(){
+      if(!supabase){
+        setLockError("Supabase är inte konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY).");
+        return;
+      }
+      const email = ($("authEmail").value || "").trim();
+      const password = $("authPass").value || "";
+      if(!email || !password){
+        setLockError("Fyll i e-post och lösenord.");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if(error){
+        setLockError(error.message);
+        return;
+      }
+
+      // Nyregistrerad ska normalt vara approved=false -> visa pending
+      if(data?.session){
+        await checkApprovalAndUnlock(data.session);
+      } else {
+        setLockError(T[LANG].pending);
+        showLock();
+      }
+    }
 
     // ===== APP STATE ELEMENTS =====
     const spinWrap = $("spinWrap");
@@ -1050,20 +1101,23 @@
     // ===== CLEAR =====
     clearBtn.addEventListener("click", clearAll);
 
-    // ===== DOM READY: hook menu/lang/logout + initial lock =====
+    // ===== DOM READY =====
     window.addEventListener("DOMContentLoaded", async () => {
-      // menu
+      // If Supabase not configured, keep auth box but it will show error on click
+      // Menu
       $("menuBtn").addEventListener("click", (e) => {
         e.preventDefault(); e.stopPropagation();
         const m = $("menu");
         m.style.display = (m.style.display === "block") ? "none" : "block";
       });
+
       document.addEventListener("click", (e) => {
         const m = $("menu");
         if(m.style.display !== "block") return;
         if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
         m.style.display = "none";
       });
+
       $("menu").addEventListener("click", (e) => {
         const a = e.target.closest("a[data-scroll]");
         if(!a) return;
@@ -1073,11 +1127,12 @@
         const el = document.querySelector(sel);
         if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
       });
+
       document.addEventListener("keydown", (e) => {
         if(e.key === "Escape") $("menu").style.display = "none";
       });
 
-      // language toggle
+      // Language toggle
       $("langBtn").addEventListener("click", () => {
         LANG = (LANG === "sv") ? "en" : "sv";
         localStorage.setItem("proviaai_lang", LANG);
@@ -1085,30 +1140,56 @@
         $("menu").style.display = "none";
       });
 
-      // logout (menu)
-      $("logoutTopBtn").addEventListener("click", () => logout());
+      // Logout
+      $("logoutTopBtn").addEventListener("click", logout);
 
-      // Enter på lock: om email+pass ifyllt => signIn, annars => kod
-      document.addEventListener("keydown", async (e) => {
+      // Unlock by code
+      $("unlockBtn").addEventListener("click", unlockByCode);
+
+      // Supabase auth buttons
+      $("signInBtn").addEventListener("click", signInEmail);
+      $("signUpBtn").addEventListener("click", signUpEmail);
+
+      // Enter key on lock screen: prefer email/pass if filled, else code
+      document.addEventListener("keydown", (e) => {
+        if(e.key !== "Enter") return;
         const s = $("loginScreen");
         const visible = s && s.style.display !== "none";
         if(!visible) return;
-        if(e.key !== "Enter") return;
 
-        const email = ($("authEmail")?.value || "").trim();
-        const pass = $("authPass")?.value || "";
-        if(email && pass) await signIn();
-        else unlock();
+        const email = ($("authEmail").value || "").trim();
+        const pass = $("authPass").value || "";
+        if(email && pass) signInEmail();
+        else unlockByCode();
       });
 
       applyLang();
       setBusy(false, T[LANG].ready);
       setStatus("");
 
-      // initial access: supabase session OR code unlock
-      const sessionOk = await hasSession();
-      if(sessionOk || isUnlocked()) hideLock();
-      else showLock();
+      // Initial lock logic:
+      // 1) If Supabase session exists -> check approval
+      // 2) Else if local code unlocked -> unlock
+      // 3) Else show lock
+      if(supabase){
+        try{
+          const { data } = await supabase.auth.getSession();
+          if(data?.session){
+            const ok = await checkApprovalAndUnlock(data.session);
+            if(ok) return;
+            showLock();
+            return;
+          }
+        }catch(e){
+          setLockError(String(e));
+        }
+      }
+
+      if(isUnlocked()){
+        hideLock();
+      } else {
+        showLock();
+      }
     });
   </script>
 </body>
