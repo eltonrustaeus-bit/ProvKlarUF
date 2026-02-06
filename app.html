@@ -404,24 +404,22 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK (krävs för email/pass) -->
+  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     // ============================
-    // SUPABASE KEYS (FYLL I HÄR)
+    // SUPABASE KEYS
     // ============================
-    // Supabase Dashboard → Settings → API
-    // Project URL -> SUPABASE_URL
-    // anon public key -> SUPABASE_ANON_KEY
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8 ";
+    const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8 ";
+    const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim(); // viktigt: tar bort trailing space
 
     // ===== LOGIN CONFIG (fallback kod) =====
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
-    // ===== STORAGE KEYS (för förbättringssidan) =====
+    // ===== STORAGE KEYS =====
     const LS_HISTORY = "proviaai_history";
     const LS_MISTAKES = "proviaai_mistakes";
     const LS_LAST = "proviaai_last_result";
@@ -450,13 +448,6 @@
       try{ data = JSON.parse(raw); } catch {}
       return { ok: resp.ok, status: resp.status, raw, data };
     }
-
-    // ===== Supabase init (only if keys filled) =====
-    const USE_SUPABASE =
-      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
-
-    const supabase = USE_SUPABASE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -559,8 +550,102 @@
       }
     };
 
-    // ===== MENU =====
-    function closeMenu(){ $("menu").style.display = "none"; }
+    // ===== SAFE HELPERS (no crash if element missing) =====
+    function onClick(id, fn){
+      const el = $(id);
+      if(!el) return false;
+      el.addEventListener("click", (e) => {
+        try{ fn(e); } catch(err){ reportErr(err); }
+      });
+      return true;
+    }
+    function onKey(fn){
+      document.addEventListener("keydown", (e) => {
+        try{ fn(e); } catch(err){ reportErr(err); }
+      });
+    }
+
+    // ===== DEBUG/ERROR REPORTING =====
+    function showDebug(txt){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "block";
+      pre.textContent = txt || "";
+    }
+    function hideDebug(){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "none";
+      pre.textContent = "";
+    }
+    function reportErr(err){
+      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
+      showDebug(msg);
+      const statusEl = $("status");
+      if(statusEl){
+        statusEl.className = "status bad";
+        statusEl.textContent = "JS-fel: se Debug.";
+      }
+      const em = $("errorMsg");
+      if(em) em.textContent = "JS-fel: se Debug.";
+    }
+    window.addEventListener("error", (e) => reportErr(e.error || e.message));
+    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
+
+    // ===== SUPABASE INIT (robust) =====
+    const USE_SUPABASE =
+      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
+      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
+
+    // CDN v2 exponerar normalt window.supabase (objekt med createClient)
+    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
+    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
+      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    // ===== UI refs =====
+    const spinWrap = () => $("spinWrap");
+    const miniStateEl = () => $("miniState");
+    const statusEl = () => $("status");
+    const pastedTextEl = () => $("pastedText");
+    const levelEl = () => $("level");
+    const courseEl = () => $("course");
+    const qTypeEl = () => $("qType");
+    const numQuestionsEl = () => $("numQuestions");
+    const examMetaEl = () => $("examMeta");
+    const examBodyEl = () => $("examBody");
+    const resultMetaEl = () => $("resultMeta");
+    const resultBodyEl = () => $("resultBody");
+    const imageInputEl = () => $("imageInput");
+    const ocrStatusEl = () => $("ocrStatus");
+
+    let currentExam = null;
+
+    function setBusy(isBusy, label){
+      const sw = spinWrap(), ms = miniStateEl();
+      if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
+      if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
+      const genBtn = $("generateExamBtn");
+      const gradeBtn = $("gradeBtn");
+      const clearBtn = $("clearBtn");
+      const ocrBtn = $("ocrBtn");
+      if(genBtn) genBtn.disabled = isBusy;
+      if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
+      if(clearBtn) clearBtn.disabled = isBusy;
+      if(ocrBtn) ocrBtn.disabled = isBusy;
+    }
+    function setStatus(txt, kind){
+      const s = statusEl();
+      if(!s) return;
+      s.className = "status" + (kind ? (" " + kind) : "");
+      s.textContent = txt || "";
+    }
+    function setOcrStatus(txt, kind){
+      const s = ocrStatusEl();
+      if(!s) return;
+      s.className = "status" + (kind ? (" " + kind) : "");
+      s.textContent = txt || "";
+    }
 
     // ===== LOCK / UNLOCK =====
     function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
@@ -580,11 +665,13 @@
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
-
-    function setLockError(msg){ $("errorMsg").textContent = msg || ""; }
-
+    function setLockError(msg){
+      const em = $("errorMsg");
+      if(em) em.textContent = msg || "";
+    }
     function unlockByCode(){
-      const v = ($("accessCode").value || "").trim();
+      const input = $("accessCode");
+      const v = (input?.value || "").trim();
       if(v === ACCESS_CODE){
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
         setLockError("");
@@ -593,25 +680,22 @@
         setLockError(T[LANG].wrongCode);
       }
     }
-
     async function logout(){
       localStorage.removeItem(ACCESS_FLAG_KEY);
-      closeMenu();
-      if(supabase){
-        try{ await supabase.auth.signOut(); } catch {}
+      const m = $("menu"); if(m) m.style.display = "none";
+      if(db){
+        try{ await db.auth.signOut(); } catch {}
       }
       showLock();
     }
 
-    // =========================
-    // STEG 4: APPROVAL-CHECK (Supabase profiles.approved)
-    // =========================
+    // ===== APPROVAL CHECK =====
     async function checkApprovalAndUnlock(session){
-      if(!supabase) return false;
+      if(!db) return false;
       const user = session?.user;
       if(!user?.id) return false;
 
-      const { data: prof, error } = await supabase
+      const { data: prof, error } = await db
         .from("profiles")
         .select("approved, role")
         .eq("id", user.id)
@@ -624,7 +708,6 @@
 
       if(!prof?.approved){
         setLockError(T[LANG].pending);
-        // håll låset kvar (men behåll sessionen)
         showLock();
         return false;
       }
@@ -635,45 +718,46 @@
     }
 
     async function signInEmail(){
-      if(!supabase){
-        setLockError("Supabase är inte konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY).");
+      hideDebug();
+      if(!db){
+        setLockError("Supabase SDK laddades inte eller keys är fel.");
         return;
       }
-      const email = ($("authEmail").value || "").trim();
-      const password = $("authPass").value || "";
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
       if(!email || !password){
         setLockError("Fyll i e-post och lösenord.");
         return;
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
       if(error){
         setLockError(error.message);
         return;
       }
-
       await checkApprovalAndUnlock(data.session);
     }
 
     async function signUpEmail(){
-      if(!supabase){
-        setLockError("Supabase är inte konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY).");
+      hideDebug();
+      if(!db){
+        setLockError("Supabase SDK laddades inte eller keys är fel.");
         return;
       }
-      const email = ($("authEmail").value || "").trim();
-      const password = $("authPass").value || "";
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
       if(!email || !password){
         setLockError("Fyll i e-post och lösenord.");
         return;
       }
 
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await db.auth.signUp({ email, password });
       if(error){
         setLockError(error.message);
         return;
       }
 
-      // Nyregistrerad ska normalt vara approved=false -> visa pending
+      // Om email-confirmation är på: ingen session direkt -> visa pending/confirmation-läge
       if(data?.session){
         await checkApprovalAndUnlock(data.session);
       } else {
@@ -682,110 +766,58 @@
       }
     }
 
-    // ===== APP STATE ELEMENTS =====
-    const spinWrap = $("spinWrap");
-    const miniStateEl = $("miniState");
-    const statusEl = $("status");
-    const debugWrap = $("debugWrap");
-    const debugEl = $("debug");
-
-    const pastedTextEl = $("pastedText");
-    const levelEl = $("level");
-    const courseEl = $("course");
-    const qTypeEl = $("qType");
-    const numQuestionsEl = $("numQuestions");
-
-    const generateExamBtn = $("generateExamBtn");
-    const gradeBtn = $("gradeBtn");
-    const clearBtn = $("clearBtn");
-
-    const examMetaEl = $("examMeta");
-    const examBodyEl = $("examBody");
-    const resultMetaEl = $("resultMeta");
-    const resultBodyEl = $("resultBody");
-
-    const imageInput = $("imageInput");
-    const ocrBtn = $("ocrBtn");
-    const ocrStatus = $("ocrStatus");
-
-    let currentExam = null;
-
+    // ===== APP RENDERING =====
     function applyLang(){
       const t = T[LANG];
-      $("brandTag").textContent = t.brandTag;
-      $("lockSub").textContent = t.lockSub;
-      $("lockLabel").textContent = t.lockLabel;
-      $("unlockBtn").textContent = t.unlock;
-      $("toInfoBtn").textContent = t.toInfo;
-      $("toImproveBtn").textContent = t.toImprove;
+      const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
 
-      $("m1").textContent = t.m1;
-      $("m2").textContent = t.m2;
-      $("m3").textContent = t.m3;
-      $("m4").textContent = t.m4;
-      $("mImprove").textContent = t.mImprove;
-      $("mLang").textContent = t.mLang;
-      $("mLogout").textContent = t.mLogout;
-      $("langPill").textContent = LANG.toUpperCase();
+      set("brandTag", t.brandTag);
+      set("lockSub", t.lockSub);
+      set("lockLabel", t.lockLabel);
+      set("unlockBtn", t.unlock);
+      set("toInfoBtn", t.toInfo);
+      set("toImproveBtn", t.toImprove);
 
-      $("tStep1").textContent = t.step1;
-      $("tStep1Sub").textContent = t.step1Sub;
-      $("tPasteLabel").textContent = t.pasteLabel;
-      $("pastedText").placeholder = t.pastePH;
-      $("tOcrTitle").textContent = t.ocrTitle;
-      $("ocrBtn").textContent = t.ocrBtn;
-      $("tOcrHint").textContent = t.ocrHint;
-      $("formatHint").textContent = t.tip;
+      set("m1", t.m1); set("m2", t.m2); set("m3", t.m3); set("m4", t.m4);
+      set("mImprove", t.mImprove);
+      set("mLang", t.mLang);
+      set("mLogout", t.mLogout);
+      set("langPill", LANG.toUpperCase());
 
-      $("tStep2").textContent = t.step2;
-      $("tStep2Sub").textContent = t.step2Sub;
-      $("tLevel").textContent = t.level;
-      $("tCourse").textContent = t.course;
-      $("course").placeholder = t.coursePH;
-      $("tQType").textContent = t.qType;
-      $("qtMix").textContent = t.qtMix;
-      $("qtMc").textContent = t.qtMc;
-      $("qtShort").textContent = t.qtShort;
-      $("qtEssay").textContent = t.qtEssay;
-      $("tNum").textContent = t.num;
-      $("generateExamBtn").textContent = t.gen;
-      $("gradeBtn").textContent = t.grade;
-      $("clearBtn").textContent = t.clear;
-      $("improveBtnInline").textContent = t.mImprove;
+      set("tStep1", t.step1);
+      set("tStep1Sub", t.step1Sub);
+      set("tPasteLabel", t.pasteLabel);
+      const pt = $("pastedText"); if(pt) pt.placeholder = t.pastePH;
+      set("tOcrTitle", t.ocrTitle);
+      set("ocrBtn", t.ocrBtn);
+      set("tOcrHint", t.ocrHint);
+      set("formatHint", t.tip);
 
-      $("miniState").textContent = t.ready;
-      $("debugTitle").textContent = t.debug;
-      $("tStep3").textContent = t.step3;
-      $("tStep4").textContent = t.step4;
-      $("footerText").textContent = t.footer;
+      set("tStep2", t.step2);
+      set("tStep2Sub", t.step2Sub);
+      set("tLevel", t.level);
+      set("tCourse", t.course);
+      const c = $("course"); if(c) c.placeholder = t.coursePH;
+      set("tQType", t.qType);
+      set("qtMix", t.qtMix);
+      set("qtMc", t.qtMc);
+      set("qtShort", t.qtShort);
+      set("qtEssay", t.qtEssay);
+      set("tNum", t.num);
+      set("generateExamBtn", t.gen);
+      set("gradeBtn", t.grade);
+      set("clearBtn", t.clear);
+      set("improveBtnInline", t.mImprove);
 
-      if(!examBodyEl.children.length) examMetaEl.textContent = t.noExam;
-      if(!resultBodyEl.children.length) resultMetaEl.textContent = t.noGrade;
-    }
+      set("miniState", t.ready);
+      set("debugTitle", t.debug);
+      set("tStep3", t.step3);
+      set("tStep4", t.step4);
+      set("footerText", t.footer);
 
-    function setBusy(isBusy, label){
-      spinWrap.style.display = isBusy ? "inline-flex" : "none";
-      miniStateEl.textContent = label || (isBusy ? "…" : T[LANG].ready);
-      generateExamBtn.disabled = isBusy;
-      gradeBtn.disabled = isBusy || !currentExam;
-      clearBtn.disabled = isBusy;
-      ocrBtn.disabled = isBusy;
-    }
-    function setStatus(txt, kind){
-      statusEl.className = "status" + (kind ? (" " + kind) : "");
-      statusEl.textContent = txt || "";
-    }
-    function setOcrStatus(txt, kind){
-      ocrStatus.className = "status" + (kind ? (" " + kind) : "");
-      ocrStatus.textContent = txt || "";
-    }
-    function showDebug(txt){
-      debugWrap.style.display = "block";
-      debugEl.textContent = txt || "";
-    }
-    function hideDebug(){
-      debugWrap.style.display = "none";
-      debugEl.textContent = "";
+      const eb = examBodyEl(), rb = resultBodyEl();
+      if(eb && !eb.children.length) set("examMeta", t.noExam);
+      if(rb && !rb.children.length) set("resultMeta", t.noGrade);
     }
 
     async function fileToDataUrl(file){
@@ -802,10 +834,11 @@
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
       const t = T[LANG];
 
-      examMetaEl.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
-      examBodyEl.innerHTML = "";
-      resultMetaEl.textContent = t.noGrade;
-      resultBodyEl.innerHTML = "";
+      const em = examMetaEl(), eb = examBodyEl(), rm = resultMetaEl(), rb = resultBodyEl();
+      if(em) em.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+      if(eb) eb.innerHTML = "";
+      if(rm) rm.textContent = t.noGrade;
+      if(rb) rb.innerHTML = "";
 
       qs.forEach((q, idx) => {
         const box = document.createElement("div");
@@ -814,7 +847,7 @@
 
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? qTypeEl.value}`;
+        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
 
         const text = document.createElement("div");
         text.className = "qText";
@@ -852,7 +885,7 @@
           });
 
           box.appendChild(group);
-          examBodyEl.appendChild(box);
+          eb?.appendChild(box);
           return;
         }
 
@@ -863,17 +896,19 @@
         ans.style.marginTop = "10px";
         ans.style.minHeight = (q.type === "essay") ? "150px" : "110px";
         box.appendChild(ans);
-        examBodyEl.appendChild(box);
+        eb?.appendChild(box);
       });
 
-      gradeBtn.disabled = qs.length === 0;
+      const gradeBtn = $("gradeBtn");
+      if(gradeBtn) gradeBtn.disabled = qs.length === 0;
     }
 
     function renderResult(r){
       const t = T[LANG];
-      resultMetaEl.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
-      const wrap = document.createElement("div");
+      const rm = resultMetaEl(), rb = resultBodyEl();
+      if(rm) rm.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
 
+      const wrap = document.createElement("div");
       (r.per_question || []).forEach(item => {
         const d = document.createElement("div");
         d.className = "qBox";
@@ -889,306 +924,307 @@
         wrap.appendChild(d);
       });
 
-      resultBodyEl.innerHTML = "";
-      resultBodyEl.appendChild(wrap);
+      if(rb){
+        rb.innerHTML = "";
+        rb.appendChild(wrap);
+      }
     }
 
     function clearAll(){
       const t = T[LANG];
-      pastedTextEl.value = "";
-      courseEl.value = "";
-      levelEl.value = "C";
-      qTypeEl.value = "mix";
-      numQuestionsEl.value = "12";
-      imageInput.value = "";
+      if(pastedTextEl()) pastedTextEl().value = "";
+      if(courseEl()) courseEl().value = "";
+      if(levelEl()) levelEl().value = "C";
+      if(qTypeEl()) qTypeEl().value = "mix";
+      if(numQuestionsEl()) numQuestionsEl().value = "12";
+      if(imageInputEl()) imageInputEl().value = "";
       setOcrStatus("");
       currentExam = null;
-      examMetaEl.textContent = t.noExam;
-      examBodyEl.innerHTML = "";
-      resultMetaEl.textContent = t.noGrade;
-      resultBodyEl.innerHTML = "";
-      gradeBtn.disabled = true;
+
+      if(examMetaEl()) examMetaEl().textContent = t.noExam;
+      if(examBodyEl()) examBodyEl().innerHTML = "";
+      if(resultMetaEl()) resultMetaEl().textContent = t.noGrade;
+      if(resultBodyEl()) resultBodyEl().innerHTML = "";
+
+      const gradeBtn = $("gradeBtn");
+      if(gradeBtn) gradeBtn.disabled = true;
+
       setStatus(t.cleared, "ok");
       hideDebug();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // ===== OCR =====
-    ocrBtn.addEventListener("click", async () => {
-      hideDebug();
-      const t = T[LANG];
-      const file = imageInput.files && imageInput.files[0];
-      if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
-      setBusy(true, t.ocrWorking);
-      setOcrStatus(t.ocrWorking, "warn");
+    // ===== INIT EVENTS (ALL IN DOMContentLoaded) =====
+    window.addEventListener("DOMContentLoaded", async () => {
       try{
-        const dataUrl = await fileToDataUrl(file);
-        const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
-        if(!res.ok || !res.data || !res.data.ok){
-          setBusy(false, t.ready);
-          setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
-          showDebug(res.raw);
-          return;
-        }
-        const extracted = String(res.data.text || "").trim();
-        if(extracted){
-          const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
-          const base = pastedTextEl.value.trim();
-          pastedTextEl.value = (base ? base + prefix : "") + extracted + "\n";
-        }
-        setBusy(false, t.ready);
-        setOcrStatus(t.ocrDone, "ok");
-      }catch(e){
-        setBusy(false, t.ready);
-        setOcrStatus("OCR error.", "bad");
-        showDebug(String(e));
-      }
-    });
+        applyLang();
+        setBusy(false, T[LANG].ready);
+        setStatus("");
 
-    // ===== GENERATE EXAM =====
-    generateExamBtn.addEventListener("click", async () => {
-      hideDebug();
-      setStatus("");
-      const t = T[LANG];
+        // MENU
+        onClick("menuBtn", (e) => {
+          e.preventDefault(); e.stopPropagation();
+          const m = $("menu");
+          if(!m) return;
+          m.style.display = (m.style.display === "block") ? "none" : "block";
+        });
 
-      const pastedText = pastedTextEl.value.trim();
-      if(!pastedText){
-        setStatus(t.needMat, "bad");
-        document.querySelector("#material").scrollIntoView({behavior:"smooth"});
-        return;
-      }
+        document.addEventListener("click", (e) => {
+          const m = $("menu");
+          const mb = $("menuBtn");
+          if(!m || !mb) return;
+          if(m.style.display !== "block") return;
+          if(m.contains(e.target) || mb.contains(e.target)) return;
+          m.style.display = "none";
+        });
 
-      const payload = {
-        lang: LANG,
-        level: levelEl.value,
-        course: courseEl.value.trim(),
-        qType: qTypeEl.value,
-        pastedText,
-        numQuestions: Number(numQuestionsEl.value)
-      };
-
-      setBusy(true, t.genWorking);
-      setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
-
-      const res = await postJson("/api/generate-exam", payload);
-      if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, t.ready);
-        setStatus(`Error (HTTP ${res.status}).`, "bad");
-        showDebug(res.raw);
-        return;
-      }
-
-      try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-
-      renderExam(res.data.exam);
-      setBusy(false, t.ready);
-      setStatus(t.genDone, "ok");
-      document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
-    });
-
-    // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
-    gradeBtn.addEventListener("click", async () => {
-      hideDebug();
-      setStatus("");
-      const t = T[LANG];
-
-      if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-        setStatus(t.genFirst, "bad");
-        return;
-      }
-
-      const answers = [];
-      currentExam.questions.forEach((q, idx) => {
-        const qid = String(q.id ?? (idx+1));
-        if(q.type === "mc"){
-          const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
-          answers.push({ id: qid, answer: (hidden?.value || "").trim() });
-        } else {
-          const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
-          answers.push({ id: qid, answer: (ta?.value || "").trim() });
-        }
-      });
-
-      const pastedText = pastedTextEl.value.trim();
-      const payload = {
-        lang: LANG,
-        pastedText,
-        questions: currentExam.questions,
-        answers
-      };
-
-      setBusy(true, t.gradeWorking);
-      setStatus(t.gradeWorking, "");
-
-      const res = await postJson("/api/grade", payload);
-      if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, t.ready);
-        setStatus(`Error (HTTP ${res.status}).`, "bad");
-        showDebug(res.raw);
-        return;
-      }
-
-      const result = res.data.result;
-      renderResult(result);
-
-      const ts = Date.now();
-      const max = Number(result.max_points || 0);
-      const total = Number(result.total_points || 0);
-      const percent = max > 0 ? Math.round((total / max) * 100) : 0;
-
-      const attempt = {
-        ts,
-        course: (courseEl.value || "").trim(),
-        level: levelEl.value,
-        qType: qTypeEl.value,
-        numQuestions: Number(numQuestionsEl.value),
-        total_points: total,
-        max_points: max,
-        percent
-      };
-
-      const history = lsGetArray(LS_HISTORY);
-      history.push(attempt);
-      while(history.length > 60) history.shift();
-      lsSet(LS_HISTORY, history);
-
-      lsSet(LS_LAST, {
-        ts,
-        attempt,
-        exam: {
-          title: currentExam.title || "",
-          level: currentExam.level || levelEl.value,
-          questions: currentExam.questions || []
-        },
-        result
-      });
-
-      const mistakes = lsGetArray(LS_MISTAKES);
-      const qById = new Map((currentExam.questions || []).map(q => [String(q.id), q]));
-      const aById = new Map(answers.map(a => [String(a.id), a.answer]));
-
-      (result.per_question || []).forEach(item => {
-        const got = Number(item.points || 0);
-        const m = Number(item.max_points || 0);
-        if(m > 0 && got < m){
-          const q = qById.get(String(item.id)) || {};
-          mistakes.push({
-            ts,
-            course: attempt.course,
-            level: attempt.level,
-            qType: q.type || qTypeEl.value,
-            id: String(item.id),
-            question: String(q.question || ""),
-            user_answer: String(aById.get(String(item.id)) || ""),
-            feedback: String(item.feedback || ""),
-            model_answer: String(item.model_answer || ""),
-            points: got,
-            max_points: m
+        const menuEl = $("menu");
+        if(menuEl){
+          menuEl.addEventListener("click", (e) => {
+            const a = e.target.closest("a[data-scroll]");
+            if(!a) return;
+            e.preventDefault();
+            const sel = a.getAttribute("data-scroll");
+            menuEl.style.display = "none";
+            const el = document.querySelector(sel);
+            if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
           });
         }
-      });
 
-      while(mistakes.length > 200) mistakes.shift();
-      lsSet(LS_MISTAKES, mistakes);
+        onKey((e) => { if(e.key === "Escape"){ const m=$("menu"); if(m) m.style.display="none"; }});
 
-      try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
+        // LANGUAGE
+        onClick("langBtn", () => {
+          LANG = (LANG === "sv") ? "en" : "sv";
+          localStorage.setItem("proviaai_lang", LANG);
+          applyLang();
+          const m = $("menu"); if(m) m.style.display = "none";
+        });
 
-      setBusy(false, t.ready);
-      setStatus(t.gradeDone, "ok");
-      document.querySelector("#result").scrollIntoView({behavior:"smooth"});
-    });
+        // LOGOUT
+        onClick("logoutTopBtn", logout);
 
-    // ===== CLEAR =====
-    clearBtn.addEventListener("click", clearAll);
+        // LOGIN BUTTONS
+        onClick("unlockBtn", unlockByCode);
+        onClick("signInBtn", () => signInEmail());
+        onClick("signUpBtn", () => signUpEmail());
 
-    // ===== DOM READY =====
-    window.addEventListener("DOMContentLoaded", async () => {
-      // If Supabase not configured, keep auth box but it will show error on click
-      // Menu
-      $("menuBtn").addEventListener("click", (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const m = $("menu");
-        m.style.display = (m.style.display === "block") ? "none" : "block";
-      });
+        // ENTER KEY (lock screen)
+        onKey((e) => {
+          if(e.key !== "Enter") return;
+          const s = $("loginScreen");
+          const visible = s && s.style.display !== "none";
+          if(!visible) return;
+          const email = ($("authEmail")?.value || "").trim();
+          const pass = $("authPass")?.value || "";
+          if(email && pass) signInEmail();
+          else unlockByCode();
+        });
 
-      document.addEventListener("click", (e) => {
-        const m = $("menu");
-        if(m.style.display !== "block") return;
-        if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
-        m.style.display = "none";
-      });
+        // OCR
+        onClick("ocrBtn", async () => {
+          hideDebug();
+          const t = T[LANG];
+          const inp = imageInputEl();
+          const file = inp?.files && inp.files[0];
+          if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
+          setBusy(true, t.ocrWorking);
+          setOcrStatus(t.ocrWorking, "warn");
+          try{
+            const dataUrl = await fileToDataUrl(file);
+            const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
+            if(!res.ok || !res.data || !res.data.ok){
+              setBusy(false, t.ready);
+              setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
+              showDebug(res.raw);
+              return;
+            }
+            const extracted = String(res.data.text || "").trim();
+            if(extracted){
+              const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
+              const base = (pastedTextEl()?.value || "").trim();
+              if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
+            }
+            setBusy(false, t.ready);
+            setOcrStatus(t.ocrDone, "ok");
+          }catch(e){
+            setBusy(false, t.ready);
+            setOcrStatus("OCR error.", "bad");
+            reportErr(e);
+          }
+        });
 
-      $("menu").addEventListener("click", (e) => {
-        const a = e.target.closest("a[data-scroll]");
-        if(!a) return;
-        e.preventDefault();
-        const sel = a.getAttribute("data-scroll");
-        $("menu").style.display = "none";
-        const el = document.querySelector(sel);
-        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-      });
+        // GENERATE EXAM
+        onClick("generateExamBtn", async () => {
+          hideDebug();
+          setStatus("");
+          const t = T[LANG];
 
-      document.addEventListener("keydown", (e) => {
-        if(e.key === "Escape") $("menu").style.display = "none";
-      });
-
-      // Language toggle
-      $("langBtn").addEventListener("click", () => {
-        LANG = (LANG === "sv") ? "en" : "sv";
-        localStorage.setItem("proviaai_lang", LANG);
-        applyLang();
-        $("menu").style.display = "none";
-      });
-
-      // Logout
-      $("logoutTopBtn").addEventListener("click", logout);
-
-      // Unlock by code
-      $("unlockBtn").addEventListener("click", unlockByCode);
-
-      // Supabase auth buttons
-      $("signInBtn").addEventListener("click", signInEmail);
-      $("signUpBtn").addEventListener("click", signUpEmail);
-
-      // Enter key on lock screen: prefer email/pass if filled, else code
-      document.addEventListener("keydown", (e) => {
-        if(e.key !== "Enter") return;
-        const s = $("loginScreen");
-        const visible = s && s.style.display !== "none";
-        if(!visible) return;
-
-        const email = ($("authEmail").value || "").trim();
-        const pass = $("authPass").value || "";
-        if(email && pass) signInEmail();
-        else unlockByCode();
-      });
-
-      applyLang();
-      setBusy(false, T[LANG].ready);
-      setStatus("");
-
-      // Initial lock logic:
-      // 1) If Supabase session exists -> check approval
-      // 2) Else if local code unlocked -> unlock
-      // 3) Else show lock
-      if(supabase){
-        try{
-          const { data } = await supabase.auth.getSession();
-          if(data?.session){
-            const ok = await checkApprovalAndUnlock(data.session);
-            if(ok) return;
-            showLock();
+          const pastedText = (pastedTextEl()?.value || "").trim();
+          if(!pastedText){
+            setStatus(t.needMat, "bad");
+            document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
             return;
           }
-        }catch(e){
-          setLockError(String(e));
-        }
-      }
 
-      if(isUnlocked()){
-        hideLock();
-      } else {
-        showLock();
+          const payload = {
+            lang: LANG,
+            level: levelEl()?.value || "C",
+            course: (courseEl()?.value || "").trim(),
+            qType: qTypeEl()?.value || "mix",
+            pastedText,
+            numQuestions: Number(numQuestionsEl()?.value || 12)
+          };
+
+          setBusy(true, t.genWorking);
+          setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
+
+          const res = await postJson("/api/generate-exam", payload);
+          if(!res.ok || !res.data || !res.data.ok){
+            setBusy(false, t.ready);
+            setStatus(`Error (HTTP ${res.status}).`, "bad");
+            showDebug(res.raw);
+            return;
+          }
+
+          try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
+          renderExam(res.data.exam);
+
+          setBusy(false, t.ready);
+          setStatus(t.genDone, "ok");
+          document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
+        });
+
+        // GRADE
+        onClick("gradeBtn", async () => {
+          hideDebug();
+          setStatus("");
+          const t = T[LANG];
+
+          if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
+            setStatus(t.genFirst, "bad");
+            return;
+          }
+
+          const answers = [];
+          currentExam.questions.forEach((q, idx) => {
+            const qid = String(q.id ?? (idx+1));
+            if(q.type === "mc"){
+              const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
+              answers.push({ id: qid, answer: (hidden?.value || "").trim() });
+            } else {
+              const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
+              answers.push({ id: qid, answer: (ta?.value || "").trim() });
+            }
+          });
+
+          const pastedText = (pastedTextEl()?.value || "").trim();
+          const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
+
+          setBusy(true, t.gradeWorking);
+          setStatus(t.gradeWorking, "");
+
+          const res = await postJson("/api/grade", payload);
+          if(!res.ok || !res.data || !res.data.ok){
+            setBusy(false, t.ready);
+            setStatus(`Error (HTTP ${res.status}).`, "bad");
+            showDebug(res.raw);
+            return;
+          }
+
+          const result = res.data.result;
+          renderResult(result);
+
+          const ts = Date.now();
+          const max = Number(result.max_points || 0);
+          const total = Number(result.total_points || 0);
+          const percent = max > 0 ? Math.round((total / max) * 100) : 0;
+
+          const attempt = {
+            ts,
+            course: (courseEl()?.value || "").trim(),
+            level: levelEl()?.value || "C",
+            qType: qTypeEl()?.value || "mix",
+            numQuestions: Number(numQuestionsEl()?.value || 12),
+            total_points: total,
+            max_points: max,
+            percent
+          };
+
+          const history = lsGetArray(LS_HISTORY);
+          history.push(attempt);
+          while(history.length > 60) history.shift();
+          lsSet(LS_HISTORY, history);
+
+          lsSet(LS_LAST, {
+            ts,
+            attempt,
+            exam: {
+              title: currentExam.title || "",
+              level: currentExam.level || (levelEl()?.value || "C"),
+              questions: currentExam.questions || []
+            },
+            result
+          });
+
+          const mistakes = lsGetArray(LS_MISTAKES);
+          const qById = new Map((currentExam.questions || []).map(q => [String(q.id), q]));
+          const aById = new Map(answers.map(a => [String(a.id), a.answer]));
+
+          (result.per_question || []).forEach(item => {
+            const got = Number(item.points || 0);
+            const m = Number(item.max_points || 0);
+            if(m > 0 && got < m){
+              const q = qById.get(String(item.id)) || {};
+              mistakes.push({
+                ts,
+                course: attempt.course,
+                level: attempt.level,
+                qType: q.type || (qTypeEl()?.value || "mix"),
+                id: String(item.id),
+                question: String(q.question || ""),
+                user_answer: String(aById.get(String(item.id)) || ""),
+                feedback: String(item.feedback || ""),
+                model_answer: String(item.model_answer || ""),
+                points: got,
+                max_points: m
+              });
+            }
+          });
+
+          while(mistakes.length > 200) mistakes.shift();
+          lsSet(LS_MISTAKES, mistakes);
+
+          try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
+
+          setBusy(false, t.ready);
+          setStatus(t.gradeDone, "ok");
+          document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
+        });
+
+        // CLEAR
+        onClick("clearBtn", clearAll);
+
+        // LOCK STARTUP
+        if(db){
+          try{
+            const { data } = await db.auth.getSession();
+            if(data?.session){
+              const ok = await checkApprovalAndUnlock(data.session);
+              if(ok) return;
+              showLock();
+              return;
+            }
+          }catch(e){
+            setLockError(String(e?.message || e));
+          }
+        }
+
+        if(isUnlocked()) hideLock();
+        else showLock();
+
+      }catch(err){
+        reportErr(err);
       }
     });
   </script>
