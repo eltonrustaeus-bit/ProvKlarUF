@@ -11,8 +11,9 @@
       --mint:#2BE38C; --mint2:#16B876;
       --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
       --shadow:0 18px 55px rgba(5,42,30,.14);
-      --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1080px;
+      --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200;
+      --max:1080px;
     }
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -68,10 +69,7 @@
       background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
     }
-    .sectionTitle{
-      margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
-      font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    }
+    .sectionTitle{margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);font-size:16px}
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
 
     label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--deep);font-size:13px}
@@ -88,8 +86,6 @@
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
 
-    details{margin-top:10px}
-    summary{cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px}
     pre{
       margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
       background:#fff;overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
@@ -102,48 +98,7 @@
     .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
     .qText{font-weight:900;color:#071812;line-height:1.45}
 
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-
-    /* menu */
-    .menuWrap{position:relative;z-index:4000}
-    .iconBtn{
-      width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-      background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
-    }
-    .bars{width:18px;height:12px;display:grid;gap:3px}
-    .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
-    .dropdown{
-      position:absolute;right:0;top:54px;min-width:270px;
-      background:rgba(255,255,255,.98);
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow:0 22px 60px rgba(5,42,30,.18);
-      padding:8px;
-      display:none;
-      z-index:5000;
-    }
-    .dropdown a, .dropdown button{
-      width:100%;
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid transparent;
-      background:transparent;
-      cursor:pointer;
-      font-weight:950;
-      color:var(--deep);
-      font-size:13px;
-      text-align:left;
-    }
-    .dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
-    .pill{
-      font-size:11px;font-weight:1000;color:var(--muted);
-      border:1px solid var(--border);
-      border-radius:999px;padding:4px 8px;background:#fff;
-    }
-
-    /* lock */
+    /* LOCK */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -171,18 +126,6 @@
     .miniSplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     @media (max-width:640px){ .miniSplit{grid-template-columns:1fr} }
 
-    /* upload */
-    .uploadBox{
-      border:1px dashed rgba(5,42,30,.22);
-      border-radius:16px;
-      padding:12px;
-      background:rgba(255,255,255,.7);
-    }
-    .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
-    .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .fileRow input[type="file"]{max-width:320px}
-
     /* MC clickable */
     .mcGroup{display:grid;gap:8px;margin-top:10px}
     .mcOpt{
@@ -207,41 +150,33 @@
     }
     .mcText{font-weight:850;color:#071812}
 
-    /* admin badge */
-    .adminBadge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;
-      background:rgba(43,227,140,.12);
-      border:1px solid rgba(43,227,140,.25);
-      color:var(--deep);
-      font-weight:1100;font-size:12px;
-    }
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
 
 <body>
 
   <!-- LOCK SCREEN -->
-  <div id="loginScreen" class="loginOverlay" aria-hidden="false">
-    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomst">
+  <div id="loginScreen" class="loginOverlay">
+    <div class="loginCard">
       <div class="loginTop">
         <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
-          <div class="ltTitle" id="lockTitle">ProviaAi</div>
+          <div class="ltTitle">ProviaAi</div>
           <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
 
       <div class="loginBody">
-        <!-- SUPABASE AUTH (NYTT) -->
+        <!-- SUPABASE AUTH -->
         <div id="authBox">
           <div class="miniSplit">
             <div>
-              <label for="authEmail" id="authEmailLabel">E-post</label>
+              <label for="authEmail">E-post</label>
               <input id="authEmail" type="email" placeholder="du@skola.se" autocomplete="email" />
             </div>
             <div>
-              <label for="authPass" id="authPassLabel">Lösenord</label>
+              <label for="authPass">Lösenord</label>
               <input id="authPass" type="password" placeholder="Minst 8 tecken" autocomplete="current-password" />
             </div>
           </div>
@@ -249,26 +184,26 @@
           <div class="loginRow">
             <button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
             <button class="btn" type="button" id="signUpBtn">Skapa konto</button>
-            <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
-            <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+            <a class="btn" href="index.html">Till infosidan</a>
+            <a class="btn" href="förbättring.html">Förbättring</a>
           </div>
 
           <div class="hint" id="authHint">
-            Skapa konto första gången. Vid e-postbekräftelse: kolla din inkorg.
+            Om knapparna inte gör något: Supabase-SDK kan ha misslyckats att ladda. Då fungerar kod-inloggning ändå.
           </div>
         </div>
 
-        <!-- FALLBACK ACCESS CODE (BEHÅLLS) -->
-        <details style="margin-top:14px" id="fallbackAccess">
-          <summary>Alternativ inloggning: kod</summary>
-          <label for="accessCode" id="lockLabel">Åtkomstkod</label>
+        <!-- ACCESS CODE -->
+        <details style="margin-top:14px" id="fallbackAccess" open>
+          <summary style="cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px">Alternativ inloggning: kod</summary>
+          <label for="accessCode">Åtkomstkod</label>
           <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
           <div class="loginRow">
             <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
           </div>
         </details>
 
-        <div id="errorMsg" class="err" aria-live="polite"></div>
+        <div id="errorMsg" class="err"></div>
       </div>
     </div>
   </div>
@@ -279,31 +214,13 @@
       <a class="brand" href="index.html">
         <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
-          <div class="name" id="brandName">ProviaAi</div>
-          <div class="tag" id="brandTag">Mockprov • Rättning • Modellsvar</div>
+          <div class="name">ProviaAi</div>
+          <div class="tag">Mockprov • Rättning • Modellsvar</div>
         </div>
       </a>
 
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span id="adminBadge" class="adminBadge" style="display:none">Admin</span>
-
-        <div class="menuWrap">
-          <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
-            <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-          </button>
-
-          <div class="dropdown" id="menu" aria-label="Menyval">
-            <a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
-            <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
-            <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
-            <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
-
-            <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
-
-            <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-            <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
-          </div>
-        </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="logoutBtn" type="button">Logga ut</button>
       </div>
     </div>
   </header>
@@ -311,39 +228,24 @@
   <main class="wrap" id="appRoot">
 
     <section class="card" id="material">
-      <div class="sectionTitle"><span id="tStep1">Steg 1 – Material</span></div>
-      <p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
+      <h3 class="sectionTitle">Steg 1 – Material</h3>
+      <p class="sectionSub">Klistra in text. (OCR-knappen kräver att du har en fungerande /api/ocr-route.)</p>
 
-      <label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
+      <label for="pastedText">Material (klistra in text)</label>
       <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
 
-      <div class="uploadBox" style="margin-top:12px">
-        <div class="uploadTop">
-          <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
-          <div class="fileRow">
-            <input id="imageInput" type="file" accept="image/*" capture="environment" />
-            <button class="btn" id="ocrBtn" type="button">OCR till material</button>
-          </div>
-        </div>
-        <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
-        <div class="status" id="ocrStatus"></div>
-      </div>
-
-      <div class="status warn" id="formatHint" style="margin-top:12px">
+      <div class="status warn" style="margin-top:12px">
         Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
       </div>
     </section>
 
     <section class="card" id="settings">
-      <div class="sectionTitle">
-        <span id="tStep2">Steg 2 – Inställningar</span>
-        <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
-      </div>
-      <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
+      <h3 class="sectionTitle">Steg 2 – Inställningar</h3>
+      <p class="sectionSub">Välj nivå, frågetyp och exakt antal frågor.</p>
 
       <div class="grid2">
         <div>
-          <label for="level" id="tLevel">Nivå (E/C/A)</label>
+          <label for="level">Nivå (E/C/A)</label>
           <select id="level">
             <option value="E">E</option>
             <option value="C" selected>C</option>
@@ -351,23 +253,23 @@
           </select>
         </div>
         <div>
-          <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
+          <label for="course">Ämne/kurs (valfritt)</label>
           <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
         </div>
       </div>
 
       <div class="grid2" style="margin-top:12px">
         <div>
-          <label for="qType" id="tQType">Frågetyp</label>
+          <label for="qType">Frågetyp</label>
           <select id="qType">
-            <option value="mix" selected id="qtMix">Blandat</option>
-            <option value="mc" id="qtMc">Flervalsfrågor</option>
-            <option value="short" id="qtShort">Kortsvar</option>
-            <option value="essay" id="qtEssay">Essä</option>
+            <option value="mix" selected>Blandat</option>
+            <option value="mc">Flervalsfrågor</option>
+            <option value="short">Kortsvar</option>
+            <option value="essay">Essä</option>
           </select>
         </div>
         <div>
-          <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
+          <label for="numQuestions">Antal frågor (exakt)</label>
           <select id="numQuestions">
             <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
             <option>9</option><option>10</option><option>11</option><option selected>12</option>
@@ -381,88 +283,172 @@
         <button class="btn" id="clearBtn" type="button">Rensa</button>
 
         <span style="display:flex;gap:10px;align-items:center">
-          <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
+          <span id="spinWrap" style="display:none"><span class="spinner"></span></span>
           <span class="sectionSub" id="miniState">Redo.</span>
         </span>
       </div>
 
       <div class="status" id="status"></div>
-
-      <details id="debugWrap" style="display:none">
-        <summary id="debugTitle">Debug</summary>
-        <pre id="debug"></pre>
-      </details>
+      <pre id="debug" style="display:none"></pre>
     </section>
 
     <section class="card" id="exam">
-      <div class="sectionTitle"><span id="tStep3">Steg 3 – Mockprov</span></div>
+      <h3 class="sectionTitle">Steg 3 – Mockprov</h3>
       <div class="status" id="examMeta">Ingen provdata ännu.</div>
       <div id="examBody"></div>
     </section>
 
     <section class="card" id="result">
-      <div class="sectionTitle"><span id="tStep4">Steg 4 – Rättning</span></div>
+      <h3 class="sectionTitle">Steg 4 – Rättning</h3>
       <div class="status" id="resultMeta">Ingen rättning ännu.</div>
       <div id="resultBody"></div>
     </section>
 
   </main>
 
-  <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- SUPABASE SDK (NYTT) -->
+  <!-- SUPABASE SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // ====== SUPABASE (NYTT) ======
-    // Fyll i från Supabase: Project Settings -> API
-    // OBS: detta är "anon public key"
+    // =========================
+    // 1) FYLL I DINA SUPABASE-KEYS
+    // =========================
     const SUPABASE_URL = "PASTA_DIN_SUPABASE_PROJECT_URL_HÄR";
     const SUPABASE_ANON_KEY = "PASTA_DIN_SUPABASE_ANON_PUBLIC_KEY_HÄR";
 
-    // Om du inte vill aktivera Supabase ännu, lämna tomt, då används kod-inloggningen.
-    const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.startsWith("http"));
-
-    const supabase = USE_SUPABASE
-      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
-
-    // ===== LOGIN CONFIG (FALLBACK KOD) =====
+    // =========================
+    // 2) FALLBACK-KOD
+    // =========================
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
-    // ===== APP-ADMIN (NYTT) =====
-    // DB-tabell: profiles(id uuid pk, email text, role text default 'user')
-    // Du sätter din egen rad till role='admin' i Supabase Table Editor.
-    let CURRENT_USER = null;
-    let IS_ADMIN = false;
-
-    // ===== STORAGE KEYS (för förbättringssidan) =====
-    const LS_HISTORY = "proviaai_history";        // array
-    const LS_MISTAKES = "proviaai_mistakes";      // array
-    const LS_LAST = "proviaai_last_result";       // object
-    const LS_MATERIAL = "proviaai_last_material"; // string
-
+    // Helpers
     const $ = (id) => document.getElementById(id);
 
-    function safeJsonParse(s, fallback){
-      try{ return JSON.parse(s); } catch { return fallback; }
-    }
-    function lsGetArray(key){
-      const v = localStorage.getItem(key);
-      const arr = safeJsonParse(v, []);
-      return Array.isArray(arr) ? arr : [];
-    }
-    function lsSet(key, val){
-      try{ localStorage.setItem(key, JSON.stringify(val)); } catch {}
+    function showError(msg){ const e=$("errorMsg"); if(e) e.textContent = msg || ""; }
+    function showDebug(msg){
+      const d = $("debug");
+      if(!d) return;
+      if(!msg){ d.style.display="none"; d.textContent=""; return; }
+      d.style.display="block"; d.textContent=String(msg);
     }
 
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    // GLOBAL ERROR CATCH (så knappar aldrig blir “döda” utan text)
+    window.addEventListener("error", (ev) => {
+      showError("JavaScript-fel: " + (ev?.message || "okänt fel"));
+    });
+
+    function showLock(){
+      $("loginScreen").style.display = "flex";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    }
+    function hideLock(){
+      $("loginScreen").style.display = "none";
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    function isUnlockedByCode(){
+      return localStorage.getItem(ACCESS_FLAG_KEY) === "true";
     }
 
+    // =========================
+    // Supabase init (FAILSAFE)
+    // =========================
+    const USE_SUPABASE = (typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http"))
+                      && (typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 20);
+
+    let supabase = null;
+    if(USE_SUPABASE){
+      // KRITISK FIX: om SDK inte laddats ska vi INTE krascha
+      if(window.supabase && typeof window.supabase.createClient === "function"){
+        try{
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }catch(e){
+          supabase = null;
+          showError("Supabase kunde inte initieras.");
+          showDebug(String(e));
+        }
+      }else{
+        supabase = null;
+        // Detta gjorde tidigare att allt dog. Nu fortsätter appen ändå.
+        showError("Supabase-SDK laddades inte. Använd kod-inloggning eller testa igen.");
+      }
+    }
+
+    // =========================
+    // Auth actions
+    // =========================
+    async function signInEmail(){
+      showError(""); showDebug("");
+      if(!supabase){
+        showError("Supabase är inte aktiv. Använd kod-inloggning eller fyll i URL/ANON korrekt.");
+        return;
+      }
+      const email = ($("authEmail").value || "").trim();
+      const password = $("authPass").value || "";
+      if(!email || !password){
+        showError("Fyll i e-post och lösenord.");
+        return;
+      }
+      try{
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if(error){ showError(error.message); return; }
+        hideLock();
+      }catch(e){
+        showError("Inloggningsfel.");
+        showDebug(String(e));
+      }
+    }
+
+    async function signUpEmail(){
+      showError(""); showDebug("");
+      if(!supabase){
+        showError("Supabase är inte aktiv. Använd kod-inloggning eller fyll i URL/ANON korrekt.");
+        return;
+      }
+      const email = ($("authEmail").value || "").trim();
+      const password = $("authPass").value || "";
+      if(!email || !password){
+        showError("Fyll i e-post och lösenord.");
+        return;
+      }
+      try{
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if(error){ showError(error.message); return; }
+        showError("Konto skapat. Om bekräftelse krävs: kolla mailen och logga in efteråt.");
+        if(data?.user) hideLock();
+      }catch(e){
+        showError("Kunde inte skapa konto.");
+        showDebug(String(e));
+      }
+    }
+
+    function unlockByCode(){
+      showError(""); showDebug("");
+      const v = ($("accessCode").value || "").trim();
+      if(v === ACCESS_CODE){
+        localStorage.setItem(ACCESS_FLAG_KEY, "true");
+        hideLock();
+      } else {
+        showError("Fel kod.");
+      }
+    }
+
+    async function logoutAll(){
+      showError(""); showDebug("");
+      localStorage.removeItem(ACCESS_FLAG_KEY);
+      if(supabase){
+        try{ await supabase.auth.signOut(); }catch{}
+      }
+      showLock();
+    }
+
+    // =========================
+    // API helpers (mock exam)
+    // =========================
     async function postJson(path, payload){
       const resp = await fetch(path, {
         method:"POST",
@@ -474,429 +460,69 @@
       try{ data = JSON.parse(raw); } catch {}
       return { ok: resp.ok, status: resp.status, raw, data };
     }
-
-    // ===== I18N =====
-    let LANG = localStorage.getItem("proviaai_lang") || "sv";
-    const T = {
-      sv:{
-        brandTag:"Mockprov • Rättning • Modellsvar",
-        lockSub:"Åtkomst krävs för att använda appen",
-        lockLabel:"Åtkomstkod",
-        unlock:"Lås upp",
-        toInfo:"Till infosidan",
-        toImprove:"Förbättring",
-        m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
-        mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
-        step1:"Steg 1 – Material",
-        step1Sub:"Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
-        pasteLabel:"Material (klistra in text)",
-        pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
-        ocrTitle:"Bild → OCR (valfritt)",
-        ocrBtn:"OCR till material",
-        ocrHint:"Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.",
-        tip:"Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.",
-        step2:"Steg 2 – Inställningar",
-        step2Sub:"Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.",
-        level:"Nivå (E/C/A)",
-        course:"Ämne/kurs (valfritt)",
-        coursePH:"Ex: Matematik 2b / Historia 1b",
-        qType:"Frågetyp",
-        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar", qtEssay:"Essä",
-        num:"Antal frågor (exakt)",
-        gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
-        ready:"Redo.",
-        debug:"Debug",
-        step3:"Steg 3 – Mockprov",
-        step4:"Steg 4 – Rättning",
-        noExam:"Ingen provdata ännu.",
-        noGrade:"Ingen rättning ännu.",
-        needMat:"Klistra in material först.",
-        genWorking:"Skapar mockprov…",
-        gradeWorking:"Rättar prov…",
-        genDone:"Mockprov klart.",
-        gradeDone:"Rättning klar. Sparad till förbättring.",
-        wrongCode:"Fel kod.",
-        ocrNoFile:"Välj en bild först.",
-        ocrWorking:"OCR pågår…",
-        ocrDone:"OCR klart. Texten lades in i materialet.",
-        writeAnswer:"Skriv ditt svar här…",
-        fullScore:"Vad som ger full poäng (modellsvar)",
-        genFirst:"Skapa mockprov först.",
-        cleared:"Allt rensat. Börja om.",
-        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
-        authEmail:"E-post",
-        authPass:"Lösenord",
-        authSignIn:"Logga in",
-        authSignUp:"Skapa konto",
-        authBadConfig:"Supabase är inte konfigurerat. Använd kod-inloggning nedan.",
-        authSignedIn:"Inloggad.",
-        authSignedOut:"Utloggad.",
-        authCreated:"Konto skapat. Kolla mailen om bekräftelse krävs.",
-        authErr:"Inloggningsfel."
-      },
-      en:{
-        brandTag:"Mock exams • Grading • Model answers",
-        lockSub:"Access is required to use the app",
-        lockLabel:"Access code",
-        unlock:"Unlock",
-        toInfo:"Go to info page",
-        toImprove:"Improve",
-        m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
-        mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
-        step1:"Step 1 – Material",
-        step1Sub:"Paste text. Optional: choose an image or take a photo → OCR adds text into your material.",
-        pasteLabel:"Material (paste text)",
-        pastePH:"Headings → bullet points → definitions/formulas → examples",
-        ocrTitle:"Image → OCR (optional)",
-        ocrBtn:"OCR into material",
-        ocrHint:"Tip: sharp photo from above, good light, high contrast.",
-        tip:"Tip: headings + bullet points produce more accurate questions and grading.",
-        step2:"Step 2 – Settings",
-        step2Sub:"Choose level (E/C/A), question type and an exact number of questions.",
-        level:"Level (E/C/A)",
-        course:"Subject/course (optional)",
-        coursePH:"e.g., Math / History",
-        qType:"Question type",
-        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer", qtEssay:"Essay",
-        num:"Number of questions (exact)",
-        gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
-        ready:"Ready.",
-        debug:"Debug",
-        step3:"Step 3 – Mock exam",
-        step4:"Step 4 – Grading",
-        noExam:"No exam data yet.",
-        noGrade:"No grading yet.",
-        needMat:"Paste material first.",
-        genWorking:"Generating mock exam…",
-        gradeWorking:"Grading…",
-        genDone:"Mock exam ready.",
-        gradeDone:"Grading done. Saved to Improve page.",
-        wrongCode:"Wrong code.",
-        ocrNoFile:"Choose an image first.",
-        ocrWorking:"Running OCR…",
-        ocrDone:"OCR done. Text was added to the material.",
-        writeAnswer:"Write your answer here…",
-        fullScore:"Full-score model answer",
-        genFirst:"Generate an exam first.",
-        cleared:"Cleared. Start again.",
-        footer:"ProviaAi is study support and does not provide official grades.",
-        authEmail:"Email",
-        authPass:"Password",
-        authSignIn:"Sign in",
-        authSignUp:"Create account",
-        authBadConfig:"Supabase is not configured. Use code login below.",
-        authSignedIn:"Signed in.",
-        authSignedOut:"Signed out.",
-        authCreated:"Account created. Check email if confirmation is required.",
-        authErr:"Auth error."
-      }
-    };
-
-    // ===== MENU =====
-    function closeMenu(){ $("menu").style.display = "none"; }
-
-    // ===== LOCK / UNLOCK (FALLBACK KOD) =====
-    function isUnlockedByCode(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
-
-    function showLock(){
-      const s = $("loginScreen");
-      if(!s) return;
-      s.style.display = "flex";
-      s.setAttribute("aria-hidden","false");
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    }
-    function hideLock(){
-      const s = $("loginScreen");
-      if(!s) return;
-      s.style.display = "none";
-      s.setAttribute("aria-hidden","true");
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
-    function setAuthError(msg){
-      $("errorMsg").textContent = msg || "";
-    }
-
-    function unlockByCode(){
-      const input = $("accessCode");
-      const v = (input?.value || "").trim();
-      if(v === ACCESS_CODE){
-        localStorage.setItem(ACCESS_FLAG_KEY, "true");
-        setAuthError("");
-        hideLock();
-      } else {
-        setAuthError(T[LANG].wrongCode);
-      }
-    }
-
-    // ===== SUPABASE AUTH (NYTT) =====
-    async function ensureProfileAndAdmin(user){
-      // Skapar/upsertar profiles-rad (role default 'user' om tabellen har default, men vi skickar 'user' säkert)
-      // Kräver att tabellen finns: profiles(id uuid pk, email text, role text default 'user')
-      if(!supabase || !user) return { ok:false, role:"user" };
-
-      try{
-        await supabase.from("profiles").upsert({
-          id: user.id,
-          email: user.email,
-          role: "user"
-        });
-
-        const { data: prof, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-
-        const role = (!error && prof?.role) ? prof.role : "user";
-        return { ok:true, role };
-      } catch {
-        return { ok:false, role:"user" };
-      }
-    }
-
-    async function signInEmail(){
-      if(!supabase){
-        setAuthError(T[LANG].authBadConfig);
-        return;
-      }
-      setAuthError("");
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){
-        setAuthError(T[LANG].authErr);
-        return;
-      }
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if(error){
-        setAuthError(error.message || T[LANG].authErr);
-        return;
-      }
-      const user = data?.user || null;
-      CURRENT_USER = user;
-      const prof = await ensureProfileAndAdmin(user);
-      IS_ADMIN = prof.role === "admin";
-      $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
-      hideLock();
-    }
-
-    async function signUpEmail(){
-      if(!supabase){
-        setAuthError(T[LANG].authBadConfig);
-        return;
-      }
-      setAuthError("");
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){
-        setAuthError(T[LANG].authErr);
-        return;
-      }
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if(error){
-        setAuthError(error.message || T[LANG].authErr);
-        return;
-      }
-      // Vissa projekt kräver mailbekräftelse innan session finns
-      setAuthError(T[LANG].authCreated);
-      // Om session direkt finns: lås upp
-      const user = data?.user || null;
-      if(user){
-        CURRENT_USER = user;
-        const prof = await ensureProfileAndAdmin(user);
-        IS_ADMIN = prof.role === "admin";
-        $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
-        hideLock();
-      }
-    }
-
-    async function appLogout(){
-      closeMenu();
-      // logga ut från supabase om aktiverat
-      if(supabase){
-        try{ await supabase.auth.signOut(); } catch {}
-      }
-      // fallback: rensa kod-unlock
-      localStorage.removeItem(ACCESS_FLAG_KEY);
-      CURRENT_USER = null;
-      IS_ADMIN = false;
-      $("adminBadge").style.display = "none";
-      showLock();
-      window.location.href = "index.html";
-    }
-
-    // ===== APP STATE ELEMENTS =====
+    // =========================
+    // App state
+    // =========================
     const spinWrap = $("spinWrap");
     const miniStateEl = $("miniState");
     const statusEl = $("status");
-    const debugWrap = $("debugWrap");
-    const debugEl = $("debug");
-
-    const pastedTextEl = $("pastedText");
-    const levelEl = $("level");
-    const courseEl = $("course");
-    const qTypeEl = $("qType");
-    const numQuestionsEl = $("numQuestions");
-
-    const generateExamBtn = $("generateExamBtn");
-    const gradeBtn = $("gradeBtn");
-    const clearBtn = $("clearBtn");
-
     const examMetaEl = $("examMeta");
     const examBodyEl = $("examBody");
     const resultMetaEl = $("resultMeta");
     const resultBodyEl = $("resultBody");
-
-    const imageInput = $("imageInput");
-    const ocrBtn = $("ocrBtn");
-    const ocrStatus = $("ocrStatus");
+    const gradeBtn = $("gradeBtn");
 
     let currentExam = null;
 
-    function applyLang(){
-      const t = T[LANG];
-      $("brandTag").textContent = t.brandTag;
-      $("lockSub").textContent = t.lockSub;
-      $("lockLabel").textContent = t.lockLabel;
-      $("unlockBtn").textContent = t.unlock;
-      $("toInfoBtn").textContent = t.toInfo;
-      $("toImproveBtn").textContent = t.toImprove;
-
-      $("authEmailLabel").textContent = t.authEmail;
-      $("authPassLabel").textContent = t.authPass;
-      $("signInBtn").textContent = t.authSignIn;
-      $("signUpBtn").textContent = t.authSignUp;
-
-      $("m1").textContent = t.m1;
-      $("m2").textContent = t.m2;
-      $("m3").textContent = t.m3;
-      $("m4").textContent = t.m4;
-      $("mImprove").textContent = t.mImprove;
-      $("mLang").textContent = t.mLang;
-      $("mLogout").textContent = t.mLogout;
-      $("langPill").textContent = LANG.toUpperCase();
-
-      $("tStep1").textContent = t.step1;
-      $("tStep1Sub").textContent = t.step1Sub;
-      $("tPasteLabel").textContent = t.pasteLabel;
-      $("pastedText").placeholder = t.pastePH;
-      $("tOcrTitle").textContent = t.ocrTitle;
-      $("ocrBtn").textContent = t.ocrBtn;
-      $("tOcrHint").textContent = t.ocrHint;
-      $("formatHint").textContent = t.tip;
-
-      $("tStep2").textContent = t.step2;
-      $("tStep2Sub").textContent = t.step2Sub;
-      $("tLevel").textContent = t.level;
-      $("tCourse").textContent = t.course;
-      $("course").placeholder = t.coursePH;
-      $("tQType").textContent = t.qType;
-      $("qtMix").textContent = t.qtMix;
-      $("qtMc").textContent = t.qtMc;
-      $("qtShort").textContent = t.qtShort;
-      $("qtEssay").textContent = t.qtEssay;
-      $("tNum").textContent = t.num;
-      $("generateExamBtn").textContent = t.gen;
-      $("gradeBtn").textContent = t.grade;
-      $("clearBtn").textContent = t.clear;
-      $("improveBtnInline").textContent = t.mImprove;
-
-      $("miniState").textContent = t.ready;
-      $("debugTitle").textContent = t.debug;
-      $("tStep3").textContent = t.step3;
-      $("tStep4").textContent = t.step4;
-      $("footerText").textContent = t.footer;
-
-      if(!examBodyEl.children.length) examMetaEl.textContent = t.noExam;
-      if(!resultBodyEl.children.length) resultMetaEl.textContent = t.noGrade;
-
-      // fallback text if supabase not configured
-      if(!USE_SUPABASE){
-        $("authHint").textContent = t.authBadConfig;
-      }
-    }
-
-    function setBusy(isBusy, label){
-      spinWrap.style.display = isBusy ? "inline-flex" : "none";
-      miniStateEl.textContent = label || (isBusy ? "…" : T[LANG].ready);
-      generateExamBtn.disabled = isBusy;
-      gradeBtn.disabled = isBusy || !currentExam;
-      clearBtn.disabled = isBusy;
-      ocrBtn.disabled = isBusy;
+    function setBusy(b, label){
+      spinWrap.style.display = b ? "inline-flex" : "none";
+      miniStateEl.textContent = label || (b ? "…" : "Redo.");
+      $("generateExamBtn").disabled = b;
+      $("gradeBtn").disabled = b || !currentExam;
+      $("clearBtn").disabled = b;
     }
     function setStatus(txt, kind){
       statusEl.className = "status" + (kind ? (" " + kind) : "");
       statusEl.textContent = txt || "";
     }
-    function setOcrStatus(txt, kind){
-      ocrStatus.className = "status" + (kind ? (" " + kind) : "");
-      ocrStatus.textContent = txt || "";
-    }
-    function showDebug(txt){
-      debugWrap.style.display = "block";
-      debugEl.textContent = txt || "";
-    }
-    function hideDebug(){
-      debugWrap.style.display = "none";
-      debugEl.textContent = "";
-    }
-
-    async function fileToDataUrl(file){
-      return new Promise((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(String(fr.result || ""));
-        fr.onerror = () => reject(new Error("FileReader error"));
-        fr.readAsDataURL(file);
-      });
-    }
 
     function renderExam(exam){
       currentExam = exam;
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
-      const t = T[LANG];
-
-      examMetaEl.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+      examMetaEl.textContent = `${exam.title || "Mockprov"} • Nivå: ${exam.level || "—"} • ${qs.length} frågor`;
       examBodyEl.innerHTML = "";
-      resultMetaEl.textContent = t.noGrade;
+      resultMetaEl.textContent = "Ingen rättning ännu.";
       resultBodyEl.innerHTML = "";
 
       qs.forEach((q, idx) => {
+        const qid = String(q.id ?? (idx+1));
         const box = document.createElement("div");
         box.className = "qBox";
-        const qid = String(q.id ?? (idx+1));
+        box.innerHTML = `
+          <div class="qMeta">ID: ${escapeHtml(qid)} • Poäng: ${escapeHtml(q.points ?? "—")} • Typ: ${escapeHtml(q.type ?? "")}</div>
+          <div class="qText">${escapeHtml(q.question ?? "")}</div>
+        `;
 
-        const meta = document.createElement("div");
-        meta.className = "qMeta";
-        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? qTypeEl.value}`;
-
-        const text = document.createElement("div");
-        text.className = "qText";
-        text.textContent = q.question ?? "";
-
-        box.appendChild(meta);
-        box.appendChild(text);
-
-        if((q.type === "mc") && Array.isArray(q.options) && q.options.length){
-          const group = document.createElement("div");
-          group.className = "mcGroup";
-          group.dataset.qid = qid;
-
+        if(q.type === "mc" && Array.isArray(q.options) && q.options.length){
           const hidden = document.createElement("input");
           hidden.type = "hidden";
           hidden.className = "mcAnswer";
           hidden.dataset.qid = qid;
-          hidden.value = "";
           box.appendChild(hidden);
 
+          const group = document.createElement("div");
+          group.className = "mcGroup";
           q.options.forEach((opt, i) => {
-            const letter = String.fromCharCode(65 + i);
+            const letter = String.fromCharCode(65+i);
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "mcOpt";
-            btn.dataset.letter = letter;
-            btn.dataset.qid = qid;
             btn.innerHTML = `<span class="mcLetter">${letter}</span><span class="mcText">${escapeHtml(opt)}</span>`;
             btn.addEventListener("click", () => {
               group.querySelectorAll(".mcOpt").forEach(x => x.classList.remove("sel"));
@@ -905,19 +531,17 @@
             });
             group.appendChild(btn);
           });
-
           box.appendChild(group);
-          examBodyEl.appendChild(box);
-          return;
+        } else {
+          const ta = document.createElement("textarea");
+          ta.className = "answer";
+          ta.dataset.qid = qid;
+          ta.placeholder = "Skriv ditt svar här…";
+          ta.style.marginTop = "10px";
+          ta.style.minHeight = (q.type === "essay") ? "150px" : "110px";
+          box.appendChild(ta);
         }
 
-        const ans = document.createElement("textarea");
-        ans.className = "answer";
-        ans.placeholder = t.writeAnswer;
-        ans.dataset.qid = qid;
-        ans.style.marginTop = "10px";
-        ans.style.minHeight = (q.type === "essay") ? "150px" : "110px";
-        box.appendChild(ans);
         examBodyEl.appendChild(box);
       });
 
@@ -925,130 +549,99 @@
     }
 
     function renderResult(r){
-      const t = T[LANG];
-      resultMetaEl.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
-      const wrap = document.createElement("div");
-
+      resultMetaEl.textContent = `Rättning: ${r.total_points}/${r.max_points}`;
+      resultBodyEl.innerHTML = "";
       (r.per_question || []).forEach(item => {
         const d = document.createElement("div");
         d.className = "qBox";
-        const model = String(item.model_answer || "").trim();
         d.innerHTML = `
           <div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
           <div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
           <div style="margin-top:10px;border-top:1px solid rgba(5,42,30,.12);padding-top:10px">
-            <div style="font-weight:1100;color:#052A1E;margin-bottom:6px;font-size:13px">${t.fullScore}</div>
-            <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
+            <div style="font-weight:1100;color:#052A1E;margin-bottom:6px;font-size:13px">Vad som ger full poäng (modellsvar)</div>
+            <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(item.model_answer || "")}</div>
           </div>
         `;
-        wrap.appendChild(d);
+        resultBodyEl.appendChild(d);
       });
-
-      resultBodyEl.innerHTML = "";
-      resultBodyEl.appendChild(wrap);
     }
 
     function clearAll(){
-      const t = T[LANG];
-      pastedTextEl.value = "";
-      courseEl.value = "";
-      levelEl.value = "C";
-      qTypeEl.value = "mix";
-      numQuestionsEl.value = "12";
-      imageInput.value = "";
-      setOcrStatus("");
+      $("pastedText").value = "";
+      $("course").value = "";
+      $("level").value = "C";
+      $("qType").value = "mix";
+      $("numQuestions").value = "12";
       currentExam = null;
-      examMetaEl.textContent = t.noExam;
+      examMetaEl.textContent = "Ingen provdata ännu.";
       examBodyEl.innerHTML = "";
-      resultMetaEl.textContent = t.noGrade;
+      resultMetaEl.textContent = "Ingen rättning ännu.";
       resultBodyEl.innerHTML = "";
       gradeBtn.disabled = true;
-      setStatus(t.cleared, "ok");
-      hideDebug();
+      setStatus("Allt rensat. Börja om.", "ok");
+      showDebug("");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // ===== OCR =====
-    $("ocrBtn").addEventListener("click", async () => {
-      hideDebug();
-      const t = T[LANG];
-      const file = imageInput.files && imageInput.files[0];
-      if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
-      setBusy(true, t.ocrWorking);
-      setOcrStatus(t.ocrWorking, "warn");
-      try{
-        const dataUrl = await fileToDataUrl(file);
-        const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
-        if(!res.ok || !res.data || !res.data.ok){
-          setBusy(false, t.ready);
-          setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
-          showDebug(res.raw);
-          return;
-        }
-        const extracted = String(res.data.text || "").trim();
-        if(extracted){
-          const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
-          const base = pastedTextEl.value.trim();
-          pastedTextEl.value = (base ? base + prefix : "") + extracted + "\n";
-        }
-        setBusy(false, t.ready);
-        setOcrStatus(t.ocrDone, "ok");
-      }catch(e){
-        setBusy(false, t.ready);
-        setOcrStatus("OCR error.", "bad");
-        showDebug(String(e));
-      }
+    // =========================
+    // Wire events (DIRECT)
+    // =========================
+    $("signInBtn").addEventListener("click", signInEmail);
+    $("signUpBtn").addEventListener("click", signUpEmail);
+    $("unlockBtn").addEventListener("click", unlockByCode);
+    $("logoutBtn").addEventListener("click", logoutAll);
+    $("clearBtn").addEventListener("click", clearAll);
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key !== "Enter") return;
+      const lockVisible = $("loginScreen").style.display !== "none";
+      if(!lockVisible) return;
+      const email = ($("authEmail").value || "").trim();
+      const pass = $("authPass").value || "";
+      if(email && pass) signInEmail();
+      else unlockByCode();
     });
 
-    // ===== GENERATE EXAM =====
     $("generateExamBtn").addEventListener("click", async () => {
-      hideDebug();
-      setStatus("");
-      const t = T[LANG];
-
-      const pastedText = pastedTextEl.value.trim();
+      showDebug("");
+      setStatus("", "");
+      const pastedText = $("pastedText").value.trim();
       if(!pastedText){
-        setStatus(t.needMat, "bad");
+        setStatus("Klistra in material först.", "bad");
         document.querySelector("#material").scrollIntoView({behavior:"smooth"});
         return;
       }
 
       const payload = {
-        lang: LANG,
-        level: levelEl.value,
-        course: courseEl.value.trim(),
-        qType: qTypeEl.value,
+        lang: "sv",
+        level: $("level").value,
+        course: $("course").value.trim(),
+        qType: $("qType").value,
         pastedText,
-        numQuestions: Number(numQuestionsEl.value)
+        numQuestions: Number($("numQuestions").value)
       };
 
-      setBusy(true, t.genWorking);
-      setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
-
+      setBusy(true, "Skapar mockprov…");
       const res = await postJson("/api/generate-exam", payload);
+
       if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, t.ready);
-        setStatus(`Error (HTTP ${res.status}).`, "bad");
+        setBusy(false, "Redo.");
+        setStatus(`Fel vid generering (HTTP ${res.status}).`, "bad");
         showDebug(res.raw);
         return;
       }
 
-      try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-
       renderExam(res.data.exam);
-      setBusy(false, t.ready);
-      setStatus(t.genDone, "ok");
+      setBusy(false, "Redo.");
+      setStatus("Mockprov klart.", "ok");
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
     });
 
-    // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
     $("gradeBtn").addEventListener("click", async () => {
-      hideDebug();
-      setStatus("");
-      const t = T[LANG];
-
+      showDebug("");
+      setStatus("", "");
       if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-        setStatus(t.genFirst, "bad");
+        setStatus("Skapa mockprov först.", "bad");
         return;
       }
 
@@ -1056,204 +649,54 @@
       currentExam.questions.forEach((q, idx) => {
         const qid = String(q.id ?? (idx+1));
         if(q.type === "mc"){
-          const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
+          const hidden = document.querySelector(`input.mcAnswer[data-qid="${qid.replaceAll('"','\\"')}"]`);
           answers.push({ id: qid, answer: (hidden?.value || "").trim() });
         } else {
-          const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
+          const ta = document.querySelector(`textarea.answer[data-qid="${qid.replaceAll('"','\\"')}"]`);
           answers.push({ id: qid, answer: (ta?.value || "").trim() });
         }
       });
 
-      const pastedText = pastedTextEl.value.trim();
       const payload = {
-        lang: LANG,
-        pastedText,
+        lang: "sv",
+        pastedText: $("pastedText").value.trim(),
         questions: currentExam.questions,
         answers
       };
 
-      setBusy(true, t.gradeWorking);
-      setStatus(t.gradeWorking, "");
-
+      setBusy(true, "Rättar prov…");
       const res = await postJson("/api/grade", payload);
+
       if(!res.ok || !res.data || !res.data.ok){
-        setBusy(false, t.ready);
-        setStatus(`Error (HTTP ${res.status}).`, "bad");
+        setBusy(false, "Redo.");
+        setStatus(`Fel vid rättning (HTTP ${res.status}).`, "bad");
         showDebug(res.raw);
         return;
       }
 
-      const result = res.data.result;
-      renderResult(result);
-
-      const ts = Date.now();
-      const max = Number(result.max_points || 0);
-      const total = Number(result.total_points || 0);
-      const percent = max > 0 ? Math.round((total / max) * 100) : 0;
-
-      const attempt = {
-        ts,
-        course: (courseEl.value || "").trim(),
-        level: levelEl.value,
-        qType: qTypeEl.value,
-        numQuestions: Number(numQuestionsEl.value),
-        total_points: total,
-        max_points: max,
-        percent
-      };
-
-      const history = lsGetArray(LS_HISTORY);
-      history.push(attempt);
-      while(history.length > 60) history.shift();
-      lsSet(LS_HISTORY, history);
-
-      lsSet(LS_LAST, {
-        ts,
-        attempt,
-        exam: {
-          title: currentExam.title || "",
-          level: currentExam.level || levelEl.value,
-          questions: currentExam.questions || []
-        },
-        result
-      });
-
-      const mistakes = lsGetArray(LS_MISTAKES);
-      const qById = new Map((currentExam.questions || []).map(q => [String(q.id), q]));
-      const aById = new Map(answers.map(a => [String(a.id), a.answer]));
-
-      (result.per_question || []).forEach(item => {
-        const got = Number(item.points || 0);
-        const m = Number(item.max_points || 0);
-        if(m > 0 && got < m){
-          const q = qById.get(String(item.id)) || {};
-          mistakes.push({
-            ts,
-            course: attempt.course,
-            level: attempt.level,
-            qType: q.type || qTypeEl.value,
-            id: String(item.id),
-            question: String(q.question || ""),
-            user_answer: String(aById.get(String(item.id)) || ""),
-            feedback: String(item.feedback || ""),
-            model_answer: String(item.model_answer || ""),
-            points: got,
-            max_points: m
-          });
-        }
-      });
-
-      while(mistakes.length > 200) mistakes.shift();
-      lsSet(LS_MISTAKES, mistakes);
-
-      try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-
-      setBusy(false, t.ready);
-      setStatus(t.gradeDone, "ok");
+      renderResult(res.data.result);
+      setBusy(false, "Redo.");
+      setStatus("Rättning klar.", "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
     });
 
-    // ===== CLEAR =====
-    $("clearBtn").addEventListener("click", clearAll);
-
-    // ===== DOM READY =====
-    window.addEventListener("DOMContentLoaded", async () => {
-      // menu toggle
-      $("menuBtn").addEventListener("click", (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const m = $("menu");
-        m.style.display = (m.style.display === "block") ? "none" : "block";
-      });
-      document.addEventListener("click", (e) => {
-        const m = $("menu");
-        if(m.style.display !== "block") return;
-        if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
-        m.style.display = "none";
-      });
-      $("menu").addEventListener("click", (e) => {
-        const a = e.target.closest("a[data-scroll]");
-        if(!a) return;
-        e.preventDefault();
-        const sel = a.getAttribute("data-scroll");
-        $("menu").style.display = "none";
-        const el = document.querySelector(sel);
-        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-      });
-      document.addEventListener("keydown", (e) => {
-        if(e.key === "Escape") $("menu").style.display = "none";
-      });
-
-      // language toggle
-      $("langBtn").addEventListener("click", () => {
-        LANG = (LANG === "sv") ? "en" : "sv";
-        localStorage.setItem("proviaai_lang", LANG);
-        applyLang();
-        $("menu").style.display = "none";
-      });
-
-      // logout (NYTT: supabase+fallback)
-      $("logoutTopBtn").addEventListener("click", appLogout);
-
-      // fallback unlock
-      $("unlockBtn").addEventListener("click", unlockByCode);
-      document.addEventListener("keydown", (e) => {
-        const s = $("loginScreen");
-        const visible = s && s.style.display !== "none";
-        if(visible && e.key === "Enter"){
-          // Prioritera supabase-inloggning om fälten är ifyllda
-          const email = ($("authEmail")?.value || "").trim();
-          const pass = $("authPass")?.value || "";
-          if(USE_SUPABASE && email && pass) signInEmail();
-          else unlockByCode();
+    // =========================
+    // Initial lock logic
+    // =========================
+    (async function initLock(){
+      try{
+        if(supabase){
+          const { data } = await supabase.auth.getSession();
+          const hasSession = Boolean(data?.session?.user);
+          if(hasSession){ hideLock(); return; }
         }
-      });
-
-      // supabase auth buttons (NYTT)
-      $("signInBtn").addEventListener("click", signInEmail);
-      $("signUpBtn").addEventListener("click", signUpEmail);
-
-      applyLang();
-      setBusy(false, T[LANG].ready);
-      setStatus("");
-
-      // Visa/göm supabase-box om konfig finns
-      $("authBox").style.display = USE_SUPABASE ? "block" : "none";
-      $("fallbackAccess").open = !USE_SUPABASE;
-
-      // Initial auth state
-      if(USE_SUPABASE){
-        const { data: sess } = await supabase.auth.getSession();
-        const user = sess?.session?.user || null;
-        if(user){
-          CURRENT_USER = user;
-          const prof = await ensureProfileAndAdmin(user);
-          IS_ADMIN = prof.role === "admin";
-          $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
-          hideLock();
-        } else {
-          showLock();
-        }
-
-        // Lyssna på förändringar
-        supabase.auth.onAuthStateChange(async (_event, session) => {
-          const u = session?.user || null;
-          CURRENT_USER = u;
-          if(u){
-            const prof = await ensureProfileAndAdmin(u);
-            IS_ADMIN = prof.role === "admin";
-            $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
-            hideLock();
-          } else {
-            IS_ADMIN = false;
-            $("adminBadge").style.display = "none";
-            showLock();
-          }
-        });
-      } else {
-        // fallback only
-        if(isUnlockedByCode()) hideLock(); else showLock();
+        if(isUnlockedByCode()){ hideLock(); return; }
+        showLock();
+      }catch(e){
+        showLock();
+        showDebug(String(e));
       }
-    });
+    })();
   </script>
 </body>
 </html>
