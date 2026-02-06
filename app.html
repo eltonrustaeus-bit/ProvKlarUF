@@ -45,8 +45,6 @@
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
       background:rgba(255,255,255,.92);color:var(--deep);
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
@@ -155,7 +153,7 @@
       display:flex;align-items:center;justify-content:center;padding:18px;
     }
     .loginCard{
-      width:min(640px, 100%);
+      width:min(740px, 100%);
       background:rgba(255,255,255,.92);
       border:1px solid rgba(255,255,255,.22);
       border-radius:22px;
@@ -169,6 +167,7 @@
     .loginBody{padding:12px 18px 18px}
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
+    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
 
     /* upload */
     .uploadBox{
@@ -178,7 +177,6 @@
       background:rgba(255,255,255,.7);
     }
     .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .fileRow input[type="file"]{max-width:320px}
 
@@ -212,7 +210,7 @@
 
   <!-- LOCK SCREEN -->
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
-    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
+    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
       <div class="loginTop">
         <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
@@ -220,15 +218,45 @@
           <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
+
       <div class="loginBody">
-        <label for="accessCode" id="lockLabel">Åtkomstkod</label>
-        <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-        <div class="loginRow">
-          <button class="btn btnPrimary" type="button" id="unlockBtn" onclick="window.__unlock()">Lås upp</button>
-          <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
-          <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+        <!-- SUPABASE LOGIN (email/pass) -->
+        <div style="display:grid;gap:10px">
+          <div class="grid2">
+            <div>
+              <label for="authEmail" id="authEmailLabel">E-post</label>
+              <input id="authEmail" type="email" placeholder="du@skola.se" autocomplete="email">
+            </div>
+            <div>
+              <label for="authPass" id="authPassLabel">Lösenord</label>
+              <input id="authPass" type="password" placeholder="Minst 8 tecken" autocomplete="current-password">
+            </div>
+          </div>
+
+          <div class="loginRow">
+            <!-- Inline onclick = robust även om någon listener strular -->
+            <button class="btn btnPrimary" type="button" id="signInBtn" onclick="window.__signIn()">Logga in</button>
+            <button class="btn" type="button" id="signUpBtn" onclick="window.__signUp()">Skapa konto</button>
+            <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
+            <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+          </div>
+
+          <div class="smallHint" id="authHint">
+            För e-post-inlogg: fyll i SUPABASE_URL + SUPABASE_ANON_KEY i app.html. Annars kan du använda åtkomstkod nedan.
+          </div>
+
+          <!-- ACCESS CODE fallback -->
+          <details open>
+            <summary id="lockAlt">Alternativ inloggning: kod</summary>
+            <label for="accessCode" id="lockLabel">Åtkomstkod</label>
+            <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
+            <div class="loginRow">
+              <button class="btn btnPrimary" type="button" id="unlockBtn" onclick="window.__unlock()">Lås upp</button>
+            </div>
+          </details>
+
+          <div id="errorMsg" class="err" aria-live="polite"></div>
         </div>
-        <div id="errorMsg" class="err" aria-live="polite"></div>
       </div>
     </div>
   </div>
@@ -245,7 +273,7 @@
       </a>
 
       <div class="menuWrap">
-        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny" onclick="window.__toggleMenu(event)">
+        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
           <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
         </button>
 
@@ -257,8 +285,8 @@
 
           <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
 
-          <button type="button" id="langBtn" onclick="window.__toggleLang()"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-          <button type="button" id="logoutTopBtn" onclick="window.__logout()"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
+          <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
         </div>
       </div>
     </div>
@@ -278,7 +306,7 @@
           <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
           <div class="fileRow">
             <input id="imageInput" type="file" accept="image/*" capture="environment" />
-            <button class="btn" id="ocrBtn" type="button" onclick="window.__doOcr()">OCR till material</button>
+            <button class="btn" id="ocrBtn" type="button">OCR till material</button>
           </div>
         </div>
         <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
@@ -332,9 +360,9 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-        <button class="btn btnPrimary" id="generateExamBtn" type="button" onclick="window.__generate()">Skapa mockprov</button>
-        <button class="btn" id="gradeBtn" type="button" disabled onclick="window.__grade()">Rätta prov</button>
-        <button class="btn" id="clearBtn" type="button" onclick="window.__clearAll()">Rensa</button>
+        <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
+        <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
+        <button class="btn" id="clearBtn" type="button">Rensa</button>
 
         <span style="display:flex;gap:10px;align-items:center">
           <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
@@ -366,10 +394,19 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
+  <!-- Supabase SDK (för Logga in / Skapa konto) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    // ===== LOGIN CONFIG =====
+    // ===== LOGIN CONFIG (fallback-kod) =====
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
+
+    // ===== SUPABASE AUTH (email/pass) =====
+    // Fyll i dessa två om du vill ha Logga in / Skapa konto.
+    // Om du lämnar dem som placeholders fungerar fortfarande åtkomstkod-inloggningen.
+    const SUPABASE_URL = "PASTA_DIN_SUPABASE_PROJECT_URL_HÄR";      // ex: https://xxxxx.supabase.co
+    const SUPABASE_ANON_KEY = "PASTA_DIN_SUPABASE_ANON_PUBLIC_KEY_HÄR";
 
     // ===== STORAGE KEYS (för förbättringssidan) =====
     const LS_HISTORY = "proviaai_history";        // array
@@ -408,6 +445,47 @@
       try{ data = JSON.parse(raw); } catch {}
       return { ok: resp.ok, status: resp.status, raw, data };
     }
+
+    // ===== Supabase init (safe) =====
+    const useSupabase =
+      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
+      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40 &&
+      window.supabase && typeof window.supabase.createClient === "function";
+
+    const sb = useSupabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    async function signIn(){
+      const msg = $("errorMsg");
+      if(!sb){ msg.textContent = "Supabase saknas/ej konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY)."; return; }
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
+      if(!email || !password){ msg.textContent = "Fyll i e-post och lösenord."; return; }
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error){ msg.textContent = error.message; return; }
+      msg.textContent = "";
+      hideLock();
+    }
+
+    async function signUp(){
+      const msg = $("errorMsg");
+      if(!sb){ msg.textContent = "Supabase saknas/ej konfigurerat (SUPABASE_URL / SUPABASE_ANON_KEY)."; return; }
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
+      if(!email || !password){ msg.textContent = "Fyll i e-post och lösenord."; return; }
+      const { error } = await sb.auth.signUp({ email, password });
+      if(error){ msg.textContent = error.message; return; }
+      msg.textContent = "Konto skapat. Logga in (eller bekräfta via mail om Supabase kräver det).";
+    }
+
+    async function hasSession(){
+      if(!sb) return false;
+      const { data } = await sb.auth.getSession();
+      return Boolean(data?.session?.user);
+    }
+
+    // Exponera (robust för klick)
+    window.__signIn = signIn;
+    window.__signUp = signUp;
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -511,15 +589,12 @@
     // ===== MENU =====
     function openMenu(){ $("menu").style.display = "block"; }
     function closeMenu(){ $("menu").style.display = "none"; }
-    function toggleMenu(){
-      const m = $("menu");
-      m.style.display = (m.style.display === "block") ? "none" : "block";
-    }
 
     // ===== LOCK / UNLOCK =====
     function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
     function showLock(){
       const s = $("loginScreen");
+      if(!s) return;
       s.style.display = "flex";
       s.setAttribute("aria-hidden","false");
       document.documentElement.style.overflow = "hidden";
@@ -527,6 +602,7 @@
     }
     function hideLock(){
       const s = $("loginScreen");
+      if(!s) return;
       s.style.display = "none";
       s.setAttribute("aria-hidden","true");
       document.documentElement.style.overflow = "";
@@ -535,6 +611,7 @@
     function unlock(){
       const input = $("accessCode");
       const msg = $("errorMsg");
+      if(!input || !msg) return;
       const v = (input.value || "").trim();
       if(v === ACCESS_CODE){
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
@@ -544,11 +621,15 @@
         msg.textContent = T[LANG].wrongCode;
       }
     }
-    function logout(){
+    async function logout(){
       localStorage.removeItem(ACCESS_FLAG_KEY);
       closeMenu();
+      if(sb){ try{ await sb.auth.signOut(); } catch{} }
       showLock();
     }
+
+    // Exponera (robust för klick)
+    window.__unlock = unlock;
 
     // ===== APP STATE ELEMENTS =====
     const spinWrap = $("spinWrap");
@@ -670,8 +751,7 @@
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
       const t = T[LANG];
 
-      examMetaEl.textContent =
-        `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+      examMetaEl.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
       examBodyEl.innerHTML = "";
       resultMetaEl.textContent = t.noGrade;
       resultBodyEl.innerHTML = "";
@@ -783,33 +863,28 @@
     }
 
     // ===== OCR =====
-    async function doOcr(){
+    ocrBtn.addEventListener("click", async () => {
       hideDebug();
       const t = T[LANG];
       const file = imageInput.files && imageInput.files[0];
       if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
-
       setBusy(true, t.ocrWorking);
       setOcrStatus(t.ocrWorking, "warn");
-
       try{
         const dataUrl = await fileToDataUrl(file);
         const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
-
         if(!res.ok || !res.data || !res.data.ok){
           setBusy(false, t.ready);
           setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
           showDebug(res.raw);
           return;
         }
-
         const extracted = String(res.data.text || "").trim();
         if(extracted){
           const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
           const base = pastedTextEl.value.trim();
           pastedTextEl.value = (base ? base + prefix : "") + extracted + "\n";
         }
-
         setBusy(false, t.ready);
         setOcrStatus(t.ocrDone, "ok");
       }catch(e){
@@ -817,10 +892,10 @@
         setOcrStatus("OCR error.", "bad");
         showDebug(String(e));
       }
-    }
+    });
 
     // ===== GENERATE EXAM =====
-    async function generate(){
+    generateExamBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -858,10 +933,10 @@
       setBusy(false, t.ready);
       setStatus(t.genDone, "ok");
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
-    }
+    });
 
-    // ===== GRADE EXAM + SAVE =====
-    async function grade(){
+    // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
+    gradeBtn.addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -970,65 +1045,71 @@
       setBusy(false, t.ready);
       setStatus(t.gradeDone, "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
-    }
+    });
 
-    // ===== MENU WIRING =====
-    function toggleLang(){
-      LANG = (LANG === "sv") ? "en" : "sv";
-      localStorage.setItem("proviaai_lang", LANG);
-      applyLang();
-      closeMenu();
-    }
-    function onMenuAnchorClick(e){
-      const a = e.target.closest("a[data-scroll]");
-      if(!a) return;
-      e.preventDefault();
-      const sel = a.getAttribute("data-scroll");
-      closeMenu();
-      const el = document.querySelector(sel);
-      if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
-    }
+    // ===== CLEAR =====
+    clearBtn.addEventListener("click", clearAll);
 
-    // ===== EXPOSE FAILSAFE GLOBALS (for inline onclick) =====
-    window.__unlock = unlock;
-    window.__logout = logout;
-    window.__toggleMenu = function(ev){
-      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
-      toggleMenu();
-    };
-    window.__toggleLang = toggleLang;
-    window.__doOcr = doOcr;
-    window.__generate = generate;
-    window.__grade = grade;
-    window.__clearAll = clearAll;
-
-    // ===== INIT (runs immediately; no dependency on DOMContentLoaded) =====
-    (function init(){
-      // Menu outside click
+    // ===== DOM READY: hook menu/lang/logout + initial lock =====
+    window.addEventListener("DOMContentLoaded", async () => {
+      // menu
+      $("menuBtn").addEventListener("click", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const m = $("menu");
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+      });
       document.addEventListener("click", (e) => {
         const m = $("menu");
-        if(!m || m.style.display !== "block") return;
+        if(m.style.display !== "block") return;
         if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
-        closeMenu();
+        m.style.display = "none";
+      });
+      $("menu").addEventListener("click", (e) => {
+        const a = e.target.closest("a[data-scroll]");
+        if(!a) return;
+        e.preventDefault();
+        const sel = a.getAttribute("data-scroll");
+        $("menu").style.display = "none";
+        const el = document.querySelector(sel);
+        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
       });
       document.addEventListener("keydown", (e) => {
-        if(e.key === "Escape") closeMenu();
+        if(e.key === "Escape") $("menu").style.display = "none";
       });
-      $("menu").addEventListener("click", onMenuAnchorClick);
 
-      // Lock Enter
-      document.addEventListener("keydown", (e) => {
+      // language toggle
+      $("langBtn").addEventListener("click", () => {
+        LANG = (LANG === "sv") ? "en" : "sv";
+        localStorage.setItem("proviaai_lang", LANG);
+        applyLang();
+        $("menu").style.display = "none";
+      });
+
+      // logout (menu)
+      $("logoutTopBtn").addEventListener("click", () => logout());
+
+      // Enter på lock: om email+pass ifyllt => signIn, annars => kod
+      document.addEventListener("keydown", async (e) => {
         const s = $("loginScreen");
         const visible = s && s.style.display !== "none";
-        if(visible && e.key === "Enter") unlock();
+        if(!visible) return;
+        if(e.key !== "Enter") return;
+
+        const email = ($("authEmail")?.value || "").trim();
+        const pass = $("authPass")?.value || "";
+        if(email && pass) await signIn();
+        else unlock();
       });
 
       applyLang();
       setBusy(false, T[LANG].ready);
       setStatus("");
 
-      if(isUnlocked()) hideLock(); else showLock();
-    })();
+      // initial access: supabase session OR code unlock
+      const sessionOk = await hasSession();
+      if(sessionOk || isUnlocked()) hideLock();
+      else showLock();
+    });
   </script>
 </body>
 </html>
