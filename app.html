@@ -45,6 +45,8 @@
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
       background:rgba(255,255,255,.92);color:var(--deep);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
@@ -222,7 +224,7 @@
         <label for="accessCode" id="lockLabel">Åtkomstkod</label>
         <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
         <div class="loginRow">
-          <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+          <button class="btn btnPrimary" type="button" id="unlockBtn" onclick="window.__unlock()">Lås upp</button>
           <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
           <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
         </div>
@@ -243,7 +245,7 @@
       </a>
 
       <div class="menuWrap">
-        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
+        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny" onclick="window.__toggleMenu(event)">
           <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
         </button>
 
@@ -255,8 +257,8 @@
 
           <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
 
-          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-          <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+          <button type="button" id="langBtn" onclick="window.__toggleLang()"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
+          <button type="button" id="logoutTopBtn" onclick="window.__logout()"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
         </div>
       </div>
     </div>
@@ -276,7 +278,7 @@
           <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
           <div class="fileRow">
             <input id="imageInput" type="file" accept="image/*" capture="environment" />
-            <button class="btn" id="ocrBtn" type="button">OCR till material</button>
+            <button class="btn" id="ocrBtn" type="button" onclick="window.__doOcr()">OCR till material</button>
           </div>
         </div>
         <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
@@ -330,9 +332,9 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-        <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-        <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-        <button class="btn" id="clearBtn" type="button">Rensa</button>
+        <button class="btn btnPrimary" id="generateExamBtn" type="button" onclick="window.__generate()">Skapa mockprov</button>
+        <button class="btn" id="gradeBtn" type="button" disabled onclick="window.__grade()">Rätta prov</button>
+        <button class="btn" id="clearBtn" type="button" onclick="window.__clearAll()">Rensa</button>
 
         <span style="display:flex;gap:10px;align-items:center">
           <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
@@ -509,12 +511,15 @@
     // ===== MENU =====
     function openMenu(){ $("menu").style.display = "block"; }
     function closeMenu(){ $("menu").style.display = "none"; }
+    function toggleMenu(){
+      const m = $("menu");
+      m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
 
-    // ===== LOCK / UNLOCK (robust, always active) =====
+    // ===== LOCK / UNLOCK =====
     function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
     function showLock(){
       const s = $("loginScreen");
-      if(!s) return;
       s.style.display = "flex";
       s.setAttribute("aria-hidden","false");
       document.documentElement.style.overflow = "hidden";
@@ -522,7 +527,6 @@
     }
     function hideLock(){
       const s = $("loginScreen");
-      if(!s) return;
       s.style.display = "none";
       s.setAttribute("aria-hidden","true");
       document.documentElement.style.overflow = "";
@@ -531,7 +535,6 @@
     function unlock(){
       const input = $("accessCode");
       const msg = $("errorMsg");
-      if(!input || !msg) return;
       const v = (input.value || "").trim();
       if(v === ACCESS_CODE){
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
@@ -545,7 +548,6 @@
       localStorage.removeItem(ACCESS_FLAG_KEY);
       closeMenu();
       showLock();
-      window.location.href = "index.html";
     }
 
     // ===== APP STATE ELEMENTS =====
@@ -668,7 +670,8 @@
       const qs = Array.isArray(exam.questions) ? exam.questions : [];
       const t = T[LANG];
 
-      examMetaEl.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+      examMetaEl.textContent =
+        `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
       examBodyEl.innerHTML = "";
       resultMetaEl.textContent = t.noGrade;
       resultBodyEl.innerHTML = "";
@@ -780,28 +783,33 @@
     }
 
     // ===== OCR =====
-    ocrBtn.addEventListener("click", async () => {
+    async function doOcr(){
       hideDebug();
       const t = T[LANG];
       const file = imageInput.files && imageInput.files[0];
       if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
+
       setBusy(true, t.ocrWorking);
       setOcrStatus(t.ocrWorking, "warn");
+
       try{
         const dataUrl = await fileToDataUrl(file);
         const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
+
         if(!res.ok || !res.data || !res.data.ok){
           setBusy(false, t.ready);
           setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
           showDebug(res.raw);
           return;
         }
+
         const extracted = String(res.data.text || "").trim();
         if(extracted){
           const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
           const base = pastedTextEl.value.trim();
           pastedTextEl.value = (base ? base + prefix : "") + extracted + "\n";
         }
+
         setBusy(false, t.ready);
         setOcrStatus(t.ocrDone, "ok");
       }catch(e){
@@ -809,10 +817,10 @@
         setOcrStatus("OCR error.", "bad");
         showDebug(String(e));
       }
-    });
+    }
 
     // ===== GENERATE EXAM =====
-    generateExamBtn.addEventListener("click", async () => {
+    async function generate(){
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -850,10 +858,10 @@
       setBusy(false, t.ready);
       setStatus(t.genDone, "ok");
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
-    });
+    }
 
-    // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
-    gradeBtn.addEventListener("click", async () => {
+    // ===== GRADE EXAM + SAVE =====
+    async function grade(){
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -962,51 +970,53 @@
       setBusy(false, t.ready);
       setStatus(t.gradeDone, "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
-    });
+    }
 
-    // ===== CLEAR =====
-    clearBtn.addEventListener("click", clearAll);
+    // ===== MENU WIRING =====
+    function toggleLang(){
+      LANG = (LANG === "sv") ? "en" : "sv";
+      localStorage.setItem("proviaai_lang", LANG);
+      applyLang();
+      closeMenu();
+    }
+    function onMenuAnchorClick(e){
+      const a = e.target.closest("a[data-scroll]");
+      if(!a) return;
+      e.preventDefault();
+      const sel = a.getAttribute("data-scroll");
+      closeMenu();
+      const el = document.querySelector(sel);
+      if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+    }
 
-    // ===== DOM READY: hook events (fix for "Lås upp does nothing") =====
-    window.addEventListener("DOMContentLoaded", () => {
-      // menu
-      $("menuBtn").addEventListener("click", (e) => {
-        e.preventDefault(); e.stopPropagation();
-        const m = $("menu");
-        m.style.display = (m.style.display === "block") ? "none" : "block";
-      });
+    // ===== EXPOSE FAILSAFE GLOBALS (for inline onclick) =====
+    window.__unlock = unlock;
+    window.__logout = logout;
+    window.__toggleMenu = function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      toggleMenu();
+    };
+    window.__toggleLang = toggleLang;
+    window.__doOcr = doOcr;
+    window.__generate = generate;
+    window.__grade = grade;
+    window.__clearAll = clearAll;
+
+    // ===== INIT (runs immediately; no dependency on DOMContentLoaded) =====
+    (function init(){
+      // Menu outside click
       document.addEventListener("click", (e) => {
         const m = $("menu");
-        if(m.style.display !== "block") return;
+        if(!m || m.style.display !== "block") return;
         if(m.contains(e.target) || $("menuBtn").contains(e.target)) return;
-        m.style.display = "none";
-      });
-      $("menu").addEventListener("click", (e) => {
-        const a = e.target.closest("a[data-scroll]");
-        if(!a) return;
-        e.preventDefault();
-        const sel = a.getAttribute("data-scroll");
-        $("menu").style.display = "none";
-        const el = document.querySelector(sel);
-        if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+        closeMenu();
       });
       document.addEventListener("keydown", (e) => {
-        if(e.key === "Escape") $("menu").style.display = "none";
+        if(e.key === "Escape") closeMenu();
       });
+      $("menu").addEventListener("click", onMenuAnchorClick);
 
-      // language toggle
-      $("langBtn").addEventListener("click", () => {
-        LANG = (LANG === "sv") ? "en" : "sv";
-        localStorage.setItem("proviaai_lang", LANG);
-        applyLang();
-        $("menu").style.display = "none";
-      });
-
-      // logout
-      $("logoutTopBtn").addEventListener("click", logout);
-
-      // unlock
-      $("unlockBtn").addEventListener("click", unlock);
+      // Lock Enter
       document.addEventListener("keydown", (e) => {
         const s = $("loginScreen");
         const visible = s && s.style.display !== "none";
@@ -1018,7 +1028,7 @@
       setStatus("");
 
       if(isUnlocked()) hideLock(); else showLock();
-    });
+    })();
   </script>
 </body>
 </html>
