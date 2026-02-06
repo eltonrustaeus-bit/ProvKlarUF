@@ -153,7 +153,7 @@
       display:flex;align-items:center;justify-content:center;padding:18px;
     }
     .loginCard{
-      width:min(640px, 100%);
+      width:min(680px, 100%);
       background:rgba(255,255,255,.92);
       border:1px solid rgba(255,255,255,.22);
       border-radius:22px;
@@ -166,7 +166,10 @@
     .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
     .loginBody{padding:12px 18px 18px}
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
+    .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px;line-height:1.35}
+    .hint{margin-top:8px;color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
+    .miniSplit{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:640px){ .miniSplit{grid-template-columns:1fr} }
 
     /* upload */
     .uploadBox{
@@ -203,6 +206,16 @@
       flex:0 0 28px;
     }
     .mcText{font-weight:850;color:#071812}
+
+    /* admin badge */
+    .adminBadge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(43,227,140,.12);
+      border:1px solid rgba(43,227,140,.25);
+      color:var(--deep);
+      font-weight:1100;font-size:12px;
+    }
   </style>
 </head>
 
@@ -210,7 +223,7 @@
 
   <!-- LOCK SCREEN -->
   <div id="loginScreen" class="loginOverlay" aria-hidden="false">
-    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomstkod">
+    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Åtkomst">
       <div class="loginTop">
         <img src="image/proviaai-logo.png" alt="ProviaAi logga">
         <div>
@@ -218,14 +231,43 @@
           <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
         </div>
       </div>
+
       <div class="loginBody">
-        <label for="accessCode" id="lockLabel">Åtkomstkod</label>
-        <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-        <div class="loginRow">
-          <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
-          <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
-          <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+        <!-- SUPABASE AUTH (NYTT) -->
+        <div id="authBox">
+          <div class="miniSplit">
+            <div>
+              <label for="authEmail" id="authEmailLabel">E-post</label>
+              <input id="authEmail" type="email" placeholder="du@skola.se" autocomplete="email" />
+            </div>
+            <div>
+              <label for="authPass" id="authPassLabel">Lösenord</label>
+              <input id="authPass" type="password" placeholder="Minst 8 tecken" autocomplete="current-password" />
+            </div>
+          </div>
+
+          <div class="loginRow">
+            <button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
+            <button class="btn" type="button" id="signUpBtn">Skapa konto</button>
+            <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
+            <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+          </div>
+
+          <div class="hint" id="authHint">
+            Skapa konto första gången. Vid e-postbekräftelse: kolla din inkorg.
+          </div>
         </div>
+
+        <!-- FALLBACK ACCESS CODE (BEHÅLLS) -->
+        <details style="margin-top:14px" id="fallbackAccess">
+          <summary>Alternativ inloggning: kod</summary>
+          <label for="accessCode" id="lockLabel">Åtkomstkod</label>
+          <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
+          <div class="loginRow">
+            <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+          </div>
+        </details>
+
         <div id="errorMsg" class="err" aria-live="polite"></div>
       </div>
     </div>
@@ -242,21 +284,25 @@
         </div>
       </a>
 
-      <div class="menuWrap">
-        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
-          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-        </button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="adminBadge" class="adminBadge" style="display:none">Admin</span>
 
-        <div class="dropdown" id="menu" aria-label="Menyval">
-          <a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
-          <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
-          <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
-          <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
+        <div class="menuWrap">
+          <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
+            <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+          </button>
 
-          <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
+          <div class="dropdown" id="menu" aria-label="Menyval">
+            <a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
+            <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
+            <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
+            <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
 
-          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-          <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+            <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
+
+            <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
+            <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+          </div>
         </div>
       </div>
     </div>
@@ -364,10 +410,32 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
+  <!-- SUPABASE SDK (NYTT) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    // ===== LOGIN CONFIG =====
+    // ====== SUPABASE (NYTT) ======
+    // Fyll i från Supabase: Project Settings -> API
+    // OBS: detta är "anon public key"
+    const SUPABASE_URL = "PASTA_DIN_SUPABASE_PROJECT_URL_HÄR";
+    const SUPABASE_ANON_KEY = "PASTA_DIN_SUPABASE_ANON_PUBLIC_KEY_HÄR";
+
+    // Om du inte vill aktivera Supabase ännu, lämna tomt, då används kod-inloggningen.
+    const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.startsWith("http"));
+
+    const supabase = USE_SUPABASE
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    // ===== LOGIN CONFIG (FALLBACK KOD) =====
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
+
+    // ===== APP-ADMIN (NYTT) =====
+    // DB-tabell: profiles(id uuid pk, email text, role text default 'user')
+    // Du sätter din egen rad till role='admin' i Supabase Table Editor.
+    let CURRENT_USER = null;
+    let IS_ADMIN = false;
 
     // ===== STORAGE KEYS (för förbättringssidan) =====
     const LS_HISTORY = "proviaai_history";        // array
@@ -455,7 +523,16 @@
         fullScore:"Vad som ger full poäng (modellsvar)",
         genFirst:"Skapa mockprov först.",
         cleared:"Allt rensat. Börja om.",
-        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning."
+        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
+        authEmail:"E-post",
+        authPass:"Lösenord",
+        authSignIn:"Logga in",
+        authSignUp:"Skapa konto",
+        authBadConfig:"Supabase är inte konfigurerat. Använd kod-inloggning nedan.",
+        authSignedIn:"Inloggad.",
+        authSignedOut:"Utloggad.",
+        authCreated:"Konto skapat. Kolla mailen om bekräftelse krävs.",
+        authErr:"Inloggningsfel."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -502,16 +579,25 @@
         fullScore:"Full-score model answer",
         genFirst:"Generate an exam first.",
         cleared:"Cleared. Start again.",
-        footer:"ProviaAi is study support and does not provide official grades."
+        footer:"ProviaAi is study support and does not provide official grades.",
+        authEmail:"Email",
+        authPass:"Password",
+        authSignIn:"Sign in",
+        authSignUp:"Create account",
+        authBadConfig:"Supabase is not configured. Use code login below.",
+        authSignedIn:"Signed in.",
+        authSignedOut:"Signed out.",
+        authCreated:"Account created. Check email if confirmation is required.",
+        authErr:"Auth error."
       }
     };
 
     // ===== MENU =====
-    function openMenu(){ $("menu").style.display = "block"; }
     function closeMenu(){ $("menu").style.display = "none"; }
 
-    // ===== LOCK / UNLOCK (robust, always active) =====
-    function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
+    // ===== LOCK / UNLOCK (FALLBACK KOD) =====
+    function isUnlockedByCode(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
+
     function showLock(){
       const s = $("loginScreen");
       if(!s) return;
@@ -528,22 +614,115 @@
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
-    function unlock(){
+
+    function setAuthError(msg){
+      $("errorMsg").textContent = msg || "";
+    }
+
+    function unlockByCode(){
       const input = $("accessCode");
-      const msg = $("errorMsg");
-      if(!input || !msg) return;
-      const v = (input.value || "").trim();
+      const v = (input?.value || "").trim();
       if(v === ACCESS_CODE){
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
-        msg.textContent = "";
+        setAuthError("");
         hideLock();
       } else {
-        msg.textContent = T[LANG].wrongCode;
+        setAuthError(T[LANG].wrongCode);
       }
     }
-    function logout(){
-      localStorage.removeItem(ACCESS_FLAG_KEY);
+
+    // ===== SUPABASE AUTH (NYTT) =====
+    async function ensureProfileAndAdmin(user){
+      // Skapar/upsertar profiles-rad (role default 'user' om tabellen har default, men vi skickar 'user' säkert)
+      // Kräver att tabellen finns: profiles(id uuid pk, email text, role text default 'user')
+      if(!supabase || !user) return { ok:false, role:"user" };
+
+      try{
+        await supabase.from("profiles").upsert({
+          id: user.id,
+          email: user.email,
+          role: "user"
+        });
+
+        const { data: prof, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        const role = (!error && prof?.role) ? prof.role : "user";
+        return { ok:true, role };
+      } catch {
+        return { ok:false, role:"user" };
+      }
+    }
+
+    async function signInEmail(){
+      if(!supabase){
+        setAuthError(T[LANG].authBadConfig);
+        return;
+      }
+      setAuthError("");
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
+      if(!email || !password){
+        setAuthError(T[LANG].authErr);
+        return;
+      }
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if(error){
+        setAuthError(error.message || T[LANG].authErr);
+        return;
+      }
+      const user = data?.user || null;
+      CURRENT_USER = user;
+      const prof = await ensureProfileAndAdmin(user);
+      IS_ADMIN = prof.role === "admin";
+      $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
+      hideLock();
+    }
+
+    async function signUpEmail(){
+      if(!supabase){
+        setAuthError(T[LANG].authBadConfig);
+        return;
+      }
+      setAuthError("");
+      const email = ($("authEmail")?.value || "").trim();
+      const password = $("authPass")?.value || "";
+      if(!email || !password){
+        setAuthError(T[LANG].authErr);
+        return;
+      }
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if(error){
+        setAuthError(error.message || T[LANG].authErr);
+        return;
+      }
+      // Vissa projekt kräver mailbekräftelse innan session finns
+      setAuthError(T[LANG].authCreated);
+      // Om session direkt finns: lås upp
+      const user = data?.user || null;
+      if(user){
+        CURRENT_USER = user;
+        const prof = await ensureProfileAndAdmin(user);
+        IS_ADMIN = prof.role === "admin";
+        $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
+        hideLock();
+      }
+    }
+
+    async function appLogout(){
       closeMenu();
+      // logga ut från supabase om aktiverat
+      if(supabase){
+        try{ await supabase.auth.signOut(); } catch {}
+      }
+      // fallback: rensa kod-unlock
+      localStorage.removeItem(ACCESS_FLAG_KEY);
+      CURRENT_USER = null;
+      IS_ADMIN = false;
+      $("adminBadge").style.display = "none";
       showLock();
       window.location.href = "index.html";
     }
@@ -584,6 +763,11 @@
       $("unlockBtn").textContent = t.unlock;
       $("toInfoBtn").textContent = t.toInfo;
       $("toImproveBtn").textContent = t.toImprove;
+
+      $("authEmailLabel").textContent = t.authEmail;
+      $("authPassLabel").textContent = t.authPass;
+      $("signInBtn").textContent = t.authSignIn;
+      $("signUpBtn").textContent = t.authSignUp;
 
       $("m1").textContent = t.m1;
       $("m2").textContent = t.m2;
@@ -627,6 +811,11 @@
 
       if(!examBodyEl.children.length) examMetaEl.textContent = t.noExam;
       if(!resultBodyEl.children.length) resultMetaEl.textContent = t.noGrade;
+
+      // fallback text if supabase not configured
+      if(!USE_SUPABASE){
+        $("authHint").textContent = t.authBadConfig;
+      }
     }
 
     function setBusy(isBusy, label){
@@ -780,7 +969,7 @@
     }
 
     // ===== OCR =====
-    ocrBtn.addEventListener("click", async () => {
+    $("ocrBtn").addEventListener("click", async () => {
       hideDebug();
       const t = T[LANG];
       const file = imageInput.files && imageInput.files[0];
@@ -812,7 +1001,7 @@
     });
 
     // ===== GENERATE EXAM =====
-    generateExamBtn.addEventListener("click", async () => {
+    $("generateExamBtn").addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -853,7 +1042,7 @@
     });
 
     // ===== GRADE EXAM + SAVE TO IMPROVE DASHBOARD =====
-    gradeBtn.addEventListener("click", async () => {
+    $("gradeBtn").addEventListener("click", async () => {
       hideDebug();
       setStatus("");
       const t = T[LANG];
@@ -965,11 +1154,11 @@
     });
 
     // ===== CLEAR =====
-    clearBtn.addEventListener("click", clearAll);
+    $("clearBtn").addEventListener("click", clearAll);
 
-    // ===== DOM READY: hook events (fix for "Lås upp does nothing") =====
-    window.addEventListener("DOMContentLoaded", () => {
-      // menu
+    // ===== DOM READY =====
+    window.addEventListener("DOMContentLoaded", async () => {
+      // menu toggle
       $("menuBtn").addEventListener("click", (e) => {
         e.preventDefault(); e.stopPropagation();
         const m = $("menu");
@@ -1002,22 +1191,68 @@
         $("menu").style.display = "none";
       });
 
-      // logout
-      $("logoutTopBtn").addEventListener("click", logout);
+      // logout (NYTT: supabase+fallback)
+      $("logoutTopBtn").addEventListener("click", appLogout);
 
-      // unlock
-      $("unlockBtn").addEventListener("click", unlock);
+      // fallback unlock
+      $("unlockBtn").addEventListener("click", unlockByCode);
       document.addEventListener("keydown", (e) => {
         const s = $("loginScreen");
         const visible = s && s.style.display !== "none";
-        if(visible && e.key === "Enter") unlock();
+        if(visible && e.key === "Enter"){
+          // Prioritera supabase-inloggning om fälten är ifyllda
+          const email = ($("authEmail")?.value || "").trim();
+          const pass = $("authPass")?.value || "";
+          if(USE_SUPABASE && email && pass) signInEmail();
+          else unlockByCode();
+        }
       });
+
+      // supabase auth buttons (NYTT)
+      $("signInBtn").addEventListener("click", signInEmail);
+      $("signUpBtn").addEventListener("click", signUpEmail);
 
       applyLang();
       setBusy(false, T[LANG].ready);
       setStatus("");
 
-      if(isUnlocked()) hideLock(); else showLock();
+      // Visa/göm supabase-box om konfig finns
+      $("authBox").style.display = USE_SUPABASE ? "block" : "none";
+      $("fallbackAccess").open = !USE_SUPABASE;
+
+      // Initial auth state
+      if(USE_SUPABASE){
+        const { data: sess } = await supabase.auth.getSession();
+        const user = sess?.session?.user || null;
+        if(user){
+          CURRENT_USER = user;
+          const prof = await ensureProfileAndAdmin(user);
+          IS_ADMIN = prof.role === "admin";
+          $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
+          hideLock();
+        } else {
+          showLock();
+        }
+
+        // Lyssna på förändringar
+        supabase.auth.onAuthStateChange(async (_event, session) => {
+          const u = session?.user || null;
+          CURRENT_USER = u;
+          if(u){
+            const prof = await ensureProfileAndAdmin(u);
+            IS_ADMIN = prof.role === "admin";
+            $("adminBadge").style.display = IS_ADMIN ? "inline-flex" : "none";
+            hideLock();
+          } else {
+            IS_ADMIN = false;
+            $("adminBadge").style.display = "none";
+            showLock();
+          }
+        });
+      } else {
+        // fallback only
+        if(isUnlockedByCode()) hideLock(); else showLock();
+      }
     });
   </script>
 </body>
