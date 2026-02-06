@@ -427,6 +427,26 @@ const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim(); // viktigt: tar 
 
     const $ = (id) => document.getElementById(id);
 
+    // ==== GLOBAL JS ERROR CATCHER (visar exakt fel i Debug) ====
+window.addEventListener("error", (e) => {
+  try {
+    const msg = `JS error: ${e.message}\nFile: ${e.filename}\nLine: ${e.lineno}:${e.colno}\n`;
+    const dw = document.getElementById("debugWrap");
+    const de = document.getElementById("debug");
+    if (dw && de) { dw.style.display = "block"; de.textContent = msg + (e.error?.stack ? "\n" + e.error.stack : ""); }
+  } catch {}
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  try {
+    const reason = e.reason ? (e.reason.stack || String(e.reason)) : "Unknown";
+    const msg = `Unhandled promise rejection:\n${reason}\n`;
+    const dw = document.getElementById("debugWrap");
+    const de = document.getElementById("debug");
+    if (dw && de) { dw.style.display = "block"; de.textContent = msg; }
+  } catch {}
+});
+
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
     function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
