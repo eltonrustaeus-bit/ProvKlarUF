@@ -28,6 +28,17 @@
     }
     a{text-decoration:none;color:inherit}
 
+    /* JS-alive badge */
+    #jsAlive{
+      position:fixed;top:10px;right:10px;z-index:100000;
+      padding:8px 10px;border-radius:12px;
+      font-weight:1000;font-size:12px;
+      border:1px solid rgba(255,255,255,.35);
+      background:rgba(5,42,30,.92);color:#fff;
+      box-shadow:0 12px 30px rgba(0,0,0,.22);
+      display:none;
+    }
+
     header{
       background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
       border-bottom:1px solid var(--border);
@@ -46,6 +57,8 @@
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
       background:rgba(255,255,255,.92);color:var(--deep);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
@@ -155,6 +168,7 @@
 </head>
 
 <body>
+  <div id="jsAlive">JS: AKTIV</div>
 
   <!-- LOCK SCREEN -->
   <div id="loginScreen" class="loginOverlay">
@@ -182,14 +196,14 @@
           </div>
 
           <div class="loginRow">
-            <button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
-            <button class="btn" type="button" id="signUpBtn">Skapa konto</button>
+            <button class="btn btnPrimary" type="button" id="signInBtn" onclick="window.__signInEmail()">Logga in</button>
+            <button class="btn" type="button" id="signUpBtn" onclick="window.__signUpEmail()">Skapa konto</button>
             <a class="btn" href="index.html">Till infosidan</a>
             <a class="btn" href="förbättring.html">Förbättring</a>
           </div>
 
           <div class="hint" id="authHint">
-            Om knapparna inte gör något: Supabase-SDK kan ha misslyckats att ladda. Då fungerar kod-inloggning ändå.
+            Om knapparna inte gör något och “JS: AKTIV” inte syns: JavaScript körs inte på sidan.
           </div>
         </div>
 
@@ -199,7 +213,7 @@
           <label for="accessCode">Åtkomstkod</label>
           <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
           <div class="loginRow">
-            <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+            <button class="btn btnPrimary" type="button" id="unlockBtn" onclick="window.__unlockByCode()">Lås upp</button>
           </div>
         </details>
 
@@ -220,7 +234,7 @@
       </a>
 
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button class="btn" id="logoutBtn" type="button">Logga ut</button>
+        <button class="btn" id="logoutBtn" type="button" onclick="window.__logoutAll()">Logga ut</button>
       </div>
     </div>
   </header>
@@ -229,7 +243,7 @@
 
     <section class="card" id="material">
       <h3 class="sectionTitle">Steg 1 – Material</h3>
-      <p class="sectionSub">Klistra in text. (OCR-knappen kräver att du har en fungerande /api/ocr-route.)</p>
+      <p class="sectionSub">Klistra in text.</p>
 
       <label for="pastedText">Material (klistra in text)</label>
       <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
@@ -278,9 +292,9 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-        <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-        <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-        <button class="btn" id="clearBtn" type="button">Rensa</button>
+        <button class="btn btnPrimary" id="generateExamBtn" type="button" onclick="window.__generateExam()">Skapa mockprov</button>
+        <button class="btn" id="gradeBtn" type="button" disabled onclick="window.__gradeExam()">Rätta prov</button>
+        <button class="btn" id="clearBtn" type="button" onclick="window.__clearAll()">Rensa</button>
 
         <span style="display:flex;gap:10px;align-items:center">
           <span id="spinWrap" style="display:none"><span class="spinner"></span></span>
@@ -312,6 +326,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
+    // ===== JS alive indicator (verifierar att JS körs) =====
+    (function(){
+      const badge = document.getElementById("jsAlive");
+      if(badge) badge.style.display = "block";
+    })();
+
     // =========================
     // 1) FYLL I DINA SUPABASE-KEYS
     // =========================
@@ -324,10 +344,9 @@
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
-    // Helpers
     const $ = (id) => document.getElementById(id);
 
-    function showError(msg){ const e=$("errorMsg"); if(e) e.textContent = msg || ""; }
+    function showError(msg){ const el=$("errorMsg"); if(el) el.textContent = msg || ""; }
     function showDebug(msg){
       const d = $("debug");
       if(!d) return;
@@ -335,7 +354,7 @@
       d.style.display="block"; d.textContent=String(msg);
     }
 
-    // GLOBAL ERROR CATCH (så knappar aldrig blir “döda” utan text)
+    // Om JS-fel händer ska det synas direkt i UI
     window.addEventListener("error", (ev) => {
       showError("JavaScript-fel: " + (ev?.message || "okänt fel"));
     });
@@ -355,14 +374,13 @@
     }
 
     // =========================
-    // Supabase init (FAILSAFE)
+    // Supabase init (failsafe)
     // =========================
     const USE_SUPABASE = (typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http"))
                       && (typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 20);
 
     let supabase = null;
     if(USE_SUPABASE){
-      // KRITISK FIX: om SDK inte laddats ska vi INTE krascha
       if(window.supabase && typeof window.supabase.createClient === "function"){
         try{
           supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -373,18 +391,17 @@
         }
       }else{
         supabase = null;
-        // Detta gjorde tidigare att allt dog. Nu fortsätter appen ändå.
-        showError("Supabase-SDK laddades inte. Använd kod-inloggning eller testa igen.");
+        showError("Supabase-SDK laddades inte. Kod-inloggning fungerar ändå.");
       }
     }
 
     // =========================
-    // Auth actions
+    // Auth actions (exponerade på window för onclick)
     // =========================
     async function signInEmail(){
       showError(""); showDebug("");
       if(!supabase){
-        showError("Supabase är inte aktiv. Använd kod-inloggning eller fyll i URL/ANON korrekt.");
+        showError("Supabase är inte aktiv. Använd kod-inloggning.");
         return;
       }
       const email = ($("authEmail").value || "").trim();
@@ -406,7 +423,7 @@
     async function signUpEmail(){
       showError(""); showDebug("");
       if(!supabase){
-        showError("Supabase är inte aktiv. Använd kod-inloggning eller fyll i URL/ANON korrekt.");
+        showError("Supabase är inte aktiv. Använd kod-inloggning.");
         return;
       }
       const email = ($("authEmail").value || "").trim();
@@ -416,10 +433,9 @@
         return;
       }
       try{
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password });
         if(error){ showError(error.message); return; }
-        showError("Konto skapat. Om bekräftelse krävs: kolla mailen och logga in efteråt.");
-        if(data?.user) hideLock();
+        showError("Konto skapat. Kolla mail om bekräftelse krävs och logga in.");
       }catch(e){
         showError("Kunde inte skapa konto.");
         showDebug(String(e));
@@ -446,8 +462,14 @@
       showLock();
     }
 
+    // Exponera för inline onclick
+    window.__signInEmail = signInEmail;
+    window.__signUpEmail = signUpEmail;
+    window.__unlockByCode = unlockByCode;
+    window.__logoutAll = logoutAll;
+
     // =========================
-    // API helpers (mock exam)
+    // API helpers
     // =========================
     async function postJson(path, payload){
       const resp = await fetch(path, {
@@ -583,28 +605,14 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // =========================
-    // Wire events (DIRECT)
-    // =========================
-    $("signInBtn").addEventListener("click", signInEmail);
-    $("signUpBtn").addEventListener("click", signUpEmail);
-    $("unlockBtn").addEventListener("click", unlockByCode);
-    $("logoutBtn").addEventListener("click", logoutAll);
-    $("clearBtn").addEventListener("click", clearAll);
+    // Exponera för onclick
+    window.__clearAll = clearAll;
 
-    document.addEventListener("keydown", (e) => {
-      if(e.key !== "Enter") return;
-      const lockVisible = $("loginScreen").style.display !== "none";
-      if(!lockVisible) return;
-      const email = ($("authEmail").value || "").trim();
-      const pass = $("authPass").value || "";
-      if(email && pass) signInEmail();
-      else unlockByCode();
-    });
-
-    $("generateExamBtn").addEventListener("click", async () => {
-      showDebug("");
-      setStatus("", "");
+    // =========================
+    // Generate / Grade (exponerade)
+    // =========================
+    async function generateExam(){
+      showDebug(""); setStatus("", "");
       const pastedText = $("pastedText").value.trim();
       if(!pastedText){
         setStatus("Klistra in material först.", "bad");
@@ -635,11 +643,10 @@
       setBusy(false, "Redo.");
       setStatus("Mockprov klart.", "ok");
       document.querySelector("#exam").scrollIntoView({behavior:"smooth"});
-    });
+    }
 
-    $("gradeBtn").addEventListener("click", async () => {
-      showDebug("");
-      setStatus("", "");
+    async function gradeExam(){
+      showDebug(""); setStatus("", "");
       if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
         setStatus("Skapa mockprov först.", "bad");
         return;
@@ -649,10 +656,10 @@
       currentExam.questions.forEach((q, idx) => {
         const qid = String(q.id ?? (idx+1));
         if(q.type === "mc"){
-          const hidden = document.querySelector(`input.mcAnswer[data-qid="${qid.replaceAll('"','\\"')}"]`);
+          const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
           answers.push({ id: qid, answer: (hidden?.value || "").trim() });
         } else {
-          const ta = document.querySelector(`textarea.answer[data-qid="${qid.replaceAll('"','\\"')}"]`);
+          const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
           answers.push({ id: qid, answer: (ta?.value || "").trim() });
         }
       });
@@ -678,7 +685,10 @@
       setBusy(false, "Redo.");
       setStatus("Rättning klar.", "ok");
       document.querySelector("#result").scrollIntoView({behavior:"smooth"});
-    });
+    }
+
+    window.__generateExam = generateExam;
+    window.__gradeExam = gradeExam;
 
     // =========================
     // Initial lock logic
