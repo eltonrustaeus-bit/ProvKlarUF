@@ -695,11 +695,33 @@
       const user = session?.user;
       if(!user?.id) return false;
 
-      const { data: prof, error } = await db
-        .from("profiles")
-        .select("approved, role")
-        .eq("id", user.id)
-        .single();
+      const { data: prof, error } = await supabase
+  .from("profiles")
+  .select("approved, role")
+  .eq("id", user.id)
+  .maybeSingle();
+
+if (error) {
+  setLockError(String(error.message || error));
+  return false;
+}
+
+if (!prof) {
+  setLockError("Profil saknas i databasen (profiles). Skapa profilen för användaren eller lägg en trigger som skapar den automatiskt.");
+  showLock();
+  return false;
+}
+
+if (!prof.approved) {
+  setLockError(T[LANG].pending);
+  showLock();
+  return false;
+}
+
+setLockError("");
+hideLock();
+return true;
+
 
       if(error){
         setLockError(String(error.message || error));
