@@ -1,3 +1,4 @@
+<!-- app.html (ersätt hela filen med detta) -->
 <!doctype html>
 <html lang="sv">
 <head>
@@ -404,15 +405,16 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK (ENDAST EN GÅNG) -->
+  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     // ============================
-    // SUPABASE KEYS (FIXADE)
+    // SUPABASE KEYS
     // ============================
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8".trim();
+    const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8";
+    const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim(); // viktigt: tar bort trailing space
 
     // ===== LOGIN CONFIG (fallback kod) =====
     const ACCESS_CODE = "provia123";
@@ -425,30 +427,6 @@
     const LS_MATERIAL = "proviaai_last_material";
 
     const $ = (id) => document.getElementById(id);
-
-    // ===== DEBUG/ERROR REPORTING (ENKEL & STABIL) =====
-    function showDebug(txt){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "block";
-      pre.textContent = txt || "";
-    }
-    function hideDebug(){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "none";
-      pre.textContent = "";
-    }
-    function reportErr(err){
-      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
-      showDebug(msg);
-      const s = $("status");
-      if(s){ s.className = "status bad"; s.textContent = "JS-fel: se Debug."; }
-      const em = $("errorMsg");
-      if(em) em.textContent = "JS-fel: se Debug.";
-    }
-    window.addEventListener("error", (e) => reportErr(e.error || e.message));
-    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
 
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
@@ -573,7 +551,78 @@
       }
     };
 
-    // ===== SAFE HELPERS =====
+    // ===== DEBUG/ERROR REPORTING =====
+    function showDebug(txt){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "block";
+      pre.textContent = txt || "";
+    }
+    function hideDebug(){
+      const wrap = $("debugWrap"), pre = $("debug");
+      if(!wrap || !pre) return;
+      wrap.style.display = "none";
+      pre.textContent = "";
+    }
+    function reportErr(err){
+      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
+      showDebug(msg);
+      const s = $("status");
+      if(s){
+        s.className = "status bad";
+        s.textContent = "JS-fel: se Debug.";
+      }
+      const em = $("errorMsg");
+      if(em) em.textContent = "JS-fel: se Debug.";
+    }
+    window.addEventListener("error", (e) => reportErr(e.error || e.message));
+    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
+
+    // ===== SUPABASE INIT (robust) =====
+    const USE_SUPABASE =
+      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
+      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
+
+    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
+    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
+      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    // ===== NEW: SAVE DATA TO ACCOUNT (user_exams) =====
+    async function getUserId(){
+      if(!db) return null;
+      const { data, error } = await db.auth.getUser();
+      if(error) return null;
+      return data?.user?.id || null;
+    }
+
+    async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
+      if(!db) return { ok:false, error:"Supabase not configured" };
+      const userId = await getUserId();
+      if(!userId) return { ok:false, error:"Not logged in" };
+
+      const payload = {
+        user_id: userId,
+        course: course || null,
+        level: level || null,
+        qtype: qType || null,
+        material: material || "",
+        exam: exam || null,
+        answers: answers || null,
+        result: result || null
+      };
+
+      const { data, error } = await db
+        .from("user_exams")
+        .insert(payload)
+        .select("id")
+        .single();
+
+      if(error) return { ok:false, error: error.message || String(error) };
+      return { ok:true, id: data.id };
+    }
+
+    // ===== SAFE HELPERS (no crash if element missing) =====
     function onClick(id, fn){
       const el = $(id);
       if(!el) return false;
@@ -587,16 +636,6 @@
         try{ fn(e); } catch(err){ reportErr(err); }
       });
     }
-
-    // ===== SUPABASE INIT (FIXAD) =====
-    const USE_SUPABASE =
-      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
-
-    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
-    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
-      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
 
     // ===== UI refs =====
     const spinWrap = () => $("spinWrap");
@@ -684,7 +723,7 @@
       showLock();
     }
 
-    // ===== APPROVAL CHECK (FIXAD: använder db, inte "supabase") =====
+    // ===== APPROVAL CHECK =====
     async function checkApprovalAndUnlock(session){
       if(!db) return false;
       const user = session?.user;
@@ -702,7 +741,7 @@
       }
 
       if(!prof){
-        setLockError("Profil saknas i databasen (profiles).");
+        setLockError("Profil saknas i databasen (profiles). Skapa profilen för användaren eller lägg en trigger som skapar den automatiskt.");
         showLock();
         return false;
       }
@@ -954,7 +993,7 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // ===== INIT EVENTS =====
+    // ===== INIT EVENTS (ALL IN DOMContentLoaded) =====
     window.addEventListener("DOMContentLoaded", async () => {
       try{
         applyLang();
@@ -1090,6 +1129,23 @@
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
+          // NEW: optional save draft (exam + material) to account (only if logged in)
+          // (if you don't want drafts, remove this block)
+          try{
+            const saveDraft = await saveExamToAccount({
+              material: pastedText,
+              course: (courseEl()?.value || "").trim(),
+              level: (levelEl()?.value || "C"),
+              qType: (qTypeEl()?.value || "mix"),
+              exam: res.data.exam,
+              answers: null,
+              result: null
+            });
+            if(!saveDraft.ok && saveDraft.error !== "Not logged in"){
+              showDebug("Supabase save draft error:\n" + saveDraft.error);
+            }
+          }catch(e){}
+
           setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
@@ -1134,6 +1190,20 @@
 
           const result = res.data.result;
           renderResult(result);
+
+          // NEW: save graded attempt to account (only if logged in)
+          const saveRes = await saveExamToAccount({
+            material: pastedText,
+            course: (courseEl()?.value || "").trim(),
+            level: (levelEl()?.value || "C"),
+            qType: (qTypeEl()?.value || "mix"),
+            exam: currentExam,
+            answers,
+            result
+          });
+          if(!saveRes.ok && saveRes.error !== "Not logged in"){
+            showDebug("Supabase save error:\n" + saveRes.error);
+          }
 
           const ts = Date.now();
           const max = Number(result.max_points || 0);
