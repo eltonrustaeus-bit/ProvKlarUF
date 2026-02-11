@@ -588,39 +588,81 @@
       ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
 
-    // ===== NEW: SAVE DATA TO ACCOUNT (user_exams) =====
-    async function getUserId(){
-      if(!db) return null;
-      const { data, error } = await db.auth.getUser();
-      if(error) return null;
-      return data?.user?.id || null;
-    }
+   // ===== SAVE DATA TO ACCOUNT (user_exams) =====
+async function getUserId(){
+  if(!db) return null;
+  const { data, error } = await db.auth.getUser();
+  if(error) return null;
+  return data?.user?.id || null;
+}
 
-    async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
-      if(!db) return { ok:false, error:"Supabase not configured" };
-      const userId = await getUserId();
-      if(!userId) return { ok:false, error:"Not logged in" };
+async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
+  if(!db) return { ok:false, error:"Supabase not configured" };
+  const userId = await getUserId();
+  if(!userId) return { ok:false, error:"Not logged in" };
 
-      const payload = {
-        user_id: userId,
-        course: course || null,
-        level: level || null,
-        qtype: qType || null,
-        material: material || "",
-        exam: exam || null,
-        answers: answers || null,
-        result: result || null
-      };
+  const row = {
+    user_id: userId,
+    course: course || null,
+    level: level || null,
+    qtype: qType || null,
+    material: material || "",
+    exam: exam || null,
+    answers: answers || null,
+    result: result || null,
+    created_at: new Date().toISOString()
+  };
 
-      const { data, error } = await db
-        .from("user_exams")
-        .insert(payload)
-        .select("id")
-        .single();
+  const { data, error } = await db
+    .from("user_exams")
+    .insert([row])
+    .select("id");
 
-      if(error) return { ok:false, error: error.message || String(error) };
-      return { ok:true, id: data.id };
-    }
+  if(error) return { ok:false, error: error.message || String(error) };
+
+  const id = Array.isArray(data) && data[0] ? data[0].id : null;
+  return { ok:true, id };
+}
+async function loadExamsFromAccountToLocal(){
+  if(!db) return;
+  const uid = await getUserId();
+  if(!uid) return;
+
+  const { data, error } = await db
+    .from("user_exams")
+    .select("created_at, course, level, qtype, result, exam, answers, material")
+    .eq("user_id", uid)
+    .order("created_at", { ascending: true });
+
+  if(error) return;
+
+  // Exempel: skriv in i din befintliga localStorage-struktur (så förbättring.html funkar)
+  // Du kan anpassa exakt vad du vill spara här.
+  const history = (data || []).map((r) => ({
+    ts: Date.parse(r.created_at) || Date.now(),
+    course: r.course || "",
+    level: r.level || "C",
+    qType: r.qtype || "mix",
+    total_points: r.result?.total_points ?? 0,
+    max_points: r.result?.max_points ?? 0,
+    percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
+  }));
+
+  lsSet(LS_HISTORY, history);
+
+  // Spara senaste som LS_LAST (valfritt)
+  const last = data && data.length ? data[data.length - 1] : null;
+  if(last){
+    lsSet(LS_LAST, {
+      ts: Date.parse(last.created_at) || Date.now(),
+      attempt: history[history.length - 1],
+      exam: last.exam,
+      result: last.result
+    });
+    if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
+  }
+}
+
 
     // ===== SAFE HELPERS (no crash if element missing) =====
     function onClick(id, fn){
@@ -1189,21 +1231,24 @@
           }
 
           const result = res.data.result;
-          renderResult(result);
+renderResult(result);
 
-          // NEW: save graded attempt to account (only if logged in)
-          const saveRes = await saveExamToAccount({
-            material: pastedText,
-            course: (courseEl()?.value || "").trim(),
-            level: (levelEl()?.value || "C"),
-            qType: (qTypeEl()?.value || "mix"),
-            exam: currentExam,
-            answers,
-            result
-          });
-          if(!saveRes.ok && saveRes.error !== "Not logged in"){
-            showDebug("Supabase save error:\n" + saveRes.error);
-          }
+// === NEW: spara provet till kontot (Supabase) ===
+try{
+  await saveExamToAccount({
+    material: pastedText,
+    course: (courseEl()?.value || "").trim(),
+    level: levelEl()?.value || "C",
+    qType: qTypeEl()?.value || "mix",
+    exam: {
+      title: currentExam.title || "",
+      level: currentExam.level || (levelEl()?.value || "C"),
+      questions: currentExam.questions || []
+    },
+    answers,
+    result
+  });
+} catch {}
 
           const ts = Date.now();
           const max = Number(result.max_points || 0);
