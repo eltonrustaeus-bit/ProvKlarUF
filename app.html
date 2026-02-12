@@ -1,4 +1,3 @@
-<!-- app.html (ersätt hela filen med detta) -->
 <!doctype html>
 <html lang="sv">
 <head>
@@ -46,6 +45,10 @@
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
       background:rgba(255,255,255,.92);color:var(--deep);
+      user-select:none;
+    }
+    .btn:disabled{
+      opacity:.6; cursor:not-allowed;
     }
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
@@ -412,9 +415,9 @@
     // ============================
     // SUPABASE KEYS
     // ============================
-  const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-  const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8";
-  const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim();
+    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
+    const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8";
+    const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim();
 
     // ===== LOGIN CONFIG (fallback kod) =====
     const ACCESS_CODE = "provia123";
@@ -588,83 +591,80 @@
       ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
 
-   // ===== SAVE DATA TO ACCOUNT (user_exams) =====
-async function getUserId(){
-  if(!db) return null;
-  const { data, error } = await db.auth.getUser();
-  if(error) return null;
-  return data?.user?.id || null;
-}
+    // ===== SAVE DATA TO ACCOUNT (user_exams) =====
+    async function getUserId(){
+      if(!db) return null;
+      const { data, error } = await db.auth.getUser();
+      if(error) return null;
+      return data?.user?.id || null;
+    }
 
-async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
-  if(!db) return { ok:false, error:"Supabase not configured" };
-  const userId = await getUserId();
-  if(!userId) return { ok:false, error:"Not logged in" };
+    async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
+      if(!db) return { ok:false, error:"Supabase not configured" };
+      const userId = await getUserId();
+      if(!userId) return { ok:false, error:"Not logged in" };
 
-  const row = {
-    user_id: userId,
-    course: course || null,
-    level: level || null,
-    qtype: qType || null,
-    material: material || "",
-    exam: exam || null,
-    answers: answers || null,
-    result: result || null,
-    created_at: new Date().toISOString()
-  };
+      const row = {
+        user_id: userId,
+        course: course || null,
+        level: level || null,
+        qtype: qType || null,
+        material: material || "",
+        exam: exam || null,
+        answers: answers || null,
+        result: result || null,
+        created_at: new Date().toISOString()
+      };
 
-  const { data, error } = await db
-    .from("user_exams")
-    .insert([row])
-    .select("id");
+      const { data, error } = await db
+        .from("user_exams")
+        .insert([row])
+        .select("id");
 
-  if(error) return { ok:false, error: error.message || String(error) };
+      if(error) return { ok:false, error: error.message || String(error) };
 
-  const id = Array.isArray(data) && data[0] ? data[0].id : null;
-  return { ok:true, id };
-}
-async function loadExamsFromAccountToLocal(){
-  if(!db) return;
-  const uid = await getUserId();
-  if(!uid) return;
+      const id = Array.isArray(data) && data[0] ? data[0].id : null;
+      return { ok:true, id };
+    }
 
-  const { data, error } = await db
-    .from("user_exams")
-    .select("created_at, course, level, qtype, result, exam, answers, material")
-    .eq("user_id", uid)
-    .order("created_at", { ascending: true });
+    async function loadExamsFromAccountToLocal(){
+      if(!db) return;
+      const uid = await getUserId();
+      if(!uid) return;
 
-  if(error) return;
+      const { data, error } = await db
+        .from("user_exams")
+        .select("created_at, course, level, qtype, result, exam, answers, material")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true });
 
-  // Exempel: skriv in i din befintliga localStorage-struktur (så förbättring.html funkar)
-  // Du kan anpassa exakt vad du vill spara här.
-  const history = (data || []).map((r) => ({
-    ts: Date.parse(r.created_at) || Date.now(),
-    course: r.course || "",
-    level: r.level || "C",
-    qType: r.qtype || "mix",
-    total_points: r.result?.total_points ?? 0,
-    max_points: r.result?.max_points ?? 0,
-    percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
-  }));
+      if(error) return;
 
-  lsSet(LS_HISTORY, history);
+      const history = (data || []).map((r) => ({
+        ts: Date.parse(r.created_at) || Date.now(),
+        course: r.course || "",
+        level: r.level || "C",
+        qType: r.qtype || "mix",
+        total_points: r.result?.total_points ?? 0,
+        max_points: r.result?.max_points ?? 0,
+        percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
+      }));
 
-  // Spara senaste som LS_LAST (valfritt)
-  const last = data && data.length ? data[data.length - 1] : null;
-  if(last){
-    lsSet(LS_LAST, {
-      ts: Date.parse(last.created_at) || Date.now(),
-      attempt: history[history.length - 1],
-      exam: last.exam,
-      result: last.result
-    });
-    if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
-  }
-}
+      lsSet(LS_HISTORY, history);
 
+      const last = data && data.length ? data[data.length - 1] : null;
+      if(last){
+        lsSet(LS_LAST, {
+          ts: Date.parse(last.created_at) || Date.now(),
+          attempt: history[history.length - 1],
+          exam: last.exam,
+          result: last.result
+        });
+        if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
+      }
+    }
 
-    // ===== SAFE HELPERS (no crash if element missing) =====
+    // ===== SAFE HELPERS =====
     function onClick(id, fn){
       const el = $(id);
       if(!el) return false;
@@ -709,7 +709,15 @@ async function loadExamsFromAccountToLocal(){
       if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
       if(clearBtn) clearBtn.disabled = isBusy;
       if(ocrBtn) ocrBtn.disabled = isBusy;
+      // login buttons
+      const signIn = $("signInBtn");
+      const signUp = $("signUpBtn");
+      const unlock = $("unlockBtn");
+      if(signIn) signIn.disabled = isBusy;
+      if(signUp) signUp.disabled = isBusy;
+      if(unlock) unlock.disabled = isBusy;
     }
+
     function setStatus(txt, kind){
       const s = statusEl();
       if(!s) return;
@@ -812,14 +820,20 @@ async function loadExamsFromAccountToLocal(){
         return;
       }
 
-      const { data, error } = await db.auth.signInWithPassword({ email, password });
-      if(error){
-        setLockError(error.message);
-        return;
+      setBusy(true, "…");
+      try{
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
+        if(error){
+          setLockError(error.message);
+          return;
+        }
+        const ok = await checkApprovalAndUnlock(data.session);
+        if(ok){
+          await loadExamsFromAccountToLocal();
+        }
+      } finally {
+        setBusy(false, T[LANG].ready);
       }
-      await checkApprovalAndUnlock(data.session);
-await loadExamsFromAccountToLocal();
-
     }
 
     async function signUpEmail(){
@@ -835,17 +849,25 @@ await loadExamsFromAccountToLocal();
         return;
       }
 
-      const { data, error } = await db.auth.signUp({ email, password });
-      if(error){
-        setLockError(error.message);
-        return;
-      }
+      setBusy(true, "…");
+      try{
+        const { data, error } = await db.auth.signUp({ email, password });
+        if(error){
+          setLockError(error.message);
+          return;
+        }
 
-      if(data?.session){
-        await checkApprovalAndUnlock(data.session);
-      } else {
-        setLockError(T[LANG].pending);
-        showLock();
+        if(data?.session){
+          const ok = await checkApprovalAndUnlock(data.session);
+          if(ok){
+            await loadExamsFromAccountToLocal();
+          }
+        } else {
+          setLockError(T[LANG].pending);
+          showLock();
+        }
+      } finally {
+        setBusy(false, T[LANG].ready);
       }
     }
 
@@ -1037,7 +1059,7 @@ await loadExamsFromAccountToLocal();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // ===== INIT EVENTS (ALL IN DOMContentLoaded) =====
+    // ===== INIT EVENTS =====
     window.addEventListener("DOMContentLoaded", async () => {
       try{
         applyLang();
@@ -1173,8 +1195,7 @@ await loadExamsFromAccountToLocal();
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          // NEW: optional save draft (exam + material) to account (only if logged in)
-          // (if you don't want drafts, remove this block)
+          // optional: save draft (exam + material) to account
           try{
             const saveDraft = await saveExamToAccount({
               material: pastedText,
@@ -1233,24 +1254,24 @@ await loadExamsFromAccountToLocal();
           }
 
           const result = res.data.result;
-renderResult(result);
+          renderResult(result);
 
-// === NEW: spara provet till kontot (Supabase) ===
-try{
-  await saveExamToAccount({
-    material: pastedText,
-    course: (courseEl()?.value || "").trim(),
-    level: levelEl()?.value || "C",
-    qType: qTypeEl()?.value || "mix",
-    exam: {
-      title: currentExam.title || "",
-      level: currentExam.level || (levelEl()?.value || "C"),
-      questions: currentExam.questions || []
-    },
-    answers,
-    result
-  });
-} catch {}
+          // save to Supabase (account)
+          try{
+            await saveExamToAccount({
+              material: pastedText,
+              course: (courseEl()?.value || "").trim(),
+              level: levelEl()?.value || "C",
+              qType: qTypeEl()?.value || "mix",
+              exam: {
+                title: currentExam.title || "",
+                level: currentExam.level || (levelEl()?.value || "C"),
+                questions: currentExam.questions || []
+              },
+              answers,
+              result
+            });
+          } catch {}
 
           const ts = Date.now();
           const max = Number(result.max_points || 0);
@@ -1322,27 +1343,32 @@ try{
         // CLEAR
         onClick("clearBtn", clearAll);
 
-        // LOCK STARTUP
+        // LOCK STARTUP (FIXED: inga brutna klamrar)
         if(db){
           try{
             const { data } = await db.auth.getSession();
             if(data?.session){
-  const ok = await checkApprovalAndUnlock(data.session);
-  if(ok){
-    await loadExamsFromAccountToLocal();
-    return;
-  }
-  showLock();
-  return;
-}
+              const ok = await checkApprovalAndUnlock(data.session);
+              if(ok){
+                await loadExamsFromAccountToLocal();
+              } else {
+                showLock();
+              }
+            } else {
+              // ingen session: visa lock om inte kod-unlockad
+              if(isUnlocked()) hideLock();
+              else showLock();
             }
           }catch(e){
             setLockError(String(e?.message || e));
+            if(isUnlocked()) hideLock();
+            else showLock();
           }
+        } else {
+          // ingen supabase: bara kod-lås
+          if(isUnlocked()) hideLock();
+          else showLock();
         }
-
-        if(isUnlocked()) hideLock();
-        else showLock();
 
       }catch(err){
         reportErr(err);
