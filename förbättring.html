@@ -215,7 +215,134 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
+  <!-- Supabase SDK (NYTT: krävs för kontosync) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
+    // ============================
+    // SUPABASE (NYTT: kontosync)
+    // ============================
+    // Dessa värden är samma som du använde i app.html i chatten.
+    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8".trim();
+
+    const USE_SUPABASE =
+      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
+      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
+
+    // CDN v2 exponerar window.supabase.createClient(...)
+    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
+    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
+      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+      : null;
+
+    async function getUserId(){
+      if(!db) return null;
+      const { data, error } = await db.auth.getUser();
+      if(error) return null;
+      return data?.user?.id || null;
+    }
+
+    // Läser ALLA prov för användaren från user_exams och skriver till samma localStorage-keys som sidan redan använder
+    async function loadExamsFromAccountToLocal(){
+      if(!db) return { ok:false, reason:"no_db" };
+      const uid = await getUserId();
+      if(!uid) return { ok:false, reason:"not_logged_in" };
+
+      const { data, error } = await db
+        .from("user_exams")
+        .select("created_at, course, level, qtype, result, exam, answers, material")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true });
+
+      if(error) return { ok:false, reason:"query_error", error: error.message || String(error) };
+
+      const rows = Array.isArray(data) ? data : [];
+
+      // History (för diagram/metrik)
+      const history = rows.map((r) => {
+        const ts = Date.parse(r.created_at) || Date.now();
+        const total = Number(r.result?.total_points ?? r.result?.total ?? 0);
+        const max = Number(r.result?.max_points ?? r.result?.max ?? 0);
+        const percent = (max > 0) ? Math.round((total / max) * 100) : 0;
+        return {
+          ts,
+          course: r.course || "",
+          level: r.level || "C",
+          qType: r.qtype || "mix",
+          numQuestions: Array.isArray(r.exam?.questions) ? r.exam.questions.length : undefined,
+          total_points: total,
+          max_points: max,
+          percent
+        };
+      });
+
+      try{ localStorage.setItem(LS_HISTORY, JSON.stringify(history)); } catch {}
+
+      // Last (för coach + senaste)
+      const last = rows.length ? rows[rows.length - 1] : null;
+      if(last){
+        const lastAttempt = history.length ? history[history.length - 1] : null;
+        try{
+          localStorage.setItem(LS_LAST, JSON.stringify({
+            ts: Date.parse(last.created_at) || Date.now(),
+            attempt: lastAttempt,
+            exam: last.exam || null,
+            result: last.result || null
+          }));
+        } catch {}
+
+        if(typeof last.material === "string"){
+          try{ localStorage.setItem(LS_MATERIAL, last.material); } catch {}
+        }
+      }
+
+      // Mistakes: bygg från last.exam + last.answers + last.result (om de finns)
+      // OBS: kräver att result.per_question innehåller feedback/model_answer/points/max_points + id
+      const lastPayload = (() => {
+        try{ return JSON.parse(localStorage.getItem(LS_LAST) || "null"); } catch { return null; }
+      })();
+
+      const mistakes = [];
+      const result = lastPayload?.result;
+      const exam = lastPayload?.exam;
+      const answers = Array.isArray(last?.answers) ? last.answers : [];
+
+      if(result && Array.isArray(result.per_question)){
+        const qById = new Map(
+          (Array.isArray(exam?.questions) ? exam.questions : []).map(q => [String(q.id), q])
+        );
+        const aById = new Map(answers.map(a => [String(a.id), a.answer]));
+        result.per_question.forEach(item => {
+          const got = Number(item.points ?? 0);
+          const mx = Number(item.max_points ?? 0);
+          if(mx > 0 && got < mx){
+            const q = qById.get(String(item.id)) || {};
+            mistakes.push({
+              ts: lastPayload.ts || Date.now(),
+              course: lastAttempt?.course || "",
+              level: lastAttempt?.level || "C",
+              qType: q.type || lastAttempt?.qType || "mix",
+              id: String(item.id),
+              question: String(q.question || ""),
+              user_answer: String(aById.get(String(item.id)) || ""),
+              feedback: String(item.feedback || ""),
+              model_answer: String(item.model_answer || ""),
+              points: got,
+              max_points: mx
+            });
+          }
+        });
+      }
+
+      // Skriv mistakes (om tomt, behåll ev lokala)
+      if(mistakes.length){
+        try{ localStorage.setItem(LS_MISTAKES, JSON.stringify(mistakes)); } catch {}
+      }
+
+      return { ok:true, count: rows.length };
+    }
+
     // ===== STORAGE KEYS =====
     const LS_HISTORY = "proviaai_history";
     const LS_MISTAKES = "proviaai_mistakes";
@@ -270,7 +397,10 @@
         dnaLabels:["Analys","Begrepp","Struktur","Exempel","Tempo"],
         readyRed:"Träna mer",
         readyYellow:"Nära",
-        readyGreen:"Redo"
+        readyGreen:"Redo",
+        cloudOk:"Synkade från konto.",
+        cloudNoLogin:"Inte inloggad (visar lokal data).",
+        cloudErr:"Kunde inte synka från konto (visar lokal data)."
       },
       en:{
         tag:"Improve • Coach • History",
@@ -303,7 +433,10 @@
         dnaLabels:["Analysis","Concepts","Structure","Examples","Pace"],
         readyRed:"Train more",
         readyYellow:"Close",
-        readyGreen:"Ready"
+        readyGreen:"Ready",
+        cloudOk:"Synced from account.",
+        cloudNoLogin:"Not logged in (showing local data).",
+        cloudErr:"Could not sync from account (showing local data)."
       }
     };
 
@@ -358,7 +491,6 @@
     function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
 
     function computeTrend(history){
-      // return +/- diff senaste 3 vs 3 före (om möjligt), annars null
       if(history.length < 2) return null;
       const last = history.slice(-3);
       const prev = history.slice(-6, -3);
@@ -370,9 +502,6 @@
     }
 
     function readiness(percent, trendDelta){
-      // Enkel deterministisk modell:
-      // - utgår från percent
-      // - liten justering av trend (max ±6)
       const adj = clamp((trendDelta||0), -6, 6);
       const p = clamp(percent + adj, 0, 100);
       if(p >= 80) return {labelKey:"readyGreen", color:"green", fill:p};
@@ -381,10 +510,6 @@
     }
 
     function dnaFromData(history, mistakes){
-      // Deterministisk (heuristisk) DNA från:
-      // - poängnivå (percent)
-      // - qType-mix (fördelning)
-      // - mängd tappade poäng och essä/short förekomst
       const last20 = history.slice(-20);
       const avg = last20.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,last20.length);
 
@@ -394,14 +519,12 @@
       const miss20 = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
       const missRate = miss20.length ? clamp(miss20.length / Math.max(1,last20.length), 0, 6) : 0;
 
-      // Bas från avg
       let analysis = avg;
       let concepts = avg;
       let structure = avg;
       let examples = avg;
       let pace = avg;
 
-      // Justeringar
       analysis += (counts.essay * 2) - (counts.mc * 1) - (missRate * 3);
       concepts += (counts.short * 1.5) + (counts.mc * 0.5) - (missRate * 2.5);
       structure += (counts.mix * 1.2) - (missRate * 2);
@@ -422,7 +545,6 @@
       const t = T[LANG];
       if(!history.length) return t.noData;
 
-      // hitta lägsta DNA-dimension
       const dims = [
         {k:"analysis", label:t.dnaLabels[0]},
         {k:"concepts", label:t.dnaLabels[1]},
@@ -451,7 +573,6 @@
 
       ctx.clearRect(0,0,w,h);
 
-      // data
       const data = history.slice(-20).map(x => clamp(Number(x.percent||0), 0, 100));
       if(data.length === 0){
         ctx.fillStyle = "rgba(5,42,30,.65)";
@@ -464,7 +585,6 @@
       const gw = w - padL - padR;
       const gh = h - padT - padB;
 
-      // grid
       ctx.strokeStyle = "rgba(5,42,30,.10)";
       ctx.lineWidth = 1;
       for(let i=0;i<=5;i++){
@@ -475,13 +595,11 @@
         ctx.stroke();
       }
 
-      // axis labels
       ctx.fillStyle = "rgba(5,42,30,.70)";
       ctx.font = "12px system-ui";
       ctx.fillText("100", 8, padT+4);
       ctx.fillText("0", 14, padT+gh+4);
 
-      // line
       const step = data.length === 1 ? 0 : (gw/(data.length-1));
       const pt = (i) => {
         const x = padL + (step * i);
@@ -489,7 +607,6 @@
         return {x,y};
       };
 
-      // stroke
       ctx.strokeStyle = "rgba(22,184,118,.95)";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -499,7 +616,6 @@
       });
       ctx.stroke();
 
-      // dots
       ctx.fillStyle = "rgba(43,227,140,.95)";
       data.forEach((_,i)=>{
         const p = pt(i);
@@ -508,7 +624,6 @@
         ctx.fill();
       });
 
-      // x labels (1..n)
       ctx.fillStyle = "rgba(5,42,30,.60)";
       ctx.font = "12px system-ui";
       ctx.fillText(LANG==="sv" ? "Prov" : "Exam", padL, padT+gh+26);
@@ -599,14 +714,12 @@
       if(history.length === 0){
         topStatus.textContent = t.noData;
         topStatus.className = "status warn";
-        // render empty states
         $("coachText").textContent = t.noData;
         $("lastText").textContent = "—";
         $("trendText").textContent = "—";
         $("goalText").textContent = "—";
         renderDNA({analysis:0,concepts:0,structure:0,examples:0,pace:0});
-        const canvas = $("trendChart");
-        drawChart(canvas, []);
+        drawChart($("trendChart"), []);
         renderMistakes([]);
         $("meterPill").textContent = "—";
         $("meterFill").style.width = "0%";
@@ -623,28 +736,24 @@
       const trend = computeTrend(history);
       const dna = dnaFromData(history, mistakes);
 
-      // Coach text
       $("coachText").textContent = coachText(history, mistakes, dna, lastAttempt);
 
-      // Last summary
       const lastP = Number(lastAttempt?.percent || 0);
       const lastCourse = (lastAttempt?.course || "").trim();
       $("lastText").textContent = LANG==="sv"
         ? `${lastP}% • Nivå: ${lastAttempt?.level || "—"} • ${lastCourse || "Ingen kurs"}`
         : `${lastP}% • Level: ${lastAttempt?.level || "—"} • ${lastCourse || "No course"}`;
 
-      // Trend summary
       if(trend){
         const sign = trend.delta >= 0 ? "+" : "";
         const delta = Math.round(trend.delta);
         $("trendText").textContent = (LANG==="sv")
-          ? `${sign}${delta} procentenheter (senaste)` 
+          ? `${sign}${delta} procentenheter (senaste)`
           : `${sign}${delta} percentage points (recent)`;
       } else {
         $("trendText").textContent = "—";
       }
 
-      // Readiness
       const r = readiness(lastP, trend ? trend.delta : 0);
       $("goalText").textContent = t[r.labelKey];
       $("meterPill").textContent = t[r.labelKey] + ` • ${Math.round(r.fill)}%`;
@@ -652,33 +761,56 @@
       mf.className = "meterFill " + r.color;
       mf.style.width = `${Math.round(r.fill)}%`;
 
-      // DNA
       renderDNA(dna);
-
-      // Chart
       drawChart($("trendChart"), history);
-
-      // Mistakes
       renderMistakes(mistakes);
 
-      // Train mistakes link: går till appen (material finns redan sparat i appens localStorage)
-      // här kan du senare lägga params om du vill.
       $("trainMistakesBtn").setAttribute("href", "app.html#settings");
     }
 
     // Reset history button
     $("resetBtn").addEventListener("click", () => {
-      // rensa bara förbättringsdata, inte lås-koden
       localStorage.removeItem(LS_HISTORY);
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
-      // material lämnas kvar
       renderAll();
     });
 
-    // init
-    applyLang();
-    renderAll();
+    // ============================
+    // INIT (NYTT: synka från konto först, sen render)
+    // ============================
+    async function init(){
+      applyLang();
+
+      const t = T[LANG];
+      const topStatus = $("topStatus");
+
+      // Försök synka från konto -> skriv in i localStorage -> renderAll
+      try{
+        const res = await loadExamsFromAccountToLocal();
+        if(res && res.ok){
+          topStatus.textContent = (LANG==="sv") ? t.cloudOk : t.cloudOk;
+          topStatus.className = "status ok";
+        } else if(res && res.reason === "not_logged_in"){
+          // Visa lokal data ändå
+          topStatus.textContent = t.cloudNoLogin;
+          topStatus.className = "status warn";
+        } else if(res && res.reason === "no_db"){
+          // Ingen supabase init -> visa lokal data
+          // (status lämnas till renderAll)
+        } else if(res && res.reason === "query_error"){
+          topStatus.textContent = t.cloudErr;
+          topStatus.className = "status warn";
+        }
+      } catch {
+        topStatus.textContent = t.cloudErr;
+        topStatus.className = "status warn";
+      }
+
+      renderAll();
+    }
+
+    init();
   </script>
 </body>
 </html>
