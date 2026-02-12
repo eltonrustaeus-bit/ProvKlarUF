@@ -818,6 +818,8 @@ async function loadExamsFromAccountToLocal(){
         return;
       }
       await checkApprovalAndUnlock(data.session);
+await loadExamsFromAccountToLocal();
+
     }
 
     async function signUpEmail(){
@@ -1325,10 +1327,14 @@ try{
           try{
             const { data } = await db.auth.getSession();
             if(data?.session){
-              const ok = await checkApprovalAndUnlock(data.session);
-              if(ok) return;
-              showLock();
-              return;
+  const ok = await checkApprovalAndUnlock(data.session);
+  if(ok){
+    await loadExamsFromAccountToLocal();
+    return;
+  }
+  showLock();
+  return;
+}
             }
           }catch(e){
             setLockError(String(e?.message || e));
