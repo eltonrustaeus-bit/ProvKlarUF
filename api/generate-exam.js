@@ -1,15 +1,11 @@
-// api/generate-exam.js (CommonJS / Vercel Serverless)
-// Structured Outputs JSON Schema WITHOUT oneOf
-// Includes correct_index for MC so grading becomes deterministic.
+// api/generate-exam.js (ersätt hela filen med detta)
+// NYTT: "Math mode" -> välj OPENAI_MODEL_MATH när kurs/material tyder på matte
+// Fortfarande samma JSON-schema (ingen frontend-ändring krävs).
 
 function json(res, status, obj) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(obj));
-}
-
-function pickModel() {
-  return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
 
 function safeString(x, maxLen = 200000) {
@@ -24,6 +20,38 @@ function asEnum(x, allowed, fallback) {
 function toInt(x, fallback) {
   const n = Number.parseInt(String(x), 10);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function looksLikeMath(course, pastedText) {
+  const c = String(course || "");
+  const t = String(pastedText || "");
+  const s = (c + "\n" + t).toLowerCase();
+
+  // enkel, robust heuristik
+  const kw = [
+    "matematik", "math", "algebra", "ekvation", "funktion", "polynom",
+    "potens", "exponent", "log", "ln", "derivata", "integral",
+    "geometri", "sannolikhet", "statistik", "bråk", "procent",
+    "linjär", "kvadrat", "parabel", "f(x)"
+  ];
+  if (kw.some(k => s.includes(k))) return true;
+
+  // symbolmönster
+  if (/[=<>]/.test(s) && /[xyz]/.test(s)) return true;
+  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;         // bråk
+  if (/[a-z]\s*\^\s*\d/.test(s)) return true;            // x^2
+  if (/[√]/.test(s)) return true;
+  if (/\bf\(\s*x\s*\)/.test(s)) return true;
+
+  return false;
+}
+
+function pickModel({ isMath }) {
+  // Standard
+  const base = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  // Matte
+  const math = process.env.OPENAI_MODEL_MATH || base;
+  return isMath ? math : base;
 }
 
 function buildMockExamSchema(numQuestions) {
@@ -51,23 +79,9 @@ function buildMockExamSchema(numQuestions) {
               type: { type: "string", enum: ["mc", "short", "essay", "mix"] },
               points: { type: "number" },
               question: { type: "string" },
-
-              // Always present. For non-mc: [].
-              options: {
-                type: "array",
-                items: { type: "string" },
-                maxItems: 6
-              },
-
-              // Always present.
-              // For mc: 0..(options.length-1)
-              // For non-mc: -1
+              options: { type: "array", items: { type: "string" }, maxItems: 6 },
               correct_index: { type: "integer" },
-
-              // Always present: short "what gives full points" rubric
               rubric: { type: "string" },
-
-              // Always present: a concise full-score answer (for short/essay), for mc you can repeat the correct option meaning
               model_answer: { type: "string" }
             }
           }
@@ -103,14 +117,15 @@ module.exports = async function handler(req, res) {
     const pastedText = safeString(parsed.pastedText, 200000);
 
     const numQuestionsRaw = toInt(parsed.numQuestions, 12);
-    const numQuestions = Math.min(12, Math.max(3, numQuestionsRaw)); // 3–12
+    const numQuestions = Math.min(12, Math.max(3, numQuestionsRaw));
 
     if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
 
+    const isMath = looksLikeMath(course, pastedText);
+    const model = pickModel({ isMath });
     const responseFormat = buildMockExamSchema(numQuestions);
-    const model = pickModel();
 
-    const systemSv =
+    const systemSvBase =
       "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
       "Du MÅSTE följa JSON-schemat exakt, och bara returnera JSON. " +
       "EXAKT antal frågor. " +
@@ -120,7 +135,13 @@ module.exports = async function handler(req, res) {
       "3) rubric ska vara kort och poängfokuserad. " +
       "4) model_answer ska alltid finnas: för mc kan du skriva vad rätt alternativ betyder; för short/essay skriv ett fullpoängsvar.";
 
-    const systemEn =
+    const systemSvMath =
+      "MATTE-LÄGE: Prioritera exakta, beräkningsbaserade frågor. " +
+      "Rubric ska dela upp poäng på metod + korrekt slutsvar (t.ex. 'Metod 2p, svar 1p'). " +
+      "Model_answer ska innehålla full lösning med tydliga steg och ett markerat slutsvar. " +
+      "Flervalsalternativ ska vara plausibla felalternativ (typiska misstag) och endast ett korrekt.";
+
+    const systemEnBase =
       "You create a realistic mock exam like a high-school teacher. " +
       "You MUST follow the JSON schema exactly and output only JSON. " +
       "EXACT number of questions. " +
@@ -129,6 +150,17 @@ module.exports = async function handler(req, res) {
       "2) correct_index: if type=='mc' -> integer pointing to correct option (0=A,1=B,...). Otherwise -1. " +
       "3) rubric must be short and point-focused. " +
       "4) model_answer must always exist: for mc describe what the correct option means; for short/essay provide a full-score answer.";
+
+    const systemEnMath =
+      "MATH MODE: Prioritize exact calculation questions. " +
+      "Rubric must split points into method + final answer. " +
+      "Model_answer must include a complete step-by-step solution and a clearly marked final answer. " +
+      "MC options must be plausible distractors (common mistakes) with exactly one correct.";
+
+    const systemPrompt =
+      (lang === "sv"
+        ? (systemSvBase + (isMath ? (" " + systemSvMath) : ""))
+        : (systemEnBase + (isMath ? (" " + systemEnMath) : "")));
 
     const userSv = [
       `Skapa ett mockprov på nivå ${level}.`,
@@ -154,7 +186,7 @@ module.exports = async function handler(req, res) {
       const payload = {
         model,
         input: [
-          { role: "system", content: lang === "sv" ? systemSv : systemEn },
+          { role: "system", content: systemPrompt },
           { role: "user", content: lang === "sv" ? userSv : userEn }
         ],
         text: { format: responseFormat }
@@ -189,7 +221,7 @@ module.exports = async function handler(req, res) {
         return json(res, 500, { ok: false, error: "Schema mismatch", exam });
       }
 
-      return json(res, 200, { ok: true, exam });
+      return json(res, 200, { ok: true, exam, meta: { isMath, model } });
     } catch (e) {
       return json(res, 500, { ok: false, error: "Server error", details: String(e) });
     }
