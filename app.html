@@ -1,4 +1,4 @@
-
+<!-- app.html (ersätt hela filen med detta) -->
 <!doctype html>
 <html lang="sv">
 <head>
@@ -48,9 +48,7 @@
       background:rgba(255,255,255,.92);color:var(--deep);
       user-select:none;
     }
-    .btn:disabled{
-      opacity:.6; cursor:not-allowed;
-    }
+    .btn:disabled{opacity:.6; cursor:not-allowed}
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
       box-shadow:0 14px 28px rgba(22,184,118,.22)
@@ -109,7 +107,6 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
-    /* menu */
     .menuWrap{position:relative;z-index:4000}
     .iconBtn{
       width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
@@ -148,7 +145,6 @@
       border-radius:999px;padding:4px 8px;background:#fff;
     }
 
-    /* lock */
     .loginOverlay{
       position:fixed;inset:0;z-index:9999;
       background:
@@ -182,7 +178,6 @@
     .authTitle{font-weight:1100;color:var(--deep);font-size:13px}
     .miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
 
-    /* upload */
     .uploadBox{
       border:1px dashed rgba(5,42,30,.22);
       border-radius:16px;
@@ -194,7 +189,6 @@
     .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .fileRow input[type="file"]{max-width:320px}
 
-    /* MC clickable */
     .mcGroup{display:grid;gap:8px;margin-top:10px}
     .mcOpt{
       display:flex;align-items:center;gap:10px;
@@ -234,7 +228,6 @@
       </div>
 
       <div class="loginBody">
-        <!-- Email/Pass login (Supabase) -->
         <div class="authBox" id="authBox">
           <div class="authTitle" id="authTitle">Logga in / Skapa konto</div>
 
@@ -261,7 +254,6 @@
           </div>
         </div>
 
-        <!-- Access code fallback -->
         <details style="margin-top:12px" open>
           <summary id="codeSummary">Alternativ inloggning: kod</summary>
           <label for="accessCode" id="lockLabel">Åtkomstkod</label>
@@ -409,7 +401,6 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
@@ -503,7 +494,8 @@
         genFirst:"Skapa mockprov först.",
         cleared:"Allt rensat. Börja om.",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
-        pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd."
+        pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
+        trainLoaded:"Träningsläge: materialet är byggt av dina misstag. Skapa ett nytt mockprov."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -551,7 +543,8 @@
         genFirst:"Generate an exam first.",
         cleared:"Cleared. Start again.",
         footer:"ProviaAi is study support and does not provide official grades.",
-        pending:"Waiting for admin approval. You’ll get access once approved."
+        pending:"Waiting for admin approval. You’ll get access once approved.",
+        trainLoaded:"Training mode: material built from your mistakes. Generate a new mock exam."
       }
     };
 
@@ -669,15 +662,11 @@
     function onClick(id, fn){
       const el = $(id);
       if(!el) return false;
-      el.addEventListener("click", (e) => {
-        try{ fn(e); } catch(err){ reportErr(err); }
-      });
+      el.addEventListener("click", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
       return true;
     }
     function onKey(fn){
-      document.addEventListener("keydown", (e) => {
-        try{ fn(e); } catch(err){ reportErr(err); }
-      });
+      document.addEventListener("keydown", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
     }
 
     // ===== UI refs =====
@@ -702,6 +691,7 @@
       const sw = spinWrap(), ms = miniStateEl();
       if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
       if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
+
       const genBtn = $("generateExamBtn");
       const gradeBtn = $("gradeBtn");
       const clearBtn = $("clearBtn");
@@ -710,6 +700,7 @@
       if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
       if(clearBtn) clearBtn.disabled = isBusy;
       if(ocrBtn) ocrBtn.disabled = isBusy;
+
       // login buttons
       const signIn = $("signInBtn");
       const signUp = $("signUpBtn");
@@ -761,6 +752,8 @@
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
         setLockError("");
         hideLock();
+        // om man kom via #train: kör direkt
+        runTrainModeIfRequested();
       } else {
         setLockError(T[LANG].wrongCode);
       }
@@ -768,9 +761,7 @@
     async function logout(){
       localStorage.removeItem(ACCESS_FLAG_KEY);
       const m = $("menu"); if(m) m.style.display = "none";
-      if(db){
-        try{ await db.auth.signOut(); } catch {}
-      }
+      if(db){ try{ await db.auth.signOut(); } catch {} }
       showLock();
     }
 
@@ -810,59 +801,42 @@
 
     async function signInEmail(){
       hideDebug();
-      if(!db){
-        setLockError("Supabase SDK laddades inte eller keys är fel.");
-        return;
-      }
+      if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
+
       const email = ($("authEmail")?.value || "").trim();
       const password = $("authPass")?.value || "";
-      if(!email || !password){
-        setLockError("Fyll i e-post och lösenord.");
-        return;
-      }
+      if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
 
       setBusy(true, "…");
       try{
         const { data, error } = await db.auth.signInWithPassword({ email, password });
-        if(error){
-          setLockError(error.message);
-          return;
-        }
+        if(error){ setLockError(error.message); return; }
         const ok = await checkApprovalAndUnlock(data.session);
-        if(ok){
-          await loadExamsFromAccountToLocal();
-        }
+        if(ok){ await loadExamsFromAccountToLocal(); }
       } finally {
         setBusy(false, T[LANG].ready);
       }
+
+      // om man kom via #train: kör direkt efter unlock
+      runTrainModeIfRequested();
     }
 
     async function signUpEmail(){
       hideDebug();
-      if(!db){
-        setLockError("Supabase SDK laddades inte eller keys är fel.");
-        return;
-      }
+      if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
+
       const email = ($("authEmail")?.value || "").trim();
       const password = $("authPass")?.value || "";
-      if(!email || !password){
-        setLockError("Fyll i e-post och lösenord.");
-        return;
-      }
+      if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
 
       setBusy(true, "…");
       try{
         const { data, error } = await db.auth.signUp({ email, password });
-        if(error){
-          setLockError(error.message);
-          return;
-        }
+        if(error){ setLockError(error.message); return; }
 
         if(data?.session){
           const ok = await checkApprovalAndUnlock(data.session);
-          if(ok){
-            await loadExamsFromAccountToLocal();
-          }
+          if(ok){ await loadExamsFromAccountToLocal(); }
         } else {
           setLockError(T[LANG].pending);
           showLock();
@@ -870,6 +844,73 @@
       } finally {
         setBusy(false, T[LANG].ready);
       }
+
+      runTrainModeIfRequested();
+    }
+
+    // ===== TRAIN MODE (bygg material från felbank, utan extra API) =====
+    function buildTrainingMaterialFromMistakes(mistakes){
+      const recent = Array.isArray(mistakes) ? mistakes.slice(-30).reverse() : [];
+      const course = (courseEl()?.value || "").trim();
+      const headerSv =
+        `TRÄNING PÅ DINA MISSTAG\n` +
+        `${course ? `Kurs: ${course}\n` : ""}` +
+        `Instruktion: Skapa prov som bara testar dessa svaga delar. Undvik områden där poäng redan var full.\n\n`;
+
+      const headerEn =
+        `TRAINING FROM YOUR MISTAKES\n` +
+        `${course ? `Course: ${course}\n` : ""}` +
+        `Instruction: Generate exams that focus only on these weak areas. Avoid topics you already mastered.\n\n`;
+
+      const blocks = recent.map((m, i) => {
+        const q = String(m.question || "").trim();
+        const fb = String(m.feedback || "").trim();
+        const model = String(m.model_answer || "").trim();
+        const tag = `${m.points}/${m.max_points}`;
+
+        if(LANG === "sv"){
+          return (
+            `MISSTAG ${i+1} (${tag})\n` +
+            `Fråga: ${q}\n` +
+            `Varför poäng tappades: ${fb || "—"}\n` +
+            `Modellsvar (full poäng): ${model || "—"}\n`
+          );
+        }
+        return (
+          `MISTAKE ${i+1} (${tag})\n` +
+          `Question: ${q}\n` +
+          `Why points were lost: ${fb || "—"}\n` +
+          `Full-score model answer: ${model || "—"}\n`
+        );
+      }).join("\n---\n\n");
+
+      return (LANG === "sv" ? headerSv : headerEn) + blocks;
+    }
+
+    function runTrainModeIfRequested(){
+      const hash = (window.location.hash || "").toLowerCase();
+      if(hash !== "#train") return;
+
+      const mistakes = lsGetArray(LS_MISTAKES);
+      if(!mistakes.length){
+        setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
+        document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
+        return;
+      }
+
+      const mat = buildTrainingMaterialFromMistakes(mistakes);
+      if(pastedTextEl()) pastedTextEl().value = mat;
+      try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
+
+      // sätt defaults som brukar passa träning
+      if(qTypeEl()) qTypeEl().value = "mix";
+      if(numQuestionsEl()) numQuestionsEl().value = "12";
+
+      setStatus(T[LANG].trainLoaded, "ok");
+      document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+
+      // om användaren vill köra igen utan reload
+      // lämna hash kvar
     }
 
     // ===== APP RENDERING =====
@@ -1105,6 +1146,8 @@
           localStorage.setItem("proviaai_lang", LANG);
           applyLang();
           const m = $("menu"); if(m) m.style.display = "none";
+          // om man är i train-läge: bygg om text med nytt språk
+          runTrainModeIfRequested();
         });
 
         // LOGOUT
@@ -1196,7 +1239,6 @@
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          // optional: save draft (exam + material) to account
           try{
             const saveDraft = await saveExamToAccount({
               material: pastedText,
@@ -1257,7 +1299,6 @@
           const result = res.data.result;
           renderResult(result);
 
-          // save to Supabase (account)
           try{
             await saveExamToAccount({
               material: pastedText,
@@ -1344,7 +1385,14 @@
         // CLEAR
         onClick("clearBtn", clearAll);
 
-        // LOCK STARTUP (FIXED: inga brutna klamrar)
+        // hashchange: om man klickar train igen utan reload
+        window.addEventListener("hashchange", () => {
+          // kör bara om appen är upplåst, annars triggas det efter login
+          const lockVisible = $("loginScreen") && $("loginScreen").style.display !== "none";
+          if(!lockVisible) runTrainModeIfRequested();
+        });
+
+        // LOCK STARTUP
         if(db){
           try{
             const { data } = await db.auth.getSession();
@@ -1352,23 +1400,35 @@
               const ok = await checkApprovalAndUnlock(data.session);
               if(ok){
                 await loadExamsFromAccountToLocal();
+                // upplåst: om #train, kör
+                runTrainModeIfRequested();
               } else {
                 showLock();
               }
             } else {
-              // ingen session: visa lock om inte kod-unlockad
-              if(isUnlocked()) hideLock();
-              else showLock();
+              if(isUnlocked()){
+                hideLock();
+                runTrainModeIfRequested();
+              } else {
+                showLock();
+              }
             }
           }catch(e){
             setLockError(String(e?.message || e));
-            if(isUnlocked()) hideLock();
-            else showLock();
+            if(isUnlocked()){
+              hideLock();
+              runTrainModeIfRequested();
+            } else {
+              showLock();
+            }
           }
         } else {
-          // ingen supabase: bara kod-lås
-          if(isUnlocked()) hideLock();
-          else showLock();
+          if(isUnlocked()){
+            hideLock();
+            runTrainModeIfRequested();
+          } else {
+            showLock();
+          }
         }
 
       }catch(err){
