@@ -213,7 +213,6 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK (för att kunna rensa även konto-data) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
@@ -223,7 +222,10 @@
     const LS_LAST = "proviaai_last_result";
     const LS_MATERIAL = "proviaai_last_material";
 
-    // ===== SUPABASE (valfritt, men används för "Rensa historik" så det inte kommer tillbaka) =====
+    // NYTT: markerar när historiken senast rensades
+    const LS_CLEAR_TS = "proviaai_cleared_ts";
+
+    // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
     const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8").trim();
 
@@ -248,20 +250,9 @@
       return { ok:true };
     }
 
-    function safeJsonParse(s, fallback){
-      try{ return JSON.parse(s); } catch { return fallback; }
-    }
-    function lsGetArray(key){
-      const v = localStorage.getItem(key);
-      const arr = safeJsonParse(v, []);
-      return Array.isArray(arr) ? arr : [];
-    }
-    function lsGetObj(key){
-      const v = localStorage.getItem(key);
-      const obj = safeJsonParse(v, null);
-      return (obj && typeof obj === "object") ? obj : null;
-    }
-    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+    function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
+    function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
+    function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -293,7 +284,6 @@
         mistakesEmpty:"Ingen felbank ännu (inga tappade poäng).",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         english:"English",
-        sv:"Svenska",
         dnaLabels:["Analys","Begrepp","Struktur","Exempel","Tempo"],
         readyRed:"Träna mer",
         readyYellow:"Nära",
@@ -328,7 +318,6 @@
         mistakesEmpty:"No mistakes yet (no lost points).",
         footer:"ProviaAi is study support and does not provide official grades.",
         english:"Svenska",
-        sv:"English",
         dnaLabels:["Analysis","Concepts","Structure","Examples","Pace"],
         readyRed:"Train more",
         readyYellow:"Close",
@@ -637,44 +626,38 @@
       drawChart($("trendChart"), history);
       renderMistakes(mistakes);
 
-      // Viktigt: train-länken ska trigga #train i appen
       $("trainMistakesBtn").setAttribute("href", "app.html#train");
     }
 
-    // Rensa historik: rensa lokalt + (om inloggad) rensa även Supabase så det inte kommer tillbaka efter reload
     $("resetBtn").addEventListener("click", async () => {
       const t = T[LANG];
+
+      // 0) sätt “rensad”-timestamp (app.html respekterar detta vid supabase-sync)
+      localStorage.setItem(LS_CLEAR_TS, String(Date.now()));
 
       // 1) lokalt
       localStorage.removeItem(LS_HISTORY);
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
-      // material lämnas kvar
+
       renderAll();
 
-      // 2) konto (om möjligt)
+      // 2) konto (best effort)
+      const topStatus = $("topStatus");
       if(db){
         try{
           const r = await deleteAllUserExamsFromAccount();
-          const topStatus = $("topStatus");
           if(topStatus){
-            if(r.ok){
-              topStatus.textContent = t.resetDoneAccount;
-              topStatus.className = "status ok";
-            } else {
-              topStatus.textContent = t.resetDone;
-              topStatus.className = "status ok";
-            }
+            topStatus.textContent = r.ok ? t.resetDoneAccount : t.resetDone;
+            topStatus.className = "status ok";
           }
         } catch {
-          const topStatus = $("topStatus");
           if(topStatus){
             topStatus.textContent = t.resetDone;
             topStatus.className = "status ok";
           }
         }
       } else {
-        const topStatus = $("topStatus");
         if(topStatus){
           topStatus.textContent = t.resetDone;
           topStatus.className = "status ok";
