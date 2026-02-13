@@ -1,3 +1,4 @@
+<!-- förbättring.html (ersätt hela filen med detta) -->
 <!doctype html>
 <html lang="sv">
 <head>
@@ -42,7 +43,9 @@
       font-weight:1000;font-size:14px;border:1px solid var(--border);
       cursor:pointer;white-space:nowrap;
       background:rgba(255,255,255,.92);color:var(--deep);
+      user-select:none;
     }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
     .btnPrimary{
       background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
       box-shadow:0 14px 28px rgba(22,184,118,.22)
@@ -87,7 +90,6 @@
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
 
-    /* DNA bars */
     .dnaRow{display:grid;gap:10px;margin-top:10px}
     .dnaItem{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center}
     @media (max-width:520px){ .dnaItem{grid-template-columns:110px 1fr 44px} }
@@ -96,7 +98,6 @@
     .barFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(22,184,118,.75), rgba(43,227,140,.95));border-radius:999px}
     .dnaScore{font-weight:1100;color:var(--deep);font-size:12px;text-align:right}
 
-    /* readiness */
     .meterWrap{display:grid;gap:10px;margin-top:10px}
     .meterTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .meterLabel{font-weight:1100;color:var(--deep);font-size:13px}
@@ -107,10 +108,8 @@
     .meterFill.yellow{background:linear-gradient(90deg, rgba(148,98,0,.55), rgba(214,168,64,.95))}
     .meterFill.green{background:linear-gradient(90deg, rgba(15,122,90,.55), rgba(43,227,140,.95))}
 
-    /* chart */
     canvas{width:100%;height:220px;display:block;background:#fff;border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:10px}
 
-    /* mistakes list */
     .mistake{border:1px solid rgba(5,42,30,.12);border-radius:16px;background:#fff;padding:12px}
     .mistakeTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .mId{font-weight:1100;color:var(--deep);font-size:12px}
@@ -176,7 +175,6 @@
     <section class="card" id="dnaCard">
       <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
       <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
-
       <div class="dnaRow" id="dnaRow"></div>
     </section>
 
@@ -193,7 +191,7 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <a class="btn btnPrimary" href="app.html" id="trainMistakesBtn">Träna mina misstag</a>
+        <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
         <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
       </div>
     </section>
@@ -215,24 +213,22 @@
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
-  <!-- Supabase SDK (NYTT: krävs för kontosync) -->
+  <!-- Supabase SDK (för att kunna rensa även konto-data) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // ============================
-    // SUPABASE (NYTT: kontosync)
-    // ============================
-    // Dessa värden är samma som du använde i app.html i chatten.
+    // ===== STORAGE KEYS =====
+    const LS_HISTORY = "proviaai_history";
+    const LS_MISTAKES = "proviaai_mistakes";
+    const LS_LAST = "proviaai_last_result";
+    const LS_MATERIAL = "proviaai_last_material";
+
+    // ===== SUPABASE (valfritt, men används för "Rensa historik" så det inte kommer tillbaka) =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8".trim();
+    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8").trim();
 
-    const USE_SUPABASE =
-      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
-
-    // CDN v2 exponerar window.supabase.createClient(...)
     const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
-    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
+    const db = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 40 && SupabaseGlobal?.createClient)
       ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
 
@@ -243,111 +239,14 @@
       return data?.user?.id || null;
     }
 
-    // Läser ALLA prov för användaren från user_exams och skriver till samma localStorage-keys som sidan redan använder
-    async function loadExamsFromAccountToLocal(){
-      if(!db) return { ok:false, reason:"no_db" };
+    async function deleteAllUserExamsFromAccount(){
+      if(!db) return { ok:false, error:"Supabase not configured" };
       const uid = await getUserId();
-      if(!uid) return { ok:false, reason:"not_logged_in" };
-
-      const { data, error } = await db
-        .from("user_exams")
-        .select("created_at, course, level, qtype, result, exam, answers, material")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: true });
-
-      if(error) return { ok:false, reason:"query_error", error: error.message || String(error) };
-
-      const rows = Array.isArray(data) ? data : [];
-
-      // History (för diagram/metrik)
-      const history = rows.map((r) => {
-        const ts = Date.parse(r.created_at) || Date.now();
-        const total = Number(r.result?.total_points ?? r.result?.total ?? 0);
-        const max = Number(r.result?.max_points ?? r.result?.max ?? 0);
-        const percent = (max > 0) ? Math.round((total / max) * 100) : 0;
-        return {
-          ts,
-          course: r.course || "",
-          level: r.level || "C",
-          qType: r.qtype || "mix",
-          numQuestions: Array.isArray(r.exam?.questions) ? r.exam.questions.length : undefined,
-          total_points: total,
-          max_points: max,
-          percent
-        };
-      });
-
-      try{ localStorage.setItem(LS_HISTORY, JSON.stringify(history)); } catch {}
-
-      // Last (för coach + senaste)
-      const last = rows.length ? rows[rows.length - 1] : null;
-      if(last){
-        const lastAttempt = history.length ? history[history.length - 1] : null;
-        try{
-          localStorage.setItem(LS_LAST, JSON.stringify({
-            ts: Date.parse(last.created_at) || Date.now(),
-            attempt: lastAttempt,
-            exam: last.exam || null,
-            result: last.result || null
-          }));
-        } catch {}
-
-        if(typeof last.material === "string"){
-          try{ localStorage.setItem(LS_MATERIAL, last.material); } catch {}
-        }
-      }
-
-      // Mistakes: bygg från last.exam + last.answers + last.result (om de finns)
-      // OBS: kräver att result.per_question innehåller feedback/model_answer/points/max_points + id
-      const lastPayload = (() => {
-        try{ return JSON.parse(localStorage.getItem(LS_LAST) || "null"); } catch { return null; }
-      })();
-
-      const mistakes = [];
-      const result = lastPayload?.result;
-      const exam = lastPayload?.exam;
-      const answers = Array.isArray(last?.answers) ? last.answers : [];
-
-      if(result && Array.isArray(result.per_question)){
-        const qById = new Map(
-          (Array.isArray(exam?.questions) ? exam.questions : []).map(q => [String(q.id), q])
-        );
-        const aById = new Map(answers.map(a => [String(a.id), a.answer]));
-        result.per_question.forEach(item => {
-          const got = Number(item.points ?? 0);
-          const mx = Number(item.max_points ?? 0);
-          if(mx > 0 && got < mx){
-            const q = qById.get(String(item.id)) || {};
-            mistakes.push({
-              ts: lastPayload.ts || Date.now(),
-              course: lastAttempt?.course || "",
-              level: lastAttempt?.level || "C",
-              qType: q.type || lastAttempt?.qType || "mix",
-              id: String(item.id),
-              question: String(q.question || ""),
-              user_answer: String(aById.get(String(item.id)) || ""),
-              feedback: String(item.feedback || ""),
-              model_answer: String(item.model_answer || ""),
-              points: got,
-              max_points: mx
-            });
-          }
-        });
-      }
-
-      // Skriv mistakes (om tomt, behåll ev lokala)
-      if(mistakes.length){
-        try{ localStorage.setItem(LS_MISTAKES, JSON.stringify(mistakes)); } catch {}
-      }
-
-      return { ok:true, count: rows.length };
+      if(!uid) return { ok:false, error:"Not logged in" };
+      const { error } = await db.from("user_exams").delete().eq("user_id", uid);
+      if(error) return { ok:false, error: error.message || String(error) };
+      return { ok:true };
     }
-
-    // ===== STORAGE KEYS =====
-    const LS_HISTORY = "proviaai_history";
-    const LS_MISTAKES = "proviaai_mistakes";
-    const LS_LAST = "proviaai_last_result";
-    const LS_MATERIAL = "proviaai_last_material";
 
     function safeJsonParse(s, fallback){
       try{ return JSON.parse(s); } catch { return fallback; }
@@ -362,6 +261,7 @@
       const obj = safeJsonParse(v, null);
       return (obj && typeof obj === "object") ? obj : null;
     }
+    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -398,9 +298,8 @@
         readyRed:"Träna mer",
         readyYellow:"Nära",
         readyGreen:"Redo",
-        cloudOk:"Synkade från konto.",
-        cloudNoLogin:"Inte inloggad (visar lokal data).",
-        cloudErr:"Kunde inte synka från konto (visar lokal data)."
+        resetDone:"Historik rensad (lokalt).",
+        resetDoneAccount:"Historik rensad (lokalt + konto)."
       },
       en:{
         tag:"Improve • Coach • History",
@@ -434,9 +333,8 @@
         readyRed:"Train more",
         readyYellow:"Close",
         readyGreen:"Ready",
-        cloudOk:"Synced from account.",
-        cloudNoLogin:"Not logged in (showing local data).",
-        cloudErr:"Could not sync from account (showing local data)."
+        resetDone:"History cleared (local).",
+        resetDoneAccount:"History cleared (local + account)."
       }
     };
 
@@ -487,7 +385,6 @@
       renderAll();
     });
 
-    // ===== METRICS / LOGIC =====
     function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
 
     function computeTrend(history){
@@ -519,11 +416,7 @@
       const miss20 = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
       const missRate = miss20.length ? clamp(miss20.length / Math.max(1,last20.length), 0, 6) : 0;
 
-      let analysis = avg;
-      let concepts = avg;
-      let structure = avg;
-      let examples = avg;
-      let pace = avg;
+      let analysis = avg, concepts = avg, structure = avg, examples = avg, pace = avg;
 
       analysis += (counts.essay * 2) - (counts.mc * 1) - (missRate * 3);
       concepts += (counts.short * 1.5) + (counts.mc * 0.5) - (missRate * 2.5);
@@ -532,13 +425,7 @@
       pace += (counts.mc * 1.2) - (counts.essay * 1.0) - (missRate * 1.8);
 
       const toScore = x => Math.round(clamp(x, 0, 100));
-      return {
-        analysis: toScore(analysis),
-        concepts: toScore(concepts),
-        structure: toScore(structure),
-        examples: toScore(examples),
-        pace: toScore(pace)
-      };
+      return { analysis:toScore(analysis), concepts:toScore(concepts), structure:toScore(structure), examples:toScore(examples), pace:toScore(pace) };
     }
 
     function coachText(history, mistakes, dna, lastAttempt){
@@ -570,7 +457,6 @@
     function drawChart(canvas, history){
       const ctx = canvas.getContext("2d");
       const w = canvas.width, h = canvas.height;
-
       ctx.clearRect(0,0,w,h);
 
       const data = history.slice(-20).map(x => clamp(Number(x.percent||0), 0, 100));
@@ -589,10 +475,7 @@
       ctx.lineWidth = 1;
       for(let i=0;i<=5;i++){
         const y = padT + (gh * i/5);
-        ctx.beginPath();
-        ctx.moveTo(padL, y);
-        ctx.lineTo(padL+gw, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+gw, y); ctx.stroke();
       }
 
       ctx.fillStyle = "rgba(5,42,30,.70)";
@@ -610,19 +493,11 @@
       ctx.strokeStyle = "rgba(22,184,118,.95)";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      data.forEach((_,i)=>{
-        const p = pt(i);
-        if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
-      });
+      data.forEach((_,i)=>{ const p = pt(i); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
       ctx.stroke();
 
       ctx.fillStyle = "rgba(43,227,140,.95)";
-      data.forEach((_,i)=>{
-        const p = pt(i);
-        ctx.beginPath();
-        ctx.arc(p.x,p.y,4,0,Math.PI*2);
-        ctx.fill();
-      });
+      data.forEach((_,i)=>{ const p = pt(i); ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); });
 
       ctx.fillStyle = "rgba(5,42,30,.60)";
       ctx.font = "12px system-ui";
@@ -630,7 +505,6 @@
       ctx.fillText(String(data.length), padL+gw-8, padT+gh+26);
     }
 
-    // ===== RENDER =====
     function renderDNA(dna){
       const t = T[LANG];
       const row = $("dnaRow");
@@ -656,6 +530,12 @@
       });
     }
 
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+
     function renderMistakes(mistakes){
       const t = T[LANG];
       const list = $("mistakeList");
@@ -678,7 +558,7 @@
         const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
         d.innerHTML = `
           <div class="mistakeTop">
-            <div class="mId">ID: ${m.id} • ${date}</div>
+            <div class="mId">ID: ${escapeHtml(m.id)} • ${date}</div>
             <div class="mMeta">${(m.course||"").trim() ? escapeHtml(m.course) : (LANG==="sv"?"(ingen kurs)":"(no course)")} • ${m.points}/${m.max_points}</div>
           </div>
           <div class="mQ">${escapeHtml(m.question || "")}</div>
@@ -694,12 +574,6 @@
         `;
         list.appendChild(d);
       });
-    }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     function renderAll(){
@@ -727,9 +601,7 @@
         return;
       }
 
-      topStatus.textContent = LANG==="sv"
-        ? `Hittade ${history.length} sparade prov.`
-        : `Found ${history.length} saved exams.`;
+      topStatus.textContent = LANG==="sv" ? `Hittade ${history.length} sparade prov.` : `Found ${history.length} saved exams.`;
       topStatus.className = "status ok";
 
       const lastAttempt = (last && last.attempt) ? last.attempt : history[history.length-1];
@@ -765,52 +637,53 @@
       drawChart($("trendChart"), history);
       renderMistakes(mistakes);
 
-      $("trainMistakesBtn").setAttribute("href", "app.html#settings");
+      // Viktigt: train-länken ska trigga #train i appen
+      $("trainMistakesBtn").setAttribute("href", "app.html#train");
     }
 
-    // Reset history button
-    $("resetBtn").addEventListener("click", () => {
+    // Rensa historik: rensa lokalt + (om inloggad) rensa även Supabase så det inte kommer tillbaka efter reload
+    $("resetBtn").addEventListener("click", async () => {
+      const t = T[LANG];
+
+      // 1) lokalt
       localStorage.removeItem(LS_HISTORY);
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
+      // material lämnas kvar
       renderAll();
+
+      // 2) konto (om möjligt)
+      if(db){
+        try{
+          const r = await deleteAllUserExamsFromAccount();
+          const topStatus = $("topStatus");
+          if(topStatus){
+            if(r.ok){
+              topStatus.textContent = t.resetDoneAccount;
+              topStatus.className = "status ok";
+            } else {
+              topStatus.textContent = t.resetDone;
+              topStatus.className = "status ok";
+            }
+          }
+        } catch {
+          const topStatus = $("topStatus");
+          if(topStatus){
+            topStatus.textContent = t.resetDone;
+            topStatus.className = "status ok";
+          }
+        }
+      } else {
+        const topStatus = $("topStatus");
+        if(topStatus){
+          topStatus.textContent = t.resetDone;
+          topStatus.className = "status ok";
+        }
+      }
     });
 
-    // ============================
-    // INIT (NYTT: synka från konto först, sen render)
-    // ============================
-    async function init(){
-      applyLang();
-
-      const t = T[LANG];
-      const topStatus = $("topStatus");
-
-      // Försök synka från konto -> skriv in i localStorage -> renderAll
-      try{
-        const res = await loadExamsFromAccountToLocal();
-        if(res && res.ok){
-          topStatus.textContent = (LANG==="sv") ? t.cloudOk : t.cloudOk;
-          topStatus.className = "status ok";
-        } else if(res && res.reason === "not_logged_in"){
-          // Visa lokal data ändå
-          topStatus.textContent = t.cloudNoLogin;
-          topStatus.className = "status warn";
-        } else if(res && res.reason === "no_db"){
-          // Ingen supabase init -> visa lokal data
-          // (status lämnas till renderAll)
-        } else if(res && res.reason === "query_error"){
-          topStatus.textContent = t.cloudErr;
-          topStatus.className = "status warn";
-        }
-      } catch {
-        topStatus.textContent = t.cloudErr;
-        topStatus.className = "status warn";
-      }
-
-      renderAll();
-    }
-
-    init();
+    applyLang();
+    renderAll();
   </script>
 </body>
 </html>
