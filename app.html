@@ -166,7 +166,7 @@
     .loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1}
     .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
     .loginBody{padding:12px 18px 18px}
-    .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .loginRow{displaydisplay:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
 
     .authBox{
@@ -421,10 +421,14 @@
     const LS_LAST = "proviaai_last_result";
     const LS_MATERIAL = "proviaai_last_material";
 
+    // NYTT: används för att förhindra att historiken "kommer tillbaka" efter att du rensat på förbättringssidan
+    const LS_CLEAR_TS = "proviaai_cleared_ts";
+
     const $ = (id) => document.getElementById(id);
 
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
+    function lsGetNum(key, fallback=0){ const n = Number(localStorage.getItem(key)||fallback); return Number.isFinite(n) ? n : fallback; }
     function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
     function escapeHtml(s){
@@ -634,7 +638,14 @@
 
       if(error) return;
 
-      const history = (data || []).map((r) => ({
+      // NYTT: respektera “rensad historik”-timestamp så historiken inte återställs efter reload
+      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
+      const filtered = (data || []).filter((r) => {
+        const ts = Date.parse(r.created_at) || 0;
+        return ts > clearTs;
+      });
+
+      const history = (filtered || []).map((r) => ({
         ts: Date.parse(r.created_at) || Date.now(),
         course: r.course || "",
         level: r.level || "C",
@@ -646,7 +657,7 @@
 
       lsSet(LS_HISTORY, history);
 
-      const last = data && data.length ? data[data.length - 1] : null;
+      const last = filtered && filtered.length ? filtered[filtered.length - 1] : null;
       if(last){
         lsSet(LS_LAST, {
           ts: Date.parse(last.created_at) || Date.now(),
@@ -655,6 +666,9 @@
           result: last.result
         });
         if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
+      } else {
+        // inga prov kvar efter filter: håll LS_LAST tom
+        try{ localStorage.removeItem(LS_LAST); } catch {}
       }
     }
 
@@ -701,7 +715,6 @@
       if(clearBtn) clearBtn.disabled = isBusy;
       if(ocrBtn) ocrBtn.disabled = isBusy;
 
-      // login buttons
       const signIn = $("signInBtn");
       const signUp = $("signUpBtn");
       const unlock = $("unlockBtn");
@@ -752,7 +765,6 @@
         localStorage.setItem(ACCESS_FLAG_KEY, "true");
         setLockError("");
         hideLock();
-        // om man kom via #train: kör direkt
         runTrainModeIfRequested();
       } else {
         setLockError(T[LANG].wrongCode);
@@ -817,7 +829,6 @@
         setBusy(false, T[LANG].ready);
       }
 
-      // om man kom via #train: kör direkt efter unlock
       runTrainModeIfRequested();
     }
 
@@ -848,7 +859,7 @@
       runTrainModeIfRequested();
     }
 
-    // ===== TRAIN MODE (bygg material från felbank, utan extra API) =====
+    // ===== TRAIN MODE =====
     function buildTrainingMaterialFromMistakes(mistakes){
       const recent = Array.isArray(mistakes) ? mistakes.slice(-30).reverse() : [];
       const course = (courseEl()?.value || "").trim();
@@ -902,15 +913,11 @@
       if(pastedTextEl()) pastedTextEl().value = mat;
       try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
 
-      // sätt defaults som brukar passa träning
       if(qTypeEl()) qTypeEl().value = "mix";
       if(numQuestionsEl()) numQuestionsEl().value = "12";
 
       setStatus(T[LANG].trainLoaded, "ok");
       document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
-
-      // om användaren vill köra igen utan reload
-      // lämna hash kvar
     }
 
     // ===== APP RENDERING =====
@@ -1108,7 +1115,6 @@
         setBusy(false, T[LANG].ready);
         setStatus("");
 
-        // MENU
         onClick("menuBtn", (e) => {
           e.preventDefault(); e.stopPropagation();
           const m = $("menu");
@@ -1140,25 +1146,20 @@
 
         onKey((e) => { if(e.key === "Escape"){ const m=$("menu"); if(m) m.style.display="none"; }});
 
-        // LANGUAGE
         onClick("langBtn", () => {
           LANG = (LANG === "sv") ? "en" : "sv";
           localStorage.setItem("proviaai_lang", LANG);
           applyLang();
           const m = $("menu"); if(m) m.style.display = "none";
-          // om man är i train-läge: bygg om text med nytt språk
           runTrainModeIfRequested();
         });
 
-        // LOGOUT
         onClick("logoutTopBtn", logout);
 
-        // LOGIN BUTTONS
         onClick("unlockBtn", unlockByCode);
         onClick("signInBtn", () => signInEmail());
         onClick("signUpBtn", () => signUpEmail());
 
-        // ENTER KEY (lock screen)
         onKey((e) => {
           if(e.key !== "Enter") return;
           const s = $("loginScreen");
@@ -1170,7 +1171,6 @@
           else unlockByCode();
         });
 
-        // OCR
         onClick("ocrBtn", async () => {
           hideDebug();
           const t = T[LANG];
@@ -1203,7 +1203,6 @@
           }
         });
 
-        // GENERATE EXAM
         onClick("generateExamBtn", async () => {
           hideDebug();
           setStatus("");
@@ -1259,7 +1258,6 @@
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        // GRADE
         onClick("gradeBtn", async () => {
           hideDebug();
           setStatus("");
@@ -1382,12 +1380,9 @@
           document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
         });
 
-        // CLEAR
         onClick("clearBtn", clearAll);
 
-        // hashchange: om man klickar train igen utan reload
         window.addEventListener("hashchange", () => {
-          // kör bara om appen är upplåst, annars triggas det efter login
           const lockVisible = $("loginScreen") && $("loginScreen").style.display !== "none";
           if(!lockVisible) runTrainModeIfRequested();
         });
@@ -1400,7 +1395,6 @@
               const ok = await checkApprovalAndUnlock(data.session);
               if(ok){
                 await loadExamsFromAccountToLocal();
-                // upplåst: om #train, kör
                 runTrainModeIfRequested();
               } else {
                 showLock();
