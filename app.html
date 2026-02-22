@@ -1308,8 +1308,7 @@
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        onClick("gradeBtn", async () => {
-        const pastedText = (pastedTextEl()?.value || "").trim();
+        onClick("gradeBtn", async () => {const pastedText = (pastedTextEl()?.value || "").trim();
 
 const payload = {
   lang: LANG,
@@ -1319,8 +1318,6 @@ const payload = {
   history: lsGetArray(LS_HISTORY),
   mistakes: lsGetArray(LS_MISTAKES)
 };
-
-          }
           const answers = [];
           currentExam.questions.forEach((q, idx) => {
             const qid = String(q.id ?? (idx+1));
