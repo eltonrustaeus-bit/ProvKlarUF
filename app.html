@@ -855,14 +855,11 @@ async function updateMastery(result){
         const { data, error } = await db.auth.signInWithPassword({ email, password });
         if(error){ setLockError(error.message); return; }
         const ok = await checkApprovalAndUnlock(data.session);
-        if(ok){ await loadExamsFromAccountToLocal(); }
-      } finally {
-        setBusy(false, T[LANG].ready);
-      }
-
-      runTrainModeIfRequested();
-    }
-
+      if(ok){
+  await loadExamsFromAccountToLocal();
+  await ensureUserProfileRow();
+  runTrainModeIfRequested();
+}
     async function signUpEmail(){
       hideDebug();
       if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
