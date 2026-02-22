@@ -625,19 +625,50 @@
       return { ok:true, id };
     }
 
-    async function loadExamsFromAccountToLocal(){
-      if(!db) return;
-      const uid = await getUserId();
-      if(!uid) return;
+    async function ensureUserProfileRow(){
+  if(!db) return;
+  const uid = await getUserId();
+  if(!uid) return;
 
-      const { data, error } = await db
-        .from("user_exams")
-        .select("created_at, course, level, qtype, result, exam, answers, material")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: true });
+  const { data: existing, error } = await db
+    .from("user_profiles")
+    .select("id")
+    .eq("id", uid)
+    .maybeSingle();
 
-      if(error) return;
+  if(error) return;
 
+  if(!existing){
+    await db.from("user_profiles").insert([{ id: uid }]);
+  }
+}
+
+async function updateMastery(result){
+  if(!db) return;
+  const uid = await getUserId();
+  if(!uid) return;
+
+  const { data: profile } = await db
+    .from("user_profiles")
+    .select("mastery")
+    .eq("id", uid)
+    .maybeSingle();
+
+  if(!profile) return;
+
+  const mastery = profile.mastery || {};
+
+  (result.per_question || []).forEach(q => {
+    const concept = (q.concept_tag || "okänt").toString();
+    const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
+
+    const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
+    const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
+    mastery[concept] = updated;
+  });
+
+  await db.from("user_profiles").update({ mastery }).eq("id", uid);
+}
       // NYTT: respektera “rensad historik”-timestamp så historiken inte återställs efter reload
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
       const filtered = (data || []).filter((r) => {
