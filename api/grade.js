@@ -1,6 +1,7 @@
 // api/grade.js (CommonJS / Vercel Serverless)
 // Deterministic grading for MC using correct_index.
-// AI grading only for non-MC (short/essay/mix), with optional personalized context (history + mistakes).
+// AI grading for non-MC (short/essay/mix), with optional personalized context (history + mistakes).
+// Adds: concept_tag + error_tags per question (for mastery tracking).
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -35,6 +36,18 @@ function letterToIndex(letter) {
   return idx >= 0 && idx <= 5 ? idx : -1;
 }
 
+function safeArrayStrings(x, maxItems = 8, maxLen = 40) {
+  if (!Array.isArray(x)) return [];
+  const out = [];
+  for (const v of x) {
+    const s = String(v ?? "").trim();
+    if (!s) continue;
+    out.push(s.slice(0, maxLen));
+    if (out.length >= maxItems) break;
+  }
+  return out;
+}
+
 function buildNonMcGradeSchema() {
   return {
     type: "json_schema",
@@ -52,13 +65,19 @@ function buildNonMcGradeSchema() {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["id", "points", "max_points", "feedback", "model_answer"],
+            required: ["id", "points", "max_points", "feedback", "model_answer", "concept_tag", "error_tags"],
             properties: {
               id: { type: "string" },
               points: { type: "number" },
               max_points: { type: "number" },
               feedback: { type: "string" },
-              model_answer: { type: "string" }
+              model_answer: { type: "string" },
+              concept_tag: { type: "string" },
+              error_tags: {
+                type: "array",
+                items: { type: "string" },
+                maxItems: 8
+              }
             }
           }
         }
@@ -186,12 +205,18 @@ module.exports = async function handler(req, res) {
         }
 
         total += pts;
+
+        // concept_tag: prefer provided; otherwise keep empty (non-hallucinating)
+        const conceptTag = typeof q.concept_tag === "string" ? q.concept_tag.slice(0, 60) : "";
+
         per.push({
           id,
           points: pts,
           max_points: maxP,
           feedback: fb,
-          model_answer: String(q.model_answer || q.rubric || "")
+          model_answer: String(q.model_answer || q.rubric || ""),
+          concept_tag: conceptTag,
+          error_tags: pts === maxP ? [] : ["mc_wrong"]
         });
       } else {
         nonMcPack.push({
@@ -208,7 +233,10 @@ module.exports = async function handler(req, res) {
 
     // If no non-mc -> return only MC result
     if (nonMcPack.length === 0) {
-      return json(res, 200, { ok: true, result: { total_points: total, max_points: maxTotal, per_question: per } });
+      return json(res, 200, {
+        ok: true,
+        result: { total_points: total, max_points: maxTotal, per_question: per }
+      });
     }
 
     // Grade non-mc via OpenAI
@@ -221,17 +249,24 @@ module.exports = async function handler(req, res) {
       "Regler (obligatoriskt):\n" +
       "1) Fakta: Använd ENDAST 'material' som faktakälla. Om materialet inte räcker, skriv tydligt 'Otillräckliga data i materialet' i feedback och ge lägre poäng.\n" +
       "2) Poäng: points måste vara heltal eller tal inom [0..max_points]. max_points måste matcha uppgiften.\n" +
-      "3) Feedback (toppklass, kort och precis):\n" +
+      "3) Feedback (kort och precis):\n" +
       "   - Börja med 1 rad: 'Poäng: X/Y.'\n" +
       "   - Sedan 2–5 korta punkter: (a) vad som var korrekt, (b) vad som saknas/fel, (c) exakt vad som krävs för full poäng.\n" +
-      "   - Avsluta med 1 konkret nästa-övning (en mening), gärna kopplat till återkommande mönster i student_context.\n" +
+      "   - Avsluta med 1 konkret nästa-övning (en mening), gärna kopplat till student_context.\n" +
       "4) Personlig anpassning:\n" +
-      "   - Använd student_context (history + mistakes) för att nämna 1 återkommande svaghet eller styrka när det är relevant.\n" +
+      "   - Använd student_context (history + mistakes) för att nämna 1 återkommande svaghet eller styrka när relevant.\n" +
       "   - Inga antaganden utöver context.\n" +
       "5) Model_answer:\n" +
       "   - Skriv ett fullpoängssvar som är tydligt, strukturerat och direkt baserat på materialet.\n" +
-      "   - Om materialet saknar info: skriv ett 'bästa möjliga' svar som tydligt markerar vad som inte kan fastställas från materialet.\n" +
-      "6) Språk: Håll professionell ton. Inga fluff-fraser.\n";
+      "   - Om materialet saknar info: skriv ett svar som tydligt markerar vad som inte kan fastställas från materialet.\n" +
+      "6) concept_tag (obligatoriskt):\n" +
+      "   - Skriv en kort tagg (2–5 ord) som beskriver vilket delområde/koncept frågan testar, t.ex. 'Potenser', 'Andragradsekvation', 'Källkritik', 'Begreppsdefinition'.\n" +
+      "   - Använd endast information från fråga/rubric/material. Om oklart: 'Okänt'.\n" +
+      "7) error_tags (obligatoriskt):\n" +
+      "   - Returnera 0–5 taggar som beskriver VANLIGA fel i elevsvaret, välj från denna lista:\n" +
+      "     ['definition_missing','concept_confusion','calculation_error','units_missing','method_missing','reasoning_gap','missing_steps','structure_weak','example_missing','language_unclear','off_topic','insufficient_material']\n" +
+      "   - Tagga bara sådant du kan se i elevsvaret. Om inget: [].\n" +
+      "8) Språk: Professionellt. Inga fluff-fraser.\n";
 
     const systemEn =
       "Role: You are a strict, professional exam grader and concise coach.\n" +
@@ -239,17 +274,24 @@ module.exports = async function handler(req, res) {
       "Rules (mandatory):\n" +
       "1) Facts: Use ONLY 'material' as the factual source. If material is insufficient, explicitly say 'Insufficient data in the material' in feedback and award fewer points.\n" +
       "2) Scoring: points must be within [0..max_points]. max_points must match the item.\n" +
-      "3) Feedback (top-tier, short and precise):\n" +
+      "3) Feedback (short and precise):\n" +
       "   - Start with one line: 'Score: X/Y.'\n" +
       "   - Then 2–5 short bullet points: (a) what is correct, (b) what is missing/incorrect, (c) what is required for full score.\n" +
-      "   - End with 1 concrete next practice step (one sentence), optionally tied to student_context patterns.\n" +
+      "   - End with 1 concrete next practice step (one sentence), optionally tied to student_context.\n" +
       "4) Personalization:\n" +
       "   - Use student_context (history + mistakes) to mention 1 recurring weakness/strength when relevant.\n" +
       "   - Do not invent anything beyond the provided context.\n" +
       "5) Model_answer:\n" +
       "   - Write a full-score answer that is clear, structured, and strictly grounded in the material.\n" +
-      "   - If material lacks info: produce the best possible answer while explicitly stating what cannot be determined from the material.\n" +
-      "6) Style: Professional tone. No fluff.\n";
+      "   - If material lacks info: explicitly state what cannot be determined from the material.\n" +
+      "6) concept_tag (required):\n" +
+      "   - A short tag (2–5 words) describing the concept/topic tested, e.g. 'Exponents', 'Quadratic equation', 'Source criticism'.\n" +
+      "   - Use only question/rubric/material. If unclear: 'Unknown'.\n" +
+      "7) error_tags (required):\n" +
+      "   - Return 0–5 tags describing common issues in the student's answer, choose from:\n" +
+      "     ['definition_missing','concept_confusion','calculation_error','units_missing','method_missing','reasoning_gap','missing_steps','structure_weak','example_missing','language_unclear','off_topic','insufficient_material']\n" +
+      "   - Only tag what you can see in the student's answer. If none: [].\n" +
+      "8) Style: Professional. No fluff.\n";
 
     const userPayload = {
       material: pastedText,
@@ -309,12 +351,21 @@ module.exports = async function handler(req, res) {
         const mp = Number(got.max_points || item.max_points || 0);
 
         total += pts;
+
+        const conceptTag = (typeof got.concept_tag === "string" && got.concept_tag.trim())
+          ? got.concept_tag.trim().slice(0, 60)
+          : (lang === "sv" ? "Okänt" : "Unknown");
+
+        const errorTags = safeArrayStrings(got.error_tags, 8, 40);
+
         per.push({
           id: String(got.id),
           points: pts,
           max_points: mp,
           feedback: String(got.feedback || ""),
-          model_answer: String(got.model_answer || item.model_answer || item.rubric || "")
+          model_answer: String(got.model_answer || item.model_answer || item.rubric || ""),
+          concept_tag: conceptTag,
+          error_tags: errorTags
         });
       }
 
