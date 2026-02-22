@@ -166,7 +166,8 @@
     .loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1}
     .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
     .loginBody{padding:12px 18px 18px}
-    .loginRow{displaydisplay:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    /* FIX: displaydisplay -> display */
+    .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
 
     .authBox{
@@ -625,50 +626,21 @@
       return { ok:true, id };
     }
 
-    async function ensureUserProfileRow(){
-  if(!db) return;
-  const uid = await getUserId();
-  if(!uid) return;
+    // FIX: funktionen fanns inte men anropades
+    async function loadExamsFromAccountToLocal(){
+      if(!db) return;
+      const uid = await getUserId();
+      if(!uid) return;
 
-  const { data: existing, error } = await db
-    .from("user_profiles")
-    .select("id")
-    .eq("id", uid)
-    .maybeSingle();
+      const { data, error } = await db
+        .from("user_exams")
+        .select("id, created_at, course, level, qtype, material, exam, result")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true })
+        .limit(200);
 
-  if(error) return;
+      if(error) return;
 
-  if(!existing){
-    await db.from("user_profiles").insert([{ id: uid }]);
-  }
-}
-
-async function updateMastery(result){
-  if(!db) return;
-  const uid = await getUserId();
-  if(!uid) return;
-
-  const { data: profile } = await db
-    .from("user_profiles")
-    .select("mastery")
-    .eq("id", uid)
-    .maybeSingle();
-
-  if(!profile) return;
-
-  const mastery = profile.mastery || {};
-
-  (result.per_question || []).forEach(q => {
-    const concept = (q.concept_tag || "okänt").toString();
-    const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
-
-    const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
-    const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
-    mastery[concept] = updated;
-  });
-
-  await db.from("user_profiles").update({ mastery }).eq("id", uid);
-}
       // NYTT: respektera “rensad historik”-timestamp så historiken inte återställs efter reload
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
       const filtered = (data || []).filter((r) => {
@@ -698,9 +670,53 @@ async function updateMastery(result){
         });
         if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
       } else {
-        // inga prov kvar efter filter: håll LS_LAST tom
         try{ localStorage.removeItem(LS_LAST); } catch {}
       }
+    }
+
+    async function ensureUserProfileRow(){
+      if(!db) return;
+      const uid = await getUserId();
+      if(!uid) return;
+
+      const { data: existing, error } = await db
+        .from("user_profiles")
+        .select("id")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if(error) return;
+
+      if(!existing){
+        await db.from("user_profiles").insert([{ id: uid }]);
+      }
+    }
+
+    async function updateMastery(result){
+      if(!db) return;
+      const uid = await getUserId();
+      if(!uid) return;
+
+      const { data: profile } = await db
+        .from("user_profiles")
+        .select("mastery")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if(!profile) return;
+
+      const mastery = profile.mastery || {};
+
+      (result.per_question || []).forEach(q => {
+        const concept = (q.concept_tag || "okänt").toString();
+        const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
+
+        const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
+        const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
+        mastery[concept] = updated;
+      });
+
+      await db.from("user_profiles").update({ mastery }).eq("id", uid);
     }
 
     // ===== SAFE HELPERS =====
@@ -842,6 +858,7 @@ async function updateMastery(result){
       return true;
     }
 
+    // FIX: signInEmail var inte stängd korrekt -> hela scriptet bröts
     async function signInEmail(){
       hideDebug();
       if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
@@ -855,11 +872,16 @@ async function updateMastery(result){
         const { data, error } = await db.auth.signInWithPassword({ email, password });
         if(error){ setLockError(error.message); return; }
         const ok = await checkApprovalAndUnlock(data.session);
-      if(ok){
-  await loadExamsFromAccountToLocal();
-  await ensureUserProfileRow();
-  runTrainModeIfRequested();
-}
+        if(ok){
+          await loadExamsFromAccountToLocal();
+          await ensureUserProfileRow();
+          runTrainModeIfRequested();
+        }
+      } finally {
+        setBusy(false, T[LANG].ready);
+      }
+    }
+
     async function signUpEmail(){
       hideDebug();
       if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
@@ -1322,9 +1344,12 @@ async function updateMastery(result){
             return;
           }
 
-         await ensureUserProfileRow();
-await updateMastery(result);
+          // FIX: result måste definieras
+          const result = res.data.result;
 
+          // mastery
+          await ensureUserProfileRow();
+          await updateMastery(result);
 
           try{
             await saveExamToAccount({
