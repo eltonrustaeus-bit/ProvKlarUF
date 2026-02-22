@@ -166,7 +166,6 @@
     .loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1}
     .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
     .loginBody{padding:12px 18px 18px}
-    /* FIX: displaydisplay -> display */
     .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
 
@@ -421,8 +420,6 @@
     const LS_MISTAKES = "proviaai_mistakes";
     const LS_LAST = "proviaai_last_result";
     const LS_MATERIAL = "proviaai_last_material";
-
-    // NYTT: används för att förhindra att historiken "kommer tillbaka" efter att du rensat på förbättringssidan
     const LS_CLEAR_TS = "proviaai_cleared_ts";
 
     const $ = (id) => document.getElementById(id);
@@ -626,7 +623,6 @@
       return { ok:true, id };
     }
 
-    // FIX: funktionen fanns inte men anropades
     async function loadExamsFromAccountToLocal(){
       if(!db) return;
       const uid = await getUserId();
@@ -641,7 +637,6 @@
 
       if(error) return;
 
-      // NYTT: respektera “rensad historik”-timestamp så historiken inte återställs efter reload
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
       const filtered = (data || []).filter((r) => {
         const ts = Date.parse(r.created_at) || 0;
@@ -858,7 +853,6 @@
       return true;
     }
 
-    // FIX: signInEmail var inte stängd korrekt -> hela scriptet bröts
     async function signInEmail(){
       hideDebug();
       if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
@@ -1308,16 +1302,18 @@
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        onClick("gradeBtn", async () => {const pastedText = (pastedTextEl()?.value || "").trim();
+        // ✅ FIXAD: gradeBtn handler (detta var det som kraschade ditt script och dödade login)
+        onClick("gradeBtn", async () => {
+          hideDebug();
+          setStatus("");
+          const t = T[LANG];
 
-const payload = {
-  lang: LANG,
-  pastedText,
-  questions: currentExam.questions,
-  answers,
-  history: lsGetArray(LS_HISTORY),
-  mistakes: lsGetArray(LS_MISTAKES)
-};
+          if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
+            setStatus(t.genFirst, "bad");
+            return;
+          }
+
+          // 1) samla answers först
           const answers = [];
           currentExam.questions.forEach((q, idx) => {
             const qid = String(q.id ?? (idx+1));
@@ -1330,8 +1326,16 @@ const payload = {
             }
           });
 
+          // 2) bygg payload EN gång, med personaliseringsdata
           const pastedText = (pastedTextEl()?.value || "").trim();
-          const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
+          const payload = {
+            lang: LANG,
+            pastedText,
+            questions: currentExam.questions,
+            answers,
+            history: lsGetArray(LS_HISTORY),
+            mistakes: lsGetArray(LS_MISTAKES)
+          };
 
           setBusy(true, t.gradeWorking);
           setStatus(t.gradeWorking, "");
@@ -1344,8 +1348,10 @@ const payload = {
             return;
           }
 
-          // FIX: result måste definieras
           const result = res.data.result;
+
+          // visa i UI (saknades i din senaste)
+          renderResult(result);
 
           // mastery
           await ensureUserProfileRow();
