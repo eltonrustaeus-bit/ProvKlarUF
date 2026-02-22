@@ -1309,15 +1309,18 @@
         });
 
         onClick("gradeBtn", async () => {
-          hideDebug();
-          setStatus("");
-          const t = T[LANG];
+        const pastedText = (pastedTextEl()?.value || "").trim();
 
-          if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-            setStatus(t.genFirst, "bad");
-            return;
+const payload = {
+  lang: LANG,
+  pastedText,
+  questions: currentExam.questions,
+  answers,
+  history: lsGetArray(LS_HISTORY),
+  mistakes: lsGetArray(LS_MISTAKES)
+};
+
           }
-
           const answers = [];
           currentExam.questions.forEach((q, idx) => {
             const qid = String(q.id ?? (idx+1));
