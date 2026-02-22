@@ -1,3 +1,4 @@
+
 <!-- förbättring.html (ersätt hela filen med detta) -->
 <!doctype html>
 <html lang="sv">
@@ -51,6 +52,7 @@
       box-shadow:0 14px 28px rgba(22,184,118,.22)
     }
     .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.18)}
+    .btnGhost{background:#fff;color:var(--deep);border-color:rgba(5,42,30,.14)}
     .pill{
       font-size:11px;font-weight:1000;color:var(--muted);
       border:1px solid var(--border);
@@ -118,6 +120,21 @@
     .mSmall{margin-top:8px;color:#071812;font-weight:850;font-size:12px;line-height:1.45;white-space:pre-wrap}
     .divider{height:1px;background:rgba(5,42,30,.10);margin:10px 0}
 
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+    label{display:block;margin:0 0 6px;font-weight:1000;color:var(--deep);font-size:12px}
+    input,select{
+      width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(5,42,30,.14);
+      background:#fff;font-family:inherit;font-size:14px;outline:none;
+    }
+    input:focus,select:focus{border-color:rgba(43,227,140,.55);box-shadow:0 0 0 5px rgba(43,227,140,.14)}
+
+    .tiny{font-size:11px;font-weight:900;color:var(--muted)}
+    .tagRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+    .tagPill{font-size:11px;font-weight:1000;border:1px solid rgba(5,42,30,.14);border-radius:999px;padding:4px 8px;background:#fff;color:var(--deep)}
+    .tagPill.warn{border-color:rgba(148,98,0,.25);color:var(--warn)}
+    .tagPill.ok{border-color:rgba(15,122,90,.25);color:var(--ok)}
+    .tagPill.bad{border-color:rgba(139,29,29,.25);color:var(--danger)}
+
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
@@ -154,6 +171,7 @@
       <div class="box" style="margin-top:12px">
         <div class="boxTitle" id="coachHeader">Rekommendation</div>
         <p class="boxText" id="coachText">—</p>
+        <div class="tagRow" id="focusPills" aria-label="Fokusområden"></div>
       </div>
 
       <div class="grid3" style="margin-top:12px">
@@ -169,6 +187,24 @@
           <div class="boxTitle" id="goalTitle">Redo för prov?</div>
           <p class="boxText" id="goalText">—</p>
         </div>
+      </div>
+    </section>
+
+    <section class="card" id="masteryCard">
+      <h2 class="title" id="masteryTitle" style="font-size:16px">Mastery (konto)</h2>
+      <p class="sub" id="masterySub">Visas om du är inloggad. Baserat på poäng per koncept.</p>
+      <div class="status" id="masteryStatus"></div>
+      <div class="dnaRow" id="masteryRow"></div>
+    </section>
+
+    <section class="card" id="reviewCard">
+      <h2 class="title" id="reviewTitle" style="font-size:16px">Dagens repetition</h2>
+      <p class="sub" id="reviewSub">Spaced repetition baserad på din felbank (1, 3, 7, 14, 30 dagar).</p>
+      <div class="status" id="reviewStatus"></div>
+      <div class="grid2" id="reviewList" style="margin-top:12px"></div>
+      <div class="controls">
+        <a class="btn btnPrimary" href="app.html#train" id="reviewTrainBtn">Träna på dagens</a>
+        <a class="btn btnGhost" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
       </div>
     </section>
 
@@ -191,8 +227,8 @@
       </div>
 
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
-        <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
+        <a class="btn btnPrimary" href="app.html#train" id="backToMaterialBtn">Till träning</a>
+        <a class="btn" href="app.html#material" id="toMaterialBtn">Till material</a>
       </div>
     </section>
 
@@ -206,8 +242,53 @@
       <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
       <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
 
+      <div class="grid3" style="margin-top:12px">
+        <div>
+          <label for="fCourse" id="fCourseLabel">Kurs</label>
+          <select id="fCourse"></select>
+        </div>
+        <div>
+          <label for="fType" id="fTypeLabel">Frågetyp</label>
+          <select id="fType">
+            <option value="all">Alla</option>
+            <option value="mix">mix</option>
+            <option value="mc">mc</option>
+            <option value="short">short</option>
+            <option value="essay">essay</option>
+          </select>
+        </div>
+        <div>
+          <label for="fSearch" id="fSearchLabel">Sök</label>
+          <input id="fSearch" type="text" placeholder="ID, fråga, feedback…" />
+        </div>
+      </div>
+
+      <div class="controls">
+        <label style="display:flex;gap:8px;align-items:center;margin:0">
+          <input id="fDueOnly" type="checkbox" style="width:auto" />
+          <span class="tiny" id="fDueOnlyLabel">Endast förfallna (repetition)</span>
+        </label>
+        <label style="display:flex;gap:8px;align-items:center;margin:0">
+          <input id="fHideDone" type="checkbox" style="width:auto" checked />
+          <span class="tiny" id="fHideDoneLabel">Göm klara</span>
+        </label>
+      </div>
+
       <div class="status" id="mistakeStatus"></div>
       <div class="grid2" id="mistakeList" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card" id="backupCard">
+      <h2 class="title" id="backupTitle" style="font-size:16px">Backup</h2>
+      <p class="sub" id="backupSub">Export/import av dina data (historik, felbank, repetition).</p>
+      <div class="controls">
+        <button class="btn btnPrimary" id="exportBtn" type="button">Exportera JSON</button>
+        <label class="btn" style="position:relative;overflow:hidden">
+          <span id="importLabel">Importera JSON</span>
+          <input id="importInput" type="file" accept="application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" />
+        </label>
+      </div>
+      <div class="status" id="backupStatus"></div>
     </section>
   </main>
 
@@ -217,13 +298,15 @@
 
   <script>
     // ===== STORAGE KEYS =====
-    const LS_HISTORY = "proviaai_history";
-    const LS_MISTAKES = "proviaai_mistakes";
-    const LS_LAST = "proviaai_last_result";
-    const LS_MATERIAL = "proviaai_last_material";
+    const LS_HISTORY   = "proviaai_history";
+    const LS_MISTAKES  = "proviaai_mistakes";
+    const LS_LAST      = "proviaai_last_result";
+    const LS_MATERIAL  = "proviaai_last_material";
+    const LS_CLEAR_TS  = "proviaai_cleared_ts";
 
-    // NYTT: markerar när historiken senast rensades
-    const LS_CLEAR_TS = "proviaai_cleared_ts";
+    // NYTT: spaced repetition + done-status per misstag
+    const LS_SRS       = "proviaai_srs";          // { "<key>": {stage:number, nextDue:number} }
+    const LS_DONE      = "proviaai_mistakes_done";// { "<key>": true }
 
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
@@ -241,6 +324,22 @@
       return data?.user?.id || null;
     }
 
+    async function fetchMastery(){
+      if(!db) return { ok:false, reason:"no_db" };
+      const uid = await getUserId();
+      if(!uid) return { ok:false, reason:"no_login" };
+
+      const { data, error } = await db
+        .from("user_profiles")
+        .select("mastery")
+        .eq("id", uid)
+        .maybeSingle();
+
+      if(error) return { ok:false, reason:"error", error: error.message || String(error) };
+      const mastery = data?.mastery && typeof data.mastery === "object" ? data.mastery : null;
+      return { ok:true, mastery: mastery || {} };
+    }
+
     async function deleteAllUserExamsFromAccount(){
       if(!db) return { ok:false, error:"Supabase not configured" };
       const uid = await getUserId();
@@ -253,6 +352,8 @@
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
     function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
+    function lsGetMap(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, {}); return (obj && typeof obj === "object") ? obj : {}; }
+    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
     // ===== I18N =====
     let LANG = localStorage.getItem("proviaai_lang") || "sv";
@@ -270,18 +371,38 @@
         lastTitle:"Senaste resultat",
         trendTitle:"Trend",
         goalTitle:"Redo för prov?",
+        masteryTitle:"Mastery (konto)",
+        masterySub:"Visas om du är inloggad. Baserat på poäng per koncept.",
+        masteryNoLogin:"Logga in i appen för att se mastery.",
+        masteryEmpty:"Ingen mastery-data ännu (kräver rättning som sparar concept_tag).",
+        reviewTitle:"Dagens repetition",
+        reviewSub:"Spaced repetition baserad på din felbank (1, 3, 7, 14, 30 dagar).",
+        reviewEmpty:"Inga förfallna repetition idag.",
+        reviewTrain:"Träna på dagens",
         dnaTitle:"Studie-DNA",
         dnaSub:"Fem områden som uppdateras när du gör fler prov.",
         readyTitle:"Redo för prov",
         readySub:"En snabb mätare baserad på senaste resultat och trend.",
         status:"Status",
         trainMistakes:"Träna mina misstag",
+        toTraining:"Till träning",
         toMaterial:"Till material",
         chartTitle:"Utveckling över tid",
         chartSub:"Procent per prov (senaste upp till 20).",
         mistakesTitle:"Felbank",
         mistakesSub:"Frågor där du tappade poäng, med modellsvar.",
         mistakesEmpty:"Ingen felbank ännu (inga tappade poäng).",
+        showing:"Visar",
+        course:"Kurs",
+        qtype:"Frågetyp",
+        search:"Sök",
+        dueOnly:"Endast förfallna (repetition)",
+        hideDone:"Göm klara",
+        markDone:"Klar",
+        markUndone:"Ångra klar",
+        markReviewed:"Repeterad",
+        nextDue:"Nästa:",
+        overdue:"Förfallen",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         english:"English",
         dnaLabels:["Analys","Begrepp","Struktur","Exempel","Tempo"],
@@ -289,7 +410,17 @@
         readyYellow:"Nära",
         readyGreen:"Redo",
         resetDone:"Historik rensad (lokalt).",
-        resetDoneAccount:"Historik rensad (lokalt + konto)."
+        resetDoneAccount:"Historik rensad (lokalt + konto).",
+        backupTitle:"Backup",
+        backupSub:"Export/import av dina data (historik, felbank, repetition).",
+        export:"Exportera JSON",
+        import:"Importera JSON",
+        backupOk:"Backup klar.",
+        importOk:"Import klar. Sidan uppdaterades.",
+        importBad:"Import misslyckades (fel filformat).",
+        focus:"Fokus",
+        focusFromMastery:"Fokus från mastery:",
+        focusFallback:"Fokus:",
       },
       en:{
         tag:"Improve • Coach • History",
@@ -304,18 +435,38 @@
         lastTitle:"Latest result",
         trendTitle:"Trend",
         goalTitle:"Ready for the exam?",
+        masteryTitle:"Mastery (account)",
+        masterySub:"Shown if you are logged in. Based on points per concept.",
+        masteryNoLogin:"Log in in the app to see mastery.",
+        masteryEmpty:"No mastery data yet (requires grading that stores concept_tag).",
+        reviewTitle:"Today's review",
+        reviewSub:"Spaced repetition based on your mistakes (1, 3, 7, 14, 30 days).",
+        reviewEmpty:"No due reviews today.",
+        reviewTrain:"Train today's",
         dnaTitle:"Study DNA",
         dnaSub:"Five areas that update as you take more exams.",
         readyTitle:"Ready",
         readySub:"A quick meter based on the latest result and trend.",
         status:"Status",
         trainMistakes:"Train my mistakes",
+        toTraining:"Go to training",
         toMaterial:"Go to material",
         chartTitle:"Progress over time",
         chartSub:"Percent per exam (latest up to 20).",
         mistakesTitle:"Mistake library",
         mistakesSub:"Questions where you lost points, with model answers.",
         mistakesEmpty:"No mistakes yet (no lost points).",
+        showing:"Showing",
+        course:"Course",
+        qtype:"Question type",
+        search:"Search",
+        dueOnly:"Due only (review)",
+        hideDone:"Hide done",
+        markDone:"Done",
+        markUndone:"Undo done",
+        markReviewed:"Reviewed",
+        nextDue:"Next:",
+        overdue:"Overdue",
         footer:"ProviaAi is study support and does not provide official grades.",
         english:"Svenska",
         dnaLabels:["Analysis","Concepts","Structure","Examples","Pace"],
@@ -323,7 +474,17 @@
         readyYellow:"Close",
         readyGreen:"Ready",
         resetDone:"History cleared (local).",
-        resetDoneAccount:"History cleared (local + account)."
+        resetDoneAccount:"History cleared (local + account).",
+        backupTitle:"Backup",
+        backupSub:"Export/import of your data (history, mistakes, review).",
+        export:"Export JSON",
+        import:"Import JSON",
+        backupOk:"Backup complete.",
+        importOk:"Import complete. Page refreshed.",
+        importBad:"Import failed (invalid file).",
+        focus:"Focus",
+        focusFromMastery:"Focus from mastery:",
+        focusFallback:"Focus:",
       }
     };
 
@@ -345,6 +506,14 @@
       $("trendTitle").textContent = t.trendTitle;
       $("goalTitle").textContent = t.goalTitle;
 
+      $("masteryTitle").textContent = t.masteryTitle;
+      $("masterySub").textContent = t.masterySub;
+
+      $("reviewTitle").textContent = t.reviewTitle;
+      $("reviewSub").textContent = t.reviewSub;
+      $("reviewTrainBtn").textContent = t.reviewTrain;
+      $("trainMistakesBtn").textContent = t.trainMistakes;
+
       $("dnaTitle").textContent = t.dnaTitle;
       $("dnaSub").textContent = t.dnaSub;
 
@@ -352,8 +521,8 @@
       $("readySub").textContent = t.readySub;
       $("meterLabel").textContent = t.status;
 
-      $("trainMistakesBtn").textContent = t.trainMistakes;
-      $("backToMaterialBtn").textContent = t.toMaterial;
+      $("backToMaterialBtn").textContent = t.toTraining;
+      $("toMaterialBtn").textContent = t.toMaterial;
 
       $("chartTitle").textContent = t.chartTitle;
       $("chartSub").textContent = t.chartSub;
@@ -361,10 +530,23 @@
       $("mistakesTitle").textContent = t.mistakesTitle;
       $("mistakesSub").textContent = t.mistakesSub;
 
+      $("fCourseLabel").textContent = t.course;
+      $("fTypeLabel").textContent = t.qtype;
+      $("fSearchLabel").textContent = t.search;
+      $("fDueOnlyLabel").textContent = t.dueOnly;
+      $("fHideDoneLabel").textContent = t.hideDone;
+
+      $("backupTitle").textContent = t.backupTitle;
+      $("backupSub").textContent = t.backupSub;
+      $("exportBtn").textContent = t.export;
+      $("importLabel").textContent = t.import;
+
       $("footerText").textContent = t.footer;
 
       $("langLabel").textContent = t.english;
       $("langPill").textContent = LANG.toUpperCase();
+
+      $("fSearch").placeholder = LANG==="sv" ? "ID, fråga, feedback…" : "ID, question, feedback…";
     }
 
     $("langBtn").addEventListener("click", () => {
@@ -402,8 +584,8 @@
       const counts = {mix:0, mc:0, short:0, essay:0};
       last20.forEach(x => { const k = String(x.qType||"mix"); if(counts[k] !== undefined) counts[k]++; });
 
-      const miss20 = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
-      const missRate = miss20.length ? clamp(miss20.length / Math.max(1,last20.length), 0, 6) : 0;
+      const miss90d = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
+      const missRate = miss90d.length ? clamp(miss90d.length / Math.max(1,last20.length), 0, 6) : 0;
 
       let analysis = avg, concepts = avg, structure = avg, examples = avg, pace = avg;
 
@@ -417,30 +599,10 @@
       return { analysis:toScore(analysis), concepts:toScore(concepts), structure:toScore(structure), examples:toScore(examples), pace:toScore(pace) };
     }
 
-    function coachText(history, mistakes, dna, lastAttempt){
-      const t = T[LANG];
-      if(!history.length) return t.noData;
-
-      const dims = [
-        {k:"analysis", label:t.dnaLabels[0]},
-        {k:"concepts", label:t.dnaLabels[1]},
-        {k:"structure", label:t.dnaLabels[2]},
-        {k:"examples", label:t.dnaLabels[3]},
-        {k:"pace", label:t.dnaLabels[4]},
-      ];
-      dims.sort((a,b)=>(dna[a.k]-dna[b.k]));
-      const weak = dims[0];
-      const strong = dims[dims.length-1];
-
-      const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
-      const mCount = mistakes.slice(-30).length;
-
-      if(LANG === "sv"){
-        return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
-               `Fokus nästa pass: träna ${weak.label.toLowerCase()} med 1–2 korta omgångar, och gå igenom din felbank (${mCount} senaste misstag).`;
-      }
-      return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
-             `Next session focus: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} recent mistakes).`;
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
     }
 
     function drawChart(canvas, history){
@@ -511,7 +673,7 @@
         const div = document.createElement("div");
         div.className = "dnaItem";
         div.innerHTML = `
-          <div class="dnaLabel">${it.label}</div>
+          <div class="dnaLabel">${escapeHtml(it.label)}</div>
           <div class="bar"><div class="barFill" style="width:${it.v}%"></div></div>
           <div class="dnaScore">${it.v}</div>
         `;
@@ -519,37 +681,338 @@
       });
     }
 
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    // ===== SRS / DONE =====
+    const SRS_INTERVAL_DAYS = [1,3,7,14,30];
+
+    function mistakeKey(m){
+      // stabil nyckel: ts + id + question (fall back)
+      const ts = Number(m?.ts || 0);
+      const id = String(m?.id ?? "");
+      const q  = String(m?.question ?? "");
+      return `${ts}::${id}::${q.slice(0,60)}`;
     }
 
-    function renderMistakes(mistakes){
+    function ensureSrsForMistakes(mistakes){
+      const srs = lsGetMap(LS_SRS);
+      let changed = false;
+
+      for(const m of mistakes){
+        const k = mistakeKey(m);
+        if(!srs[k]){
+          // stage 0 => next due ts + 1 day
+          const base = Number(m.ts || Date.now());
+          const nextDue = base + SRS_INTERVAL_DAYS[0]*24*60*60*1000;
+          srs[k] = { stage: 0, nextDue };
+          changed = true;
+        }
+      }
+      if(changed) lsSet(LS_SRS, srs);
+      return srs;
+    }
+
+    function setDone(key, isDone){
+      const done = lsGetMap(LS_DONE);
+      if(isDone) done[key] = true;
+      else delete done[key];
+      lsSet(LS_DONE, done);
+      renderAll();
+    }
+
+    function markReviewed(key){
+      const srs = lsGetMap(LS_SRS);
+      const cur = srs[key] || { stage: 0, nextDue: Date.now() };
+      const nextStage = clamp((Number(cur.stage)||0) + 1, 0, SRS_INTERVAL_DAYS.length - 1);
+      const nextDue = Date.now() + SRS_INTERVAL_DAYS[nextStage]*24*60*60*1000;
+      srs[key] = { stage: nextStage, nextDue };
+      lsSet(LS_SRS, srs);
+      renderAll();
+    }
+
+    function isDue(srsEntry){
+      if(!srsEntry) return false;
+      const nd = Number(srsEntry.nextDue || 0);
+      return nd > 0 && nd <= Date.now();
+    }
+
+    function formatDate(ts){
+      const d = new Date(ts);
+      return d.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
+    }
+
+    function coachText(history, mistakes, dna, lastAttempt, focusPills){
+      const t = T[LANG];
+      if(!history.length) return t.noData;
+
+      const dims = [
+        {k:"analysis", label:t.dnaLabels[0]},
+        {k:"concepts", label:t.dnaLabels[1]},
+        {k:"structure", label:t.dnaLabels[2]},
+        {k:"examples", label:t.dnaLabels[3]},
+        {k:"pace", label:t.dnaLabels[4]},
+      ];
+      dims.sort((a,b)=>(dna[a.k]-dna[b.k]));
+      const weak = dims[0];
+      const strong = dims[dims.length-1];
+
+      const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
+      const mCount = mistakes.slice(-30).length;
+
+      // Focus pills text
+      if(focusPills && Array.isArray(focusPills) && focusPills.length){
+        if(LANG === "sv"){
+          return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
+                 `Fokus: ${focusPills.join(", ")}. Felbank (senaste): ${mCount}.`;
+        }
+        return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
+               `Focus: ${focusPills.join(", ")}. Recent mistakes: ${mCount}.`;
+      }
+
+      if(LANG === "sv"){
+        return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
+               `Fokus nästa pass: träna ${weak.label.toLowerCase()} i 1–2 korta omgångar och gå igenom felbank (${mCount} senaste).`;
+      }
+      return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
+             `Next session: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} recent).`;
+    }
+
+    // ===== MASTERY RENDER =====
+    function renderMastery(mastery){
+      const t = T[LANG];
+      const row = $("masteryRow");
+      const st  = $("masteryStatus");
+      row.innerHTML = "";
+
+      const entries = Object.entries(mastery || {}).map(([k,v]) => ({
+        concept: String(k),
+        score: clamp(Number(v), 0, 100)
+      }));
+
+      if(!entries.length){
+        st.textContent = t.masteryEmpty;
+        st.className = "status warn";
+        return { top: [] };
+      }
+
+      entries.sort((a,b)=>a.score-b.score);
+      const topWeak = entries.slice(0, Math.min(6, entries.length));
+
+      st.textContent = (LANG==="sv")
+        ? `Svagast först • Visar ${topWeak.length}/${entries.length}`
+        : `Weakest first • Showing ${topWeak.length}/${entries.length}`;
+      st.className = "status ok";
+
+      topWeak.forEach(it=>{
+        const div = document.createElement("div");
+        div.className = "dnaItem";
+        div.innerHTML = `
+          <div class="dnaLabel">${escapeHtml(it.concept)}</div>
+          <div class="bar"><div class="barFill" style="width:${Math.round(it.score)}%"></div></div>
+          <div class="dnaScore">${Math.round(it.score)}</div>
+        `;
+        row.appendChild(div);
+      });
+
+      return { top: entries.slice(0,3).map(x=>x.concept) };
+    }
+
+    function renderFocusPills(focusList){
+      const t = T[LANG];
+      const wrap = $("focusPills");
+      wrap.innerHTML = "";
+      if(!focusList || !focusList.length) return;
+
+      const label = document.createElement("span");
+      label.className = "tagPill ok";
+      label.textContent = (LANG==="sv") ? t.focus : t.focus;
+      wrap.appendChild(label);
+
+      focusList.slice(0,6).forEach((txt, i)=>{
+        const p = document.createElement("span");
+        p.className = "tagPill";
+        p.textContent = txt;
+        wrap.appendChild(p);
+      });
+    }
+
+    // ===== REVIEW LIST =====
+    function renderReviewList(mistakes, srs, doneMap){
+      const t = T[LANG];
+      const list = $("reviewList");
+      const st = $("reviewStatus");
+      list.innerHTML = "";
+
+      const due = mistakes
+        .map(m => ({ m, key: mistakeKey(m), s: srs[mistakeKey(m)] }))
+        .filter(x => x.s && isDue(x.s))
+        .filter(x => !doneMap[x.key])
+        .sort((a,b) => (Number(a.s.nextDue||0) - Number(b.s.nextDue||0)));
+
+      if(!due.length){
+        st.textContent = t.reviewEmpty;
+        st.className = "status ok";
+        // training button still works (all mistakes)
+        $("reviewTrainBtn").setAttribute("href", "app.html#train");
+        return { dueKeys: [] };
+      }
+
+      st.textContent = (LANG==="sv") ? `Förfallna: ${due.length}` : `Due: ${due.length}`;
+      st.className = "status warn";
+
+      // Build "today training" material by storing only due mistakes into LS_MATERIAL.
+      // app.html#train uses LS_MISTAKES directly; to focus only due, we overwrite LS_MATERIAL with a training block.
+      const dueMaterial = buildTrainingMaterialFromMistakes(due.map(x => x.m));
+      try{ localStorage.setItem(LS_MATERIAL, dueMaterial); } catch {}
+      $("reviewTrainBtn").setAttribute("href", "app.html#train");
+
+      due.slice(0,10).forEach(x=>{
+        const m = x.m;
+        const d = document.createElement("div");
+        d.className = "mistake";
+        const date = formatDate(Number(m.ts||Date.now()));
+        const next = formatDate(Number(x.s?.nextDue || Date.now()));
+        const overdue = isDue(x.s);
+
+        d.innerHTML = `
+          <div class="mistakeTop">
+            <div class="mId">ID: ${escapeHtml(m.id)} • ${escapeHtml(date)}</div>
+            <div class="mMeta">${escapeHtml((m.course||"").trim() || (LANG==="sv"?"(ingen kurs)":"(no course)"))} • ${m.points}/${m.max_points}</div>
+          </div>
+          <div class="tagRow">
+            <span class="tagPill ${overdue ? "warn" : "ok"}">${overdue ? t.overdue : ""} ${t.nextDue} ${escapeHtml(next)}</span>
+          </div>
+          <div class="mQ">${escapeHtml(m.question || "")}</div>
+          <div class="controls" style="margin-top:10px">
+            <button class="btn btnPrimary" type="button" data-review="${escapeHtml(x.key)}">${t.markReviewed}</button>
+            <button class="btn" type="button" data-done="${escapeHtml(x.key)}">${t.markDone}</button>
+          </div>
+        `;
+        list.appendChild(d);
+      });
+
+      list.querySelectorAll("button[data-review]").forEach(btn=>{
+        btn.addEventListener("click", () => markReviewed(btn.getAttribute("data-review")));
+      });
+      list.querySelectorAll("button[data-done]").forEach(btn=>{
+        btn.addEventListener("click", () => setDone(btn.getAttribute("data-done"), true));
+      });
+
+      return { dueKeys: due.map(x=>x.key) };
+    }
+
+    // Same format as app.html uses, but built from a subset (for review focus)
+    function buildTrainingMaterialFromMistakes(mistakes){
+      const recent = Array.isArray(mistakes) ? mistakes.slice(-30).reverse() : [];
+      const headerSv =
+        `TRÄNING PÅ DINA MISSTAG\n` +
+        `Instruktion: Skapa prov som bara testar dessa svaga delar. Undvik områden där poäng redan var full.\n\n`;
+
+      const headerEn =
+        `TRAINING FROM YOUR MISTAKES\n` +
+        `Instruction: Generate exams that focus only on these weak areas. Avoid topics you already mastered.\n\n`;
+
+      const blocks = recent.map((m, i) => {
+        const q = String(m.question || "").trim();
+        const fb = String(m.feedback || "").trim();
+        const model = String(m.model_answer || "").trim();
+        const tag = `${m.points}/${m.max_points}`;
+
+        if(LANG === "sv"){
+          return (
+            `MISSTAG ${i+1} (${tag})\n` +
+            `Fråga: ${q}\n` +
+            `Varför poäng tappades: ${fb || "—"}\n` +
+            `Modellsvar (full poäng): ${model || "—"}\n`
+          );
+        }
+        return (
+          `MISTAKE ${i+1} (${tag})\n` +
+          `Question: ${q}\n` +
+          `Why points were lost: ${fb || "—"}\n` +
+          `Full-score model answer: ${model || "—"}\n`
+        );
+      }).join("\n---\n\n");
+
+      return (LANG === "sv" ? headerSv : headerEn) + blocks;
+    }
+
+    // ===== FILTERS + MISTAKE LIST =====
+    function computeCourseOptions(history, mistakes){
+      const set = new Set();
+      history.forEach(x => { const c = (x.course||"").trim(); if(c) set.add(c); });
+      mistakes.forEach(x => { const c = (x.course||"").trim(); if(c) set.add(c); });
+      return Array.from(set).sort((a,b)=>a.localeCompare(b));
+    }
+
+    function applyFilters(mistakes, srs, doneMap){
+      const course = $("fCourse").value || "all";
+      const type = $("fType").value || "all";
+      const q = ($("fSearch").value || "").trim().toLowerCase();
+      const dueOnly = $("fDueOnly").checked;
+      const hideDone = $("fHideDone").checked;
+
+      return mistakes
+        .map(m => ({ m, key: mistakeKey(m), s: srs[mistakeKey(m)] }))
+        .filter(x => {
+          if(hideDone && doneMap[x.key]) return false;
+          if(course !== "all" && String(x.m.course||"").trim() !== course) return false;
+          if(type !== "all" && String(x.m.qType||"").trim() !== type) return false;
+          if(dueOnly && !(x.s && isDue(x.s))) return false;
+          if(!q) return true;
+          const hay = [
+            String(x.m.id||""),
+            String(x.m.course||""),
+            String(x.m.qType||""),
+            String(x.m.question||""),
+            String(x.m.feedback||""),
+            String(x.m.model_answer||""),
+            String(x.m.user_answer||""),
+          ].join(" ").toLowerCase();
+          return hay.includes(q);
+        })
+        .sort((a,b) => Number(b.m.ts||0) - Number(a.m.ts||0));
+    }
+
+    function renderMistakes(filtered, srs, doneMap){
       const t = T[LANG];
       const list = $("mistakeList");
       const st = $("mistakeStatus");
       list.innerHTML = "";
 
-      if(!mistakes.length){
+      if(!filtered.length){
         st.textContent = t.mistakesEmpty;
         st.className = "status ok";
         return;
       }
 
-      st.textContent = LANG==="sv" ? `Visar ${Math.min(10, mistakes.length)} senaste.` : `Showing latest ${Math.min(10, mistakes.length)}.`;
+      st.textContent = (LANG==="sv")
+        ? `${t.showing} ${Math.min(10, filtered.length)} / ${filtered.length}.`
+        : `${t.showing} ${Math.min(10, filtered.length)} / ${filtered.length}.`;
       st.className = "status";
 
-      mistakes.slice(-10).reverse().forEach(m=>{
-        const d = document.createElement("div");
-        d.className = "mistake";
+      filtered.slice(0,10).forEach(x=>{
+        const m = x.m;
+        const key = x.key;
         const when = new Date(m.ts||Date.now());
         const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
+
+        const s = srs[key];
+        const nextDue = s?.nextDue ? formatDate(s.nextDue) : "—";
+        const overdue = s ? isDue(s) : false;
+        const isDone = !!doneMap[key];
+
+        const d = document.createElement("div");
+        d.className = "mistake";
         d.innerHTML = `
           <div class="mistakeTop">
-            <div class="mId">ID: ${escapeHtml(m.id)} • ${date}</div>
+            <div class="mId">ID: ${escapeHtml(m.id)} • ${escapeHtml(date)}</div>
             <div class="mMeta">${(m.course||"").trim() ? escapeHtml(m.course) : (LANG==="sv"?"(ingen kurs)":"(no course)")} • ${m.points}/${m.max_points}</div>
           </div>
+
+          <div class="tagRow">
+            <span class="tagPill ${overdue ? "warn" : "ok"}">${overdue ? t.overdue : ""} ${t.nextDue} ${escapeHtml(nextDue)}</span>
+            <span class="tagPill ${isDone ? "ok" : ""}">${isDone ? (LANG==="sv"?"Klar":"Done") : (LANG==="sv"?"Öppen":"Open")}</span>
+          </div>
+
           <div class="mQ">${escapeHtml(m.question || "")}</div>
 
           <div class="divider"></div>
@@ -560,12 +1023,40 @@
           <div class="divider"></div>
 
           <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>\n${escapeHtml(m.model_answer || "—")}</div>
+
+          <div class="controls">
+            <button class="btn btnPrimary" type="button" data-review="${escapeHtml(key)}">${t.markReviewed}</button>
+            <button class="btn" type="button" data-toggle-done="${escapeHtml(key)}">${isDone ? t.markUndone : t.markDone}</button>
+          </div>
         `;
         list.appendChild(d);
       });
+
+      list.querySelectorAll("button[data-review]").forEach(btn=>{
+        btn.addEventListener("click", () => markReviewed(btn.getAttribute("data-review")));
+      });
+      list.querySelectorAll("button[data-toggle-done]").forEach(btn=>{
+        const key = btn.getAttribute("data-toggle-done");
+        const isDone = !!doneMap[key];
+        btn.addEventListener("click", () => setDone(key, !isDone));
+      });
     }
 
-    function renderAll(){
+    // ===== BACKUP =====
+    function downloadJson(filename, obj){
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ===== MAIN RENDER =====
+    async function renderAll(){
       const t = T[LANG];
       applyLang();
 
@@ -573,35 +1064,64 @@
       const mistakes = lsGetArray(LS_MISTAKES);
       const last = lsGetObj(LS_LAST);
 
+      // ensure SRS exists for current mistakes
+      const srs = ensureSrsForMistakes(mistakes);
+      const doneMap = lsGetMap(LS_DONE);
+
+      // populate course dropdown
+      const courses = computeCourseOptions(history, mistakes);
+      const fCourse = $("fCourse");
+      const prev = fCourse.value || "all";
+      fCourse.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "all"; optAll.textContent = (LANG==="sv" ? "Alla" : "All");
+      fCourse.appendChild(optAll);
+      courses.forEach(c=>{
+        const o = document.createElement("option");
+        o.value = c; o.textContent = c;
+        fCourse.appendChild(o);
+      });
+      if(Array.from(fCourse.options).some(o=>o.value===prev)) fCourse.value = prev;
+
       const topStatus = $("topStatus");
       if(history.length === 0){
         topStatus.textContent = t.noData;
         topStatus.className = "status warn";
+
         $("coachText").textContent = t.noData;
         $("lastText").textContent = "—";
         $("trendText").textContent = "—";
         $("goalText").textContent = "—";
         renderDNA({analysis:0,concepts:0,structure:0,examples:0,pace:0});
         drawChart($("trendChart"), []);
-        renderMistakes([]);
+        renderMistakes([], srs, doneMap);
         $("meterPill").textContent = "—";
         $("meterFill").style.width = "0%";
         $("meterFill").className = "meterFill red";
+
+        // mastery card
+        $("masteryStatus").textContent = db ? t.masteryNoLogin : (LANG==="sv" ? "Supabase ej konfigurerad." : "Supabase not configured.");
+        $("masteryStatus").className = "status warn";
+        $("masteryRow").innerHTML = "";
+
+        // review card
+        $("reviewStatus").textContent = t.reviewEmpty;
+        $("reviewStatus").className = "status ok";
+        $("reviewList").innerHTML = "";
+        renderFocusPills([]);
         return;
       }
 
-      topStatus.textContent = LANG==="sv" ? `Hittade ${history.length} sparade prov.` : `Found ${history.length} saved exams.`;
+      topStatus.textContent = (LANG==="sv") ? `Hittade ${history.length} sparade prov.` : `Found ${history.length} saved exams.`;
       topStatus.className = "status ok";
 
       const lastAttempt = (last && last.attempt) ? last.attempt : history[history.length-1];
       const trend = computeTrend(history);
       const dna = dnaFromData(history, mistakes);
 
-      $("coachText").textContent = coachText(history, mistakes, dna, lastAttempt);
-
       const lastP = Number(lastAttempt?.percent || 0);
       const lastCourse = (lastAttempt?.course || "").trim();
-      $("lastText").textContent = LANG==="sv"
+      $("lastText").textContent = (LANG==="sv")
         ? `${lastP}% • Nivå: ${lastAttempt?.level || "—"} • ${lastCourse || "Ingen kurs"}`
         : `${lastP}% • Level: ${lastAttempt?.level || "—"} • ${lastCourse || "No course"}`;
 
@@ -624,11 +1144,118 @@
 
       renderDNA(dna);
       drawChart($("trendChart"), history);
-      renderMistakes(mistakes);
 
+      // Review list
+      const reviewInfo = renderReviewList(mistakes, srs, doneMap);
+
+      // Mastery fetch + focus pills
+      let focus = [];
+      try{
+        const masteryRes = await fetchMastery();
+        if(!masteryRes.ok){
+          $("masteryStatus").textContent = (masteryRes.reason==="no_login") ? t.masteryNoLogin : (masteryRes.reason==="no_db" ? (LANG==="sv"?"Supabase ej konfigurerad.":"Supabase not configured.") : String(masteryRes.error||""));
+          $("masteryStatus").className = "status warn";
+          $("masteryRow").innerHTML = "";
+        } else {
+          const { top } = renderMastery(masteryRes.mastery || {});
+          focus = top && top.length ? top.map(x=>x) : [];
+        }
+      } catch (e){
+        $("masteryStatus").textContent = (LANG==="sv") ? "Mastery kunde inte laddas." : "Could not load mastery.";
+        $("masteryStatus").className = "status warn";
+        $("masteryRow").innerHTML = "";
+      }
+
+      // Fallback focus if mastery is empty
+      if(!focus.length){
+        const dims = [
+          {k:"analysis", label:t.dnaLabels[0], v:dna.analysis},
+          {k:"concepts", label:t.dnaLabels[1], v:dna.concepts},
+          {k:"structure", label:t.dnaLabels[2], v:dna.structure},
+          {k:"examples", label:t.dnaLabels[3], v:dna.examples},
+          {k:"pace", label:t.dnaLabels[4], v:dna.pace},
+        ].sort((a,b)=>a.v-b.v);
+        focus = [
+          dims[0]?.label || (LANG==="sv"?"Svagaste område":"Weakest area"),
+          (LANG==="sv"?"Repetera felbank":"Review mistakes"),
+          (LANG==="sv"?"Gör nytt prov":"Do a new exam")
+        ];
+      }
+
+      renderFocusPills(focus);
+
+      $("coachText").textContent = coachText(history, mistakes, dna, lastAttempt, focus);
+
+      // Mistake list with filters
+      const filtered = applyFilters(mistakes, srs, doneMap);
+      renderMistakes(filtered, srs, doneMap);
+
+      // training links
       $("trainMistakesBtn").setAttribute("href", "app.html#train");
+      $("backToMaterialBtn").setAttribute("href", "app.html#train");
     }
 
+    // Filters events
+    ["fCourse","fType","fSearch","fDueOnly","fHideDone"].forEach(id=>{
+      $(id).addEventListener("input", () => renderAll());
+      $(id).addEventListener("change", () => renderAll());
+    });
+
+    // Export / Import
+    $("exportBtn").addEventListener("click", () => {
+      const t = T[LANG];
+      const payload = {
+        v: 1,
+        exportedAt: Date.now(),
+        [LS_HISTORY]: lsGetArray(LS_HISTORY),
+        [LS_MISTAKES]: lsGetArray(LS_MISTAKES),
+        [LS_LAST]: lsGetObj(LS_LAST),
+        [LS_MATERIAL]: localStorage.getItem(LS_MATERIAL) || "",
+        [LS_SRS]: lsGetMap(LS_SRS),
+        [LS_DONE]: lsGetMap(LS_DONE),
+        [LS_CLEAR_TS]: localStorage.getItem(LS_CLEAR_TS) || ""
+      };
+      downloadJson("proviaai-backup.json", payload);
+      const st = $("backupStatus");
+      st.textContent = t.backupOk;
+      st.className = "status ok";
+    });
+
+    $("importInput").addEventListener("change", async (e) => {
+      const t = T[LANG];
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+
+      try{
+        const txt = await file.text();
+        const obj = JSON.parse(txt);
+
+        if(!obj || typeof obj !== "object" || !Array.isArray(obj[LS_HISTORY]) || !Array.isArray(obj[LS_MISTAKES])){
+          $("backupStatus").textContent = t.importBad;
+          $("backupStatus").className = "status bad";
+          return;
+        }
+
+        lsSet(LS_HISTORY, obj[LS_HISTORY] || []);
+        lsSet(LS_MISTAKES, obj[LS_MISTAKES] || []);
+        if(obj[LS_LAST]) lsSet(LS_LAST, obj[LS_LAST]); else localStorage.removeItem(LS_LAST);
+        if(typeof obj[LS_MATERIAL] === "string") localStorage.setItem(LS_MATERIAL, obj[LS_MATERIAL]);
+        lsSet(LS_SRS, obj[LS_SRS] || {});
+        lsSet(LS_DONE, obj[LS_DONE] || {});
+        if(obj[LS_CLEAR_TS]) localStorage.setItem(LS_CLEAR_TS, String(obj[LS_CLEAR_TS]));
+
+        $("backupStatus").textContent = t.importOk;
+        $("backupStatus").className = "status ok";
+        renderAll();
+      } catch {
+        $("backupStatus").textContent = t.importBad;
+        $("backupStatus").className = "status bad";
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    // Reset
     $("resetBtn").addEventListener("click", async () => {
       const t = T[LANG];
 
@@ -639,6 +1266,8 @@
       localStorage.removeItem(LS_HISTORY);
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
+      localStorage.removeItem(LS_SRS);
+      localStorage.removeItem(LS_DONE);
 
       renderAll();
 
@@ -665,6 +1294,7 @@
       }
     });
 
+    // Init
     applyLang();
     renderAll();
   </script>
