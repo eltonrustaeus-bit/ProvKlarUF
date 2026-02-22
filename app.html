@@ -1322,8 +1322,9 @@ async function updateMastery(result){
             return;
           }
 
-          const result = res.data.result;
-          renderResult(result);
+         await ensureUserProfileRow();
+await updateMastery(result);
+
 
           try{
             await saveExamToAccount({
