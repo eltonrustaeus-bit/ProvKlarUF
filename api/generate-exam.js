@@ -1,6 +1,11 @@
-// api/generate-exam.js (ersätt hela filen med detta)
-// NYTT: "Math mode" -> välj OPENAI_MODEL_MATH när kurs/material tyder på matte
-// Fortfarande samma JSON-schema (ingen frontend-ändring krävs).
+// api/generate-exam.js (CommonJS / Vercel Serverless)
+// Math-mode model selection + optional "focus" support.
+//
+// CHANGES vs your version:
+// 1) Adds optional `focus` array in request body (strings). If provided, the prompt instructs the model to
+//    prioritize questions only from those focus points (useful for “selected mistakes” training).
+// 2) Adds `meta.focus_used` in response to debug whether focus was applied.
+// Existing frontend calls still work unchanged.
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -27,7 +32,6 @@ function looksLikeMath(course, pastedText) {
   const t = String(pastedText || "");
   const s = (c + "\n" + t).toLowerCase();
 
-  // enkel, robust heuristik
   const kw = [
     "matematik", "math", "algebra", "ekvation", "funktion", "polynom",
     "potens", "exponent", "log", "ln", "derivata", "integral",
@@ -36,10 +40,9 @@ function looksLikeMath(course, pastedText) {
   ];
   if (kw.some(k => s.includes(k))) return true;
 
-  // symbolmönster
   if (/[=<>]/.test(s) && /[xyz]/.test(s)) return true;
-  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;         // bråk
-  if (/[a-z]\s*\^\s*\d/.test(s)) return true;            // x^2
+  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;
+  if (/[a-z]\s*\^\s*\d/.test(s)) return true;
   if (/[√]/.test(s)) return true;
   if (/\bf\(\s*x\s*\)/.test(s)) return true;
 
@@ -47,9 +50,7 @@ function looksLikeMath(course, pastedText) {
 }
 
 function pickModel({ isMath }) {
-  // Standard
   const base = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  // Matte
   const math = process.env.OPENAI_MODEL_MATH || base;
   return isMath ? math : base;
 }
@@ -91,6 +92,18 @@ function buildMockExamSchema(numQuestions) {
   };
 }
 
+function safeFocusArray(x, maxItems = 40, maxLen = 220) {
+  if (!Array.isArray(x)) return [];
+  const out = [];
+  for (const v of x) {
+    const s = String(v ?? "").trim();
+    if (!s) continue;
+    out.push(s.slice(0, maxLen));
+    if (out.length >= maxItems) break;
+  }
+  return out;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -118,6 +131,10 @@ module.exports = async function handler(req, res) {
 
     const numQuestionsRaw = toInt(parsed.numQuestions, 12);
     const numQuestions = Math.min(12, Math.max(3, numQuestionsRaw));
+
+    // NEW: optional focus
+    const focus = safeFocusArray(parsed.focus);
+    const focusUsed = focus.length > 0;
 
     if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
 
@@ -162,11 +179,22 @@ module.exports = async function handler(req, res) {
         ? (systemSvBase + (isMath ? (" " + systemSvMath) : ""))
         : (systemEnBase + (isMath ? (" " + systemEnMath) : "")));
 
+    const focusBlockSv = focusUsed
+      ? ("\n\nFOKUS (obligatoriskt): Skapa alla frågor så att de endast testar följande fokus-punkter. Undvik annat.\n" +
+         focus.map((s, i) => `${i + 1}. ${s}`).join("\n"))
+      : "";
+
+    const focusBlockEn = focusUsed
+      ? ("\n\nFOCUS (mandatory): Make ALL questions test only these focus points. Avoid anything else.\n" +
+         focus.map((s, i) => `${i + 1}. ${s}`).join("\n"))
+      : "";
+
     const userSv = [
       `Skapa ett mockprov på nivå ${level}.`,
       course ? `Kurs/ämne: ${course}.` : "",
       `Frågetyp-val: ${qType}.`,
       `Antal frågor: ${numQuestions}.`,
+      focusBlockSv,
       "",
       "Material (använd bara detta som underlag):",
       pastedText
@@ -177,6 +205,7 @@ module.exports = async function handler(req, res) {
       course ? `Course/subject: ${course}.` : "",
       `Question type selection: ${qType}.`,
       `Number of questions: ${numQuestions}.`,
+      focusBlockEn,
       "",
       "Material (use only this as the source):",
       pastedText
@@ -221,7 +250,7 @@ module.exports = async function handler(req, res) {
         return json(res, 500, { ok: false, error: "Schema mismatch", exam });
       }
 
-      return json(res, 200, { ok: true, exam, meta: { isMath, model } });
+      return json(res, 200, { ok: true, exam, meta: { isMath, model, focus_used: focusUsed } });
     } catch (e) {
       return json(res, 500, { ok: false, error: "Server error", details: String(e) });
     }
