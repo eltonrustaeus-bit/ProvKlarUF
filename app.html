@@ -1,4 +1,4 @@
-<!-- app.html (ersätt hela filen med detta) -->
+
 <!doctype html>
 <html lang="sv">
 <head>
@@ -422,10 +422,14 @@
     const LS_MATERIAL = "proviaai_last_material";
     const LS_CLEAR_TS = "proviaai_cleared_ts";
 
+    // NYTT: valda misstag från förbättringssidan
+    const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[], done:[]? }
+
     const $ = (id) => document.getElementById(id);
 
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
     function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
+    function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
     function lsGetNum(key, fallback=0){ const n = Number(localStorage.getItem(key)||fallback); return Number.isFinite(n) ? n : fallback; }
     function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 
@@ -497,7 +501,7 @@
         cleared:"Allt rensat. Börja om.",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
-        trainLoaded:"Träningsläge: materialet är byggt av dina misstag. Skapa ett nytt mockprov."
+        trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -546,7 +550,7 @@
         cleared:"Cleared. Start again.",
         footer:"ProviaAi is study support and does not provide official grades.",
         pending:"Waiting for admin approval. You’ll get access once approved.",
-        trainLoaded:"Training mode: material built from your mistakes. Generate a new mock exam."
+        trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam."
       }
     };
 
@@ -623,6 +627,52 @@
       return { ok:true, id };
     }
 
+    // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
+    function mergeMistakesFromExamRows(rows){
+      // Bygger en sammanhängande felbank från sparade prov på kontot.
+      const out = [];
+      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
+
+      (rows || []).forEach(r => {
+        const createdTs = Date.parse(r.created_at) || 0;
+        if(createdTs <= clearTs) return;
+
+        const exam = r.exam || null;
+        const result = r.result || null;
+        const answers = r.answers || null;
+
+        const qById = new Map(((exam && exam.questions) ? exam.questions : []).map(q => [String(q.id), q]));
+        const aById = new Map((Array.isArray(answers) ? answers : []).map(a => [String(a.id), String(a.answer || "")]));
+
+        const per = (result && Array.isArray(result.per_question)) ? result.per_question : [];
+        per.forEach(item => {
+          const got = Number(item.points || 0);
+          const mx = Number(item.max_points || 0);
+          if(mx > 0 && got < mx){
+            const qid = String(item.id);
+            const q = qById.get(qid) || {};
+            out.push({
+              ts: createdTs || Date.now(),
+              course: r.course || "",
+              level: r.level || "C",
+              qType: q.type || (r.qtype || "mix"),
+              id: qid,
+              question: String(q.question || ""),
+              user_answer: String(aById.get(qid) || ""),
+              feedback: String(item.feedback || ""),
+              model_answer: String(item.model_answer || ""),
+              points: got,
+              max_points: mx
+            });
+          }
+        });
+      });
+
+      // begränsa
+      while(out.length > 200) out.shift();
+      return out;
+    }
+
     async function loadExamsFromAccountToLocal(){
       if(!db) return;
       const uid = await getUserId();
@@ -630,10 +680,10 @@
 
       const { data, error } = await db
         .from("user_exams")
-        .select("id, created_at, course, level, qtype, material, exam, result")
+        .select("id, created_at, course, level, qtype, material, exam, answers, result")
         .eq("user_id", uid)
         .order("created_at", { ascending: true })
-        .limit(200);
+        .limit(500);
 
       if(error) return;
 
@@ -667,6 +717,10 @@
       } else {
         try{ localStorage.removeItem(LS_LAST); } catch {}
       }
+
+      // NYTT: återskapa felbank från konto
+      const mergedMistakes = mergeMistakesFromExamRows(filtered);
+      lsSet(LS_MISTAKES, mergedMistakes);
     }
 
     async function ensureUserProfileRow(){
@@ -904,8 +958,15 @@
     }
 
     // ===== TRAIN MODE =====
-    function buildTrainingMaterialFromMistakes(mistakes){
-      const recent = Array.isArray(mistakes) ? mistakes.slice(-30).reverse() : [];
+    function buildTrainingMaterialFromMistakes(mistakes, pickedIds){
+      const src = Array.isArray(mistakes) ? mistakes : [];
+      const idSet = (Array.isArray(pickedIds) && pickedIds.length)
+        ? new Set(pickedIds.map(x => String(x)))
+        : null;
+
+      const filtered = idSet ? src.filter(m => idSet.has(String(m.id))) : src;
+      const recent = filtered.slice(-30).reverse();
+
       const course = (courseEl()?.value || "").trim();
       const headerSv =
         `TRÄNING PÅ DINA MISSTAG\n` +
@@ -953,7 +1014,10 @@
         return;
       }
 
-      const mat = buildTrainingMaterialFromMistakes(mistakes);
+      const pick = lsGetObj(LS_TRAIN_PICK);
+      const pickedIds = Array.isArray(pick?.ids) ? pick.ids : [];
+
+      const mat = buildTrainingMaterialFromMistakes(mistakes, pickedIds);
       if(pastedTextEl()) pastedTextEl().value = mat;
       try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
 
@@ -1282,6 +1346,7 @@
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
+          // best effort spara "draft"
           try{
             const saveDraft = await saveExamToAccount({
               material: pastedText,
@@ -1302,10 +1367,9 @@
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        // ✅ FIXAD: gradeBtn handler (detta var det som kraschade ditt script och dödade login)
+        // ===== FIXAD gradeBtn-handler (tidigare bröt JS) =====
         onClick("gradeBtn", async () => {
           hideDebug();
-          setStatus("");
           const t = T[LANG];
 
           if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
@@ -1313,7 +1377,6 @@
             return;
           }
 
-          // 1) samla answers först
           const answers = [];
           currentExam.questions.forEach((q, idx) => {
             const qid = String(q.id ?? (idx+1));
@@ -1326,16 +1389,8 @@
             }
           });
 
-          // 2) bygg payload EN gång, med personaliseringsdata
           const pastedText = (pastedTextEl()?.value || "").trim();
-          const payload = {
-            lang: LANG,
-            pastedText,
-            questions: currentExam.questions,
-            answers,
-            history: lsGetArray(LS_HISTORY),
-            mistakes: lsGetArray(LS_MISTAKES)
-          };
+          const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
 
           setBusy(true, t.gradeWorking);
           setStatus(t.gradeWorking, "");
@@ -1349,14 +1404,13 @@
           }
 
           const result = res.data.result;
-
-          // visa i UI (saknades i din senaste)
           renderResult(result);
 
-          // mastery
+          // mastery (best effort)
           await ensureUserProfileRow();
           await updateMastery(result);
 
+          // spara till konto (best effort)
           try{
             await saveExamToAccount({
               material: pastedText,
@@ -1373,6 +1427,7 @@
             });
           } catch {}
 
+          // uppdatera lokal historik + felbank
           const ts = Date.now();
           const max = Number(result.max_points || 0);
           const total = Number(result.total_points || 0);
@@ -1406,7 +1461,7 @@
           });
 
           const mistakes = lsGetArray(LS_MISTAKES);
-          const qById = new Map((currentExam.questions || []).map(q => [String(q.id), q]));
+          const qById = new Map((currentExam.questions || []).map(q => [String(q.id ?? ""), q]));
           const aById = new Map(answers.map(a => [String(a.id), a.answer]));
 
           (result.per_question || []).forEach(item => {
