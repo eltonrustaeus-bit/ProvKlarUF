@@ -1,11 +1,8 @@
-// api/generate-exam.js (CommonJS / Vercel Serverless)
-// Math-mode model selection + optional "focus" support.
-//
-// CHANGES vs your version:
-// 1) Adds optional `focus` array in request body (strings). If provided, the prompt instructs the model to
-//    prioritize questions only from those focus points (useful for “selected mistakes” training).
-// 2) Adds `meta.focus_used` in response to debug whether focus was applied.
-// Existing frontend calls still work unchanged.
+// api/generate-exam.js (ersätt hela filen med detta)
+// NYTT:
+// - Tillåter upp till 20 frågor (frontend kan välja 3–20)
+// - Tar bort essä som val (endast mix/mc/short)
+// - Schema + prompt uppdaterade så att inga "essay"-frågor genereras
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -41,8 +38,8 @@ function looksLikeMath(course, pastedText) {
   if (kw.some(k => s.includes(k))) return true;
 
   if (/[=<>]/.test(s) && /[xyz]/.test(s)) return true;
-  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;
-  if (/[a-z]\s*\^\s*\d/.test(s)) return true;
+  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;         // bråk
+  if (/[a-z]\s*\^\s*\d/.test(s)) return true;            // x^2
   if (/[√]/.test(s)) return true;
   if (/\bf\(\s*x\s*\)/.test(s)) return true;
 
@@ -77,7 +74,8 @@ function buildMockExamSchema(numQuestions) {
             required: ["id", "type", "points", "question", "options", "correct_index", "rubric", "model_answer"],
             properties: {
               id: { type: "string" },
-              type: { type: "string", enum: ["mc", "short", "essay", "mix"] },
+              // Endast dessa typer (ingen essay)
+              type: { type: "string", enum: ["mc", "short", "mix"] },
               points: { type: "number" },
               question: { type: "string" },
               options: { type: "array", items: { type: "string" }, maxItems: 6 },
@@ -90,18 +88,6 @@ function buildMockExamSchema(numQuestions) {
       }
     }
   };
-}
-
-function safeFocusArray(x, maxItems = 40, maxLen = 220) {
-  if (!Array.isArray(x)) return [];
-  const out = [];
-  for (const v of x) {
-    const s = String(v ?? "").trim();
-    if (!s) continue;
-    out.push(s.slice(0, maxLen));
-    if (out.length >= maxItems) break;
-  }
-  return out;
 }
 
 module.exports = async function handler(req, res) {
@@ -125,16 +111,14 @@ module.exports = async function handler(req, res) {
 
     const lang = asEnum(parsed.lang, ["sv", "en"], "sv");
     const level = asEnum(parsed.level, ["E", "C", "A"], "C");
-    const qType = asEnum(parsed.qType, ["mix", "mc", "short", "essay"], "mix");
+    // Endast dessa val (ingen essay)
+    const qType = asEnum(parsed.qType, ["mix", "mc", "short"], "mix");
     const course = safeString(parsed.course, 200);
     const pastedText = safeString(parsed.pastedText, 200000);
 
     const numQuestionsRaw = toInt(parsed.numQuestions, 12);
-    const numQuestions = Math.min(12, Math.max(3, numQuestionsRaw));
-
-    // NEW: optional focus
-    const focus = safeFocusArray(parsed.focus);
-    const focusUsed = focus.length > 0;
+    // NYTT: tillåt 3..20
+    const numQuestions = Math.min(20, Math.max(3, numQuestionsRaw));
 
     if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
 
@@ -150,7 +134,8 @@ module.exports = async function handler(req, res) {
       "1) options ska vara [] om type != 'mc'. " +
       "2) correct_index: om type=='mc' -> ett heltal som pekar på rätt alternativ (0=A,1=B,...). Om inte mc -> -1. " +
       "3) rubric ska vara kort och poängfokuserad. " +
-      "4) model_answer ska alltid finnas: för mc kan du skriva vad rätt alternativ betyder; för short/essay skriv ett fullpoängsvar.";
+      "4) model_answer ska alltid finnas: för mc kan du skriva vad rätt alternativ betyder; för short/mix skriv ett fullpoängsvar. " +
+      "5) VIKTIGT: Skapa INGA essäfrågor. Endast 'mc', 'short' och 'mix'.";
 
     const systemSvMath =
       "MATTE-LÄGE: Prioritera exakta, beräkningsbaserade frågor. " +
@@ -166,7 +151,8 @@ module.exports = async function handler(req, res) {
       "1) options must be [] if type != 'mc'. " +
       "2) correct_index: if type=='mc' -> integer pointing to correct option (0=A,1=B,...). Otherwise -1. " +
       "3) rubric must be short and point-focused. " +
-      "4) model_answer must always exist: for mc describe what the correct option means; for short/essay provide a full-score answer.";
+      "4) model_answer must always exist: for mc describe what the correct option means; for short/mix provide a full-score answer. " +
+      "5) IMPORTANT: Do NOT create essay questions. Only 'mc', 'short', and 'mix'.";
 
     const systemEnMath =
       "MATH MODE: Prioritize exact calculation questions. " +
@@ -179,22 +165,11 @@ module.exports = async function handler(req, res) {
         ? (systemSvBase + (isMath ? (" " + systemSvMath) : ""))
         : (systemEnBase + (isMath ? (" " + systemEnMath) : "")));
 
-    const focusBlockSv = focusUsed
-      ? ("\n\nFOKUS (obligatoriskt): Skapa alla frågor så att de endast testar följande fokus-punkter. Undvik annat.\n" +
-         focus.map((s, i) => `${i + 1}. ${s}`).join("\n"))
-      : "";
-
-    const focusBlockEn = focusUsed
-      ? ("\n\nFOCUS (mandatory): Make ALL questions test only these focus points. Avoid anything else.\n" +
-         focus.map((s, i) => `${i + 1}. ${s}`).join("\n"))
-      : "";
-
     const userSv = [
       `Skapa ett mockprov på nivå ${level}.`,
       course ? `Kurs/ämne: ${course}.` : "",
       `Frågetyp-val: ${qType}.`,
       `Antal frågor: ${numQuestions}.`,
-      focusBlockSv,
       "",
       "Material (använd bara detta som underlag):",
       pastedText
@@ -205,7 +180,6 @@ module.exports = async function handler(req, res) {
       course ? `Course/subject: ${course}.` : "",
       `Question type selection: ${qType}.`,
       `Number of questions: ${numQuestions}.`,
-      focusBlockEn,
       "",
       "Material (use only this as the source):",
       pastedText
@@ -250,7 +224,7 @@ module.exports = async function handler(req, res) {
         return json(res, 500, { ok: false, error: "Schema mismatch", exam });
       }
 
-      return json(res, 200, { ok: true, exam, meta: { isMath, model, focus_used: focusUsed } });
+      return json(res, 200, { ok: true, exam, meta: { isMath, model } });
     } catch (e) {
       return json(res, 500, { ok: false, error: "Server error", details: String(e) });
     }
