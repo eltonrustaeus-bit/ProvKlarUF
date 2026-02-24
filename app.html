@@ -372,7 +372,8 @@
 
         <span style="display:flex;gap:10px;align-items:center">
           <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
-          <span class="sectionSub" id="miniState">Redo.</span>
+          <!-- ÄNDRING: miniState visar quota tydligt -->
+          <span class="sectionSub" id="miniState">Prov idag kvar: —</span>
         </span>
       </div>
 
@@ -414,10 +415,6 @@
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
-    // ===== DAILY LIMIT (klientsida) =====
-    const DAILY_EXAM_LIMIT = 10;
-    const LS_DAILY_LIMIT_PREFIX = "proviaai_daily_exam_count_";
-
     // ===== STORAGE KEYS =====
     const LS_HISTORY = "proviaai_history";
     const LS_MISTAKES = "proviaai_mistakes";
@@ -427,6 +424,9 @@
 
     // valda misstag från förbättringssidan
     const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[], done:[]? }
+
+    // ===== QUOTA UI (server-first, local fallback) =====
+    const LS_QUOTA_FALLBACK_PREFIX = "proviaai_quota_fallback_"; // per user per day
 
     const $ = (id) => document.getElementById(id);
 
@@ -440,18 +440,6 @@
       return String(s ?? "")
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
         .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    async function postJson(path, payload){
-      const resp = await fetch(path, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const raw = await resp.text();
-      let data = null;
-      try{ data = JSON.parse(raw); } catch {}
-      return { ok: resp.ok, status: resp.status, raw, data };
     }
 
     // ===== I18N =====
@@ -483,7 +471,7 @@
         qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
         num:"Antal frågor (exakt)",
         gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
-        ready:"Redo.",
+        ready:"Prov idag kvar: —",
         debug:"Debug",
         step3:"Steg 3 – Mockprov",
         step4:"Steg 4 – Rättning",
@@ -505,8 +493,9 @@
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
         trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
-        dailyLeft:(n)=>`Prov idag kvar: ${n}/${DAILY_EXAM_LIMIT}`,
-        dailyLimitHit:"Dagens gräns är nådd (10 prov). Försök igen imorgon."
+        quotaText:(left, limit) => `Prov idag kvar: ${left}/${limit === Infinity ? "∞" : limit}`,
+        quotaUnknown:"Prov idag kvar: —",
+        quotaHit:"Dagens gräns är nådd. Försök igen imorgon."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -534,7 +523,7 @@
         qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
         num:"Number of questions (exact)",
         gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
-        ready:"Ready.",
+        ready:"Exams left today: —",
         debug:"Debug",
         step3:"Step 3 – Mock exam",
         step4:"Step 4 – Grading",
@@ -556,8 +545,9 @@
         footer:"ProviaAi is study support and does not provide official grades.",
         pending:"Waiting for admin approval. You’ll get access once approved.",
         trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
-        dailyLeft:(n)=>`Exams left today: ${n}/${DAILY_EXAM_LIMIT}`,
-        dailyLimitHit:"Daily limit reached (10). Try again tomorrow."
+        quotaText:(left, limit) => `Exams left today: ${left}/${limit === Infinity ? "∞" : limit}`,
+        quotaUnknown:"Exams left today: —",
+        quotaHit:"Daily limit reached. Try again tomorrow."
       }
     };
 
@@ -598,6 +588,35 @@
       ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
 
+    // ===== AUTH HELPERS =====
+    async function getAccessToken(){
+      if(!db) return "";
+      try{
+        const { data, error } = await db.auth.getSession();
+        if(error) return "";
+        return data?.session?.access_token || "";
+      } catch {
+        return "";
+      }
+    }
+
+    // ===== POST JSON (ÄNDRING: skickar Authorization: Bearer <token> när inloggad) =====
+    async function postJson(path, payload){
+      const token = await getAccessToken();
+      const headers = { "Content-Type":"application/json" };
+      if(token) headers["Authorization"] = `Bearer ${token}`;
+
+      const resp = await fetch(path, {
+        method:"POST",
+        headers,
+        body: JSON.stringify(payload)
+      });
+      const raw = await resp.text();
+      let data = null;
+      try{ data = JSON.parse(raw); } catch {}
+      return { ok: resp.ok, status: resp.status, raw, data };
+    }
+
     // ===== SAVE DATA TO ACCOUNT (user_exams) =====
     async function getUserId(){
       if(!db) return null;
@@ -634,30 +653,81 @@
       return { ok:true, id };
     }
 
-    // ===== DAILY LIMIT HELPERS (klientsida) =====
+    // ===== QUOTA (server-first via 429 payload; fallback local) =====
     function ymd(d=new Date()){
       const y = d.getFullYear();
       const m = String(d.getMonth()+1).padStart(2,"0");
       const day = String(d.getDate()).padStart(2,"0");
       return `${y}-${m}-${day}`;
     }
-    async function dailyKey(){
+
+    async function quotaFallbackKey(){
       const uid = (await getUserId()) || "guest";
-      return `${LS_DAILY_LIMIT_PREFIX}${uid}_${ymd()}`;
+      return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
     }
-    async function getDailyCount(){
-      const key = await dailyKey();
-      return lsGetNum(key, 0);
+
+    // local fallback defaults until server tells us limit
+    let quotaState = { limit: null, count: null };
+
+    function normalizeLimit(x){
+      if(x === null || x === undefined) return null;
+      if(x === "unlimited") return Infinity;
+      const n = Number(x);
+      if(!Number.isFinite(n)) return null;
+      if(n <= 0) return 0;
+      return n;
     }
-    async function incDailyCount(){
-      const key = await dailyKey();
-      const cur = lsGetNum(key, 0);
-      localStorage.setItem(key, String(cur + 1));
-      return cur + 1;
+
+    function normalizeCount(x){
+      const n = Number(x);
+      if(!Number.isFinite(n) || n < 0) return null;
+      return Math.floor(n);
     }
-    async function dailyRemaining(){
-      const c = await getDailyCount();
-      return Math.max(DAILY_EXAM_LIMIT - c, 0);
+
+    async function readFallbackCount(){
+      const k = await quotaFallbackKey();
+      return lsGetNum(k, 0);
+    }
+    async function writeFallbackCount(n){
+      const k = await quotaFallbackKey();
+      localStorage.setItem(k, String(Math.max(0, Math.floor(n))));
+    }
+
+    async function setQuotaFromServerMaybe(obj){
+      // expects { limit, count } from 429 response
+      const lim = normalizeLimit(obj?.limit);
+      const cnt = normalizeCount(obj?.count);
+      if(lim === null || cnt === null) return false;
+      quotaState.limit = lim;
+      quotaState.count = cnt;
+      // sync fallback so UI keeps same after reload
+      await writeFallbackCount(cnt);
+      await refreshQuotaUi();
+      return true;
+    }
+
+    async function bumpQuotaFallbackOnSuccess(){
+      // used when server does not provide quota on success
+      const cur = await readFallbackCount();
+      await writeFallbackCount(cur + 1);
+    }
+
+    async function refreshQuotaUi(){
+      const ms = document.getElementById("miniState");
+      if(!ms) return;
+
+      const t = T[LANG];
+      const fallbackCount = await readFallbackCount();
+
+      const limit = (quotaState.limit !== null) ? quotaState.limit : null;
+      const count = (quotaState.count !== null) ? quotaState.count : fallbackCount;
+
+      if(limit === null){
+        ms.textContent = t.quotaUnknown;
+        return;
+      }
+      const left = (limit === Infinity) ? Infinity : Math.max(limit - count, 0);
+      ms.textContent = t.quotaText(left, limit);
     }
 
     // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
@@ -901,6 +971,7 @@
       const m = $("menu"); if(m) m.style.display = "none";
       if(db){ try{ await db.auth.signOut(); } catch {} }
       showLock();
+      await refreshQuotaUi();
     }
 
     // ===== APPROVAL CHECK =====
@@ -1059,13 +1130,6 @@
     }
 
     // ===== APP RENDERING =====
-    async function refreshDailyUi(){
-      const ms = miniStateEl();
-      if(!ms) return;
-      const left = await dailyRemaining();
-      ms.textContent = T[LANG].dailyLeft(left);
-    }
-
     function applyLang(){
       const t = T[LANG];
       const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
@@ -1142,10 +1206,9 @@
         box.className = "qBox";
         const qid = String(q.id ?? (idx+1));
 
-        const qTypeUi = (q.type === "essay") ? "short" : (q.type || ($("qType")?.value || ""));
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${qTypeUi}`;
+        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
 
         const text = document.createElement("div");
         text.className = "qText";
@@ -1256,7 +1319,7 @@
     window.addEventListener("DOMContentLoaded", async () => {
       try{
         applyLang();
-        await refreshDailyUi();
+        await refreshQuotaUi();
         setStatus("");
 
         onClick("menuBtn", (e) => {
@@ -1294,16 +1357,16 @@
           LANG = (LANG === "sv") ? "en" : "sv";
           localStorage.setItem("proviaai_lang", LANG);
           applyLang();
-          await refreshDailyUi();
+          await refreshQuotaUi();
           const m = $("menu"); if(m) m.style.display = "none";
           runTrainModeIfRequested();
         });
 
-        onClick("logoutTopBtn", async () => { await logout(); await refreshDailyUi(); });
+        onClick("logoutTopBtn", async () => { await logout(); });
 
-        onClick("unlockBtn", unlockByCode);
-        onClick("signInBtn", async () => { await signInEmail(); await refreshDailyUi(); });
-        onClick("signUpBtn", async () => { await signUpEmail(); await refreshDailyUi(); });
+        onClick("unlockBtn", async () => { unlockByCode(); await refreshQuotaUi(); });
+        onClick("signInBtn", async () => { await signInEmail(); await refreshQuotaUi(); });
+        onClick("signUpBtn", async () => { await signUpEmail(); await refreshQuotaUi(); });
 
         onKey((e) => {
           if(e.key !== "Enter") return;
@@ -1345,8 +1408,6 @@
             setBusy(false, T[LANG].ready);
             setOcrStatus("OCR error.", "bad");
             reportErr(e);
-          } finally {
-            await refreshDailyUi();
           }
         });
 
@@ -1354,13 +1415,6 @@
           hideDebug();
           setStatus("");
           const t = T[LANG];
-
-          const left = await dailyRemaining();
-          if(left <= 0){
-            setStatus(t.dailyLimitHit, "bad");
-            await refreshDailyUi();
-            return;
-          }
 
           const pastedText = (pastedTextEl()?.value || "").trim();
           if(!pastedText){
@@ -1388,22 +1442,30 @@
           setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
 
           const res = await postJson("/api/generate-exam", payload);
+
+          // ÄNDRING: om servern säger quota slut (429) => uppdatera UI med serverns limit/count
+          if(res.status === 429 && res.data){
+            await setQuotaFromServerMaybe(res.data);
+            setBusy(false, t.ready);
+            setStatus(res.data?.error || t.quotaHit, "bad");
+            return;
+          }
+
           if(!res.ok || !res.data || !res.data.ok){
             setBusy(false, t.ready);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
-            await refreshDailyUi();
             return;
           }
 
-          // räknas som "genererat prov" först när API lyckas
-          await incDailyCount();
-          await refreshDailyUi();
+          // ÄNDRING: quota UI
+          // Servern drar quota på varje lyckad generate. Om servern inte skickar limit/count på success
+          // så använder vi fallback-räknare så du ser "kvar idag" ändå.
+          await bumpQuotaFallbackOnSuccess();
+          await refreshQuotaUi();
 
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
-
-          // Ingen "draft"-sparning här (förhindrar dubbla prov i förbättring om förbättring räknar från user_exams)
 
           setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
@@ -1581,7 +1643,7 @@
           }
         }
 
-        await refreshDailyUi();
+        await refreshQuotaUi();
 
       }catch(err){
         reportErr(err);
