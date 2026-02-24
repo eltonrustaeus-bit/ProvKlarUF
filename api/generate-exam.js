@@ -5,7 +5,7 @@
 // - Tar bort essä helt (endast: mix, mc, short)
 // - JSON-schema som aldrig tillåter "essay"
 
-import { requireUser, consumeDailyQuota } from "./_limit.js";
+const { requireUser, consumeDailyQuota } = require("./_limit.js");
 
 function json(res, status, obj) {
   res.statusCode = status;
