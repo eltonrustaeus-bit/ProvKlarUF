@@ -249,7 +249,7 @@
           </div>
 
           <div class="miniHint" id="authHint">
-            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.
+            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br>
           </div>
         </div>
 
@@ -353,29 +353,14 @@
             <option value="mix" selected id="qtMix">Blandat</option>
             <option value="mc" id="qtMc">Flervalsfrågor</option>
             <option value="short" id="qtShort">Kortsvar</option>
+            <option value="essay" id="qtEssay">Essä</option>
           </select>
         </div>
         <div>
           <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
           <select id="numQuestions">
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>7</option>
-            <option>8</option>
-            <option>9</option>
-            <option>10</option>
-            <option>11</option>
-            <option selected>12</option>
-            <option>13</option>
-            <option>14</option>
-            <option>15</option>
-            <option>16</option>
-            <option>17</option>
-            <option>18</option>
-            <option>19</option>
-            <option>20</option>
+            <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+            <option>9</option><option>10</option><option>11</option><option selected>12</option>
           </select>
         </div>
       </div>
@@ -491,7 +476,7 @@
         course:"Ämne/kurs (valfritt)",
         coursePH:"Ex: Matematik 2b / Historia 1b",
         qType:"Frågetyp",
-        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
+        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar", qtEssay:"Essä",
         num:"Antal frågor (exakt)",
         gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
         ready:"Redo.",
@@ -540,7 +525,7 @@
         course:"Subject/course (optional)",
         coursePH:"e.g., Math / History",
         qType:"Question type",
-        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
+        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer", qtEssay:"Essay",
         num:"Number of questions (exact)",
         gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
         ready:"Ready.",
@@ -643,6 +628,7 @@
 
     // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
     function mergeMistakesFromExamRows(rows){
+      // Bygger en sammanhängande felbank från sparade prov på kontot.
       const out = [];
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
 
@@ -681,6 +667,7 @@
         });
       });
 
+      // begränsa
       while(out.length > 200) out.shift();
       return out;
     }
@@ -730,6 +717,7 @@
         try{ localStorage.removeItem(LS_LAST); } catch {}
       }
 
+      // NYTT: återskapa felbank från konto
       const mergedMistakes = mergeMistakesFromExamRows(filtered);
       lsSet(LS_MISTAKES, mergedMistakes);
     }
@@ -1075,7 +1063,7 @@
       set("qtMix", t.qtMix);
       set("qtMc", t.qtMc);
       set("qtShort", t.qtShort);
-
+      set("qtEssay", t.qtEssay);
       set("tNum", t.num);
       set("generateExamBtn", t.gen);
       set("gradeBtn", t.grade);
@@ -1167,7 +1155,7 @@
         ans.placeholder = t.writeAnswer;
         ans.dataset.qid = qid;
         ans.style.marginTop = "10px";
-        ans.style.minHeight = "110px";
+        ans.style.minHeight = (q.type === "essay") ? "150px" : "110px";
         box.appendChild(ans);
         eb?.appendChild(box);
       });
@@ -1357,28 +1345,15 @@
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          // best effort spara "draft"
-          try{
-            const saveDraft = await saveExamToAccount({
-              material: pastedText,
-              course: (courseEl()?.value || "").trim(),
-              level: (levelEl()?.value || "C"),
-              qType: (qTypeEl()?.value || "mix"),
-              exam: res.data.exam,
-              answers: null,
-              result: null
-            });
-            if(!saveDraft.ok && saveDraft.error !== "Not logged in"){
-              showDebug("Supabase save draft error:\n" + saveDraft.error);
-            }
-          }catch(e){}
+          // ÄNDRING: Ingen "draft"-sparning här.
+          // Endast sparning sker efter rättning (gradeBtn).
 
           setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        // ===== gradeBtn-handler =====
+        // ===== FIXAD gradeBtn-handler (tidigare bröt JS) =====
         onClick("gradeBtn", async () => {
           hideDebug();
           const t = T[LANG];
@@ -1421,7 +1396,7 @@
           await ensureUserProfileRow();
           await updateMastery(result);
 
-          // spara till konto (best effort)
+          // spara till konto (best effort) - endast här
           try{
             await saveExamToAccount({
               material: pastedText,
