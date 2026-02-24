@@ -1,3 +1,35 @@
+import { requireUser, consumeDailyQuota } from "./_limit.js";
+
+// ...din övriga imports
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  // 1) kräver inloggad användare
+  const u = await requireUser(req);
+  if (!u.ok) {
+    return res.status(401).json({ ok: false, error: u.error });
+  }
+
+  // 2) dra 1 försök från dagens quota
+  const q = await consumeDailyQuota(u.userId);
+  if (!q.ok) {
+    return res.status(429).json({
+      ok: false,
+      error: q.error,
+      limit: q.limit,
+      count: q.count
+    });
+  }
+
+  // ===== HÄR FORTSÄTTER din gamla generate-exam kod =====
+  //  - bygg prompt
+  //  - kalla OpenAI
+  //  - returnera { ok:true, exam: ... }
+}
+
 // api/generate-exam.js (ersätt hela filen med detta)
 // NYTT:
 // - Tillåter upp till 20 frågor (frontend kan välja 3–20)
