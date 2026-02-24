@@ -353,7 +353,6 @@
             <option value="mix" selected id="qtMix">Blandat</option>
             <option value="mc" id="qtMc">Flervalsfrågor</option>
             <option value="short" id="qtShort">Kortsvar</option>
-            <option value="essay" id="qtEssay">Essä</option>
           </select>
         </div>
         <div>
@@ -361,6 +360,7 @@
           <select id="numQuestions">
             <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
             <option>9</option><option>10</option><option>11</option><option selected>12</option>
+            <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
           </select>
         </div>
       </div>
@@ -414,6 +414,10 @@
     const ACCESS_CODE = "provia123";
     const ACCESS_FLAG_KEY = "proviaai_app_access";
 
+    // ===== DAILY LIMIT (klientsida) =====
+    const DAILY_EXAM_LIMIT = 10;
+    const LS_DAILY_LIMIT_PREFIX = "proviaai_daily_exam_count_";
+
     // ===== STORAGE KEYS =====
     const LS_HISTORY = "proviaai_history";
     const LS_MISTAKES = "proviaai_mistakes";
@@ -421,7 +425,7 @@
     const LS_MATERIAL = "proviaai_last_material";
     const LS_CLEAR_TS = "proviaai_cleared_ts";
 
-    // NYTT: valda misstag från förbättringssidan
+    // valda misstag från förbättringssidan
     const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[], done:[]? }
 
     const $ = (id) => document.getElementById(id);
@@ -476,7 +480,7 @@
         course:"Ämne/kurs (valfritt)",
         coursePH:"Ex: Matematik 2b / Historia 1b",
         qType:"Frågetyp",
-        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar", qtEssay:"Essä",
+        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
         num:"Antal frågor (exakt)",
         gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
         ready:"Redo.",
@@ -500,7 +504,9 @@
         cleared:"Allt rensat. Börja om.",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
-        trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov."
+        trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
+        dailyLeft:(n)=>`Prov idag kvar: ${n}/${DAILY_EXAM_LIMIT}`,
+        dailyLimitHit:"Dagens gräns är nådd (10 prov). Försök igen imorgon."
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -525,7 +531,7 @@
         course:"Subject/course (optional)",
         coursePH:"e.g., Math / History",
         qType:"Question type",
-        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer", qtEssay:"Essay",
+        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
         num:"Number of questions (exact)",
         gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
         ready:"Ready.",
@@ -549,7 +555,9 @@
         cleared:"Cleared. Start again.",
         footer:"ProviaAi is study support and does not provide official grades.",
         pending:"Waiting for admin approval. You’ll get access once approved.",
-        trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam."
+        trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
+        dailyLeft:(n)=>`Exams left today: ${n}/${DAILY_EXAM_LIMIT}`,
+        dailyLimitHit:"Daily limit reached (10). Try again tomorrow."
       }
     };
 
@@ -626,9 +634,34 @@
       return { ok:true, id };
     }
 
+    // ===== DAILY LIMIT HELPERS (klientsida) =====
+    function ymd(d=new Date()){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+    async function dailyKey(){
+      const uid = (await getUserId()) || "guest";
+      return `${LS_DAILY_LIMIT_PREFIX}${uid}_${ymd()}`;
+    }
+    async function getDailyCount(){
+      const key = await dailyKey();
+      return lsGetNum(key, 0);
+    }
+    async function incDailyCount(){
+      const key = await dailyKey();
+      const cur = lsGetNum(key, 0);
+      localStorage.setItem(key, String(cur + 1));
+      return cur + 1;
+    }
+    async function dailyRemaining(){
+      const c = await getDailyCount();
+      return Math.max(DAILY_EXAM_LIMIT - c, 0);
+    }
+
     // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
     function mergeMistakesFromExamRows(rows){
-      // Bygger en sammanhängande felbank från sparade prov på kontot.
       const out = [];
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
 
@@ -667,7 +700,6 @@
         });
       });
 
-      // begränsa
       while(out.length > 200) out.shift();
       return out;
     }
@@ -717,7 +749,6 @@
         try{ localStorage.removeItem(LS_LAST); } catch {}
       }
 
-      // NYTT: återskapa felbank från konto
       const mergedMistakes = mergeMistakesFromExamRows(filtered);
       lsSet(LS_MISTAKES, mergedMistakes);
     }
@@ -890,7 +921,7 @@
       }
 
       if(!prof){
-        setLockError("Profil saknas i databasen (profiles). Skapa profilen för användaren eller lägg en trigger som skapar den automatiskt.");
+        setLockError("Profil saknas i databasen (profiles).");
         showLock();
         return false;
       }
@@ -970,12 +1001,12 @@
       const headerSv =
         `TRÄNING PÅ DINA MISSTAG\n` +
         `${course ? `Kurs: ${course}\n` : ""}` +
-        `Instruktion: Skapa prov som bara testar dessa svaga delar. Undvik områden där poäng redan var full.\n\n`;
+        `Instruktion: Skapa prov som bara testar dessa svaga delar.\n\n`;
 
       const headerEn =
         `TRAINING FROM YOUR MISTAKES\n` +
         `${course ? `Course: ${course}\n` : ""}` +
-        `Instruction: Generate exams that focus only on these weak areas. Avoid topics you already mastered.\n\n`;
+        `Instruction: Generate exams that focus only on these weak areas.\n\n`;
 
       const blocks = recent.map((m, i) => {
         const q = String(m.question || "").trim();
@@ -1028,6 +1059,13 @@
     }
 
     // ===== APP RENDERING =====
+    async function refreshDailyUi(){
+      const ms = miniStateEl();
+      if(!ms) return;
+      const left = await dailyRemaining();
+      ms.textContent = T[LANG].dailyLeft(left);
+    }
+
     function applyLang(){
       const t = T[LANG];
       const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
@@ -1063,14 +1101,12 @@
       set("qtMix", t.qtMix);
       set("qtMc", t.qtMc);
       set("qtShort", t.qtShort);
-      set("qtEssay", t.qtEssay);
       set("tNum", t.num);
       set("generateExamBtn", t.gen);
       set("gradeBtn", t.grade);
       set("clearBtn", t.clear);
       set("improveBtnInline", t.mImprove);
 
-      set("miniState", t.ready);
       set("debugTitle", t.debug);
       set("tStep3", t.step3);
       set("tStep4", t.step4);
@@ -1106,9 +1142,10 @@
         box.className = "qBox";
         const qid = String(q.id ?? (idx+1));
 
+        const qTypeUi = (q.type === "essay") ? "short" : (q.type || ($("qType")?.value || ""));
         const meta = document.createElement("div");
         meta.className = "qMeta";
-        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
+        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${qTypeUi}`;
 
         const text = document.createElement("div");
         text.className = "qText";
@@ -1155,7 +1192,7 @@
         ans.placeholder = t.writeAnswer;
         ans.dataset.qid = qid;
         ans.style.marginTop = "10px";
-        ans.style.minHeight = (q.type === "essay") ? "150px" : "110px";
+        ans.style.minHeight = "110px";
         box.appendChild(ans);
         eb?.appendChild(box);
       });
@@ -1219,7 +1256,7 @@
     window.addEventListener("DOMContentLoaded", async () => {
       try{
         applyLang();
-        setBusy(false, T[LANG].ready);
+        await refreshDailyUi();
         setStatus("");
 
         onClick("menuBtn", (e) => {
@@ -1253,19 +1290,20 @@
 
         onKey((e) => { if(e.key === "Escape"){ const m=$("menu"); if(m) m.style.display="none"; }});
 
-        onClick("langBtn", () => {
+        onClick("langBtn", async () => {
           LANG = (LANG === "sv") ? "en" : "sv";
           localStorage.setItem("proviaai_lang", LANG);
           applyLang();
+          await refreshDailyUi();
           const m = $("menu"); if(m) m.style.display = "none";
           runTrainModeIfRequested();
         });
 
-        onClick("logoutTopBtn", logout);
+        onClick("logoutTopBtn", async () => { await logout(); await refreshDailyUi(); });
 
         onClick("unlockBtn", unlockByCode);
-        onClick("signInBtn", () => signInEmail());
-        onClick("signUpBtn", () => signUpEmail());
+        onClick("signInBtn", async () => { await signInEmail(); await refreshDailyUi(); });
+        onClick("signUpBtn", async () => { await signUpEmail(); await refreshDailyUi(); });
 
         onKey((e) => {
           if(e.key !== "Enter") return;
@@ -1304,9 +1342,11 @@
             setBusy(false, t.ready);
             setOcrStatus(t.ocrDone, "ok");
           }catch(e){
-            setBusy(false, t.ready);
+            setBusy(false, T[LANG].ready);
             setOcrStatus("OCR error.", "bad");
             reportErr(e);
+          } finally {
+            await refreshDailyUi();
           }
         });
 
@@ -1315,6 +1355,13 @@
           setStatus("");
           const t = T[LANG];
 
+          const left = await dailyRemaining();
+          if(left <= 0){
+            setStatus(t.dailyLimitHit, "bad");
+            await refreshDailyUi();
+            return;
+          }
+
           const pastedText = (pastedTextEl()?.value || "").trim();
           if(!pastedText){
             setStatus(t.needMat, "bad");
@@ -1322,11 +1369,17 @@
             return;
           }
 
+          const qType = qTypeEl()?.value || "mix";
+          if(!["mix","mc","short"].includes(qType)){
+            setStatus("Ogiltig frågetyp.", "bad");
+            return;
+          }
+
           const payload = {
             lang: LANG,
             level: levelEl()?.value || "C",
             course: (courseEl()?.value || "").trim(),
-            qType: qTypeEl()?.value || "mix",
+            qType,
             pastedText,
             numQuestions: Number(numQuestionsEl()?.value || 12)
           };
@@ -1339,21 +1392,24 @@
             setBusy(false, t.ready);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
+            await refreshDailyUi();
             return;
           }
+
+          // räknas som "genererat prov" först när API lyckas
+          await incDailyCount();
+          await refreshDailyUi();
 
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          // ÄNDRING: Ingen "draft"-sparning här.
-          // Endast sparning sker efter rättning (gradeBtn).
+          // Ingen "draft"-sparning här (förhindrar dubbla prov i förbättring om förbättring räknar från user_exams)
 
           setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
-        // ===== FIXAD gradeBtn-handler (tidigare bröt JS) =====
         onClick("gradeBtn", async () => {
           hideDebug();
           const t = T[LANG];
@@ -1392,11 +1448,10 @@
           const result = res.data.result;
           renderResult(result);
 
-          // mastery (best effort)
           await ensureUserProfileRow();
           await updateMastery(result);
 
-          // spara till konto (best effort) - endast här
+          // spara till konto endast här
           try{
             await saveExamToAccount({
               material: pastedText,
@@ -1413,7 +1468,7 @@
             });
           } catch {}
 
-          // uppdatera lokal historik + felbank
+          // lokal historik + felbank
           const ts = Date.now();
           const max = Number(result.max_points || 0);
           const total = Number(result.total_points || 0);
@@ -1525,6 +1580,8 @@
             showLock();
           }
         }
+
+        await refreshDailyUi();
 
       }catch(err){
         reportErr(err);
