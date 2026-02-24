@@ -1,8 +1,9 @@
+
 // /api/generate-exam.js
 // Innehåll:
 // - Daily quota (per elev) via Supabase token: requireUser + consumeDailyQuota
 // - Tillåter 3–20 frågor
-// - Tar bort essä helt (endast: mix, mc, short)
+// - Tar bort essä helt (endast: mc, short)
 // - JSON-schema som aldrig tillåter "essay"
 
 const { requireUser, consumeDailyQuota } = require("./_limit.js");
@@ -112,7 +113,7 @@ async function readJsonBody(req) {
   return JSON.parse(raw);
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
@@ -147,7 +148,6 @@ export default async function handler(req, res) {
 
   const lang = asEnum(parsed.lang, ["sv", "en"], "sv");
   const level = asEnum(parsed.level, ["E", "C", "A"], "C");
-  // Endast dessa val (ingen essay)
   const qType = asEnum(parsed.qType, ["mix", "mc", "short"], "mix");
   const course = safeString(parsed.course, 200);
   const pastedText = safeString(parsed.pastedText, 200000);
@@ -204,15 +204,15 @@ export default async function handler(req, res) {
     qType === "mc"
       ? "Gör ALLA frågor som flervalsfrågor (mc)."
       : qType === "short"
-      ? "Gör ALLA frågor som kortsvar (short)."
-      : "Gör en blandning av 'mc' och 'short' (ungefär hälften/hälften).";
+        ? "Gör ALLA frågor som kortsvar (short)."
+        : "Gör en blandning av 'mc' och 'short' (ungefär hälften/hälften).";
 
   const mixRuleEn =
     qType === "mc"
       ? "Make ALL questions multiple choice (mc)."
       : qType === "short"
-      ? "Make ALL questions short answer (short)."
-      : "Make a mix of 'mc' and 'short' (about half/half).";
+        ? "Make ALL questions short answer (short)."
+        : "Make a mix of 'mc' and 'short' (about half/half).";
 
   const userSv = [
     `Skapa ett mockprov på nivå ${level}.`,
@@ -283,7 +283,7 @@ export default async function handler(req, res) {
       return json(res, 500, { ok: false, error: "Schema mismatch", exam });
     }
 
-    // Extra server-side guard: inga essay
+    // Extra server-side guard: inga essay + rätta short-regler
     for (const q of exam.questions) {
       if (q?.type !== "mc" && q?.type !== "short") {
         return json(res, 500, { ok: false, error: "Invalid question type returned", got: q?.type });
@@ -305,4 +305,4 @@ export default async function handler(req, res) {
   } catch (e) {
     return json(res, 500, { ok: false, error: "Server error", details: String(e) });
   }
-}
+};
