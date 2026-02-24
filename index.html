@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProviaAi – Provträning med AI</title>
-  <meta name="description" content="ProviaAi skapar mockprov från ditt material och rättar med feedback och modellsvar." />
+  <meta name="description" content="ProviaAi skapar mockprov från ditt material, rättar med feedback och modellsvar, och bygger en personlig förbättringsplan med historik och felbank." />
 
   <style>
     :root{
@@ -157,6 +157,13 @@
     }
     .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
     .list{margin:10px 0 0;padding:0 0 0 16px;color:#0A2219;font-weight:850;line-height:1.5}
+    .badgeRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      background:#fff;border:1px solid var(--border);
+      border-radius:999px;padding:6px 10px;
+      font-weight:1000;font-size:12px;color:var(--deep);
+    }
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
@@ -182,6 +189,7 @@
           <div class="dropdown" id="menu">
             <a href="#how" data-scroll="#how"><span>Hur det funkar</span><span class="pill">Steg</span></a>
             <a href="#features" data-scroll="#features"><span>Funktioner</span><span class="pill">AI</span></a>
+            <a href="#coach" data-scroll="#coach"><span>AI-coach</span><span class="pill">Personligt</span></a>
             <a href="#who" data-scroll="#who"><span>För vem</span><span class="pill">Skola</span></a>
             <a href="#faq" data-scroll="#faq"><span>FAQ</span><span class="pill">Svar</span></a>
           </div>
@@ -194,12 +202,22 @@
     <section class="hero">
       <div class="heroBg"></div>
       <div class="heroOverlay"></div>
+
       <div class="heroInner">
         <div>
           <h1 class="hTitle">ProviaAi</h1>
           <p class="hSub">
             Klistra in material → få ett realistiskt mockprov → lämna in dina svar → få rättning, feedback och modellsvar.
+            <br><br>
+            Nytt: Förbättringssidan bygger en personlig plan med historik, felbank och “Träna mina misstag”.
           </p>
+
+          <div class="badgeRow" aria-label="Snabbfakta">
+            <div class="badge">E/C/A-nivå</div>
+            <div class="badge">Exakt antal frågor</div>
+            <div class="badge">Felbank + coach</div>
+            <div class="badge">Synk mellan enheter</div>
+          </div>
 
           <div class="heroActions">
             <a class="btn btnPrimary" href="app.html">Starta ProviaAi</a>
@@ -214,7 +232,7 @@
           </div>
           <div class="miniCard">
             <div class="miniTitle">Rättning + modellsvar</div>
-            <div class="miniText">Poäng per fråga + vad som krävs för full poäng.</div>
+            <div class="miniText">Poäng per fråga + konkret feedback och vad som krävs för full poäng.</div>
           </div>
           <div class="miniCard">
             <div class="miniTitle">OCR från bild</div>
@@ -226,18 +244,19 @@
 
     <section class="card" id="how">
       <div class="sectionTitle">Hur det funkar</div>
-      <p class="sectionSub">Enkel process med tydliga steg.</p>
+      <p class="sectionSub">Tydliga steg, designat för provträning.</p>
       <ol class="list">
-        <li>Klistra in det du ska kunna till provet (rubriker + punktlistor).</li>
+        <li>Klistra in det du ska kunna till provet (rubriker + punktlistor + definitioner/formler).</li>
         <li>Välj nivå (E/C/A), frågetyp och antal frågor.</li>
         <li>Skapa mockprov och svara direkt i appen.</li>
         <li>Rätta och få feedback + modellsvar (fullpoäng-svar).</li>
+        <li>Gå till Förbättring: se historik, felbank och starta träning på misstag.</li>
       </ol>
     </section>
 
     <section class="card" id="features">
       <div class="sectionTitle">Funktioner</div>
-      <p class="sectionSub">Byggt för provträning, inte chatt.</p>
+      <p class="sectionSub">Byggt för struktur, inte chatt.</p>
       <ul class="list">
         <li>Mockprov från ditt material</li>
         <li>Flervalsfrågor med klickbara A/B/C/D-alternativ</li>
@@ -245,6 +264,18 @@
         <li>Modellsvar: vad som ger full poäng</li>
         <li>OCR från bild till material</li>
         <li>Förbättringssida med historik, felbank och “Redo för prov?”</li>
+        <li>Träningsläge: bygg prov utifrån dina valda misstag</li>
+      </ul>
+    </section>
+
+    <section class="card" id="coach">
+      <div class="sectionTitle">AI-coach (personlig förbättring)</div>
+      <p class="sectionSub">Systemet bygger en plan baserat på dina faktiska resultat, inte gissningar.</p>
+      <ul class="list">
+        <li>Sammanfattning av senaste prov + trend</li>
+        <li>Felbank med modellsvar (fullpoäng)</li>
+        <li>“Träna mina misstag” → skapar nytt underlag som fokuserar på svaga delar</li>
+        <li>Synk mellan enheter via konto (samma historik på mobil och dator)</li>
       </ul>
     </section>
 
@@ -252,9 +283,9 @@
       <div class="sectionTitle">För vem</div>
       <p class="sectionSub">Gymnasieelever och skolor som vill ha strukturerad provträning.</p>
       <ul class="list">
-        <li>Elever som vill ha tydliga mockprov</li>
-        <li>Klasser som vill träna inför prov</li>
-        <li>Skolor som vill ha ett enkelt studiestöd</li>
+        <li>Elever som vill ha realistiska mockprov och tydliga modellsvar</li>
+        <li>Klasser som vill träna inför prov med samma format</li>
+        <li>Skolor som vill ha ett enkelt studiestöd för repetition och bedömningsliknande träning</li>
       </ul>
     </section>
 
@@ -263,7 +294,8 @@
       <p class="sectionSub">Kortfattat.</p>
       <ul class="list">
         <li>Infosidan är öppen så alla kan läsa om tjänsten.</li>
-        <li>Appen kan ha åtkomstkod för att generera prov.</li>
+        <li>Appen kan ha åtkomstkod och/eller konto-inloggning.</li>
+        <li>Förbättringssidan baseras på sparade prov (historik + felbank).</li>
         <li>ProviaAi är studiestöd och ger ingen officiell betygssättning.</li>
       </ul>
     </section>
