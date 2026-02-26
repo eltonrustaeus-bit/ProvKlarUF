@@ -131,6 +131,7 @@
     .tinyBtn{
       padding:8px 10px;border-radius:12px;border:1px solid rgba(5,42,30,.12);
       background:#fff;cursor:pointer;font-weight:950;font-size:12px;color:var(--deep);
+      display:inline-flex;align-items:center;gap:10px;
     }
     .tinyBtn:hover{border-color:rgba(43,227,140,.35)}
     .tinyBtnPrimary{
@@ -143,8 +144,36 @@
       margin-bottom:6px;
     }
     .sectionHeaderLeft{min-width:0}
-    .sectionBody{margin-top:10px}
-    .collapsed .sectionBody{display:none}
+
+    /* ===== ÄNDRING: Collapsible (proffsigt + smooth) ===== */
+    .sectionBody{
+      margin-top:10px;
+      overflow:hidden;
+      max-height:3200px;
+      opacity:1;
+      transition:max-height .28s ease, opacity .22s ease;
+    }
+    .collapsed .sectionBody{
+      max-height:0;
+      opacity:0;
+      margin-top:0;
+    }
+
+    .toggleBtn{
+      border-radius:14px;
+      padding:8px 12px;
+    }
+    .chev{
+      width:22px;height:22px;border-radius:10px;
+      display:grid;place-items:center;
+      background:rgba(5,42,30,.06);
+      font-weight:1100;
+      line-height:1;
+      transition:transform .22s ease;
+      user-select:none;
+    }
+    .collapsed .chev{ transform:rotate(-90deg); }
+
     .quickNav{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .quickNav .tinyBtn{border-radius:999px}
 
@@ -188,13 +217,15 @@
     </section>
 
     <!-- Provfilter + lista -->
-    <section class="card" id="examListCard">
+    <section class="card collapsed" id="examListCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="examListTitle" style="font-size:16px">Prov (kategorier)</h2>
           <p class="sub" id="examListSub">Filtrera per kurs och klicka ett prov för att visa relevanta misstag.</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#examListCard" id="collapseExams">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#examListCard" id="toggleExams">
+          <span class="tLabel" id="toggleExamsLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -220,13 +251,15 @@
       </div>
     </section>
 
-    <section class="card" id="coachCard">
+    <section class="card collapsed" id="coachCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
           <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#coachCard" id="collapseCoach">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#coachCard" id="toggleCoach">
+          <span class="tLabel" id="toggleCoachLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -252,13 +285,15 @@
       </div>
     </section>
 
-    <section class="card" id="dnaCard">
+    <section class="card collapsed" id="dnaCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
           <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#dnaCard" id="collapseDna">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#dnaCard" id="toggleDna">
+          <span class="tLabel" id="toggleDnaLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -266,13 +301,15 @@
       </div>
     </section>
 
-    <section class="card" id="readyCard">
+    <section class="card collapsed" id="readyCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="readyTitle" style="font-size:16px">Redo för prov</h2>
           <p class="sub" id="readySub">En snabb mätare baserad på senaste resultat och trend.</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#readyCard" id="collapseReady">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#readyCard" id="toggleReady">
+          <span class="tLabel" id="toggleReadyLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -297,13 +334,15 @@
       </div>
     </section>
 
-    <section class="card" id="chartCard">
+    <section class="card collapsed" id="chartCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="chartTitle" style="font-size:16px">Utveckling över tid</h2>
           <p class="sub" id="chartSub">Procent per prov (senaste upp till 20).</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#chartCard" id="collapseChart">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#chartCard" id="toggleChart">
+          <span class="tLabel" id="toggleChartLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -311,13 +350,15 @@
       </div>
     </section>
 
-    <section class="card" id="mistakeCard">
+    <section class="card collapsed" id="mistakeCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
           <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
           <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
         </div>
-        <button class="tinyBtn" type="button" data-collapse="#mistakeCard" id="collapseMistakes">Klar</button>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#mistakeCard" id="toggleMistakes">
+          <span class="tLabel" id="toggleMistakesLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
       </div>
 
       <div class="sectionBody">
@@ -342,9 +383,12 @@
     // val/markering för träning
     const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[...], course:"..." }
 
+    // ===== ÄNDRING: UI state för collapsible =====
+    const LS_UI_OPEN = "proviaai_ui_open_improve"; // { "#cardId": true/false, ... }
+
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRaXhl7AIY8").trim();
+    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8").trim();
 
     const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
     const db = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 40 && SupabaseGlobal?.createClient)
@@ -437,7 +481,9 @@
         doneBtn:"Klar",
         pick:"Välj",
         showingAll:(n, c) => `Visar ${n} misstag${c ? " • " + c : ""}.`,
-        removedOne:"Markerad som klar och borttagen från felbanken."
+        removedOne:"Markerad som klar och borttagen från felbanken.",
+        open:"Öppna",
+        close:"Stäng"
       },
       en:{
         tag:"Improve • Coach • History",
@@ -484,11 +530,62 @@
         doneBtn:"Done",
         pick:"Pick",
         showingAll:(n, c) => `Showing ${n} mistakes${c ? " • " + c : ""}.`,
-        removedOne:"Marked as done and removed from the mistake library."
+        removedOne:"Marked as done and removed from the mistake library.",
+        open:"Open",
+        close:"Close"
       }
     };
 
     const $ = (id) => document.getElementById(id);
+
+    // ===== ÄNDRING: Collapsible helpers (persist + auto-open on nav) =====
+    function getUiOpenState(){ return lsGetObj(LS_UI_OPEN) || {}; }
+    function setUiOpenState(obj){ lsSet(LS_UI_OPEN, obj); }
+    function setCardOpen(sel, isOpen){
+      const card = document.querySelector(sel);
+      if(!card) return;
+      card.classList.toggle("collapsed", !isOpen);
+      const st = getUiOpenState();
+      st[sel] = !!isOpen;
+      setUiOpenState(st);
+      updateToggleLabels();
+    }
+    function isCardOpen(sel){
+      const card = document.querySelector(sel);
+      if(!card) return false;
+      return !card.classList.contains("collapsed");
+    }
+    function toggleCard(sel){
+      setCardOpen(sel, !isCardOpen(sel));
+    }
+    function openSection(sel){
+      setCardOpen(sel, true);
+      const card = document.querySelector(sel);
+      card?.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    function updateToggleLabels(){
+      const t = T[LANG];
+      document.querySelectorAll("[data-toggle]").forEach(btn => {
+        const sel = btn.getAttribute("data-toggle");
+        if(!sel) return;
+        const open = isCardOpen(sel);
+        const labelEl = btn.querySelector(".tLabel");
+        if(labelEl) labelEl.textContent = open ? t.close : t.open;
+      });
+    }
+
+    function restoreUiOpenFromStorage(){
+      const st = getUiOpenState();
+      const cards = ["#examListCard","#coachCard","#dnaCard","#readyCard","#chartCard","#mistakeCard"];
+      cards.forEach(sel => {
+        if(typeof st[sel] === "boolean"){
+          const card = document.querySelector(sel);
+          if(card) card.classList.toggle("collapsed", !st[sel]);
+        }
+      });
+      updateToggleLabels();
+    }
 
     function applyLang(){
       const t = T[LANG];
@@ -543,6 +640,9 @@
       $("navReady").textContent = (LANG==="sv") ? "Redo" : "Ready";
       $("navChart").textContent = (LANG==="sv") ? "Utveckling" : "Progress";
       $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
+
+      // ÄNDRING: toggle-texter
+      updateToggleLabels();
     }
 
     $("langBtn").addEventListener("click", () => {
@@ -704,7 +804,6 @@
     }
 
     function mistakeKey(m){
-      // stabil nyckel för att kunna ta bort exakt den posten
       const ts = Number(m.ts||0);
       return `${ts}:${String(m.course||"")}:${String(m.id||"")}:${String(m.question||"")}`;
     }
@@ -742,7 +841,6 @@
       const filtered = all.filter(x => mistakeKey(x) !== k);
       lsSet(LS_MISTAKES, filtered);
 
-      // om den var markerad för träning: ta bort från pick
       const pick = getPick();
       const ids = Array.isArray(pick.ids) ? pick.ids.map(String) : [];
       const sid = String(m.id);
@@ -767,14 +865,12 @@
         return;
       }
 
-      // VISAR ALLA (inte bara 10)
       st.textContent = t.showingAll(filtered.length, course);
       st.className = "status";
 
       const pick = getPick();
       const pickSet = new Set((Array.isArray(pick.ids) ? pick.ids : []).map(x=>String(x)));
 
-      // nyast först
       filtered.slice().sort((a,b)=>(Number(b.ts||0)-Number(a.ts||0))).forEach(m=>{
         const d = document.createElement("div");
         d.className = "mistake";
@@ -812,7 +908,6 @@
         const pickChk = d.querySelector(".pickChk");
         pickChk?.addEventListener("change", () => togglePickId(m.id));
 
-        // KLAR = tas bort ur felbank/historik direkt
         const doneBtn = d.querySelector(".doneBtn");
         doneBtn?.addEventListener("click", () => {
           removeMistakeFromLocal(m);
@@ -970,6 +1065,7 @@
       $("trainMistakesBtn").setAttribute("href", "app.html#train");
 
       updateSelPill();
+      updateToggleLabels();
     }
 
     // ===== SYNC (konto -> localStorage) =====
@@ -1068,37 +1164,6 @@
       renderAll();
     }
 
-    // ===== UI: Collapsa/expandera sektioner =====
-    function openSection(sel){
-      const card = document.querySelector(sel);
-      if(!card) return;
-      card.classList.remove("collapsed");
-      card.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-    function collapseSection(sel){
-      const card = document.querySelector(sel);
-      if(!card) return;
-      card.classList.add("collapsed");
-    }
-    function bindCollapseButtons(){
-      document.querySelectorAll("[data-collapse]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const sel = btn.getAttribute("data-collapse");
-          if(!sel) return;
-          collapseSection(sel);
-        });
-      });
-
-      // Snabbnav: öppna + scroll
-      document.querySelectorAll("#quickNav [data-open]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const sel = btn.getAttribute("data-open");
-          if(!sel) return;
-          openSection(sel);
-        });
-      });
-    }
-
     // ===== EVENTS =====
     $("courseFilter").addEventListener("change", () => renderAll());
     $("showMode").addEventListener("change", () => {
@@ -1112,6 +1177,7 @@
 
     $("syncBtn").addEventListener("click", async () => {
       await syncFromAccount();
+      openSection("#examListCard");
     });
 
     $("trainSelectedBtn").addEventListener("click", () => {
@@ -1162,8 +1228,28 @@
       }
     });
 
+    // ===== ÄNDRING: bind toggles + quicknav open =====
+    function bindToggles(){
+      document.querySelectorAll("[data-toggle]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sel = btn.getAttribute("data-toggle");
+          if(!sel) return;
+          toggleCard(sel);
+        });
+      });
+
+      document.querySelectorAll("#quickNav [data-open]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sel = btn.getAttribute("data-open");
+          if(!sel) return;
+          openSection(sel);
+        });
+      });
+    }
+
     applyLang();
-    bindCollapseButtons();
+    bindToggles();
+    restoreUiOpenFromStorage();
     renderAll();
 
     // Auto-sync best effort om inloggad
