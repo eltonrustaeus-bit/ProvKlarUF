@@ -132,6 +132,21 @@
       padding:8px 10px;border-radius:12px;border:1px solid rgba(5,42,30,.12);
       background:#fff;cursor:pointer;font-weight:950;font-size:12px;color:var(--deep);
     }
+    .tinyBtn:hover{border-color:rgba(43,227,140,.35)}
+    .tinyBtnPrimary{
+      background:rgba(22,184,118,.10);
+      border-color:rgba(22,184,118,.25);
+    }
+
+    .sectionHeader{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-bottom:6px;
+    }
+    .sectionHeaderLeft{min-width:0}
+    .sectionBody{margin-top:10px}
+    .collapsed .sectionBody{display:none}
+    .quickNav{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .quickNav .tinyBtn{border-radius:999px}
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
@@ -160,102 +175,155 @@
       <h1 class="title" id="pageTitle">Din förbättring</h1>
       <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
       <div class="status" id="topStatus"></div>
+
+      <!-- Snabbknappar (behåller design, gör sidan smidigare) -->
+      <div class="quickNav" id="quickNav">
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#dnaCard" id="navDna">Studie-DNA</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Redo</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#chartCard" id="navChart">Utveckling</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#mistakeCard" id="navMistakes">Felbank</button>
+      </div>
     </section>
 
-    <!-- NYTT: Provfilter + lista -->
+    <!-- Provfilter + lista -->
     <section class="card" id="examListCard">
-      <h2 class="title" id="examListTitle" style="font-size:16px">Prov (kategorier)</h2>
-      <p class="sub" id="examListSub">Filtrera per kurs och klicka ett prov för att visa relevanta misstag.</p>
-
-      <div class="row" style="margin-top:12px">
-        <label class="chip">
-          <span id="courseFilterLabel">Kurs</span>
-          <select id="courseFilter"></select>
-        </label>
-
-        <label class="chip">
-          <span id="showModeLabel">Visa</span>
-          <select id="showMode">
-            <option value="mistakes" selected>Felbank</option>
-            <option value="all">Alla prov</option>
-          </select>
-        </label>
-
-        <button class="btn" id="syncBtn" type="button">Synka från konto</button>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="examListTitle" style="font-size:16px">Prov (kategorier)</h2>
+          <p class="sub" id="examListSub">Filtrera per kurs och klicka ett prov för att visa relevanta misstag.</p>
+        </div>
+        <button class="tinyBtn" type="button" data-collapse="#examListCard" id="collapseExams">Klar</button>
       </div>
 
-      <div class="status" id="examListStatus"></div>
-      <div class="grid2" id="examList" style="margin-top:12px"></div>
+      <div class="sectionBody">
+        <div class="row" style="margin-top:12px">
+          <label class="chip">
+            <span id="courseFilterLabel">Kurs</span>
+            <select id="courseFilter"></select>
+          </label>
+
+          <label class="chip">
+            <span id="showModeLabel">Visa</span>
+            <select id="showMode">
+              <option value="mistakes" selected>Felbank</option>
+              <option value="all">Alla prov</option>
+            </select>
+          </label>
+
+          <button class="btn" id="syncBtn" type="button">Synka från konto</button>
+        </div>
+
+        <div class="status" id="examListStatus"></div>
+        <div class="grid2" id="examList" style="margin-top:12px"></div>
+      </div>
     </section>
 
     <section class="card" id="coachCard">
-      <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
-      <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
-
-      <div class="box" style="margin-top:12px">
-        <div class="boxTitle" id="coachHeader">Rekommendation</div>
-        <p class="boxText" id="coachText">—</p>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
+          <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
+        </div>
+        <button class="tinyBtn" type="button" data-collapse="#coachCard" id="collapseCoach">Klar</button>
       </div>
 
-      <div class="grid3" style="margin-top:12px">
-        <div class="box">
-          <div class="boxTitle" id="lastTitle">Senaste resultat</div>
-          <p class="boxText" id="lastText">—</p>
+      <div class="sectionBody">
+        <div class="box" style="margin-top:12px">
+          <div class="boxTitle" id="coachHeader">Rekommendation</div>
+          <p class="boxText" id="coachText">—</p>
         </div>
-        <div class="box">
-          <div class="boxTitle" id="trendTitle">Trend</div>
-          <p class="boxText" id="trendText">—</p>
-        </div>
-        <div class="box">
-          <div class="boxTitle" id="goalTitle">Redo för prov?</div>
-          <p class="boxText" id="goalText">—</p>
+
+        <div class="grid3" style="margin-top:12px">
+          <div class="box">
+            <div class="boxTitle" id="lastTitle">Senaste resultat</div>
+            <p class="boxText" id="lastText">—</p>
+          </div>
+          <div class="box">
+            <div class="boxTitle" id="trendTitle">Trend</div>
+            <p class="boxText" id="trendText">—</p>
+          </div>
+          <div class="box">
+            <div class="boxTitle" id="goalTitle">Redo för prov?</div>
+            <p class="boxText" id="goalText">—</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="card" id="dnaCard">
-      <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
-      <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
-      <div class="dnaRow" id="dnaRow"></div>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
+          <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
+        </div>
+        <button class="tinyBtn" type="button" data-collapse="#dnaCard" id="collapseDna">Klar</button>
+      </div>
+
+      <div class="sectionBody">
+        <div class="dnaRow" id="dnaRow"></div>
+      </div>
     </section>
 
     <section class="card" id="readyCard">
-      <h2 class="title" id="readyTitle" style="font-size:16px">Redo för prov</h2>
-      <p class="sub" id="readySub">En snabb mätare baserad på senaste resultat och trend.</p>
-
-      <div class="meterWrap">
-        <div class="meterTop">
-          <div class="meterLabel" id="meterLabel">Status</div>
-          <div class="pill meterPill" id="meterPill">—</div>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="readyTitle" style="font-size:16px">Redo för prov</h2>
+          <p class="sub" id="readySub">En snabb mätare baserad på senaste resultat och trend.</p>
         </div>
-        <div class="meter"><div class="meterFill" id="meterFill"></div></div>
+        <button class="tinyBtn" type="button" data-collapse="#readyCard" id="collapseReady">Klar</button>
       </div>
 
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-        <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
-        <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
-      </div>
+      <div class="sectionBody">
+        <div class="meterWrap">
+          <div class="meterTop">
+            <div class="meterLabel" id="meterLabel">Status</div>
+            <div class="pill meterPill" id="meterPill">—</div>
+          </div>
+          <div class="meter"><div class="meterFill" id="meterFill"></div></div>
+        </div>
 
-      <!-- NYTT: träna markerade -->
-      <div class="row" style="margin-top:12px">
-        <button class="btn btnPrimary" id="trainSelectedBtn" type="button">Träna markerade misstag</button>
-        <button class="btn" id="clearSelectionBtn" type="button">Rensa markering</button>
-        <span class="pill" id="selCountPill">0 valda</span>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
+          <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn btnPrimary" id="trainSelectedBtn" type="button">Träna markerade misstag</button>
+          <button class="btn" id="clearSelectionBtn" type="button">Rensa markering</button>
+          <span class="pill" id="selCountPill">0 valda</span>
+        </div>
       </div>
     </section>
 
     <section class="card" id="chartCard">
-      <h2 class="title" id="chartTitle" style="font-size:16px">Utveckling över tid</h2>
-      <p class="sub" id="chartSub">Procent per prov (senaste upp till 20).</p>
-      <canvas id="trendChart" width="900" height="260"></canvas>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="chartTitle" style="font-size:16px">Utveckling över tid</h2>
+          <p class="sub" id="chartSub">Procent per prov (senaste upp till 20).</p>
+        </div>
+        <button class="tinyBtn" type="button" data-collapse="#chartCard" id="collapseChart">Klar</button>
+      </div>
+
+      <div class="sectionBody">
+        <canvas id="trendChart" width="900" height="260"></canvas>
+      </div>
     </section>
 
     <section class="card" id="mistakeCard">
-      <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
-      <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
+          <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
+        </div>
+        <button class="tinyBtn" type="button" data-collapse="#mistakeCard" id="collapseMistakes">Klar</button>
+      </div>
 
-      <div class="status" id="mistakeStatus"></div>
-      <div class="grid2" id="mistakeList" style="margin-top:12px"></div>
+      <div class="sectionBody">
+        <div class="status" id="mistakeStatus"></div>
+        <div class="grid2" id="mistakeList" style="margin-top:12px"></div>
+      </div>
     </section>
   </main>
 
@@ -271,13 +339,12 @@
     const LS_MATERIAL = "proviaai_last_material";
     const LS_CLEAR_TS = "proviaai_cleared_ts";
 
-    // NYTT: val/klart-status på förbättringssidan
-    const LS_TRAIN_PICK = "proviaai_train_pick";     // { ids:[...], course:"..." }
-    const LS_DONE_MISTAKES = "proviaai_done_mistakes"; // { [mistakeKey]: true }
+    // val/markering för träning
+    const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[...], course:"..." }
 
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8").trim();
+    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRaXhl7AIY8").trim();
 
     const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
     const db = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 40 && SupabaseGlobal?.createClient)
@@ -364,12 +431,13 @@
         show:"Visa",
         sync:"Synka från konto",
         allCourses:"Alla kurser",
-        showing:"Visar",
         selected:"valda",
         trainSelected:"Träna markerade misstag",
         clearSel:"Rensa markering",
-        done:"Klar",
-        pick:"Välj"
+        doneBtn:"Klar",
+        pick:"Välj",
+        showingAll:(n, c) => `Visar ${n} misstag${c ? " • " + c : ""}.`,
+        removedOne:"Markerad som klar och borttagen från felbanken."
       },
       en:{
         tag:"Improve • Coach • History",
@@ -410,12 +478,13 @@
         show:"Show",
         sync:"Sync from account",
         allCourses:"All courses",
-        showing:"Showing",
         selected:"selected",
         trainSelected:"Train selected mistakes",
         clearSel:"Clear selection",
-        done:"Done",
-        pick:"Pick"
+        doneBtn:"Done",
+        pick:"Pick",
+        showingAll:(n, c) => `Showing ${n} mistakes${c ? " • " + c : ""}.`,
+        removedOne:"Marked as done and removed from the mistake library."
       }
     };
 
@@ -466,6 +535,14 @@
 
       $("trainSelectedBtn").textContent = t.trainSelected;
       $("clearSelectionBtn").textContent = t.clearSel;
+
+      // snabbnav etiketter (enkelt)
+      $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
+      $("navCoach").textContent = (LANG==="sv") ? "Coach" : "Coach";
+      $("navDna").textContent = (LANG==="sv") ? "Studie-DNA" : "Study DNA";
+      $("navReady").textContent = (LANG==="sv") ? "Redo" : "Ready";
+      $("navChart").textContent = (LANG==="sv") ? "Utveckling" : "Progress";
+      $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
     }
 
     $("langBtn").addEventListener("click", () => {
@@ -534,14 +611,14 @@
       const strong = dims[dims.length-1];
 
       const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
-      const mCount = mistakes.slice(-30).length;
+      const mCount = mistakes.length;
 
       if(LANG === "sv"){
         return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
-               `Fokus nästa pass: träna ${weak.label.toLowerCase()} med 1–2 korta omgångar, och gå igenom din felbank (${mCount} senaste misstag).`;
+               `Fokus nästa pass: träna ${weak.label.toLowerCase()} med 1–2 korta omgångar och gå igenom din felbank (${mCount} misstag).`;
       }
       return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
-             `Next session focus: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} recent mistakes).`;
+             `Next session focus: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} mistakes).`;
     }
 
     function drawChart(canvas, history){
@@ -627,21 +704,9 @@
     }
 
     function mistakeKey(m){
-      // stabil nyckel för “klar”
+      // stabil nyckel för att kunna ta bort exakt den posten
       const ts = Number(m.ts||0);
-      return `${ts}:${String(m.course||"")}:${String(m.id||"")}`;
-    }
-
-    function getDoneMap(){
-      return lsGetObj(LS_DONE_MISTAKES) || {};
-    }
-
-    function setDone(m, isDone){
-      const map = getDoneMap();
-      const k = mistakeKey(m);
-      if(isDone) map[k] = true;
-      else delete map[k];
-      lsSet(LS_DONE_MISTAKES, map);
+      return `${ts}:${String(m.course||"")}:${String(m.id||"")}:${String(m.question||"")}`;
     }
 
     function getPick(){
@@ -659,7 +724,6 @@
       if(set.has(sid)) set.delete(sid);
       else set.add(sid);
       pick.ids = Array.from(set);
-      // spara aktiv kursfilter för att appen ska kunna återanvända (valfritt)
       pick.course = String($("courseFilter")?.value || "");
       setPick(pick);
     }
@@ -670,6 +734,22 @@
       const pick = getPick();
       const n = Array.isArray(pick.ids) ? pick.ids.length : 0;
       $("selCountPill").textContent = `${n} ${T[LANG].selected}`;
+    }
+
+    function removeMistakeFromLocal(m){
+      const all = lsGetArray(LS_MISTAKES);
+      const k = mistakeKey(m);
+      const filtered = all.filter(x => mistakeKey(x) !== k);
+      lsSet(LS_MISTAKES, filtered);
+
+      // om den var markerad för träning: ta bort från pick
+      const pick = getPick();
+      const ids = Array.isArray(pick.ids) ? pick.ids.map(String) : [];
+      const sid = String(m.id);
+      if(ids.includes(sid)){
+        pick.ids = ids.filter(x => x !== sid);
+        setPick(pick);
+      }
     }
 
     function renderMistakes(mistakes, courseFilter){
@@ -687,22 +767,19 @@
         return;
       }
 
-      st.textContent = (LANG==="sv")
-        ? `Visar ${Math.min(10, filtered.length)} senaste${course ? " • " + course : ""}.`
-        : `Showing latest ${Math.min(10, filtered.length)}${course ? " • " + course : ""}.`;
+      // VISAR ALLA (inte bara 10)
+      st.textContent = t.showingAll(filtered.length, course);
       st.className = "status";
 
-      const doneMap = getDoneMap();
       const pick = getPick();
       const pickSet = new Set((Array.isArray(pick.ids) ? pick.ids : []).map(x=>String(x)));
 
-      filtered.slice(-10).reverse().forEach(m=>{
+      // nyast först
+      filtered.slice().sort((a,b)=>(Number(b.ts||0)-Number(a.ts||0))).forEach(m=>{
         const d = document.createElement("div");
         d.className = "mistake";
         const when = new Date(m.ts||Date.now());
         const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
-        const k = mistakeKey(m);
-        const isDone = !!doneMap[k];
         const isPicked = pickSet.has(String(m.id));
 
         d.innerHTML = `
@@ -717,10 +794,7 @@
               <span>${t.pick}</span>
             </label>
 
-            <label class="chip" title="${t.done}">
-              <input class="chk doneChk" type="checkbox" data-key="${escapeHtml(k)}" ${isDone ? "checked" : ""} />
-              <span>${t.done}</span>
-            </label>
+            <button class="tinyBtn tinyBtnPrimary doneBtn" type="button">${t.doneBtn}</button>
           </div>
 
           <div class="mQ">${escapeHtml(m.question || "")}</div>
@@ -735,15 +809,19 @@
           <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>\n${escapeHtml(m.model_answer || "—")}</div>
         `;
 
-        // bind events
         const pickChk = d.querySelector(".pickChk");
-        pickChk?.addEventListener("change", () => {
-          togglePickId(m.id);
-        });
+        pickChk?.addEventListener("change", () => togglePickId(m.id));
 
-        const doneChk = d.querySelector(".doneChk");
-        doneChk?.addEventListener("change", () => {
-          setDone(m, !!doneChk.checked);
+        // KLAR = tas bort ur felbank/historik direkt
+        const doneBtn = d.querySelector(".doneBtn");
+        doneBtn?.addEventListener("click", () => {
+          removeMistakeFromLocal(m);
+          const top = $("topStatus");
+          if(top){
+            top.textContent = t.removedOne;
+            top.className = "status ok";
+          }
+          renderAll();
         });
 
         list.appendChild(d);
@@ -772,7 +850,6 @@
         sel.appendChild(opt);
       });
 
-      // behåll tidigare val om möjligt
       const pick = getPick();
       if(pick?.course && arr.includes(pick.course)){
         sel.value = pick.course;
@@ -782,7 +859,6 @@
     }
 
     function renderExamList(history, courseFilter){
-      const t = T[LANG];
       const wrap = $("examList");
       const st = $("examListStatus");
       wrap.innerHTML = "";
@@ -791,9 +867,7 @@
       const filtered = course ? history.filter(h => String(h.course||"").trim() === course) : history;
 
       if(!filtered.length){
-        st.textContent = (LANG==="sv")
-          ? "Inga prov matchar filtret."
-          : "No exams match the filter.";
+        st.textContent = (LANG==="sv") ? "Inga prov matchar filtret." : "No exams match the filter.";
         st.className = "status warn";
         return;
       }
@@ -816,10 +890,9 @@
           </div>
         `;
         d.querySelector(".viewMistakesBtn")?.addEventListener("click", () => {
-          // sätt filter till kurs och scrolla till felbank
           $("courseFilter").value = String(h.course||"").trim();
           renderAll();
-          document.querySelector("#mistakeCard")?.scrollIntoView({behavior:"smooth", block:"start"});
+          openSection("#mistakeCard");
         });
         wrap.appendChild(d);
       });
@@ -833,7 +906,6 @@
       const mistakes = lsGetArray(LS_MISTAKES);
       const last = lsGetObj(LS_LAST);
 
-      // bygg kursfilter dropdown
       buildCourseOptions(history, mistakes);
 
       const course = String($("courseFilter")?.value || "").trim();
@@ -892,10 +964,7 @@
       renderDNA(dna);
       drawChart($("trendChart"), history);
 
-      // provlistan
       renderExamList(history, course);
-
-      // felbank filtrerad
       renderMistakes(mistakes, course);
 
       $("trainMistakesBtn").setAttribute("href", "app.html#train");
@@ -950,7 +1019,7 @@
     async function syncFromAccount(){
       const st = $("examListStatus");
       if(!db){
-        if(st){ st.textContent = "Supabase ej konfigurerad här."; st.className="status warn"; }
+        if(st){ st.textContent = (LANG==="sv" ? "Supabase ej konfigurerad här." : "Supabase not configured here."); st.className="status warn"; }
         return;
       }
 
@@ -999,14 +1068,45 @@
       renderAll();
     }
 
+    // ===== UI: Collapsa/expandera sektioner =====
+    function openSection(sel){
+      const card = document.querySelector(sel);
+      if(!card) return;
+      card.classList.remove("collapsed");
+      card.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+    function collapseSection(sel){
+      const card = document.querySelector(sel);
+      if(!card) return;
+      card.classList.add("collapsed");
+    }
+    function bindCollapseButtons(){
+      document.querySelectorAll("[data-collapse]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sel = btn.getAttribute("data-collapse");
+          if(!sel) return;
+          collapseSection(sel);
+        });
+      });
+
+      // Snabbnav: öppna + scroll
+      document.querySelectorAll("#quickNav [data-open]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sel = btn.getAttribute("data-open");
+          if(!sel) return;
+          openSection(sel);
+        });
+      });
+    }
+
     // ===== EVENTS =====
     $("courseFilter").addEventListener("change", () => renderAll());
     $("showMode").addEventListener("change", () => {
       const mode = String($("showMode").value || "mistakes");
       if(mode === "all"){
-        document.querySelector("#examListCard")?.scrollIntoView({behavior:"smooth", block:"start"});
+        openSection("#examListCard");
       } else {
-        document.querySelector("#mistakeCard")?.scrollIntoView({behavior:"smooth", block:"start"});
+        openSection("#mistakeCard");
       }
     });
 
@@ -1015,11 +1115,9 @@
     });
 
     $("trainSelectedBtn").addEventListener("click", () => {
-      // skickar valda IDs till appen (#train läser LS_TRAIN_PICK)
       const pick = getPick();
       const ids = Array.isArray(pick.ids) ? pick.ids : [];
       if(ids.length === 0){
-        // fallback: om inget valt, träna alla misstag
         lsSet(LS_TRAIN_PICK, { ids:[], course:String($("courseFilter")?.value || "") });
       }
       window.location.href = "app.html#train";
@@ -1033,19 +1131,15 @@
     $("resetBtn").addEventListener("click", async () => {
       const t = T[LANG];
 
-      // 0) sätt “rensad”-timestamp (app.html respekterar detta vid supabase-sync)
       localStorage.setItem(LS_CLEAR_TS, String(Date.now()));
 
-      // 1) lokalt
       localStorage.removeItem(LS_HISTORY);
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
       localStorage.removeItem(LS_TRAIN_PICK);
-      localStorage.removeItem(LS_DONE_MISTAKES);
 
       renderAll();
 
-      // 2) konto (best effort)
       const topStatus = $("topStatus");
       if(db){
         try{
@@ -1069,9 +1163,10 @@
     });
 
     applyLang();
+    bindCollapseButtons();
     renderAll();
 
-    // Auto-sync best effort om inloggad (utan att blockera UI)
+    // Auto-sync best effort om inloggad
     (async () => {
       if(!db) return;
       const uid = await getUserId();
