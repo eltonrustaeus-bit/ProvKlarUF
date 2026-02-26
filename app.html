@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="sv">
 <head>
@@ -211,6 +210,31 @@
       flex:0 0 28px;
     }
     .mcText{font-weight:850;color:#071812}
+
+    /* ============================
+       ÄNDRING: CLEAN TOGGLE/COLLAPSE
+       ============================ */
+    .card.collapsible{padding-bottom:14px}
+    .cardHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .toggleBtn{
+      padding:10px 12px;border-radius:12px;font-size:13px;font-weight:1100;
+      border:1px solid rgba(5,42,30,.12);
+      background:rgba(255,255,255,.92);
+      display:inline-flex;align-items:center;gap:8px;
+    }
+    .chev{width:10px;height:10px;border-right:2px solid rgba(5,42,30,.65);border-bottom:2px solid rgba(5,42,30,.65);transform:rotate(-45deg);transition:transform .25s ease}
+    .card.open .chev{transform:rotate(45deg)}
+    .cardBody{
+      overflow:hidden;
+      max-height:0;
+      opacity:0;
+      transition:max-height .35s ease, opacity .22s ease;
+    }
+    .card.open .cardBody{
+      max-height:8000px;
+      opacity:1;
+    }
+    .card.open{padding-bottom:clamp(16px,3vw,22px)}
   </style>
 </head>
 
@@ -301,101 +325,130 @@
 
   <main class="wrap" id="appRoot">
 
-    <section class="card" id="material">
-      <div class="sectionTitle"><span id="tStep1">Steg 1 – Material</span></div>
-      <p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
+    <!-- ÄNDRING: collapsible + cardBody wrapper -->
+    <section class="card collapsible" id="material" data-collapsible="true">
+      <div class="cardHeaderRow">
+        <div class="sectionTitle" style="margin:0"><span id="tStep1">Steg 1 – Material</span></div>
+        <button class="toggleBtn" type="button" data-toggle-card="#material">
+          <span id="tg_material">Öppna</span><span class="chev" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="cardBody">
+        <p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
 
-      <label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
-      <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
+        <label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
+        <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
 
-      <div class="uploadBox" style="margin-top:12px">
-        <div class="uploadTop">
-          <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
-          <div class="fileRow">
-            <input id="imageInput" type="file" accept="image/*" capture="environment" />
-            <button class="btn" id="ocrBtn" type="button">OCR till material</button>
+        <div class="uploadBox" style="margin-top:12px">
+          <div class="uploadTop">
+            <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
+            <div class="fileRow">
+              <input id="imageInput" type="file" accept="image/*" capture="environment" />
+              <button class="btn" id="ocrBtn" type="button">OCR till material</button>
+            </div>
+          </div>
+          <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
+          <div class="status" id="ocrStatus"></div>
+        </div>
+
+        <div class="status warn" id="formatHint" style="margin-top:12px">
+          Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
+        </div>
+      </div>
+    </section>
+
+    <section class="card collapsible" id="settings" data-collapsible="true">
+      <div class="cardHeaderRow">
+        <div class="sectionTitle" style="margin:0">
+          <span id="tStep2">Steg 2 – Inställningar</span>
+          <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
+        </div>
+        <button class="toggleBtn" type="button" data-toggle-card="#settings">
+          <span id="tg_settings">Öppna</span><span class="chev" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="cardBody">
+        <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
+
+        <div class="grid2">
+          <div>
+            <label for="level" id="tLevel">Nivå (E/C/A)</label>
+            <select id="level">
+              <option value="E">E</option>
+              <option value="C" selected>C</option>
+              <option value="A">A</option>
+            </select>
+          </div>
+          <div>
+            <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
+            <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
           </div>
         </div>
-        <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
-        <div class="status" id="ocrStatus"></div>
-      </div>
 
-      <div class="status warn" id="formatHint" style="margin-top:12px">
-        Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
+        <div class="grid2" style="margin-top:12px">
+          <div>
+            <label for="qType" id="tQType">Frågetyp</label>
+            <select id="qType">
+              <option value="mix" selected id="qtMix">Blandat</option>
+              <option value="mc" id="qtMc">Flervalsfrågor</option>
+              <option value="short" id="qtShort">Kortsvar</option>
+            </select>
+          </div>
+          <div>
+            <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
+            <select id="numQuestions">
+              <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+              <option>9</option><option>10</option><option>11</option><option selected>12</option>
+              <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
+          <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
+          <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
+          <button class="btn" id="clearBtn" type="button">Rensa</button>
+
+          <span style="display:flex;gap:10px;align-items:center">
+            <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
+            <!-- ÄNDRING: miniState visar quota tydligt -->
+            <span class="sectionSub" id="miniState">Prov idag kvar: —</span>
+          </span>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <details id="debugWrap" style="display:none">
+          <summary id="debugTitle">Debug</summary>
+          <pre id="debug"></pre>
+        </details>
       </div>
     </section>
 
-    <section class="card" id="settings">
-      <div class="sectionTitle">
-        <span id="tStep2">Steg 2 – Inställningar</span>
-        <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
+    <section class="card collapsible" id="exam" data-collapsible="true">
+      <div class="cardHeaderRow">
+        <div class="sectionTitle" style="margin:0"><span id="tStep3">Steg 3 – Mockprov</span></div>
+        <button class="toggleBtn" type="button" data-toggle-card="#exam">
+          <span id="tg_exam">Öppna</span><span class="chev" aria-hidden="true"></span>
+        </button>
       </div>
-      <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
-
-      <div class="grid2">
-        <div>
-          <label for="level" id="tLevel">Nivå (E/C/A)</label>
-          <select id="level">
-            <option value="E">E</option>
-            <option value="C" selected>C</option>
-            <option value="A">A</option>
-          </select>
-        </div>
-        <div>
-          <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
-          <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
-        </div>
+      <div class="cardBody">
+        <div class="status" id="examMeta">Ingen provdata ännu.</div>
+        <div id="examBody"></div>
       </div>
-
-      <div class="grid2" style="margin-top:12px">
-        <div>
-          <label for="qType" id="tQType">Frågetyp</label>
-          <select id="qType">
-            <option value="mix" selected id="qtMix">Blandat</option>
-            <option value="mc" id="qtMc">Flervalsfrågor</option>
-            <option value="short" id="qtShort">Kortsvar</option>
-          </select>
-        </div>
-        <div>
-          <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
-          <select id="numQuestions">
-            <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-            <option>9</option><option>10</option><option>11</option><option selected>12</option>
-            <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-        <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-        <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-        <button class="btn" id="clearBtn" type="button">Rensa</button>
-
-        <span style="display:flex;gap:10px;align-items:center">
-          <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
-          <!-- ÄNDRING: miniState visar quota tydligt -->
-          <span class="sectionSub" id="miniState">Prov idag kvar: —</span>
-        </span>
-      </div>
-
-      <div class="status" id="status"></div>
-
-      <details id="debugWrap" style="display:none">
-        <summary id="debugTitle">Debug</summary>
-        <pre id="debug"></pre>
-      </details>
     </section>
 
-    <section class="card" id="exam">
-      <div class="sectionTitle"><span id="tStep3">Steg 3 – Mockprov</span></div>
-      <div class="status" id="examMeta">Ingen provdata ännu.</div>
-      <div id="examBody"></div>
-    </section>
-
-    <section class="card" id="result">
-      <div class="sectionTitle"><span id="tStep4">Steg 4 – Rättning</span></div>
-      <div class="status" id="resultMeta">Ingen rättning ännu.</div>
-      <div id="resultBody"></div>
+    <section class="card collapsible" id="result" data-collapsible="true">
+      <div class="cardHeaderRow">
+        <div class="sectionTitle" style="margin:0"><span id="tStep4">Steg 4 – Rättning</span></div>
+        <button class="toggleBtn" type="button" data-toggle-card="#result">
+          <span id="tg_result">Öppna</span><span class="chev" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="cardBody">
+        <div class="status" id="resultMeta">Ingen rättning ännu.</div>
+        <div id="resultBody"></div>
+      </div>
     </section>
 
   </main>
@@ -428,6 +481,9 @@
 
     // ===== QUOTA UI (server-first, local fallback) =====
     const LS_QUOTA_FALLBACK_PREFIX = "proviaai_quota_fallback_"; // per user per day
+
+    // ===== ÄNDRING: UI TOGGLE STATE =====
+    const LS_UI_OPEN = "proviaai_ui_open"; // { material:true/false, settings:true/false, exam:true/false, result:true/false }
 
     const $ = (id) => document.getElementById(id);
 
@@ -496,7 +552,9 @@
         trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
         quotaText:(left, limit) => `Prov idag kvar: ${left}/${limit === Infinity ? "∞" : limit}`,
         quotaUnknown:"Prov idag kvar: —",
-        quotaHit:"Dagens gräns är nådd. Försök igen imorgon."
+        quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
+        openSection:"Öppna",
+        closeSection:"Stäng"
       },
       en:{
         brandTag:"Mock exams • Grading • Model answers",
@@ -548,7 +606,9 @@
         trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
         quotaText:(left, limit) => `Exams left today: ${left}/${limit === Infinity ? "∞" : limit}`,
         quotaUnknown:"Exams left today: —",
-        quotaHit:"Daily limit reached. Try again tomorrow."
+        quotaHit:"Daily limit reached. Try again tomorrow.",
+        openSection:"Open",
+        closeSection:"Close"
       }
     };
 
@@ -667,9 +727,8 @@
       return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
     }
 
-    // ÄNDRING: riggat från start => alltid 10/dag direkt i UI
-    // count hämtas från local fallback (0 första gången).
-    let quotaState = { limit: 10, count: null };
+    // local fallback defaults until server tells us limit
+    let quotaState = { limit: null, count: null };
 
     function normalizeLimit(x){
       if(x === null || x === undefined) return null;
@@ -902,16 +961,7 @@
     function setBusy(isBusy, label){
       const sw = spinWrap(), ms = miniStateEl();
       if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
-
-      // ÄNDRING: skriv inte över quota-texten när vi går ur busy
-      if(ms){
-        if(isBusy){
-          ms.textContent = label || "…";
-        } else {
-          // uppdatera quota direkt igen
-          refreshQuotaUi();
-        }
-      }
+      if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
 
       const genBtn = $("generateExamBtn");
       const gradeBtn = $("gradeBtn");
@@ -1038,7 +1088,7 @@
           runTrainModeIfRequested();
         }
       } finally {
-        setBusy(false);
+        setBusy(false, T[LANG].ready);
       }
     }
 
@@ -1063,7 +1113,7 @@
           showLock();
         }
       } finally {
-        setBusy(false);
+        setBusy(false, T[LANG].ready);
       }
 
       runTrainModeIfRequested();
@@ -1122,6 +1172,7 @@
       const mistakes = lsGetArray(LS_MISTAKES);
       if(!mistakes.length){
         setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
+        openCardById("result", true);
         document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
         return;
       }
@@ -1137,7 +1188,73 @@
       if(numQuestionsEl()) numQuestionsEl().value = "12";
 
       setStatus(T[LANG].trainLoaded, "ok");
+      openCardById("material", true);
       document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+    }
+
+    // ============================
+    // ÄNDRING: TOGGLE / COLLAPSE LOGIC
+    // ============================
+    function readUiState(){
+      const s = lsGetObj(LS_UI_OPEN) || {};
+      return {
+        material: !!s.material,
+        settings: !!s.settings,
+        exam: !!s.exam,
+        result: !!s.result
+      };
+    }
+    function writeUiState(next){
+      lsSet(LS_UI_OPEN, next);
+    }
+    function setToggleLabel(cardId, isOpen){
+      const t = T[LANG];
+      const map = { material:"tg_material", settings:"tg_settings", exam:"tg_exam", result:"tg_result" };
+      const el = $(map[cardId]);
+      if(el) el.textContent = isOpen ? t.closeSection : t.openSection;
+    }
+    function setCardOpen(cardEl, open){
+      if(!cardEl) return;
+      const id = cardEl.id;
+      if(open) cardEl.classList.add("open");
+      else cardEl.classList.remove("open");
+      setToggleLabel(id, open);
+
+      const state = readUiState();
+      if(id in state){
+        state[id] = !!open;
+        writeUiState(state);
+      }
+    }
+    function openCardById(id, open=true){
+      const el = document.getElementById(id);
+      if(!el) return;
+      setCardOpen(el, open);
+    }
+    function initCollapsibles(){
+      const state = readUiState();
+
+      // default: allt stängt (kravet: klicka för att se)
+      // om tidigare state finns i LS_UI_OPEN, respektera det.
+      const hasAnySaved = !!lsGetObj(LS_UI_OPEN);
+      const defaults = hasAnySaved ? state : { material:false, settings:false, exam:false, result:false };
+
+      ["material","settings","exam","result"].forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.classList.add("collapsible");
+        setCardOpen(el, !!defaults[id]);
+      });
+
+      document.querySelectorAll('button[data-toggle-card]').forEach(btn => {
+        btn.addEventListener("click", () => {
+          const sel = btn.getAttribute("data-toggle-card");
+          const card = sel ? document.querySelector(sel) : null;
+          if(!card) return;
+          const open = !card.classList.contains("open");
+          setCardOpen(card, open);
+        });
+      });
     }
 
     // ===== APP RENDERING =====
@@ -1186,6 +1303,13 @@
       set("tStep3", t.step3);
       set("tStep4", t.step4);
       set("footerText", t.footer);
+
+      // ÄNDRING: uppdatera toggle-texter enligt språk + state
+      ["material","settings","exam","result"].forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        setToggleLabel(id, el.classList.contains("open"));
+      });
 
       const eb = examBodyEl(), rb = resultBodyEl();
       if(eb && !eb.children.length) set("examMeta", t.noExam);
@@ -1329,13 +1453,10 @@
     // ===== INIT EVENTS =====
     window.addEventListener("DOMContentLoaded", async () => {
       try{
+        initCollapsibles(); // ÄNDRING: init collapse state
         applyLang();
         await refreshQuotaUi();
         setStatus("");
-
-        // ÄNDRING: riggat från start => öppna menyn direkt så man kan klicka funktionerna
-        const menuAtStart = $("menu");
-        if(menuAtStart) menuAtStart.style.display = "block";
 
         onClick("menuBtn", (e) => {
           e.preventDefault(); e.stopPropagation();
@@ -1362,7 +1483,11 @@
             const sel = a.getAttribute("data-scroll");
             menuEl.style.display = "none";
             const el = document.querySelector(sel);
-            if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+            if(el){
+              // ÄNDRING: öppna kortet innan scroll
+              if(el.classList.contains("collapsible")) setCardOpen(el, true);
+              el.scrollIntoView({behavior:"smooth", block:"start"});
+            }
           });
         }
 
@@ -1406,7 +1531,7 @@
             const dataUrl = await fileToDataUrl(file);
             const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
             if(!res.ok || !res.data || !res.data.ok){
-              setBusy(false);
+              setBusy(false, t.ready);
               setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
               showDebug(res.raw);
               return;
@@ -1417,10 +1542,10 @@
               const base = (pastedTextEl()?.value || "").trim();
               if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
             }
-            setBusy(false);
+            setBusy(false, t.ready);
             setOcrStatus(t.ocrDone, "ok");
           }catch(e){
-            setBusy(false);
+            setBusy(false, T[LANG].ready);
             setOcrStatus("OCR error.", "bad");
             reportErr(e);
           }
@@ -1434,6 +1559,7 @@
           const pastedText = (pastedTextEl()?.value || "").trim();
           if(!pastedText){
             setStatus(t.needMat, "bad");
+            openCardById("material", true);
             document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
             return;
           }
@@ -1461,13 +1587,13 @@
           // ÄNDRING: om servern säger quota slut (429) => uppdatera UI med serverns limit/count
           if(res.status === 429 && res.data){
             await setQuotaFromServerMaybe(res.data);
-            setBusy(false);
+            setBusy(false, t.ready);
             setStatus(res.data?.error || t.quotaHit, "bad");
             return;
           }
 
           if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false);
+            setBusy(false, t.ready);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
             return;
@@ -1480,8 +1606,11 @@
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          setBusy(false);
+          setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
+
+          // ÄNDRING: öppna exam-kortet automatiskt
+          openCardById("exam", true);
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
 
@@ -1514,7 +1643,7 @@
 
           const res = await postJson("/api/grade", payload);
           if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false);
+            setBusy(false, t.ready);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
             return;
@@ -1606,8 +1735,11 @@
 
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 
-          setBusy(false);
+          setBusy(false, t.ready);
           setStatus(t.gradeDone, "ok");
+
+          // ÄNDRING: öppna result-kortet automatiskt
+          openCardById("result", true);
           document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
         });
 
@@ -1664,4 +1796,4 @@
     });
   </script>
 </body>
-</html>	
+</html>
