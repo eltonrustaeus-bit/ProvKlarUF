@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="sv">
 <head>
@@ -666,8 +667,9 @@
       return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
     }
 
-    // local fallback defaults until server tells us limit
-    let quotaState = { limit: null, count: null };
+    // ÄNDRING: riggat från start => alltid 10/dag direkt i UI
+    // count hämtas från local fallback (0 första gången).
+    let quotaState = { limit: 10, count: null };
 
     function normalizeLimit(x){
       if(x === null || x === undefined) return null;
@@ -900,7 +902,16 @@
     function setBusy(isBusy, label){
       const sw = spinWrap(), ms = miniStateEl();
       if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
-      if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
+
+      // ÄNDRING: skriv inte över quota-texten när vi går ur busy
+      if(ms){
+        if(isBusy){
+          ms.textContent = label || "…";
+        } else {
+          // uppdatera quota direkt igen
+          refreshQuotaUi();
+        }
+      }
 
       const genBtn = $("generateExamBtn");
       const gradeBtn = $("gradeBtn");
@@ -1027,7 +1038,7 @@
           runTrainModeIfRequested();
         }
       } finally {
-        setBusy(false, T[LANG].ready);
+        setBusy(false);
       }
     }
 
@@ -1052,7 +1063,7 @@
           showLock();
         }
       } finally {
-        setBusy(false, T[LANG].ready);
+        setBusy(false);
       }
 
       runTrainModeIfRequested();
@@ -1322,6 +1333,10 @@
         await refreshQuotaUi();
         setStatus("");
 
+        // ÄNDRING: riggat från start => öppna menyn direkt så man kan klicka funktionerna
+        const menuAtStart = $("menu");
+        if(menuAtStart) menuAtStart.style.display = "block";
+
         onClick("menuBtn", (e) => {
           e.preventDefault(); e.stopPropagation();
           const m = $("menu");
@@ -1391,7 +1406,7 @@
             const dataUrl = await fileToDataUrl(file);
             const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
             if(!res.ok || !res.data || !res.data.ok){
-              setBusy(false, t.ready);
+              setBusy(false);
               setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
               showDebug(res.raw);
               return;
@@ -1402,10 +1417,10 @@
               const base = (pastedTextEl()?.value || "").trim();
               if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
             }
-            setBusy(false, t.ready);
+            setBusy(false);
             setOcrStatus(t.ocrDone, "ok");
           }catch(e){
-            setBusy(false, T[LANG].ready);
+            setBusy(false);
             setOcrStatus("OCR error.", "bad");
             reportErr(e);
           }
@@ -1446,28 +1461,26 @@
           // ÄNDRING: om servern säger quota slut (429) => uppdatera UI med serverns limit/count
           if(res.status === 429 && res.data){
             await setQuotaFromServerMaybe(res.data);
-            setBusy(false, t.ready);
+            setBusy(false);
             setStatus(res.data?.error || t.quotaHit, "bad");
             return;
           }
 
           if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false, t.ready);
+            setBusy(false);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
             return;
           }
 
           // ÄNDRING: quota UI
-          // Servern drar quota på varje lyckad generate. Om servern inte skickar limit/count på success
-          // så använder vi fallback-räknare så du ser "kvar idag" ändå.
           await bumpQuotaFallbackOnSuccess();
           await refreshQuotaUi();
 
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
           renderExam(res.data.exam);
 
-          setBusy(false, t.ready);
+          setBusy(false);
           setStatus(t.genDone, "ok");
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
@@ -1501,7 +1514,7 @@
 
           const res = await postJson("/api/grade", payload);
           if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false, t.ready);
+            setBusy(false);
             setStatus(`Error (HTTP ${res.status}).`, "bad");
             showDebug(res.raw);
             return;
@@ -1593,7 +1606,7 @@
 
           try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 
-          setBusy(false, t.ready);
+          setBusy(false);
           setStatus(t.gradeDone, "ok");
           document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
         });
@@ -1651,4 +1664,4 @@
     });
   </script>
 </body>
-</html>
+</html>	
