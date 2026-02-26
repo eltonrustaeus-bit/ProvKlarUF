@@ -84,7 +84,7 @@
 
     .box{border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:12px;background:#fff}
     .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px}
-    .boxText{margin:0;color:#071812;font-weight:850;font-size:12px;line-height:1.45}
+    .boxText{margin:0;color:#071812;font-weight:850;font-size:12px;line-height:1.45;white-space:pre-wrap}
 
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
@@ -145,7 +145,7 @@
     }
     .sectionHeaderLeft{min-width:0}
 
-    /* ===== ÄNDRING: Collapsible (proffsigt + smooth) ===== */
+    /* ===== Collapsible (proffsigt + smooth) ===== */
     .sectionBody{
       margin-top:10px;
       overflow:hidden;
@@ -205,7 +205,6 @@
       <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
       <div class="status" id="topStatus"></div>
 
-      <!-- Snabbknappar (behåller design, gör sidan smidigare) -->
       <div class="quickNav" id="quickNav">
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
@@ -216,7 +215,6 @@
       </div>
     </section>
 
-    <!-- Provfilter + lista -->
     <section class="card collapsed" id="examListCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
@@ -323,6 +321,7 @@
 
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
           <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
+          <button class="btn" id="genExamFromMistakesBtn" type="button">Generera prov från felbank</button>
           <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
         </div>
 
@@ -383,12 +382,16 @@
     // val/markering för träning
     const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[...], course:"..." }
 
-    // ===== ÄNDRING: UI state för collapsible =====
+    // UI state för collapsible
     const LS_UI_OPEN = "proviaai_ui_open_improve"; // { "#cardId": true/false, ... }
+
+    // (NY) Försök läsa användarnamn från lagring / konto
+    const LS_USER_NAME_A = "proviaai_user_name";
+    const LS_USER_NAME_B = "proviaai_name";
 
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8").trim();
+    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRU1eRaXhl7AIY8").trim();
 
     const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
     const db = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 40 && SupabaseGlobal?.createClient)
@@ -455,6 +458,7 @@
         readySub:"En snabb mätare baserad på senaste resultat och trend.",
         status:"Status",
         trainMistakes:"Träna mina misstag",
+        genFromMistakes:"Generera prov från felbank",
         toMaterial:"Till material",
         chartTitle:"Utveckling över tid",
         chartSub:"Procent per prov (senaste upp till 20).",
@@ -483,7 +487,16 @@
         showingAll:(n, c) => `Visar ${n} misstag${c ? " • " + c : ""}.`,
         removedOne:"Markerad som klar och borttagen från felbanken.",
         open:"Öppna",
-        close:"Stäng"
+        close:"Stäng",
+        // coach-texter (NY)
+        coachHello:(name)=> name ? `Hej ${name}!` : `Hej!`,
+        coachNoNameNote:"",
+        coachGood:"Det här gör du bra:",
+        coachImprove:"Det här bör du förbättra:",
+        coachNext:"Nästa pass (snabb plan):",
+        coachStats:(exams, last5, m30)=> `Data: ${exams} prov • Snitt (senaste 5): ${last5}% • Misstag (senaste 30 dagar): ${m30}.`,
+        coachGenEmpty:"Din felbank är tom, så inget prov kan genereras från misstag just nu.",
+        coachGenOk:(n)=> `Skapade träningsval från ${n} misstag (öppnar träning).`
       },
       en:{
         tag:"Improve • Coach • History",
@@ -504,6 +517,7 @@
         readySub:"A quick meter based on the latest result and trend.",
         status:"Status",
         trainMistakes:"Train my mistakes",
+        genFromMistakes:"Generate exam from mistakes",
         toMaterial:"Go to material",
         chartTitle:"Progress over time",
         chartSub:"Percent per exam (latest up to 20).",
@@ -532,13 +546,22 @@
         showingAll:(n, c) => `Showing ${n} mistakes${c ? " • " + c : ""}.`,
         removedOne:"Marked as done and removed from the mistake library.",
         open:"Open",
-        close:"Close"
+        close:"Close",
+        // coach-texter (NY)
+        coachHello:(name)=> name ? `Hi ${name}!` : `Hi!`,
+        coachNoNameNote:"",
+        coachGood:"What you're doing well:",
+        coachImprove:"What to improve:",
+        coachNext:"Next session (quick plan):",
+        coachStats:(exams, last5, m30)=> `Data: ${exams} exams • Avg (last 5): ${last5}% • Mistakes (last 30 days): ${m30}.`,
+        coachGenEmpty:"Your mistake library is empty, so no exam can be generated from mistakes right now.",
+        coachGenOk:(n)=> `Prepared training selection from ${n} mistakes (opening training).`
       }
     };
 
     const $ = (id) => document.getElementById(id);
 
-    // ===== ÄNDRING: Collapsible helpers (persist + auto-open on nav) =====
+    // ===== Collapsible helpers (persist + auto-open on nav) =====
     function getUiOpenState(){ return lsGetObj(LS_UI_OPEN) || {}; }
     function setUiOpenState(obj){ lsSet(LS_UI_OPEN, obj); }
     function setCardOpen(sel, isOpen){
@@ -587,6 +610,28 @@
       updateToggleLabels();
     }
 
+    // ===== USER NAME (NY) =====
+    let USER_NAME = "";
+    function normalizeName(s){
+      const v = String(s||"").trim();
+      if(!v) return "";
+      if(v.length > 40) return v.slice(0,40);
+      return v;
+    }
+    function getNameFromLocal(){
+      return normalizeName(localStorage.getItem(LS_USER_NAME_A) || localStorage.getItem(LS_USER_NAME_B) || "");
+    }
+    async function tryLoadNameFromAccount(){
+      if(!db) return "";
+      const { data, error } = await db.auth.getUser();
+      if(error) return "";
+      const u = data?.user || null;
+      if(!u) return "";
+      const meta = u.user_metadata || {};
+      const cand = normalizeName(meta.full_name || meta.name || meta.username || "");
+      return cand;
+    }
+
     function applyLang(){
       const t = T[LANG];
       $("tagLine").textContent = t.tag;
@@ -611,6 +656,7 @@
       $("meterLabel").textContent = t.status;
 
       $("trainMistakesBtn").textContent = t.trainMistakes;
+      $("genExamFromMistakesBtn").textContent = t.genFromMistakes;
       $("backToMaterialBtn").textContent = t.toMaterial;
 
       $("chartTitle").textContent = t.chartTitle;
@@ -633,7 +679,6 @@
       $("trainSelectedBtn").textContent = t.trainSelected;
       $("clearSelectionBtn").textContent = t.clearSel;
 
-      // snabbnav etiketter (enkelt)
       $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
       $("navCoach").textContent = (LANG==="sv") ? "Coach" : "Coach";
       $("navDna").textContent = (LANG==="sv") ? "Studie-DNA" : "Study DNA";
@@ -641,7 +686,6 @@
       $("navChart").textContent = (LANG==="sv") ? "Utveckling" : "Progress";
       $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
 
-      // ÄNDRING: toggle-texter
       updateToggleLabels();
     }
 
@@ -695,30 +739,144 @@
       return { analysis:toScore(analysis), concepts:toScore(concepts), structure:toScore(structure), examples:toScore(examples), pace:toScore(pace) };
     }
 
+    // ===== Coach (FÖRBÄTTRAD, NY LOGIK) =====
+    function avgPercent(arr){
+      const a = (arr||[]).map(x => Number(x.percent)||0).filter(n => Number.isFinite(n));
+      if(!a.length) return 0;
+      return Math.round(a.reduce((s,n)=>s+n,0)/a.length);
+    }
+    function countMistakesInDays(mistakes, days){
+      const since = Date.now() - (days*24*60*60*1000);
+      return (mistakes||[]).filter(m => Number(m.ts||0) >= since).length;
+    }
+    function mostCommonCourseMistakes(mistakes){
+      const map = new Map();
+      (mistakes||[]).forEach(m=>{
+        const c = String(m.course||"").trim();
+        if(!c) return;
+        map.set(c, (map.get(c)||0)+1);
+      });
+      let best = {course:"", n:0};
+      for(const [course,n] of map.entries()){
+        if(n>best.n) best = {course, n};
+      }
+      return best;
+    }
+    function courseStats(history){
+      const map = new Map(); // course -> percents
+      (history||[]).forEach(h=>{
+        const c = String(h.course||"").trim() || "";
+        const p = Number(h.percent||0);
+        if(!map.has(c)) map.set(c, []);
+        map.get(c).push(p);
+      });
+      let best = {course:"", avg:-1};
+      let worst = {course:"", avg:101};
+      for(const [course, ps] of map.entries()){
+        const a = avgPercent(ps.map(x=>({percent:x})));
+        if(a > best.avg) best = {course, avg:a};
+        if(a < worst.avg) worst = {course, avg:a};
+      }
+      return {best, worst};
+    }
+
     function coachText(history, mistakes, dna, lastAttempt){
       const t = T[LANG];
       if(!history.length) return t.noData;
 
+      const name = USER_NAME || getNameFromLocal();
+      const hello = t.coachHello(name);
+
       const dims = [
-        {k:"analysis", label:t.dnaLabels[0]},
-        {k:"concepts", label:t.dnaLabels[1]},
-        {k:"structure", label:t.dnaLabels[2]},
-        {k:"examples", label:t.dnaLabels[3]},
-        {k:"pace", label:t.dnaLabels[4]},
-      ];
-      dims.sort((a,b)=>(dna[a.k]-dna[b.k]));
-      const weak = dims[0];
-      const strong = dims[dims.length-1];
+        {k:"analysis", label:t.dnaLabels[0], v:dna.analysis},
+        {k:"concepts", label:t.dnaLabels[1], v:dna.concepts},
+        {k:"structure", label:t.dnaLabels[2], v:dna.structure},
+        {k:"examples", label:t.dnaLabels[3], v:dna.examples},
+        {k:"pace", label:t.dnaLabels[4], v:dna.pace},
+      ].slice().sort((a,b)=>a.v-b.v);
+
+      const weak1 = dims[0];
+      const weak2 = dims[1];
+      const strong1 = dims[dims.length-1];
+      const strong2 = dims[dims.length-2];
 
       const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
-      const mCount = mistakes.length;
+      const last5 = avgPercent(history.slice(-5));
+      const m30 = countMistakesInDays(mistakes, 30);
 
-      if(LANG === "sv"){
-        return `Starkast just nu: ${strong.label}. Svagast: ${weak.label}. Senaste prov: ${lastP}%. ` +
-               `Fokus nästa pass: träna ${weak.label.toLowerCase()} med 1–2 korta omgångar och gå igenom din felbank (${mCount} misstag).`;
+      const trend = computeTrend(history);
+      const trendDelta = trend ? Math.round(trend.delta) : null;
+
+      const cStats = courseStats(history);
+      const mostMistCourse = mostCommonCourseMistakes(mistakes);
+
+      const parts = [];
+      parts.push(hello);
+      parts.push(t.coachStats(history.length, last5, m30));
+
+      // Strengths
+      const goodLines = [];
+      goodLines.push(`• ${strong1.label} (${strong1.v}/100)`);
+      goodLines.push(`• ${strong2.label} (${strong2.v}/100)`);
+      if(cStats.best.course){
+        goodLines.push((LANG==="sv")
+          ? `• Starkast kurs: ${cStats.best.course} (snitt ${cStats.best.avg}%)`
+          : `• Strongest course: ${cStats.best.course} (avg ${cStats.best.avg}%)`);
       }
-      return `Strongest right now: ${strong.label}. Weakest: ${weak.label}. Latest exam: ${lastP}%. ` +
-             `Next session focus: train ${weak.label.toLowerCase()} in 1–2 short rounds and review your mistake library (${mCount} mistakes).`;
+      if(Number.isFinite(trendDelta)){
+        goodLines.push((LANG==="sv")
+          ? `• Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (senaste)`
+          : `• Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (recent)`);
+      }
+
+      // Improvements
+      const impLines = [];
+      impLines.push(`• ${weak1.label} (${weak1.v}/100)`);
+      impLines.push(`• ${weak2.label} (${weak2.v}/100)`);
+      if(mostMistCourse.course){
+        impLines.push((LANG==="sv")
+          ? `• Flest misstag i: ${mostMistCourse.course} (${mostMistCourse.n} st)`
+          : `• Most mistakes in: ${mostMistCourse.course} (${mostMistCourse.n})`);
+      }
+      if(cStats.worst.course && cStats.worst.course !== cStats.best.course){
+        impLines.push((LANG==="sv")
+          ? `• Svagast kurs: ${cStats.worst.course} (snitt ${cStats.worst.avg}%)`
+          : `• Weakest course: ${cStats.worst.course} (avg ${cStats.worst.avg}%)`);
+      }
+
+      // Next plan (konkret)
+      const nextLines = [];
+      if(LANG==="sv"){
+        nextLines.push(`• 10–15 min: träna ${weak1.label.toLowerCase()} (2 korta set).`);
+        nextLines.push(`• 10 min: gå igenom 3 misstag i felbanken (läs feedback + skriv om modellsvar).`);
+        nextLines.push(`• 1 mini-prov: fokusera på kursen${mostMistCourse.course ? " "+mostMistCourse.course : ""} och följ upp resultatet.`);
+      } else {
+        nextLines.push(`• 10–15 min: train ${weak1.label.toLowerCase()} (2 short sets).`);
+        nextLines.push(`• 10 min: review 3 mistakes (read feedback + rewrite model answer).`);
+        nextLines.push(`• 1 mini-exam: focus on${mostMistCourse.course ? " "+mostMistCourse.course : " your weakest area"} and track the result.`);
+      }
+
+      parts.push("");
+      parts.push(t.coachGood);
+      parts.push(goodLines.join("\n"));
+      parts.push("");
+      parts.push(t.coachImprove);
+      parts.push(impLines.join("\n"));
+      parts.push("");
+      parts.push(t.coachNext);
+      parts.push(nextLines.join("\n"));
+
+      // Ankare till senaste prov
+      const lastCourse = String(lastAttempt?.course||"").trim();
+      if(LANG==="sv"){
+        parts.push("");
+        parts.push(`Senaste prov: ${lastP}%${lastCourse ? " • " + lastCourse : ""}.`);
+      } else {
+        parts.push("");
+        parts.push(`Latest exam: ${lastP}%${lastCourse ? " • " + lastCourse : ""}.`);
+      }
+
+      return parts.join("\n");
     }
 
     function drawChart(canvas, history){
@@ -1164,6 +1322,15 @@
       renderAll();
     }
 
+    // ===== NY: Generera prov från felbank (via LS_TRAIN_PICK + redirect) =====
+    function buildPickFromMistakes(mistakes, courseFilter){
+      const course = String(courseFilter||"").trim();
+      const filtered = course ? (mistakes||[]).filter(m => String(m.course||"").trim() === course) : (mistakes||[]);
+      const ids = filtered.map(m => String(m.id)).filter(Boolean);
+      const uniq = Array.from(new Set(ids));
+      return { ids: uniq, course };
+    }
+
     // ===== EVENTS =====
     $("courseFilter").addEventListener("change", () => renderAll());
     $("showMode").addEventListener("change", () => {
@@ -1192,6 +1359,29 @@
     $("clearSelectionBtn").addEventListener("click", () => {
       clearPick();
       renderAll();
+    });
+
+    $("genExamFromMistakesBtn").addEventListener("click", () => {
+      const t = T[LANG];
+      const mistakes = lsGetArray(LS_MISTAKES);
+      const course = String($("courseFilter")?.value || "").trim();
+      const pick = buildPickFromMistakes(mistakes, course);
+      const top = $("topStatus");
+
+      if(!pick.ids.length){
+        if(top){
+          top.textContent = t.coachGenEmpty;
+          top.className = "status warn";
+        }
+        return;
+      }
+
+      setPick(pick);
+      if(top){
+        top.textContent = t.coachGenOk(pick.ids.length);
+        top.className = "status ok";
+      }
+      window.location.href = "app.html#train";
     });
 
     $("resetBtn").addEventListener("click", async () => {
@@ -1228,7 +1418,6 @@
       }
     });
 
-    // ===== ÄNDRING: bind toggles + quicknav open =====
     function bindToggles(){
       document.querySelectorAll("[data-toggle]").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -1252,12 +1441,31 @@
     restoreUiOpenFromStorage();
     renderAll();
 
-    // Auto-sync best effort om inloggad
+    // Auto-sync best effort om inloggad + försök läsa namn
     (async () => {
-      if(!db) return;
-      const uid = await getUserId();
-      if(!uid) return;
-      await syncFromAccount();
+      // 1) namn från local först
+      USER_NAME = getNameFromLocal();
+
+      // 2) försök konto-namn om saknas
+      if(!USER_NAME){
+        const n = await tryLoadNameFromAccount();
+        if(n){
+          USER_NAME = n;
+          // spara lokalt så coach alltid kan hälsa
+          try{ localStorage.setItem(LS_USER_NAME_A, USER_NAME); } catch {}
+        }
+      }
+
+      // 3) sync om inloggad
+      if(db){
+        const uid = await getUserId();
+        if(uid){
+          await syncFromAccount();
+        }
+      }
+
+      // 4) re-render så coachen får med namn
+      renderAll();
     })();
   </script>
 </body>
