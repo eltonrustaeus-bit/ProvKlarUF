@@ -274,7 +274,7 @@
           </div>
 
           <div class="miniHint" id="authHint">
-            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br>
+            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br><br>
           </div>
         </div>
 
@@ -379,9 +379,41 @@
               <option value="A">A</option>
             </select>
           </div>
+
           <div>
             <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
-            <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" />
+
+            <!-- ÄNDRING: behåll #course för befintlig logik, men göm den -->
+            <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" style="display:none" />
+
+            <!-- ÄNDRING: Kursbibliotek + manuell kurs -->
+            <div class="coursePicker" style="display:grid;gap:10px;margin-top:6px">
+              <label style="display:grid;gap:6px;margin:0">
+                <input id="courseSearch" type="text"
+                       placeholder="Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
+                       list="courseDatalist" autocomplete="off">
+                <datalist id="courseDatalist"></datalist>
+                <div style="font-size:12px;color:var(--muted);font-weight:750;line-height:1.35">
+                  Välj från listan eller skriv. Om den inte finns: använd “Annan kurs” nedan.
+                </div>
+              </label>
+
+              <div style="display:grid;gap:8px">
+                <label style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0">
+                  <input id="useCustomCourse" type="checkbox" style="width:18px;height:18px">
+                  <span style="font-weight:900">Annan kurs (skriv manuellt)</span>
+                </label>
+
+                <input id="customCourse" type="text"
+                       placeholder="Skriv kurs/ämne exakt som du vill ha det..."
+                       disabled>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                  <button id="saveCustomCourse" type="button" class="btn">Spara i min lista</button>
+                  <span id="coursePickerStatus" style="font-size:12px;color:var(--muted);font-weight:750"></span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -411,7 +443,7 @@
 
           <span style="display:flex;gap:10px;align-items:center">
             <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
-            <!-- ÄNDRING: miniState visar quota tydligt -->
+            <!-- miniState visar quota tydligt -->
             <span class="sectionSub" id="miniState">Prov idag kvar: —</span>
           </span>
         </div>
@@ -485,6 +517,9 @@
     // ===== ÄNDRING: UI TOGGLE STATE =====
     const LS_UI_OPEN = "proviaai_ui_open"; // { material:true/false, settings:true/false, exam:true/false, result:true/false }
 
+    // ===== ÄNDRING: COURSE LIBRARY STORAGE =====
+    const LS_CUSTOM_COURSES = "proviaai_custom_courses";
+
     const $ = (id) => document.getElementById(id);
 
     function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
@@ -550,8 +585,7 @@
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
         trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
-        quotaText:(left, limit) => `Prov idag kvar: ${left}/${limit === Infinity ? "∞" : limit}`,
-        quotaUnknown:"Prov idag kvar: —",
+        quotaUnknown:"Prov idag: —",
         quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
         openSection:"Öppna",
         closeSection:"Stäng"
@@ -604,8 +638,7 @@
         footer:"ProviaAi is study support and does not provide official grades.",
         pending:"Waiting for admin approval. You’ll get access once approved.",
         trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
-        quotaText:(left, limit) => `Exams left today: ${left}/${limit === Infinity ? "∞" : limit}`,
-        quotaUnknown:"Exams left today: —",
+        quotaUnknown:"Exams today: —",
         quotaHit:"Daily limit reached. Try again tomorrow.",
         openSection:"Open",
         closeSection:"Close"
@@ -773,6 +806,7 @@
       await writeFallbackCount(cur + 1);
     }
 
+    // ÄNDRING: visa både "genererat idag" + "kvar idag"
     async function refreshQuotaUi(){
       const ms = document.getElementById("miniState");
       if(!ms) return;
@@ -787,8 +821,16 @@
         ms.textContent = t.quotaUnknown;
         return;
       }
+
+      const limitText = (limit === Infinity) ? "∞" : String(limit);
       const left = (limit === Infinity) ? Infinity : Math.max(limit - count, 0);
-      ms.textContent = t.quotaText(left, limit);
+      const leftText = (left === Infinity) ? "∞" : String(left);
+
+      if(LANG === "sv"){
+        ms.textContent = `Prov idag: ${count}/${limitText} • Kvar: ${leftText}`;
+      } else {
+        ms.textContent = `Exams today: ${count}/${limitText} • Left: ${leftText}`;
+      }
     }
 
     // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
@@ -1257,6 +1299,146 @@
       });
     }
 
+    // ============================
+    // ÄNDRING: COURSE LIBRARY LOGIC (sync -> #course)
+    // ============================
+    const STANDARD_COURSES = [
+      // Grundskola (ämnen)
+      "Matematik (grundskola)",
+      "Svenska (grundskola)",
+      "Svenska som andraspråk (grundskola)",
+      "Engelska (grundskola)",
+      "Biologi (grundskola)",
+      "Fysik (grundskola)",
+      "Kemi (grundskola)",
+      "Geografi (grundskola)",
+      "Historia (grundskola)",
+      "Religionskunskap (grundskola)",
+      "Samhällskunskap (grundskola)",
+      "Teknik (grundskola)",
+      "Idrott och hälsa (grundskola)",
+      "Hem- och konsumentkunskap (grundskola)",
+      "Bild (grundskola)",
+      "Musik (grundskola)",
+      "Slöjd (grundskola)",
+      "Moderna språk (grundskola)",
+
+      // Gymnasiet (vanliga)
+      "Matematik 1a","Matematik 1b","Matematik 1c",
+      "Matematik 2a","Matematik 2b","Matematik 2c",
+      "Matematik 3b","Matematik 3c",
+      "Matematik 4","Matematik 5",
+
+      "Svenska 1","Svenska 2","Svenska 3",
+      "Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3",
+      "Engelska 5","Engelska 6","Engelska 7",
+
+      "Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2",
+      "Historia 1a1","Historia 1a2","Historia 1b","Historia 2",
+      "Religionskunskap 1","Religionskunskap 2",
+      "Geografi 1",
+
+      "Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2",
+      "Biologi 1","Biologi 2",
+      "Fysik 1a","Fysik 1","Fysik 2",
+      "Kemi 1","Kemi 2",
+
+      "Idrott och hälsa 1","Idrott och hälsa 2",
+      "Psykologi 1","Psykologi 2",
+      "Filosofi 1","Filosofi 2",
+
+      "Företagsekonomi 1","Företagsekonomi 2",
+      "Entreprenörskap","Entreprenörskap och företagande",
+      "Juridik 1","Juridik 2","Juridik 3",
+      "Privatjuridik",
+      "Internationell ekonomi",
+      "Marknadsföring",
+      "Redovisning",
+
+      "Programmering 1","Programmering 2",
+      "Webbutveckling 1","Webbutveckling 2",
+      "Dator- och nätverksteknik",
+      "Digitalt skapande 1"
+    ];
+
+    function normCourse(s){
+      return String(s||"").trim().replace(/\s+/g," ");
+    }
+
+    function getAllCourses(){
+      const custom = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
+      const std = STANDARD_COURSES.map(normCourse).filter(Boolean);
+      const set = new Set([...std, ...custom]);
+      return Array.from(set).sort((a,b)=>a.localeCompare(b, "sv"));
+    }
+
+    function fillCourseDatalist(){
+      const dl = document.getElementById("courseDatalist");
+      if(!dl) return;
+      dl.innerHTML = "";
+      getAllCourses().forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        dl.appendChild(opt);
+      });
+    }
+
+    function getSelectedCourseFromPicker(){
+      const useCustom = !!document.getElementById("useCustomCourse")?.checked;
+      const custom = normCourse(document.getElementById("customCourse")?.value);
+      const search = normCourse(document.getElementById("courseSearch")?.value);
+      return useCustom ? custom : search;
+    }
+
+    function syncPickerToHiddenCourse(){
+      const v = getSelectedCourseFromPicker();
+      const hidden = courseEl();
+      if(hidden) hidden.value = v;
+    }
+
+    function initCourseLibrary(){
+      fillCourseDatalist();
+
+      const chk = document.getElementById("useCustomCourse");
+      const custom = document.getElementById("customCourse");
+      const search = document.getElementById("courseSearch");
+      const status = document.getElementById("coursePickerStatus");
+      const saveBtn = document.getElementById("saveCustomCourse");
+
+      const syncEnable = () => {
+        const on = !!chk?.checked;
+        if(custom) custom.disabled = !on;
+        if(search) search.disabled = on;
+        if(status) status.textContent = "";
+        syncPickerToHiddenCourse();
+      };
+
+      chk?.addEventListener("change", syncEnable);
+
+      search?.addEventListener("input", () => syncPickerToHiddenCourse());
+      search?.addEventListener("change", () => syncPickerToHiddenCourse());
+      custom?.addEventListener("input", () => syncPickerToHiddenCourse());
+      custom?.addEventListener("change", () => syncPickerToHiddenCourse());
+
+      saveBtn?.addEventListener("click", () => {
+        const name = normCourse(custom?.value);
+        if(!name){
+          if(status) status.textContent = (LANG==="sv") ? "Skriv ett namn först." : "Type a name first.";
+          return;
+        }
+        const list = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
+        if(!list.includes(name)) list.push(name);
+        lsSet(LS_CUSTOM_COURSES, list);
+        fillCourseDatalist();
+        if(status) status.textContent = (LANG==="sv") ? `Sparad: ${name}` : `Saved: ${name}`;
+        syncPickerToHiddenCourse();
+      });
+
+      // init state
+      syncEnable();
+      syncPickerToHiddenCourse();
+    }
+
     // ===== APP RENDERING =====
     function applyLang(){
       const t = T[LANG];
@@ -1288,7 +1470,10 @@
       set("tStep2Sub", t.step2Sub);
       set("tLevel", t.level);
       set("tCourse", t.course);
+
+      // behåll original #course placeholder (hidden), men uppdatera ändå:
       const c = $("course"); if(c) c.placeholder = t.coursePH;
+
       set("tQType", t.qType);
       set("qtMix", t.qtMix);
       set("qtMc", t.qtMc);
@@ -1314,6 +1499,24 @@
       const eb = examBodyEl(), rb = resultBodyEl();
       if(eb && !eb.children.length) set("examMeta", t.noExam);
       if(rb && !rb.children.length) set("resultMeta", t.noGrade);
+
+      // ÄNDRING: uppdatera kursväljare-placeholder
+      const cs = document.getElementById("courseSearch");
+      const cc = document.getElementById("customCourse");
+      const sc = document.getElementById("saveCustomCourse");
+      if(cs){
+        cs.placeholder = (LANG==="sv")
+          ? "Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
+          : "Search e.g. Math, English, Business...";
+      }
+      if(cc){
+        cc.placeholder = (LANG==="sv")
+          ? "Skriv kurs/ämne exakt som du vill ha det..."
+          : "Type the subject/course exactly as you want...";
+      }
+      if(sc){
+        sc.textContent = (LANG==="sv") ? "Spara i min lista" : "Save to my list";
+      }
     }
 
     async function fileToDataUrl(file){
@@ -1437,6 +1640,23 @@
       setOcrStatus("");
       currentExam = null;
 
+      // ÄNDRING: nollställ kursväljaren
+      const chk = document.getElementById("useCustomCourse");
+      const cs = document.getElementById("courseSearch");
+      const cc = document.getElementById("customCourse");
+      const st = document.getElementById("coursePickerStatus");
+      if(chk) chk.checked = false;
+      if(cs) cs.value = "";
+      if(cc) cc.value = "";
+      if(st) st.textContent = "";
+      // sync till hidden course
+      try{
+        const customEnabled = !!chk?.checked;
+        if(cc) cc.disabled = !customEnabled;
+        if(cs) cs.disabled = customEnabled;
+      } catch {}
+      if(courseEl()) courseEl().value = "";
+
       if(examMetaEl()) examMetaEl().textContent = t.noExam;
       if(examBodyEl()) examBodyEl().innerHTML = "";
       if(resultMetaEl()) resultMetaEl().textContent = t.noGrade;
@@ -1453,7 +1673,8 @@
     // ===== INIT EVENTS =====
     window.addEventListener("DOMContentLoaded", async () => {
       try{
-        initCollapsibles(); // ÄNDRING: init collapse state
+        initCollapsibles(); // init collapse state
+        initCourseLibrary(); // ÄNDRING: kursbibliotek init
         applyLang();
         await refreshQuotaUi();
         setStatus("");
@@ -1484,7 +1705,7 @@
             menuEl.style.display = "none";
             const el = document.querySelector(sel);
             if(el){
-              // ÄNDRING: öppna kortet innan scroll
+              // öppna kortet innan scroll
               if(el.classList.contains("collapsible")) setCardOpen(el, true);
               el.scrollIntoView({behavior:"smooth", block:"start"});
             }
@@ -1584,7 +1805,7 @@
 
           const res = await postJson("/api/generate-exam", payload);
 
-          // ÄNDRING: om servern säger quota slut (429) => uppdatera UI med serverns limit/count
+          // om servern säger quota slut (429) => uppdatera UI med serverns limit/count
           if(res.status === 429 && res.data){
             await setQuotaFromServerMaybe(res.data);
             setBusy(false, t.ready);
@@ -1599,7 +1820,7 @@
             return;
           }
 
-          // ÄNDRING: quota UI
+          // quota UI
           await bumpQuotaFallbackOnSuccess();
           await refreshQuotaUi();
 
@@ -1609,7 +1830,7 @@
           setBusy(false, t.ready);
           setStatus(t.genDone, "ok");
 
-          // ÄNDRING: öppna exam-kortet automatiskt
+          // öppna exam-kortet automatiskt
           openCardById("exam", true);
           document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
         });
@@ -1738,7 +1959,7 @@
           setBusy(false, t.ready);
           setStatus(t.gradeDone, "ok");
 
-          // ÄNDRING: öppna result-kortet automatiskt
+          // öppna result-kortet automatiskt
           openCardById("result", true);
           document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
         });
