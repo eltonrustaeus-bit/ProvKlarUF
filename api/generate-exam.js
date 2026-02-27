@@ -4,6 +4,7 @@
 // - Inga limits / ingen inloggning krävs (borttagen requireUser + consumeDailyQuota)
 // - Tar bort essä helt (endast: mc, short)
 // - JSON-schema som aldrig tillåter "essay"
+// ÄNDRING: Matte kan routas till DeepSeek (om DEEPSEEK_API_KEY finns). Fallback till OpenAI vid fel.
 
 function json(res, status, obj) {
   res.statusCode = status;
@@ -47,10 +48,19 @@ function looksLikeMath(course, pastedText) {
   return false;
 }
 
-function pickModel({ isMath }) {
-  const base = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  const math = process.env.OPENAI_MODEL_MATH || base;
-  return isMath ? math : base;
+// ÄNDRING: välj provider + modell
+function pickProviderAndModel({ isMath }) {
+  const openaiBase = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const openaiMath = process.env.OPENAI_MODEL_MATH || openaiBase;
+
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const deepseekMathModel = process.env.DEEPSEEK_MODEL_MATH || "deepseek-reasoner";
+
+  // Matte -> DeepSeek om key finns, annars OpenAI som tidigare
+  if (isMath && deepseekKey) {
+    return { provider: "deepseek", model: deepseekMathModel };
+  }
+  return { provider: "openai", model: isMath ? openaiMath : openaiBase };
 }
 
 function buildMockExamSchema(numQuestions) {
@@ -108,14 +118,63 @@ async function readJsonBody(req) {
   return JSON.parse(raw);
 }
 
+// ÄNDRING: helper för att plocka ut output_text från OpenAI Responses API
+function extractOpenAIOutputText(data) {
+  const outputText =
+    (Array.isArray(data.output) &&
+      data.output
+        .flatMap(o => (Array.isArray(o.content) ? o.content : []))
+        .find(c => c.type === "output_text")?.text) ||
+    data.output_text ||
+    null;
+
+  return typeof outputText === "string" ? outputText : null;
+}
+
+// ÄNDRING: anropa DeepSeek chat/completions (promptstyrt JSON)
+async function callDeepSeek({ apiKey, model, systemPrompt, userPrompt }) {
+  const payload = {
+    model,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ],
+    temperature: 0.2,
+    // max_tokens är optional. Sätt en rimlig gräns.
+    max_tokens: 2600,
+    stream: false
+  };
+
+  const r = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const raw = await r.text();
+  let data = null;
+  try { data = JSON.parse(raw); } catch {}
+
+  if (!r.ok) {
+    return { ok: false, status: r.status, raw, data };
+  }
+
+  const content = data?.choices?.[0]?.message?.content;
+  return { ok: true, status: 200, raw, data, content: typeof content === "string" ? content : "" };
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY" });
+  const openaiKey = process.env.OPENAI_API_KEY;
+  // ÄNDRING: OpenAI krävs bara om vi behöver fallback eller icke-matte
+  // Vi kollar det senare beroende på provider.
 
   let parsed;
   try {
@@ -136,7 +195,7 @@ module.exports = async function handler(req, res) {
   if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
 
   const isMath = looksLikeMath(course, pastedText);
-  const model = pickModel({ isMath });
+  const picked = pickProviderAndModel({ isMath });
   const responseFormat = buildMockExamSchema(numQuestions);
 
   const systemSvBase =
@@ -214,12 +273,51 @@ module.exports = async function handler(req, res) {
     pastedText
   ].filter(Boolean).join("\n");
 
-  try {
+  // ÄNDRING: DeepSeek behöver extra tydlig “ONLY JSON”-guard (eftersom vi inte har json_schema enforcement där)
+  const deepSeekJsonGuardSv =
+    "\n\nVIKTIGT: Returnera ENDAST giltig JSON (ingen markdown, ingen text före/efter). " +
+    "JSON måste följa exakt detta schema (ingen extra nyckel): title, level, questions[]. " +
+    "Varje fråga måste ha: id, type('mc'|'short'), points(number), question(string), options(array), correct_index(int), rubric(string), model_answer(string). " +
+    "För short: options=[] och correct_index=-1. För mc: options 3–5 och correct_index inom range.\n";
+
+  const deepSeekJsonGuardEn =
+    "\n\nIMPORTANT: Output ONLY valid JSON (no markdown, no extra text). " +
+    "JSON must match exactly: title, level, questions[]. " +
+    "Each question must include: id, type('mc'|'short'), points(number), question(string), options(array), correct_index(int), rubric(string), model_answer(string). " +
+    "For short: options=[] and correct_index=-1. For mc: 3–5 options and correct_index in range.\n";
+
+  const userPrompt = (lang === "sv" ? userSv : userEn) + (picked.provider === "deepseek"
+    ? (lang === "sv" ? deepSeekJsonGuardSv : deepSeekJsonGuardEn)
+    : "");
+
+  // Försök med vald provider först
+  async function runWithDeepSeek() {
+    const deepKey = process.env.DEEPSEEK_API_KEY;
+    if (!deepKey) return { ok: false, status: 500, error: "Missing DEEPSEEK_API_KEY" };
+
+    const ds = await callDeepSeek({
+      apiKey: deepKey,
+      model: picked.model,
+      systemPrompt,
+      userPrompt
+    });
+
+    if (!ds.ok) {
+      return { ok: false, status: ds.status || 500, error: "DeepSeek error", details: ds.data || ds.raw };
+    }
+
+    const outputText = (ds.content || "").trim();
+    return { ok: true, outputText, metaModel: picked.model, provider: "deepseek" };
+  }
+
+  async function runWithOpenAI() {
+    if (!openaiKey) return { ok: false, status: 500, error: "Missing OPENAI_API_KEY" };
+
     const payload = {
-      model,
+      model: picked.provider === "openai" ? picked.model : (process.env.OPENAI_MODEL_MATH || process.env.OPENAI_MODEL || "gpt-4o-mini"),
       input: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: lang === "sv" ? userSv : userEn }
+        { role: "user", content: userPrompt }
       ],
       text: { format: responseFormat }
     };
@@ -227,7 +325,7 @@ module.exports = async function handler(req, res) {
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${openaiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload)
@@ -238,17 +336,44 @@ module.exports = async function handler(req, res) {
     try {
       data = JSON.parse(raw);
     } catch {
-      return json(res, 500, { ok: false, error: "Non-JSON from OpenAI", status: r.status, raw });
+      return { ok: false, status: 500, error: "Non-JSON from OpenAI", details: { status: r.status, raw } };
     }
-    if (!r.ok) return json(res, 500, { ok: false, error: "OpenAI error", status: r.status, details: data });
+    if (!r.ok) return { ok: false, status: 500, error: "OpenAI error", details: { status: r.status, data } };
 
-    const outputText =
-      (Array.isArray(data.output) &&
-        data.output
-          .flatMap(o => (Array.isArray(o.content) ? o.content : []))
-          .find(c => c.type === "output_text")?.text) ||
-      data.output_text ||
-      null;
+    const outputText = extractOpenAIOutputText(data);
+    if (!outputText) return { ok: false, status: 500, error: "Missing output_text from OpenAI", details: data };
+
+    return { ok: true, outputText, metaModel: payload.model, provider: "openai" };
+  }
+
+  try {
+    let outputText = null;
+    let usedProvider = picked.provider;
+    let usedModel = picked.model;
+
+    if (picked.provider === "deepseek") {
+      const first = await runWithDeepSeek();
+
+      // Om DeepSeek misslyckas att ge parsebar JSON => fallback till OpenAI
+      if (first.ok) {
+        outputText = first.outputText;
+        usedProvider = first.provider;
+        usedModel = first.metaModel;
+      } else {
+        // fallback
+        const fb = await runWithOpenAI();
+        if (!fb.ok) return json(res, fb.status || 500, { ok: false, error: fb.error, details: fb.details });
+        outputText = fb.outputText;
+        usedProvider = fb.provider;
+        usedModel = fb.metaModel;
+      }
+    } else {
+      const first = await runWithOpenAI();
+      if (!first.ok) return json(res, first.status || 500, { ok: false, error: first.error, details: first.details });
+      outputText = first.outputText;
+      usedProvider = first.provider;
+      usedModel = first.metaModel;
+    }
 
     let exam;
     try {
@@ -281,7 +406,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    return json(res, 200, { ok: true, exam, meta: { isMath, model } });
+    return json(res, 200, { ok: true, exam, meta: { isMath, provider: usedProvider, model: usedModel } });
   } catch (e) {
     return json(res, 500, { ok: false, error: "Server error", details: String(e) });
   }
