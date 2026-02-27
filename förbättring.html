@@ -89,26 +89,6 @@
     .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
 
-    .dnaRow{display:grid;gap:10px;margin-top:10px}
-    .dnaItem{display:grid;grid-template-columns:140px 1fr 44px;gap:10px;align-items:center}
-    @media (max-width:520px){ .dnaItem{grid-template-columns:110px 1fr 44px} }
-    .dnaLabel{font-weight:1000;color:var(--deep);font-size:12px}
-    .bar{height:12px;border-radius:999px;background:rgba(5,42,30,.08);border:1px solid rgba(5,42,30,.10);overflow:hidden}
-    .barFill{height:100%;width:0%;background:linear-gradient(90deg, rgba(22,184,118,.75), rgba(43,227,140,.95));border-radius:999px}
-    .dnaScore{font-weight:1100;color:var(--deep);font-size:12px;text-align:right}
-
-    .meterWrap{display:grid;gap:10px;margin-top:10px}
-    .meterTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .meterLabel{font-weight:1100;color:var(--deep);font-size:13px}
-    .meterPill{font-weight:1100;font-size:12px}
-    .meter{height:14px;border-radius:999px;background:rgba(5,42,30,.08);border:1px solid rgba(5,42,30,.10);overflow:hidden}
-    .meterFill{height:100%;width:0%}
-    .meterFill.red{background:linear-gradient(90deg, rgba(139,29,29,.65), rgba(139,29,29,.95))}
-    .meterFill.yellow{background:linear-gradient(90deg, rgba(148,98,0,.55), rgba(214,168,64,.95))}
-    .meterFill.green{background:linear-gradient(90deg, rgba(15,122,90,.55), rgba(43,227,140,.95))}
-
-    canvas{width:100%;height:220px;display:block;background:#fff;border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:10px}
-
     .mistake{border:1px solid rgba(5,42,30,.12);border-radius:16px;background:#fff;padding:12px}
     .mistakeTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .mId{font-weight:1100;color:var(--deep);font-size:12px}
@@ -180,6 +160,7 @@
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
   </style>
 </head>
+
 <body>
   <header>
     <div class="wrap topbar">
@@ -208,9 +189,7 @@
       <div class="quickNav" id="quickNav">
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#dnaCard" id="navDna">Studie-DNA</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Redo</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#chartCard" id="navChart">Utveckling</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Träna</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#mistakeCard" id="navMistakes">Felbank</button>
       </div>
     </section>
@@ -276,34 +255,19 @@
             <p class="boxText" id="trendText">—</p>
           </div>
           <div class="box">
-            <div class="boxTitle" id="goalTitle">Redo för prov?</div>
-            <p class="boxText" id="goalText">—</p>
+            <div class="boxTitle" id="focusTitle">Fokus nu</div>
+            <p class="boxText" id="focusText">—</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="card collapsed" id="dnaCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="dnaTitle" style="font-size:16px">Studie-DNA</h2>
-          <p class="sub" id="dnaSub">Fem områden som uppdateras när du gör fler prov.</p>
-        </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#dnaCard" id="toggleDna">
-          <span class="tLabel" id="toggleDnaLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div class="sectionBody">
-        <div class="dnaRow" id="dnaRow"></div>
-      </div>
-    </section>
-
+    <!-- NY: Träning (ersätter "Redo för prov" + tar bort onödiga knappar) -->
     <section class="card collapsed" id="readyCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
-          <h2 class="title" id="readyTitle" style="font-size:16px">Redo för prov</h2>
-          <p class="sub" id="readySub">En snabb mätare baserad på senaste resultat och trend.</p>
+          <h2 class="title" id="readyTitle" style="font-size:16px">Träna dina misstag</h2>
+          <p class="sub" id="readySub">Markera i felbanken och träna bara det du behöver.</p>
         </div>
         <button class="tinyBtn toggleBtn" type="button" data-toggle="#readyCard" id="toggleReady">
           <span class="tLabel" id="toggleReadyLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
@@ -311,41 +275,11 @@
       </div>
 
       <div class="sectionBody">
-        <div class="meterWrap">
-          <div class="meterTop">
-            <div class="meterLabel" id="meterLabel">Status</div>
-            <div class="pill meterPill" id="meterPill">—</div>
-          </div>
-          <div class="meter"><div class="meterFill" id="meterFill"></div></div>
-        </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-          <a class="btn btnPrimary" href="app.html#train" id="trainMistakesBtn">Träna mina misstag</a>
-          <button class="btn" id="genExamFromMistakesBtn" type="button">Generera prov från felbank</button>
-          <a class="btn" href="app.html#material" id="backToMaterialBtn">Till material</a>
-        </div>
-
         <div class="row" style="margin-top:12px">
           <button class="btn btnPrimary" id="trainSelectedBtn" type="button">Träna markerade misstag</button>
           <button class="btn" id="clearSelectionBtn" type="button">Rensa markering</button>
           <span class="pill" id="selCountPill">0 valda</span>
         </div>
-      </div>
-    </section>
-
-    <section class="card collapsed" id="chartCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="chartTitle" style="font-size:16px">Utveckling över tid</h2>
-          <p class="sub" id="chartSub">Procent per prov (senaste upp till 20).</p>
-        </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#chartCard" id="toggleChart">
-          <span class="tLabel" id="toggleChartLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div class="sectionBody">
-        <canvas id="trendChart" width="900" height="260"></canvas>
       </div>
     </section>
 
@@ -451,28 +385,16 @@
         coachHeader:"Rekommendation",
         lastTitle:"Senaste resultat",
         trendTitle:"Trend",
-        goalTitle:"Redo för prov?",
-        dnaTitle:"Studie-DNA",
-        dnaSub:"Fem områden som uppdateras när du gör fler prov.",
-        readyTitle:"Redo för prov",
-        readySub:"En snabb mätare baserad på senaste resultat och trend.",
-        status:"Status",
-        trainMistakes:"Träna mina misstag",
-        genFromMistakes:"Generera prov från felbank",
-        toMaterial:"Till material",
-        chartTitle:"Utveckling över tid",
-        chartSub:"Procent per prov (senaste upp till 20).",
+        focusTitle:"Fokus nu",
+        readyTitle:"Träna dina misstag",
+        readySub:"Markera i felbanken och träna bara det du behöver.",
+        trainSelected:"Träna markerade misstag",
+        clearSel:"Rensa markering",
         mistakesTitle:"Felbank",
         mistakesSub:"Frågor där du tappade poäng, med modellsvar.",
         mistakesEmpty:"Ingen felbank ännu (inga tappade poäng).",
         footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
         english:"English",
-        dnaLabels:["Analys","Begrepp","Struktur","Exempel","Tempo"],
-        readyRed:"Träna mer",
-        readyYellow:"Nära",
-        readyGreen:"Redo",
-        resetDone:"Historik rensad (lokalt).",
-        resetDoneAccount:"Historik rensad (lokalt + konto).",
         examListTitle:"Prov (kategorier)",
         examListSub:"Filtrera per kurs och klicka ett prov för att visa relevanta misstag.",
         course:"Kurs",
@@ -480,21 +402,12 @@
         sync:"Synka från konto",
         allCourses:"Alla kurser",
         selected:"valda",
-        trainSelected:"Träna markerade misstag",
-        clearSel:"Rensa markering",
         doneBtn:"Klar",
         pick:"Välj",
         showingAll:(n, c) => `Visar ${n} misstag${c ? " • " + c : ""}.`,
         removedOne:"Markerad som klar och borttagen från felbanken.",
         open:"Öppna",
         close:"Stäng",
-        // coach-texter (NY)
-        coachHello:(name)=> name ? `Hej ${name}!` : `Hej!`,
-        coachNoNameNote:"",
-        coachGood:"Det här gör du bra:",
-        coachImprove:"Det här bör du förbättra:",
-        coachNext:"Nästa pass (snabb plan):",
-        coachStats:(exams, last5, m30)=> `Data: ${exams} prov • Snitt (senaste 5): ${last5}% • Misstag (senaste 30 dagar): ${m30}.`,
         coachGenEmpty:"Din felbank är tom, så inget prov kan genereras från misstag just nu.",
         coachGenOk:(n)=> `Skapade träningsval från ${n} misstag (öppnar träning).`
       },
@@ -510,28 +423,16 @@
         coachHeader:"Recommendation",
         lastTitle:"Latest result",
         trendTitle:"Trend",
-        goalTitle:"Ready for the exam?",
-        dnaTitle:"Study DNA",
-        dnaSub:"Five areas that update as you take more exams.",
-        readyTitle:"Ready",
-        readySub:"A quick meter based on the latest result and trend.",
-        status:"Status",
-        trainMistakes:"Train my mistakes",
-        genFromMistakes:"Generate exam from mistakes",
-        toMaterial:"Go to material",
-        chartTitle:"Progress over time",
-        chartSub:"Percent per exam (latest up to 20).",
+        focusTitle:"Focus now",
+        readyTitle:"Train your mistakes",
+        readySub:"Select in the mistake library and train only what you need.",
+        trainSelected:"Train selected mistakes",
+        clearSel:"Clear selection",
         mistakesTitle:"Mistake library",
         mistakesSub:"Questions where you lost points, with model answers.",
         mistakesEmpty:"No mistakes yet (no lost points).",
         footer:"ProviaAi is study support and does not provide official grades.",
         english:"Svenska",
-        dnaLabels:["Analysis","Concepts","Structure","Examples","Pace"],
-        readyRed:"Train more",
-        readyYellow:"Close",
-        readyGreen:"Ready",
-        resetDone:"History cleared (local).",
-        resetDoneAccount:"History cleared (local + account).",
         examListTitle:"Exams (categories)",
         examListSub:"Filter by course and click an exam to show relevant mistakes.",
         course:"Course",
@@ -539,21 +440,12 @@
         sync:"Sync from account",
         allCourses:"All courses",
         selected:"selected",
-        trainSelected:"Train selected mistakes",
-        clearSel:"Clear selection",
         doneBtn:"Done",
         pick:"Pick",
         showingAll:(n, c) => `Showing ${n} mistakes${c ? " • " + c : ""}.`,
         removedOne:"Marked as done and removed from the mistake library.",
         open:"Open",
         close:"Close",
-        // coach-texter (NY)
-        coachHello:(name)=> name ? `Hi ${name}!` : `Hi!`,
-        coachNoNameNote:"",
-        coachGood:"What you're doing well:",
-        coachImprove:"What to improve:",
-        coachNext:"Next session (quick plan):",
-        coachStats:(exams, last5, m30)=> `Data: ${exams} exams • Avg (last 5): ${last5}% • Mistakes (last 30 days): ${m30}.`,
         coachGenEmpty:"Your mistake library is empty, so no exam can be generated from mistakes right now.",
         coachGenOk:(n)=> `Prepared training selection from ${n} mistakes (opening training).`
       }
@@ -600,7 +492,7 @@
 
     function restoreUiOpenFromStorage(){
       const st = getUiOpenState();
-      const cards = ["#examListCard","#coachCard","#dnaCard","#readyCard","#chartCard","#mistakeCard"];
+      const cards = ["#examListCard","#coachCard","#readyCard","#mistakeCard"];
       cards.forEach(sel => {
         if(typeof st[sel] === "boolean"){
           const card = document.querySelector(sel);
@@ -646,21 +538,13 @@
 
       $("lastTitle").textContent = t.lastTitle;
       $("trendTitle").textContent = t.trendTitle;
-      $("goalTitle").textContent = t.goalTitle;
-
-      $("dnaTitle").textContent = t.dnaTitle;
-      $("dnaSub").textContent = t.dnaSub;
+      $("focusTitle").textContent = t.focusTitle;
 
       $("readyTitle").textContent = t.readyTitle;
       $("readySub").textContent = t.readySub;
-      $("meterLabel").textContent = t.status;
 
-      $("trainMistakesBtn").textContent = t.trainMistakes;
-      $("genExamFromMistakesBtn").textContent = t.genFromMistakes;
-      $("backToMaterialBtn").textContent = t.toMaterial;
-
-      $("chartTitle").textContent = t.chartTitle;
-      $("chartSub").textContent = t.chartSub;
+      $("trainSelectedBtn").textContent = t.trainSelected;
+      $("clearSelectionBtn").textContent = t.clearSel;
 
       $("mistakesTitle").textContent = t.mistakesTitle;
       $("mistakesSub").textContent = t.mistakesSub;
@@ -676,14 +560,9 @@
       $("showModeLabel").textContent = t.show;
       $("syncBtn").textContent = t.sync;
 
-      $("trainSelectedBtn").textContent = t.trainSelected;
-      $("clearSelectionBtn").textContent = t.clearSel;
-
       $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
       $("navCoach").textContent = (LANG==="sv") ? "Coach" : "Coach";
-      $("navDna").textContent = (LANG==="sv") ? "Studie-DNA" : "Study DNA";
-      $("navReady").textContent = (LANG==="sv") ? "Redo" : "Ready";
-      $("navChart").textContent = (LANG==="sv") ? "Utveckling" : "Progress";
+      $("navReady").textContent = (LANG==="sv") ? "Träna" : "Train";
       $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
 
       updateToggleLabels();
@@ -709,46 +588,18 @@
       return {delta: a1 - a0, base: "prev3"};
     }
 
-    function readiness(percent, trendDelta){
-      const adj = clamp((trendDelta||0), -6, 6);
-      const p = clamp(percent + adj, 0, 100);
-      if(p >= 80) return {labelKey:"readyGreen", color:"green", fill:p};
-      if(p >= 60) return {labelKey:"readyYellow", color:"yellow", fill:p};
-      return {labelKey:"readyRed", color:"red", fill:p};
-    }
-
-    function dnaFromData(history, mistakes){
-      const last20 = history.slice(-20);
-      const avg = last20.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,last20.length);
-
-      const counts = {mix:0, mc:0, short:0, essay:0};
-      last20.forEach(x => { const k = String(x.qType||"mix"); if(counts[k] !== undefined) counts[k]++; });
-
-      const miss20 = mistakes.filter(m => (m.ts||0) >= (Date.now()-1000*60*60*24*90)).slice(-60);
-      const missRate = miss20.length ? clamp(miss20.length / Math.max(1,last20.length), 0, 6) : 0;
-
-      let analysis = avg, concepts = avg, structure = avg, examples = avg, pace = avg;
-
-      analysis += (counts.essay * 2) - (counts.mc * 1) - (missRate * 3);
-      concepts += (counts.short * 1.5) + (counts.mc * 0.5) - (missRate * 2.5);
-      structure += (counts.mix * 1.2) - (missRate * 2);
-      examples += (counts.essay * 1.5) - (missRate * 2.2);
-      pace += (counts.mc * 1.2) - (counts.essay * 1.0) - (missRate * 1.8);
-
-      const toScore = x => Math.round(clamp(x, 0, 100));
-      return { analysis:toScore(analysis), concepts:toScore(concepts), structure:toScore(structure), examples:toScore(examples), pace:toScore(pace) };
-    }
-
-    // ===== Coach (FÖRBÄTTRAD, NY LOGIK) =====
+    // ===== Coach (mer personlig + fokus på metoder + tips) =====
     function avgPercent(arr){
       const a = (arr||[]).map(x => Number(x.percent)||0).filter(n => Number.isFinite(n));
       if(!a.length) return 0;
       return Math.round(a.reduce((s,n)=>s+n,0)/a.length);
     }
+
     function countMistakesInDays(mistakes, days){
       const since = Date.now() - (days*24*60*60*1000);
       return (mistakes||[]).filter(m => Number(m.ts||0) >= since).length;
     }
+
     function mostCommonCourseMistakes(mistakes){
       const map = new Map();
       (mistakes||[]).forEach(m=>{
@@ -762,197 +613,126 @@
       }
       return best;
     }
-    function courseStats(history){
-      const map = new Map(); // course -> percents
-      (history||[]).forEach(h=>{
-        const c = String(h.course||"").trim() || "";
-        const p = Number(h.percent||0);
-        if(!map.has(c)) map.set(c, []);
-        map.get(c).push(p);
-      });
-      let best = {course:"", avg:-1};
-      let worst = {course:"", avg:101};
-      for(const [course, ps] of map.entries()){
-        const a = avgPercent(ps.map(x=>({percent:x})));
-        if(a > best.avg) best = {course, avg:a};
-        if(a < worst.avg) worst = {course, avg:a};
+
+    function derivePracticeMethods(mistakes){
+      const f = (mistakes||[]).slice(-30).map(m => (String(m.feedback||"") + " " + String(m.question||"")).toLowerCase());
+      const methods = [];
+
+      const add = (sv,en) => methods.push({sv,en});
+
+      if(f.some(s => s.includes("steg") || s.includes("metod") || s.includes("visa"))){
+        add("Skriv full metod: varje steg på egen rad.", "Show full method: each step on its own line.");
       }
-      return {best, worst};
+      if(f.some(s => s.includes("enhet") || s.includes("units"))){
+        add("Skriv alltid enhet där det behövs.", "Always include units where needed.");
+      }
+      if(f.some(s => s.includes("motiver") || s.includes("förklara") || s.includes("reason"))){
+        add("Motivera med 1–2 meningar: varför du gör steget.", "Add 1–2 sentences: why you take that step.");
+      }
+      if(f.some(s => s.includes("slutsvar") || s.includes("final"))){
+        add("Markera slutsvar tydligt (t.ex. 'Svar: ...').", "Clearly mark final answer (e.g., 'Answer: ...').");
+      }
+
+      if(methods.length === 0){
+        add("Checklista: metod → mellanresultat → slutsvar.", "Checklist: method → intermediate results → final answer.");
+      }
+
+      return methods.slice(0,4);
     }
 
-    function coachText(history, mistakes, dna, lastAttempt){
+    function deriveTipsAndTricks(mistakes){
+      const tips = [];
+      const add = (sv,en) => tips.push({sv,en});
+
+      add("Återskapa lösningen utan att titta på facit, sen jämför.", "Recreate the solution without looking, then compare.");
+      add("Träna 3 liknande uppgifter i rad (samma typ).", "Do 3 similar problems in a row (same type).");
+      add("Skriv en egen 'miniregel' efter varje misstag (1 mening).", "Write your own 'mini-rule' after each mistake (1 sentence).");
+
+      if((mistakes||[]).some(m => (m.points||0) === 0)){
+        add("Börja med enklare nivå på samma moment och bygg upp.", "Start at an easier level of the same skill and build up.");
+      }
+
+      return tips.slice(0,4);
+    }
+
+    function coachText(history, mistakes, lastAttempt){
       const t = T[LANG];
       if(!history.length) return t.noData;
 
       const name = USER_NAME || getNameFromLocal();
-      const hello = t.coachHello(name);
-
-      const dims = [
-        {k:"analysis", label:t.dnaLabels[0], v:dna.analysis},
-        {k:"concepts", label:t.dnaLabels[1], v:dna.concepts},
-        {k:"structure", label:t.dnaLabels[2], v:dna.structure},
-        {k:"examples", label:t.dnaLabels[3], v:dna.examples},
-        {k:"pace", label:t.dnaLabels[4], v:dna.pace},
-      ].slice().sort((a,b)=>a.v-b.v);
-
-      const weak1 = dims[0];
-      const weak2 = dims[1];
-      const strong1 = dims[dims.length-1];
-      const strong2 = dims[dims.length-2];
+      const hello = name ? (LANG==="sv" ? `Hej ${name}!` : `Hi ${name}!`) : (LANG==="sv" ? "Hej!" : "Hi!");
 
       const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
       const last5 = avgPercent(history.slice(-5));
       const m30 = countMistakesInDays(mistakes, 30);
-
       const trend = computeTrend(history);
       const trendDelta = trend ? Math.round(trend.delta) : null;
 
-      const cStats = courseStats(history);
       const mostMistCourse = mostCommonCourseMistakes(mistakes);
+      const methods = derivePracticeMethods(mistakes);
+      const tips = deriveTipsAndTricks(mistakes);
 
       const parts = [];
       parts.push(hello);
-      parts.push(t.coachStats(history.length, last5, m30));
 
-      // Strengths
-      const goodLines = [];
-      goodLines.push(`• ${strong1.label} (${strong1.v}/100)`);
-      goodLines.push(`• ${strong2.label} (${strong2.v}/100)`);
-      if(cStats.best.course){
-        goodLines.push((LANG==="sv")
-          ? `• Starkast kurs: ${cStats.best.course} (snitt ${cStats.best.avg}%)`
-          : `• Strongest course: ${cStats.best.course} (avg ${cStats.best.avg}%)`);
-      }
+      parts.push(LANG==="sv"
+        ? `Data: ${history.length} prov • Snitt (senaste 5): ${last5}% • Misstag (30 dagar): ${m30}.`
+        : `Data: ${history.length} exams • Avg (last 5): ${last5}% • Mistakes (30 days): ${m30}.`
+      );
+
       if(Number.isFinite(trendDelta)){
-        goodLines.push((LANG==="sv")
-          ? `• Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (senaste)`
-          : `• Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (recent)`);
+        parts.push(LANG==="sv"
+          ? `Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (senaste).`
+          : `Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (recent).`
+        );
       }
 
-      // Improvements
-      const impLines = [];
-      impLines.push(`• ${weak1.label} (${weak1.v}/100)`);
-      impLines.push(`• ${weak2.label} (${weak2.v}/100)`);
+      parts.push("");
+      parts.push(LANG==="sv" ? "Det du bör förbättra (prioritet):" : "What to improve (priority):");
+
       if(mostMistCourse.course){
-        impLines.push((LANG==="sv")
-          ? `• Flest misstag i: ${mostMistCourse.course} (${mostMistCourse.n} st)`
-          : `• Most mistakes in: ${mostMistCourse.course} (${mostMistCourse.n})`);
-      }
-      if(cStats.worst.course && cStats.worst.course !== cStats.best.course){
-        impLines.push((LANG==="sv")
-          ? `• Svagast kurs: ${cStats.worst.course} (snitt ${cStats.worst.avg}%)`
-          : `• Weakest course: ${cStats.worst.course} (avg ${cStats.worst.avg}%)`);
-      }
-
-      // Next plan (konkret)
-      const nextLines = [];
-      if(LANG==="sv"){
-        nextLines.push(`• 10–15 min: träna ${weak1.label.toLowerCase()} (2 korta set).`);
-        nextLines.push(`• 10 min: gå igenom 3 misstag i felbanken (läs feedback + skriv om modellsvar).`);
-        nextLines.push(`• 1 mini-prov: fokusera på kursen${mostMistCourse.course ? " "+mostMistCourse.course : ""} och följ upp resultatet.`);
+        parts.push(LANG==="sv"
+          ? `• Kurs där du tappar mest poäng: ${mostMistCourse.course} (${mostMistCourse.n} misstag).`
+          : `• Course where you lose most points: ${mostMistCourse.course} (${mostMistCourse.n} mistakes).`
+        );
       } else {
-        nextLines.push(`• 10–15 min: train ${weak1.label.toLowerCase()} (2 short sets).`);
-        nextLines.push(`• 10 min: review 3 mistakes (read feedback + rewrite model answer).`);
-        nextLines.push(`• 1 mini-exam: focus on${mostMistCourse.course ? " "+mostMistCourse.course : " your weakest area"} and track the result.`);
+        parts.push(LANG==="sv"
+          ? "• Välj 3 misstag i felbanken och träna dem tills du får full poäng."
+          : "• Pick 3 mistakes in the library and train them until full score."
+        );
       }
 
       parts.push("");
-      parts.push(t.coachGood);
-      parts.push(goodLines.join("\n"));
-      parts.push("");
-      parts.push(t.coachImprove);
-      parts.push(impLines.join("\n"));
-      parts.push("");
-      parts.push(t.coachNext);
-      parts.push(nextLines.join("\n"));
+      parts.push(LANG==="sv" ? "Metoder att öva (konkret):" : "Methods to practice (concrete):");
+      methods.forEach(m => parts.push("• " + (LANG==="sv" ? m.sv : m.en)));
 
-      // Ankare till senaste prov
-      const lastCourse = String(lastAttempt?.course||"").trim();
+      parts.push("");
+      parts.push(LANG==="sv" ? "Tips & tricks för snabb förbättring:" : "Tips & tricks for faster improvement:");
+      tips.forEach(x => parts.push("• " + (LANG==="sv" ? x.sv : x.en)));
+
+      parts.push("");
+      parts.push(LANG==="sv"
+        ? "Nästa pass (15–25 min):"
+        : "Next session (15–25 min):"
+      );
+
       if(LANG==="sv"){
-        parts.push("");
-        parts.push(`Senaste prov: ${lastP}%${lastCourse ? " • " + lastCourse : ""}.`);
+        parts.push("• Markera 5 misstag i felbanken.");
+        parts.push("• Träna markerade misstag.");
+        parts.push("• Skriv om modellsvaren med egna ord (2 st).");
       } else {
-        parts.push("");
-        parts.push(`Latest exam: ${lastP}%${lastCourse ? " • " + lastCourse : ""}.`);
+        parts.push("• Select 5 mistakes in the library.");
+        parts.push("• Train selected mistakes.");
+        parts.push("• Rewrite 2 model answers in your own words.");
       }
+
+      parts.push("");
+      parts.push(LANG==="sv"
+        ? `Senaste prov: ${lastP}%.`
+        : `Latest exam: ${lastP}%.`
+      );
 
       return parts.join("\n");
-    }
-
-    function drawChart(canvas, history){
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width, h = canvas.height;
-      ctx.clearRect(0,0,w,h);
-
-      const data = history.slice(-20).map(x => clamp(Number(x.percent||0), 0, 100));
-      if(data.length === 0){
-        ctx.fillStyle = "rgba(5,42,30,.65)";
-        ctx.font = "16px system-ui";
-        ctx.fillText(LANG==="sv" ? "Ingen data ännu." : "No data yet.", 18, 40);
-        return;
-      }
-
-      const padL = 36, padR = 18, padT = 18, padB = 34;
-      const gw = w - padL - padR;
-      const gh = h - padT - padB;
-
-      ctx.strokeStyle = "rgba(5,42,30,.10)";
-      ctx.lineWidth = 1;
-      for(let i=0;i<=5;i++){
-        const y = padT + (gh * i/5);
-        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL+gw, y); ctx.stroke();
-      }
-
-      ctx.fillStyle = "rgba(5,42,30,.70)";
-      ctx.font = "12px system-ui";
-      ctx.fillText("100", 8, padT+4);
-      ctx.fillText("0", 14, padT+gh+4);
-
-      const step = data.length === 1 ? 0 : (gw/(data.length-1));
-      const pt = (i) => {
-        const x = padL + (step * i);
-        const y = padT + gh - (gh * data[i]/100);
-        return {x,y};
-      };
-
-      ctx.strokeStyle = "rgba(22,184,118,.95)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      data.forEach((_,i)=>{ const p = pt(i); if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(43,227,140,.95)";
-      data.forEach((_,i)=>{ const p = pt(i); ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fill(); });
-
-      ctx.fillStyle = "rgba(5,42,30,.60)";
-      ctx.font = "12px system-ui";
-      ctx.fillText(LANG==="sv" ? "Prov" : "Exam", padL, padT+gh+26);
-      ctx.fillText(String(data.length), padL+gw-8, padT+gh+26);
-    }
-
-    function renderDNA(dna){
-      const t = T[LANG];
-      const row = $("dnaRow");
-      row.innerHTML = "";
-
-      const items = [
-        {label:t.dnaLabels[0], v:dna.analysis},
-        {label:t.dnaLabels[1], v:dna.concepts},
-        {label:t.dnaLabels[2], v:dna.structure},
-        {label:t.dnaLabels[3], v:dna.examples},
-        {label:t.dnaLabels[4], v:dna.pace},
-      ];
-
-      items.forEach(it=>{
-        const div = document.createElement("div");
-        div.className = "dnaItem";
-        div.innerHTML = `
-          <div class="dnaLabel">${it.label}</div>
-          <div class="bar"><div class="barFill" style="width:${it.v}%"></div></div>
-          <div class="dnaScore">${it.v}</div>
-        `;
-        row.appendChild(div);
-      });
     }
 
     function escapeHtml(s){
@@ -1060,7 +840,8 @@
 
           <div class="divider"></div>
 
-          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>\n${escapeHtml(m.model_answer || "—")}</div>
+          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>
+${escapeHtml(m.model_answer || "—")}</div>
         `;
 
         const pickChk = d.querySelector(".pickChk");
@@ -1170,13 +951,8 @@
         $("coachText").textContent = t.noData;
         $("lastText").textContent = "—";
         $("trendText").textContent = "—";
-        $("goalText").textContent = "—";
-        renderDNA({analysis:0,concepts:0,structure:0,examples:0,pace:0});
-        drawChart($("trendChart"), []);
+        $("focusText").textContent = "—";
         renderMistakes([], course);
-        $("meterPill").textContent = "—";
-        $("meterFill").style.width = "0%";
-        $("meterFill").className = "meterFill red";
         renderExamList([], course);
         updateSelPill();
         return;
@@ -1187,9 +963,8 @@
 
       const lastAttempt = (last && last.attempt) ? last.attempt : history[history.length-1];
       const trend = computeTrend(history);
-      const dna = dnaFromData(history, mistakes);
 
-      $("coachText").textContent = coachText(history, mistakes, dna, lastAttempt);
+      $("coachText").textContent = coachText(history, mistakes, lastAttempt);
 
       const lastP = Number(lastAttempt?.percent || 0);
       const lastCourse = (lastAttempt?.course || "").trim();
@@ -1207,20 +982,13 @@
         $("trendText").textContent = "—";
       }
 
-      const r = readiness(lastP, trend ? trend.delta : 0);
-      $("goalText").textContent = t[r.labelKey];
-      $("meterPill").textContent = t[r.labelKey] + ` • ${Math.round(r.fill)}%`;
-      const mf = $("meterFill");
-      mf.className = "meterFill " + r.color;
-      mf.style.width = `${Math.round(r.fill)}%`;
-
-      renderDNA(dna);
-      drawChart($("trendChart"), history);
+      const mostMist = mostCommonCourseMistakes(mistakes);
+      $("focusText").textContent = mostMist.course
+        ? (LANG==="sv" ? `${mostMist.course} (${mostMist.n} misstag)` : `${mostMist.course} (${mostMist.n} mistakes)`)
+        : (LANG==="sv" ? "Markera 5 misstag och träna dem." : "Select 5 mistakes and train them.");
 
       renderExamList(history, course);
       renderMistakes(mistakes, course);
-
-      $("trainMistakesBtn").setAttribute("href", "app.html#train");
 
       updateSelPill();
       updateToggleLabels();
@@ -1322,15 +1090,6 @@
       renderAll();
     }
 
-    // ===== NY: Generera prov från felbank (via LS_TRAIN_PICK + redirect) =====
-    function buildPickFromMistakes(mistakes, courseFilter){
-      const course = String(courseFilter||"").trim();
-      const filtered = course ? (mistakes||[]).filter(m => String(m.course||"").trim() === course) : (mistakes||[]);
-      const ids = filtered.map(m => String(m.id)).filter(Boolean);
-      const uniq = Array.from(new Set(ids));
-      return { ids: uniq, course };
-    }
-
     // ===== EVENTS =====
     $("courseFilter").addEventListener("change", () => renderAll());
     $("showMode").addEventListener("change", () => {
@@ -1361,29 +1120,6 @@
       renderAll();
     });
 
-    $("genExamFromMistakesBtn").addEventListener("click", () => {
-      const t = T[LANG];
-      const mistakes = lsGetArray(LS_MISTAKES);
-      const course = String($("courseFilter")?.value || "").trim();
-      const pick = buildPickFromMistakes(mistakes, course);
-      const top = $("topStatus");
-
-      if(!pick.ids.length){
-        if(top){
-          top.textContent = t.coachGenEmpty;
-          top.className = "status warn";
-        }
-        return;
-      }
-
-      setPick(pick);
-      if(top){
-        top.textContent = t.coachGenOk(pick.ids.length);
-        top.className = "status ok";
-      }
-      window.location.href = "app.html#train";
-    });
-
     $("resetBtn").addEventListener("click", async () => {
       const t = T[LANG];
 
@@ -1401,18 +1137,18 @@
         try{
           const r = await deleteAllUserExamsFromAccount();
           if(topStatus){
-            topStatus.textContent = r.ok ? t.resetDoneAccount : t.resetDone;
+            topStatus.textContent = r.ok ? (LANG==="sv" ? "Historik rensad (lokalt + konto)." : "History cleared (local + account).") : (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
             topStatus.className = "status ok";
           }
         } catch {
           if(topStatus){
-            topStatus.textContent = t.resetDone;
+            topStatus.textContent = (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
             topStatus.className = "status ok";
           }
         }
       } else {
         if(topStatus){
-          topStatus.textContent = t.resetDone;
+          topStatus.textContent = (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
           topStatus.className = "status ok";
         }
       }
