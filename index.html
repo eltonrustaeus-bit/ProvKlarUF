@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="sv">
 <head>
@@ -24,6 +23,27 @@
  radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
  radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
  var(--bg);
+ position:relative;
+ }
+ body:before{
+ content:"";
+ position:fixed;
+ inset:-120px;
+ pointer-events:none;
+ z-index:0;
+ opacity:.18;
+ background:
+ radial-gradient(650px 380px at 20% 10%, rgba(43,227,140,.18), transparent 60%),
+ radial-gradient(560px 320px at 85% 20%, rgba(43,227,140,.12), transparent 55%),
+ repeating-radial-gradient(circle at 12% 18%, rgba(5,42,30,.10) 0 1px, transparent 1px 14px),
+ repeating-radial-gradient(circle at 78% 72%, rgba(5,42,30,.08) 0 1px, transparent 1px 16px);
+ filter:saturate(120%);
+ animation:bgFloat 18s ease-in-out infinite;
+ }
+ @keyframes bgFloat{
+ 0%{transform:translate3d(0,0,0)}
+ 50%{transform:translate3d(18px,-10px,0)}
+ 100%{transform:translate3d(0,0,0)}
  }
  a{text-decoration:none;color:inherit}
 
@@ -32,7 +52,7 @@
  background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
  border-bottom:1px solid var(--border);
  }
- .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
+ .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px);position:relative;z-index:1}
  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
  .brand{display:flex;align-items:center;gap:12px;min-width:0}
  .brand img{height:52px;width:auto;display:block}
@@ -45,18 +65,26 @@
  font-weight:1000;font-size:14px;border:1px solid var(--border);
  cursor:pointer;white-space:nowrap;
  background:rgba(255,255,255,.92);color:var(--deep);
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+ transform:translateZ(0);
  }
+ .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22)}
+ .btn:active{transform:translateY(0) scale(.985)}
  .btnPrimary{
  background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
  box-shadow:0 14px 28px rgba(22,184,118,.22)
  }
+ .btnPrimary:hover{box-shadow:0 18px 36px rgba(22,184,118,.24)}
 
  /* menu */
  .menuWrap{position:relative;z-index:4000}
  .iconBtn{
  width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
  background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  }
+ .iconBtn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22)}
+ .iconBtn:active{transform:translateY(0) scale(.985)}
  .bars{width:18px;height:12px;display:grid;gap:3px}
  .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
  .dropdown{
@@ -90,6 +118,29 @@
  border-radius:999px;padding:4px 8px;background:#fff;
  }
 
+ /* AI status (diskret) */
+ .aiStatus{
+ display:inline-flex;align-items:center;gap:8px;
+ border:1px solid var(--border);
+ background:rgba(255,255,255,.92);
+ border-radius:999px;
+ padding:8px 10px;
+ font-weight:950;
+ font-size:12px;
+ color:var(--deep);
+ }
+ .aiDot{
+ width:9px;height:9px;border-radius:999px;
+ background:rgba(22,184,118,.95);
+ box-shadow:0 0 0 0 rgba(22,184,118,.45);
+ animation:aiPulse 1.8s ease-in-out infinite;
+ }
+ @keyframes aiPulse{
+ 0%{box-shadow:0 0 0 0 rgba(22,184,118,.45)}
+ 60%{box-shadow:0 0 0 9px rgba(22,184,118,0)}
+ 100%{box-shadow:0 0 0 0 rgba(22,184,118,0)}
+ }
+
  .hero{
  border:1px solid var(--border);
  border-radius:22px;
@@ -115,7 +166,7 @@
  display:grid;
  grid-template-columns: 1.2fr .8fr;
  gap:18px;
- align-items:center;
+ align-items:start;
  color:#EFFFF6;
  }
  @media (max-width: 900px){ .heroInner{grid-template-columns:1fr} }
@@ -131,9 +182,62 @@
  border:1px solid rgba(255,255,255,.16);
  border-radius:18px;
  padding:14px;
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+ transform:translateZ(0);
  }
+ .miniCard:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(0,0,0,.18);border-color:rgba(43,227,140,.22)}
  .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
  .miniText{margin:8px 0 0;color:rgba(239,255,246,.86);font-weight:800;font-size:12px;line-height:1.45}
+
+ .demoCard{
+ margin-top:14px;
+ background:rgba(255,255,255,.10);
+ border:1px solid rgba(255,255,255,.16);
+ border-radius:18px;
+ padding:14px;
+ overflow:hidden;
+ position:relative;
+ }
+ .demoTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+ .demoTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:13px}
+ .demoPill{
+ font-size:11px;font-weight:1000;color:rgba(239,255,246,.86);
+ border:1px solid rgba(255,255,255,.18);
+ border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.06);
+ }
+ .demoLine{height:1px;background:rgba(255,255,255,.14);margin:10px 0}
+ .demoText{
+ margin:0;
+ font-weight:850;
+ font-size:12px;
+ line-height:1.45;
+ color:rgba(239,255,246,.88);
+ white-space:pre-wrap;
+ min-height:58px;
+ }
+ .barWrap{
+ height:10px;border-radius:999px;
+ border:1px solid rgba(255,255,255,.18);
+ background:rgba(255,255,255,.06);
+ overflow:hidden;
+ }
+ .barFill{
+ height:100%;
+ width:0%;
+ background:linear-gradient(90deg, rgba(43,227,140,.85), rgba(22,184,118,.95));
+ transition:width .35s ease;
+ }
+ .demoGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+ @media (max-width: 900px){ .demoGrid{grid-template-columns:1fr} }
+ .demoBox{
+ border:1px solid rgba(255,255,255,.16);
+ background:rgba(255,255,255,.06);
+ border-radius:14px;
+ padding:10px;
+ }
+ .demoBoxTitle{margin:0;color:#EFFFF6;font-weight:1050;font-size:12px}
+ .demoBoxText{margin:6px 0 0;color:rgba(239,255,246,.86);font-weight:850;font-size:12px;line-height:1.45}
+ .demoSvg{width:100%;height:62px;display:block;margin-top:6px}
 
  .card{
  background:rgba(255,255,255,.92);
@@ -144,7 +248,10 @@
  margin:14px 0;
  overflow:hidden;
  position:relative;
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+ transform:translateZ(0);
  }
+ .card:hover{transform:translateY(-3px);box-shadow:0 26px 66px rgba(5,42,30,.18);border-color:rgba(43,227,140,.22)}
  .card:before{
  content:"";
  position:absolute;inset:-70px -70px auto auto;
@@ -165,7 +272,19 @@
  border-radius:999px;padding:6px 10px;
  font-weight:1000;font-size:12px;color:var(--deep);
  }
- footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
+ footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750;position:relative;z-index:1}
+
+ /* scroll reveal */
+ .reveal{
+ opacity:0;
+ transform:translateY(10px);
+ transition:opacity .28s ease, transform .28s ease;
+ will-change:opacity, transform;
+ }
+ .reveal.in{
+ opacity:1;
+ transform:translateY(0);
+ }
  </style>
 </head>
 
@@ -181,6 +300,7 @@
  </a>
 
  <div style="display:flex;gap:10px;align-items:center">
+ <span class="aiStatus" aria-label="AI-status"><span class="aiDot" aria-hidden="true"></span><span>AI aktiv</span></span>
  <div class="menuWrap">
  <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
  <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -198,16 +318,16 @@
  </header>
 
  <main class="wrap">
- <section class="hero">
+ <section class="hero reveal">
  <div class="heroBg"></div>
  <div class="heroOverlay"></div>
 
  <div class="heroInner">
  <div>
- <h1 class="hTitle">ProviaAi</h1>
+ <h1 class="hTitle">AI som gör dig bättre på prov</h1>
  <p class="hSub">
- Klistra in material → få ett realistiskt mockprov → lämna in dina svar → få rättning, feedback och modellsvar.
- <br><br><br>
+ ProviaAi: Klistra in material → få ett realistiskt mockprov → lämna in dina svar → få rättning, feedback och modellsvar.
+ <br><br><br><br>
  Nytt: Förbättringssidan bygger en personlig plan med historik, felbank och “Träna mina misstag”.
  </p>
 
@@ -223,6 +343,7 @@
  </div>
  </div>
 
+ <div>
  <div class="cardRow">
  <div class="miniCard">
  <div class="miniTitle">Mockprov på nivå</div>
@@ -237,10 +358,36 @@
  <div class="miniText">Lägg in text från foto/bild direkt till materialet.</div>
  </div>
  </div>
+
+ <div class="demoCard" aria-label="Live-demo">
+ <div class="demoTop">
+ <p class="demoTitle">Live-demo</p>
+ <span class="demoPill" id="demoState">Skapar prov…</span>
+ </div>
+ <div class="demoLine"></div>
+ <div class="barWrap" aria-hidden="true"><div class="barFill" id="demoBar"></div></div>
+ <p class="demoText" id="demoText"></p>
+
+ <div class="demoGrid">
+ <div class="demoBox">
+ <p class="demoBoxTitle">Exempelresultat</p>
+ <p class="demoBoxText" id="demoResult">—</p>
+ </div>
+ <div class="demoBox">
+ <p class="demoBoxTitle">Utveckling</p>
+ <svg class="demoSvg" viewBox="0 0 220 62" role="img" aria-label="Utvecklingsgraf">
+ <path d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(239,255,246,.24)" stroke-width="3" stroke-linecap="round"/>
+ <path id="demoPath" d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(43,227,140,.95)" stroke-width="3" stroke-linecap="round"/>
+ </svg>
+ <p class="demoBoxText" id="demoCoach">—</p>
+ </div>
+ </div>
+ </div>
+ </div>
  </div>
  </section>
 
- <section class="card" id="how">
+ <section class="card reveal" id="how">
  <div class="sectionTitle">Hur det funkar</div>
  <p class="sectionSub">Tydliga steg, designat för provträning.</p>
  <ol class="list">
@@ -252,7 +399,7 @@
  </ol>
  </section>
 
- <section class="card" id="features">
+ <section class="card reveal" id="features">
  <div class="sectionTitle">Funktioner</div>
  <p class="sectionSub">Byggt för struktur, inte chatt.</p>
  <ul class="list">
@@ -266,7 +413,7 @@
  </ul>
  </section>
 
- <section class="card" id="coach">
+ <section class="card reveal" id="coach">
  <div class="sectionTitle">AI-coach (personlig förbättring)</div>
  <p class="sectionSub">Systemet bygger en plan baserat på dina faktiska resultat, inte gissningar.</p>
  <ul class="list">
@@ -277,7 +424,7 @@
  </ul>
  </section>
 
- <section class="card" id="who">
+ <section class="card reveal" id="who">
  <div class="sectionTitle">För vem</div>
  <p class="sectionSub">Gymnasieelever och skolor som vill ha strukturerad provträning.</p>
  <ul class="list">
@@ -287,7 +434,7 @@
  </ul>
  </section>
 
- <section class="card" id="faq">
+ <section class="card reveal" id="faq">
  <div class="sectionTitle">FAQ</div>
  <p class="sectionSub">Kortfattat.</p>
  <ul class="list">
@@ -332,7 +479,79 @@
  document.addEventListener("keydown", (e) => {
  if(e.key === "Escape" && menu.style.display === "block") closeMenu();
  });
+
+ // scroll reveal
+ (function(){
+ const els = document.querySelectorAll(".reveal");
+ if(!("IntersectionObserver" in window)){
+ els.forEach(el => el.classList.add("in"));
+ return;
+ }
+ const io = new IntersectionObserver((entries) => {
+ entries.forEach(ent => {
+ if(ent.isIntersecting){
+ ent.target.classList.add("in");
+ io.unobserve(ent.target);
+ }
+ });
+ }, { threshold: 0.12 });
+ els.forEach(el => io.observe(el));
+ })();
+
+ // live demo
+ (function(){
+ const bar = document.getElementById("demoBar");
+ const text = document.getElementById("demoText");
+ const state = document.getElementById("demoState");
+ const result = document.getElementById("demoResult");
+ const coach = document.getElementById("demoCoach");
+ const path = document.getElementById("demoPath");
+ if(!bar || !text || !state || !result || !coach || !path) return;
+
+ const demoLines = [
+ "Material: 'Cellens delar, funktioner, begrepp'",
+ "Skapar 12 frågor (C-nivå)…",
+ "Lägger till flervals + kortsvar…",
+ "Klart: provet är redo att besvaras."
+ ];
+
+ let i = 0, j = 0;
+ const full = demoLines.join("\n");
+ function typeTick(){
+ if(j <= full.length){
+ text.textContent = full.slice(0, j);
+ j += 2;
+ } else {
+ clearInterval(typeInt);
+ }
+ }
+ const typeInt = setInterval(typeTick, 28);
+
+ let p = 0;
+ function progTick(){
+ p = Math.min(100, p + 8);
+ bar.style.width = p + "%";
+ if(p >= 100){
+ clearInterval(progInt);
+ state.textContent = "Rättning klar";
+ result.textContent = "45% → 92% (3 pass)";
+ coach.textContent = "AI-coach: Träna felbankens 5 vanligaste misstag.";
+ }
+ }
+ const progInt = setInterval(progTick, 240);
+
+ // draw path
+ const len = path.getTotalLength();
+ path.style.strokeDasharray = String(len);
+ path.style.strokeDashoffset = String(len);
+ path.getBoundingClientRect();
+ let o = len;
+ const drawInt = setInterval(() => {
+ o = Math.max(0, o - (len/18));
+ path.style.strokeDashoffset = String(o);
+ if(o <= 0) clearInterval(drawInt);
+ }, 120);
+ })();
  </script>
 </body>
 </html>
-
