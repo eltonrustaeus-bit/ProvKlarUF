@@ -202,6 +202,42 @@
       background:#fff;
       color:var(--muted);
     }
+
+    /* ===== TEACHER REPORT (NY) ===== */
+    .reportBox{
+      margin-top:10px;
+      border:1px solid rgba(5,42,30,.12);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      white-space:pre-wrap;
+      font-weight:850;
+      font-size:12px;
+      line-height:1.45;
+      min-height:120px;
+    }
+    .reportRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+    .reportBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(5,42,30,.12);
+      background:rgba(22,184,118,.10);
+      border-color:rgba(22,184,118,.25);
+      cursor:pointer;
+      font-weight:950;
+      font-size:12px;
+      color:var(--deep);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .reportBtn[disabled]{opacity:.65;cursor:not-allowed}
   </style>
 </head>
 
@@ -233,6 +269,7 @@
       <div class="quickNav" id="quickNav">
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
+        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#reportCard" id="navReport">Rapport</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Träna</button>
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#mistakeCard" id="navMistakes">Felbank</button>
       </div>
@@ -306,6 +343,30 @@
       </div>
     </section>
 
+    <section class="card collapsed" id="reportCard">
+      <div class="sectionHeader">
+        <div class="sectionHeaderLeft">
+          <h2 class="title" id="reportTitle" style="font-size:16px">Lärarrapport</h2>
+          <p class="sub" id="reportSub">Kort rapport baserad på minst 3 genomförda prov.</p>
+        </div>
+        <button class="tinyBtn toggleBtn" type="button" data-toggle="#reportCard" id="toggleReport">
+          <span class="tLabel" id="toggleReportLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
+        </button>
+      </div>
+
+      <div class="sectionBody">
+        <div class="status" id="reportStatus"></div>
+
+        <div class="reportRow">
+          <button class="reportBtn" id="genReportBtn" type="button">Skapa rapport</button>
+          <button class="reportBtn" id="copyReportBtn" type="button" disabled>Kopiera</button>
+          <span class="pill" id="reportPill" style="display:none">—</span>
+        </div>
+
+        <div class="reportBox" id="reportBox">—</div>
+      </div>
+    </section>
+
     <!-- NY: Träning (ersätter "Redo för prov" + tar bort onödiga knappar) -->
     <section class="card collapsed" id="readyCard">
       <div class="sectionHeader">
@@ -369,6 +430,9 @@
 
     // (NY) Smart tips cache
     const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache"; // { "<course>::<id>": "text", ... }
+
+    // (NY) Teacher report cache
+    const LS_TEACHER_REPORT_CACHE = "proviaai_teacher_report_cache"; // { "<course>": { ts:number, n:number, text:string } }
 
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
@@ -462,7 +526,18 @@
         smartTipsError:"Kunde inte hämta tips.",
         smartTipsShow:"Visa smart tips",
         smartTipsHide:"Dölj smart tips",
-        smartTipsCached:"cache"
+        smartTipsCached:"cache",
+        reportNav:"Rapport",
+        reportTitle:"Lärarrapport",
+        reportSub:"Kort rapport baserad på minst 3 genomförda prov.",
+        reportNeed3:(n)=> `Minst 3 prov krävs för att skapa lärarrapport. Du har ${n}.`,
+        reportReady:(n)=> `Redo att skapa rapport baserad på ${n} prov.`,
+        reportGenerating:"Skapar rapport…",
+        reportError:"Kunde inte skapa rapport.",
+        reportCreate:"Skapa rapport",
+        reportCopy:"Kopiera",
+        reportCopied:"Kopierad",
+        reportBasedOn:(n)=> `Baserad på ${n} prov`
       },
       en:{
         tag:"Improve • Coach • History",
@@ -506,7 +581,18 @@
         smartTipsError:"Could not fetch tips.",
         smartTipsShow:"Show smart tips",
         smartTipsHide:"Hide smart tips",
-        smartTipsCached:"cache"
+        smartTipsCached:"cache",
+        reportNav:"Report",
+        reportTitle:"Teacher report",
+        reportSub:"Short report based on at least 3 completed exams.",
+        reportNeed3:(n)=> `At least 3 exams are required to generate a teacher report. You have ${n}.`,
+        reportReady:(n)=> `Ready to generate a report based on ${n} exams.`,
+        reportGenerating:"Generating report…",
+        reportError:"Could not generate report.",
+        reportCreate:"Generate report",
+        reportCopy:"Copy",
+        reportCopied:"Copied",
+        reportBasedOn:(n)=> `Based on ${n} exams`
       }
     };
 
@@ -551,7 +637,7 @@
 
     function restoreUiOpenFromStorage(){
       const st = getUiOpenState();
-      const cards = ["#examListCard","#coachCard","#readyCard","#mistakeCard"];
+      const cards = ["#examListCard","#coachCard","#reportCard","#readyCard","#mistakeCard"];
       cards.forEach(sel => {
         if(typeof st[sel] === "boolean"){
           const card = document.querySelector(sel);
@@ -599,6 +685,11 @@
       $("trendTitle").textContent = t.trendTitle;
       $("focusTitle").textContent = t.focusTitle;
 
+      $("reportTitle").textContent = t.reportTitle;
+      $("reportSub").textContent = t.reportSub;
+      $("genReportBtn").textContent = t.reportCreate;
+      $("copyReportBtn").textContent = t.reportCopy;
+
       $("readyTitle").textContent = t.readyTitle;
       $("readySub").textContent = t.readySub;
 
@@ -621,6 +712,7 @@
 
       $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
       $("navCoach").textContent = (LANG==="sv") ? "Coach" : "Coach";
+      $("navReport").textContent = t.reportNav;
       $("navReady").textContent = (LANG==="sv") ? "Träna" : "Train";
       $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
 
@@ -876,6 +968,53 @@
       return String(data?.tips || "");
     }
 
+    // ===== TEACHER REPORT (NY) =====
+    function getTeacherReportCache(){
+      const obj = lsGetObj(LS_TEACHER_REPORT_CACHE);
+      return (obj && typeof obj === "object") ? obj : {};
+    }
+    function setTeacherReportCache(cache){
+      lsSet(LS_TEACHER_REPORT_CACHE, cache);
+    }
+    function getReportCacheKey(){
+      const course = String($("courseFilter")?.value || "").trim();
+      return course || "__all__";
+    }
+    async function fetchTeacherReport(payload){
+      const res = await fetch("/api/teacher-report", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data?.error || "teacher-report failed");
+      return String(data?.report || data?.tips || "");
+    }
+    function setReportUiText(text){
+      const box = $("reportBox");
+      box.textContent = text;
+    }
+    function setReportStatus(text, cls){
+      const st = $("reportStatus");
+      st.textContent = text;
+      st.className = "status" + (cls ? (" " + cls) : "");
+    }
+    function setReportPill(text, show){
+      const p = $("reportPill");
+      p.textContent = text;
+      p.style.display = show ? "inline-flex" : "none";
+    }
+    function setCopyEnabled(enabled){
+      const b = $("copyReportBtn");
+      if(enabled) b.removeAttribute("disabled");
+      else b.setAttribute("disabled","disabled");
+    }
+    function setGenEnabled(enabled){
+      const b = $("genReportBtn");
+      if(enabled) b.removeAttribute("disabled");
+      else b.setAttribute("disabled","disabled");
+    }
+
     function renderMistakes(mistakes, courseFilter){
       const t = T[LANG];
       const list = $("mistakeList");
@@ -1095,6 +1234,125 @@
       });
     }
 
+    function renderTeacherReportState(history){
+      const t = T[LANG];
+      const n = Array.isArray(history) ? history.length : 0;
+
+      if(n < 3){
+        setReportStatus(t.reportNeed3(n), "warn");
+        setGenEnabled(false);
+        setCopyEnabled(false);
+        setReportPill("", false);
+        setReportUiText("—");
+        return;
+      }
+
+      setReportStatus(t.reportReady(n), "ok");
+      setGenEnabled(true);
+
+      const cache = getTeacherReportCache();
+      const key = getReportCacheKey();
+      const cached = cache[key];
+
+      if(cached && typeof cached.text === "string" && cached.text.trim()){
+        setReportUiText(cached.text);
+        setCopyEnabled(true);
+        setReportPill(t.reportBasedOn(Number(cached.n || n)), true);
+      } else {
+        setReportUiText("—");
+        setCopyEnabled(false);
+        setReportPill("", false);
+      }
+    }
+
+    async function generateTeacherReport(){
+      const t = T[LANG];
+      const history = lsGetArray(LS_HISTORY);
+      const mistakes = lsGetArray(LS_MISTAKES);
+      const n = history.length;
+
+      if(n < 3){
+        setReportStatus(t.reportNeed3(n), "warn");
+        setReportUiText("—");
+        setCopyEnabled(false);
+        setReportPill("", false);
+        return;
+      }
+
+      setGenEnabled(false);
+      setCopyEnabled(false);
+      setReportStatus(t.reportGenerating, "");
+      setReportUiText(t.reportGenerating);
+      setReportPill("", false);
+
+      const course = String($("courseFilter")?.value || "").trim();
+      const filteredHistory = course ? history.filter(h => String(h.course||"").trim() === course) : history;
+      const filteredMistakes = course ? mistakes.filter(m => String(m.course||"").trim() === course) : mistakes;
+
+      const reportN = filteredHistory.length;
+
+      if(reportN < 3){
+        setReportStatus(t.reportNeed3(reportN), "warn");
+        setReportUiText("—");
+        setGenEnabled(true);
+        return;
+      }
+
+      const payload = {
+        course: course || "",
+        exams_count: reportN,
+        history: filteredHistory.slice(-10),
+        mistakes: filteredMistakes.slice(-50)
+      };
+
+      try{
+        const text = await fetchTeacherReport(payload);
+        const normalized = String(text || "").trim();
+        if(!normalized){
+          setReportStatus(t.reportError, "bad");
+          setReportUiText("—");
+          setGenEnabled(true);
+          return;
+        }
+
+        const cache = getTeacherReportCache();
+        const key = getReportCacheKey();
+        cache[key] = { ts: Date.now(), n: reportN, text: normalized };
+        setTeacherReportCache(cache);
+
+        setReportStatus(t.reportReady(reportN), "ok");
+        setReportUiText(normalized);
+        setCopyEnabled(true);
+        setReportPill(t.reportBasedOn(reportN), true);
+      } catch {
+        setReportStatus(t.reportError, "bad");
+        setReportUiText("—");
+      } finally {
+        setGenEnabled(true);
+      }
+    }
+
+    async function copyTeacherReport(){
+      const t = T[LANG];
+      const text = String($("reportBox")?.textContent || "").trim();
+      if(!text || text === "—") return;
+
+      try{
+        await navigator.clipboard.writeText(text);
+        setReportPill(t.reportCopied, true);
+        setTimeout(() => {
+          const history = lsGetArray(LS_HISTORY);
+          const n = history.length;
+          const cache = getTeacherReportCache();
+          const key = getReportCacheKey();
+          const cached = cache[key];
+          const based = cached?.n ? Number(cached.n) : n;
+          if(based >= 3) setReportPill(t.reportBasedOn(based), true);
+          else setReportPill("", false);
+        }, 1200);
+      } catch {}
+    }
+
     function renderAll(){
       const t = T[LANG];
       applyLang();
@@ -1118,6 +1376,7 @@
         renderMistakes([], course);
         renderExamList([], course);
         updateSelPill();
+        renderTeacherReportState([]);
         return;
       }
 
@@ -1155,6 +1414,10 @@
 
       updateSelPill();
       updateToggleLabels();
+
+      // Teacher report gating
+      const filteredHistory = course ? history.filter(h => String(h.course||"").trim() === course) : history;
+      renderTeacherReportState(filteredHistory);
     }
 
     // ===== SYNC (konto -> localStorage) =====
@@ -1283,6 +1546,14 @@
       renderAll();
     });
 
+    $("genReportBtn").addEventListener("click", async () => {
+      await generateTeacherReport();
+    });
+
+    $("copyReportBtn").addEventListener("click", async () => {
+      await copyTeacherReport();
+    });
+
     $("resetBtn").addEventListener("click", async () => {
       const t = T[LANG];
 
@@ -1295,6 +1566,9 @@
 
       // (NY) nolla tips cache också (valfritt men gör "rensning" komplett)
       localStorage.removeItem(LS_SMART_TIPS_CACHE);
+
+      // (NY) nolla report cache också
+      localStorage.removeItem(LS_TEACHER_REPORT_CACHE);
 
       renderAll();
 
