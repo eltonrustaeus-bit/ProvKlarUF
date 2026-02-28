@@ -158,6 +158,50 @@
     .quickNav .tinyBtn{border-radius:999px}
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
+
+    /* ===== SMART TIPS (NY) ===== */
+    .smartTipsBox{
+      margin-top:10px;
+      border:1px solid rgba(5,42,30,.12);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      white-space:pre-wrap;
+      font-weight:850;
+      font-size:12px;
+      line-height:1.45;
+    }
+    .smartTipsRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+    .smartTipsBtn{
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(5,42,30,.12);
+      background:rgba(22,184,118,.10);
+      border-color:rgba(22,184,118,.25);
+      cursor:pointer;
+      font-weight:950;
+      font-size:12px;
+      color:var(--deep);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .smartTipsBtn[disabled]{opacity:.65;cursor:not-allowed}
+    .smartTipsPill{
+      font-size:11px;
+      font-weight:1000;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:4px 8px;
+      background:#fff;
+      color:var(--muted);
+    }
   </style>
 </head>
 
@@ -323,6 +367,9 @@
     const LS_USER_NAME_A = "proviaai_user_name";
     const LS_USER_NAME_B = "proviaai_name";
 
+    // (NY) Smart tips cache
+    const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache"; // { "<course>::<id>": "text", ... }
+
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
     const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRU1eRaXhl7AIY8").trim();
@@ -409,7 +456,13 @@
         open:"Öppna",
         close:"Stäng",
         coachGenEmpty:"Din felbank är tom, så inget prov kan genereras från misstag just nu.",
-        coachGenOk:(n)=> `Skapade träningsval från ${n} misstag (öppnar träning).`
+        coachGenOk:(n)=> `Skapade träningsval från ${n} misstag (öppnar träning).`,
+        smartTips:"Smart tips",
+        smartTipsLoading:"Hämtar tips…",
+        smartTipsError:"Kunde inte hämta tips.",
+        smartTipsShow:"Visa smart tips",
+        smartTipsHide:"Dölj smart tips",
+        smartTipsCached:"cache"
       },
       en:{
         tag:"Improve • Coach • History",
@@ -447,7 +500,13 @@
         open:"Open",
         close:"Close",
         coachGenEmpty:"Your mistake library is empty, so no exam can be generated from mistakes right now.",
-        coachGenOk:(n)=> `Prepared training selection from ${n} mistakes (opening training).`
+        coachGenOk:(n)=> `Prepared training selection from ${n} mistakes (opening training).`,
+        smartTips:"Smart tips",
+        smartTipsLoading:"Fetching tips…",
+        smartTipsError:"Could not fetch tips.",
+        smartTipsShow:"Show smart tips",
+        smartTipsHide:"Hide smart tips",
+        smartTipsCached:"cache"
       }
     };
 
@@ -788,6 +847,35 @@
       }
     }
 
+    // ===== SMART TIPS (NY) =====
+    function smartTipsCacheKey(m){
+      const c = String(m.course||"").trim();
+      const id = String(m.id||"").trim();
+      return `${c}::${id}`;
+    }
+    function getSmartTipsCache(){
+      const obj = lsGetObj(LS_SMART_TIPS_CACHE);
+      return (obj && typeof obj === "object") ? obj : {};
+    }
+    function setSmartTipsCache(cache){
+      lsSet(LS_SMART_TIPS_CACHE, cache);
+    }
+    async function fetchSmartTips(m){
+      const res = await fetch("/api/smart-tips", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          question: m.question,
+          feedback: m.feedback,
+          model_answer: m.model_answer,
+          course: m.course
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data?.error || "smart-tips failed");
+      return String(data?.tips || "");
+    }
+
     function renderMistakes(mistakes, courseFilter){
       const t = T[LANG];
       const list = $("mistakeList");
@@ -809,12 +897,18 @@
       const pick = getPick();
       const pickSet = new Set((Array.isArray(pick.ids) ? pick.ids : []).map(x=>String(x)));
 
+      const tipsCache = getSmartTipsCache();
+
       filtered.slice().sort((a,b)=>(Number(b.ts||0)-Number(a.ts||0))).forEach(m=>{
         const d = document.createElement("div");
         d.className = "mistake";
         const when = new Date(m.ts||Date.now());
         const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
         const isPicked = pickSet.has(String(m.id));
+
+        const cacheKey = smartTipsCacheKey(m);
+        const cachedTips = tipsCache[cacheKey] || "";
+        const hasCached = !!cachedTips;
 
         d.innerHTML = `
           <div class="mistakeTop">
@@ -831,6 +925,15 @@
             <button class="tinyBtn tinyBtnPrimary doneBtn" type="button">${t.doneBtn}</button>
           </div>
 
+          <div class="smartTipsRow">
+            <button class="smartTipsBtn smartTipsBtnEl" type="button">
+              ${escapeHtml(t.smartTips)}
+            </button>
+            <span class="smartTipsPill smartTipsPillEl" style="display:${hasCached ? "inline-flex" : "none"}">${escapeHtml(t.smartTipsCached)}</span>
+          </div>
+
+          <div class="smartTipsBox smartTipsBoxEl" style="display:none"></div>
+
           <div class="mQ">${escapeHtml(m.question || "")}</div>
 
           <div class="divider"></div>
@@ -840,8 +943,7 @@
 
           <div class="divider"></div>
 
-          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b>
-${escapeHtml(m.model_answer || "—")}</div>
+          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b><br>${escapeHtml(m.model_answer || "—")}</div>
         `;
 
         const pickChk = d.querySelector(".pickChk");
@@ -856,6 +958,67 @@ ${escapeHtml(m.model_answer || "—")}</div>
             top.className = "status ok";
           }
           renderAll();
+        });
+
+        // Smart tips handler
+        const tipsBtn = d.querySelector(".smartTipsBtnEl");
+        const tipsBox = d.querySelector(".smartTipsBoxEl");
+        const tipsPill = d.querySelector(".smartTipsPillEl");
+
+        function showTips(text){
+          tipsBox.style.display = "block";
+          tipsBox.textContent = text;
+        }
+        function hideTips(){
+          tipsBox.style.display = "none";
+          tipsBox.textContent = "";
+        }
+        function isTipsVisible(){
+          return tipsBox.style.display !== "none";
+        }
+
+        // Om tips redan finns i cache: visa/dölj direkt utan API
+        tipsBtn?.addEventListener("click", async () => {
+          const tt = T[LANG];
+
+          // toggle hide if open
+          if(isTipsVisible()){
+            hideTips();
+            return;
+          }
+
+          const cKey = smartTipsCacheKey(m);
+          const cache = getSmartTipsCache();
+          const cached = cache[cKey];
+
+          if(cached){
+            if(tipsPill) tipsPill.style.display = "inline-flex";
+            showTips(String(cached));
+            return;
+          }
+
+          // fetch via API
+          if(!tipsBtn) return;
+          tipsBtn.setAttribute("disabled","disabled");
+          showTips(tt.smartTipsLoading);
+
+          try{
+            const tipsText = await fetchSmartTips(m);
+            const normalized = String(tipsText || "").trim();
+            if(!normalized){
+              showTips(tt.smartTipsError);
+            } else {
+              const cache2 = getSmartTipsCache();
+              cache2[cKey] = normalized;
+              setSmartTipsCache(cache2);
+              if(tipsPill) tipsPill.style.display = "inline-flex";
+              showTips(normalized);
+            }
+          } catch {
+            showTips(tt.smartTipsError);
+          } finally {
+            tipsBtn.removeAttribute("disabled");
+          }
         });
 
         list.appendChild(d);
@@ -1129,6 +1292,9 @@ ${escapeHtml(m.model_answer || "—")}</div>
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
       localStorage.removeItem(LS_TRAIN_PICK);
+
+      // (NY) nolla tips cache också (valfritt men gör "rensning" komplett)
+      localStorage.removeItem(LS_SMART_TIPS_CACHE);
 
       renderAll();
 
