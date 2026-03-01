@@ -1,31 +1,49 @@
-async function mustHaveImproveAccess(){
-  // Om db saknas kan vi inte verifiera. Lås sidan.
-  if(!db) return { ok:false, reason:"no_db" };
+import { createClient } from "@supabase/supabase-js";
 
-  const { data, error } = await db.auth.getUser();
-  if(error || !data?.user?.id) return { ok:false, reason:"not_logged_in" };
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-  const uid = data.user.id;
+export default async function handler(req,res){
+
+  if(req.method !== "POST"){
+    return res.status(405).json({error:"Method not allowed"});
+  }
 
   try{
-    const r = await fetch("/api/check-role", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ user_id: uid })
-    });
 
-    // Om API:t inte svarar 2xx: behandla som basic (ingen access)
-    if(!r.ok){
-      return { ok:false, reason:"no_access", role:"basic" };
+    const {user_id} = req.body;
+
+    if(!user_id){
+      return res.status(400).json({
+        error:"Missing user_id"
+      });
     }
 
-    const out = await r.json().catch(() => ({}));
-    const role = String(out?.role || "basic");
-    const allowed = (role === "premium" || role === "admin");
+    const {data,error} = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id",user_id)
+      .single();
 
-    return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
-  } catch {
-    // Network/timeout: behandla som basic (ingen access)
-    return { ok:false, reason:"no_access", role:"basic" };
+    if(error){
+      return res.status(500).json({
+        error: error.message || String(error)
+      });
+    }
+
+    return res.status(200).json({
+      role:data.role
+    });
+
   }
+  catch(e){
+
+    return res.status(500).json({
+      error:String(e)
+    });
+
+  }
+
 }
