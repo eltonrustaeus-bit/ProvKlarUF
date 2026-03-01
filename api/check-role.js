@@ -1,44 +1,31 @@
-import { createClient } from "@supabase/supabase-js";
+async function mustHaveImproveAccess(){
+  // Om db saknas kan vi inte verifiera. Lås sidan.
+  if(!db) return { ok:false, reason:"no_db" };
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+  const { data, error } = await db.auth.getUser();
+  if(error || !data?.user?.id) return { ok:false, reason:"not_logged_in" };
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  const uid = data.user.id;
 
-  try {
-    const { user_id, access_token } = req.body || {};
+  try{
+    const r = await fetch("/api/check-role", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ user_id: uid })
+    });
 
-    if (!user_id || !access_token) {
-      return res.status(200).json({ role: "basic" });
+    // Om API:t inte svarar 2xx: behandla som basic (ingen access)
+    if(!r.ok){
+      return { ok:false, reason:"no_access", role:"basic" };
     }
 
-    const { data: userData, error: userErr } = await supabase.auth.getUser(access_token);
-    if (userErr || !userData?.user?.id) {
-      return res.status(200).json({ role: "basic" });
-    }
+    const out = await r.json().catch(() => ({}));
+    const role = String(out?.role || "basic");
+    const allowed = (role === "premium" || role === "admin");
 
-    if (userData.user.id !== user_id) {
-      return res.status(200).json({ role: "basic" });
-    }
-
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user_id)
-      .single();
-
-    if (error || !data?.role) {
-      return res.status(200).json({ role: "basic" });
-    }
-
-    return res.status(200).json({ role: data.role });
-  } catch (e) {
-    return res.status(500).json({ error: String(e) });
+    return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
+  } catch {
+    // Network/timeout: behandla som basic (ingen access)
+    return { ok:false, reason:"no_access", role:"basic" };
   }
 }
-
