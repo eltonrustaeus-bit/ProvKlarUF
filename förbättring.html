@@ -767,15 +767,20 @@
       // Om db saknas kan vi inte verifiera. Lås sidan.
       if(!db) return { ok:false, reason:"no_db" };
 
-      const { data, error } = await db.auth.getUser();
-      if(error || !data?.user?.id) return { ok:false, reason:"not_logged_in" };
+      // Hämta session för access_token (krävs av API)
+      const { data: sessData, error: sessErr } = await db.auth.getSession();
+      if(sessErr) return { ok:false, reason:"not_logged_in" };
 
-      const uid = data.user.id;
+      const session = sessData?.session || null;
+      const access_token = session?.access_token || "";
+      const uid = session?.user?.id || "";
+
+      if(!uid || !access_token) return { ok:false, reason:"not_logged_in" };
 
       const r = await fetch("/api/check-role", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ user_id: uid })
+        body: JSON.stringify({ user_id: uid, access_token })
       });
 
       const out = await r.json().catch(() => ({}));
