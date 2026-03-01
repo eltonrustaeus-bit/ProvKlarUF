@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="sv">
 <head>
@@ -126,7 +125,7 @@
     }
     .sectionHeaderLeft{min-width:0}
 
-    /* ===== Collapsible (proffsigt + smooth) ===== */
+    /* Collapsible */
     .sectionBody{
       margin-top:10px;
       overflow:hidden;
@@ -140,10 +139,7 @@
       margin-top:0;
     }
 
-    .toggleBtn{
-      border-radius:14px;
-      padding:8px 12px;
-    }
+    .toggleBtn{border-radius:14px;padding:8px 12px;}
     .chev{
       width:22px;height:22px;border-radius:10px;
       display:grid;place-items:center;
@@ -160,7 +156,7 @@
 
     footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
 
-    /* ===== SMART TIPS (NY) ===== */
+    /* SMART TIPS */
     .smartTipsBox{
       margin-top:10px;
       border:1px solid rgba(5,42,30,.12);
@@ -204,7 +200,7 @@
       color:var(--muted);
     }
 
-    /* ===== TEACHER REPORT (NY) ===== */
+    /* TEACHER REPORT */
     .reportBox{
       margin-top:10px;
       border:1px solid rgba(5,42,30,.12);
@@ -368,7 +364,6 @@
       </div>
     </section>
 
-    <!-- NY: Träning (ersätter "Redo för prov" + tar bort onödiga knappar) -->
     <section class="card collapsed" id="readyCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
@@ -425,14 +420,14 @@
     // UI state för collapsible
     const LS_UI_OPEN = "proviaai_ui_open_improve"; // { "#cardId": true/false, ... }
 
-    // (NY) Försök läsa användarnamn från lagring / konto
+    // användarnamn
     const LS_USER_NAME_A = "proviaai_user_name";
     const LS_USER_NAME_B = "proviaai_name";
 
-    // (NY) Smart tips cache
+    // Smart tips cache
     const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache"; // { "<course>::<id>": "text", ... }
 
-    // (NY) Teacher report cache
+    // Teacher report cache
     const LS_TEACHER_REPORT_CACHE = "proviaai_teacher_report_cache"; // { "<course>": { ts:number, n:number, text:string } }
 
     // ===== SUPABASE =====
@@ -602,6 +597,7 @@
     // ===== Collapsible helpers (persist + auto-open on nav) =====
     function getUiOpenState(){ return lsGetObj(LS_UI_OPEN) || {}; }
     function setUiOpenState(obj){ lsSet(LS_UI_OPEN, obj); }
+
     function setCardOpen(sel, isOpen){
       const card = document.querySelector(sel);
       if(!card) return;
@@ -616,9 +612,7 @@
       if(!card) return false;
       return !card.classList.contains("collapsed");
     }
-    function toggleCard(sel){
-      setCardOpen(sel, !isCardOpen(sel));
-    }
+    function toggleCard(sel){ setCardOpen(sel, !isCardOpen(sel)); }
     function openSection(sel){
       setCardOpen(sel, true);
       const card = document.querySelector(sel);
@@ -648,7 +642,7 @@
       updateToggleLabels();
     }
 
-    // ===== USER NAME (NY) =====
+    // ===== USER NAME =====
     let USER_NAME = "";
     function normalizeName(s){
       const v = String(s||"").trim();
@@ -712,7 +706,7 @@
       $("syncBtn").textContent = t.sync;
 
       $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
-      $("navCoach").textContent = (LANG==="sv") ? "Coach" : "Coach";
+      $("navCoach").textContent = "Coach";
       $("navReport").textContent = t.reportNav;
       $("navReady").textContent = (LANG==="sv") ? "Träna" : "Train";
       $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
@@ -727,8 +721,6 @@
       renderAll();
     });
 
-    function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
-
     function computeTrend(history){
       if(history.length < 2) return null;
       const last = history.slice(-3);
@@ -740,9 +732,7 @@
       return {delta: a1 - a0, base: "prev3"};
     }
 
-    // ===== (NYTT TILLAGG) ACCESS GATE FÖR FÖRBÄTTRINGSSIDAN =====
-    // Kräver att du har /api/check-role som returnerar JSON med minst: { role: "basic" | "premium" | "admin" }
-    // Tillåter: premium + admin
+    // ===== ACCESS GATE (FIXAD) =====
     function setTopStatus(text, cls){
       const el = $("topStatus");
       if(!el) return;
@@ -764,88 +754,51 @@
       if(syncBtn) syncBtn.setAttribute("disabled","disabled");
     }
 
+    // VIKTIGT: om sidan tidigare låsts, måste vi kunna låsa upp igen
+    function enablePageInteractions(){
+      const main = document.querySelector("main.wrap");
+      if(main){
+        main.style.pointerEvents = "";
+        main.style.userSelect = "";
+        main.style.filter = "";
+        main.style.opacity = "";
+      }
+      const resetBtn = $("resetBtn");
+      if(resetBtn) resetBtn.removeAttribute("disabled");
+      const syncBtn = $("syncBtn");
+      if(syncBtn) syncBtn.removeAttribute("disabled");
+    }
+
     async function mustHaveImproveAccess(){
-      const info = {
-        step: "start",
-        hasDb: !!db,
-        origin: (typeof location !== "undefined" ? location.origin : ""),
-        checkRoleUrl: "/api/check-role",
-        time: new Date().toISOString(),
-        session: { hasSession: false, hasToken: false, uid: "" },
-        api: { ok: false, status: null, role: null, raw: null, error: null }
-      };
+      if(!db) return { ok:false, reason:"no_db" };
+
+      const { data: sessData, error: sessErr } = await db.auth.getSession();
+      if(sessErr) return { ok:false, reason:"not_logged_in" };
+
+      const session = sessData?.session || null;
+      const uid = session?.user?.id || "";
+      if(!uid) return { ok:false, reason:"not_logged_in" };
 
       try{
-        if(!db){
-          info.step = "no_db";
-          return { ok:false, reason:"no_db", debug: info };
+        const r = await fetch("/api/check-role", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ user_id: uid })
+        });
+
+        const outText = await r.text();
+        let outJson = null;
+        try{ outJson = JSON.parse(outText); } catch { outJson = null; }
+
+        if(!r.ok){
+          return { ok:false, reason:"api_error", detail: (outJson && outJson.error) ? String(outJson.error) : "non-200" };
         }
 
-        info.step = "get_session";
-        const { data: sessData, error: sessErr } = await db.auth.getSession();
-        if(sessErr){
-          info.step = "session_error";
-          info.sessionError = String(sessErr?.message || sessErr);
-          return { ok:false, reason:"not_logged_in", debug: info };
-        }
-
-        const session = sessData?.session || null;
-        const access_token = session?.access_token || "";
-        const uid = session?.user?.id || "";
-
-        info.session.hasSession = !!session;
-        info.session.hasToken = !!access_token;
-        info.session.uid = uid;
-
-        if(!uid || !access_token){
-          info.step = "missing_uid_or_token";
-          return { ok:false, reason:"not_logged_in", debug: info };
-        }
-
-        info.step = "call_api";
-        try{
-          const r = await fetch("/api/check-role", {
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({ user_id: uid, access_token })
-          });
-
-          info.api.status = r.status;
-
-          const outText = await r.text();
-          info.api.raw = outText;
-
-          let outJson = null;
-          try{ outJson = JSON.parse(outText); } catch { outJson = null; }
-
-          if(!r.ok){
-            info.step = "api_not_ok";
-            info.api.ok = false;
-            info.api.error = (outJson && outJson.error) ? String(outJson.error) : "non-200";
-            return { ok:false, reason:"api_error", detail: info.api.error, debug: info };
-          }
-
-          const role = String(outJson?.role || "");
-          info.api.ok = true;
-          info.api.role = role;
-
-          const allowed = (role === "premium" || role === "admin");
-          info.step = allowed ? "allowed" : "no_access";
-          return allowed
-            ? { ok:true, role, debug: info }
-            : { ok:false, reason:"no_access", role, debug: info };
-
-        } catch(e){
-          info.step = "fetch_failed";
-          info.api.ok = false;
-          info.api.error = String(e);
-          return { ok:false, reason:"api_error", detail:String(e), debug: info };
-        }
-
+        const role = String(outJson?.role || "");
+        const allowed = (role === "premium" || role === "admin");
+        return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
       } catch(e){
-        info.step = "unexpected_error";
-        info.error = String(e);
-        return { ok:false, reason:"api_error", detail:String(e), debug: info };
+        return { ok:false, reason:"api_error", detail:String(e) };
       }
     }
 
@@ -853,6 +806,7 @@
       const access = await mustHaveImproveAccess();
 
       if(access.ok){
+        enablePageInteractions();
         setTopStatus(
           (LANG==="sv" ? `Åtkomst OK (roll: ${access.role}).` : `Access OK (role: ${access.role}).`),
           "ok"
@@ -868,20 +822,19 @@
           (LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement."),
           "warn"
         );
-} else if(access.reason === "no_access"){
-  if(access.role === "pending"){
-    setTopStatus(
-      (LANG==="sv" ? "Väntar på admin att tilldela roll." : "Waiting for admin to assign a role."),
-      "warn"
-    );
-  } else {
-    setTopStatus(
-      (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
-      "warn"
-    );
-  }
-} else {
-(access.reason === "no_db"){
+      } else if(access.reason === "no_access"){
+        if(access.role === "pending"){
+          setTopStatus(
+            (LANG==="sv" ? "Väntar på admin att tilldela roll." : "Waiting for admin to assign a role."),
+            "warn"
+          );
+        } else {
+          setTopStatus(
+            (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
+            "warn"
+          );
+        }
+      } else if(access.reason === "no_db"){
         setTopStatus(
           (LANG==="sv" ? "Supabase-klient saknas (db=null)." : "Supabase client missing (db=null)."),
           "bad"
@@ -897,7 +850,7 @@
     }
     // ===== SLUT: ACCESS GATE =====
 
-    // ===== Coach (mer personlig + fokus på metoder + tips) =====
+    // ===== Coach =====
     function avgPercent(arr){
       const a = (arr||[]).map(x => Number(x.percent)||0).filter(n => Number.isFinite(n));
       if(!a.length) return 0;
@@ -926,7 +879,6 @@
     function derivePracticeMethods(mistakes){
       const f = (mistakes||[]).slice(-30).map(m => (String(m.feedback||"") + " " + String(m.question||"")).toLowerCase());
       const methods = [];
-
       const add = (sv,en) => methods.push({sv,en});
 
       if(f.some(s => s.includes("steg") || s.includes("metod") || s.includes("visa"))){
@@ -945,7 +897,6 @@
       if(methods.length === 0){
         add("Checklista: metod → mellanresultat → slutsvar.", "Checklist: method → intermediate results → final answer.");
       }
-
       return methods.slice(0,4);
     }
 
@@ -960,7 +911,6 @@
       if((mistakes||[]).some(m => (m.points||0) === 0)){
         add("Börja med enklare nivå på samma moment och bygg upp.", "Start at an easier level of the same skill and build up.");
       }
-
       return tips.slice(0,4);
     }
 
@@ -1020,10 +970,7 @@
       tips.forEach(x => parts.push("• " + (LANG==="sv" ? x.sv : x.en)));
 
       parts.push("");
-      parts.push(LANG==="sv"
-        ? "Nästa pass (15–25 min):"
-        : "Next session (15–25 min):"
-      );
+      parts.push(LANG==="sv" ? "Nästa pass (15–25 min):" : "Next session (15–25 min):");
 
       if(LANG==="sv"){
         parts.push("• Markera 5 misstag i felbanken.");
@@ -1036,10 +983,7 @@
       }
 
       parts.push("");
-      parts.push(LANG==="sv"
-        ? `Senaste prov: ${lastP}%.`
-        : `Latest exam: ${lastP}%.`
-      );
+      parts.push(LANG==="sv" ? `Senaste prov: ${lastP}%.` : `Latest exam: ${lastP}%.`);
 
       return parts.join("\n");
     }
@@ -1055,27 +999,19 @@
       return `${ts}:${String(m.course||"")}:${String(m.id||"")}:${String(m.question||"")}`;
     }
 
-    function getPick(){
-      return lsGetObj(LS_TRAIN_PICK) || { ids:[], course:"" };
-    }
-    function setPick(pick){
-      lsSet(LS_TRAIN_PICK, pick);
-      updateSelPill();
-    }
+    function getPick(){ return lsGetObj(LS_TRAIN_PICK) || { ids:[], course:"" }; }
+    function setPick(pick){ lsSet(LS_TRAIN_PICK, pick); updateSelPill(); }
     function togglePickId(id){
       const pick = getPick();
       const ids = Array.isArray(pick.ids) ? pick.ids.map(x=>String(x)) : [];
       const sid = String(id);
       const set = new Set(ids);
-      if(set.has(sid)) set.delete(sid);
-      else set.add(sid);
+      if(set.has(sid)) set.delete(sid); else set.add(sid);
       pick.ids = Array.from(set);
       pick.course = String($("courseFilter")?.value || "");
       setPick(pick);
     }
-    function clearPick(){
-      setPick({ ids:[], course:String($("courseFilter")?.value || "") });
-    }
+    function clearPick(){ setPick({ ids:[], course:String($("courseFilter")?.value || "") }); }
     function updateSelPill(){
       const pick = getPick();
       const n = Array.isArray(pick.ids) ? pick.ids.length : 0;
@@ -1097,7 +1033,7 @@
       }
     }
 
-    // ===== SMART TIPS (NY) =====
+    // ===== SMART TIPS =====
     function smartTipsCacheKey(m){
       const c = String(m.course||"").trim();
       const id = String(m.id||"").trim();
@@ -1107,9 +1043,7 @@
       const obj = lsGetObj(LS_SMART_TIPS_CACHE);
       return (obj && typeof obj === "object") ? obj : {};
     }
-    function setSmartTipsCache(cache){
-      lsSet(LS_SMART_TIPS_CACHE, cache);
-    }
+    function setSmartTipsCache(cache){ lsSet(LS_SMART_TIPS_CACHE, cache); }
     async function fetchSmartTips(m){
       const res = await fetch("/api/smart-tips", {
         method:"POST",
@@ -1126,14 +1060,12 @@
       return String(data?.tips || "");
     }
 
-    // ===== TEACHER REPORT (NY) =====
+    // ===== TEACHER REPORT =====
     function getTeacherReportCache(){
       const obj = lsGetObj(LS_TEACHER_REPORT_CACHE);
       return (obj && typeof obj === "object") ? obj : {};
     }
-    function setTeacherReportCache(cache){
-      lsSet(LS_TEACHER_REPORT_CACHE, cache);
-    }
+    function setTeacherReportCache(cache){ lsSet(LS_TEACHER_REPORT_CACHE, cache); }
     function getReportCacheKey(){
       const course = String($("courseFilter")?.value || "").trim();
       return course || "__all__";
@@ -1148,10 +1080,7 @@
       if(!res.ok) throw new Error(data?.error || "teacher-report failed");
       return String(data?.report || data?.tips || "");
     }
-    function setReportUiText(text){
-      const box = $("reportBox");
-      box.textContent = text;
-    }
+    function setReportUiText(text){ $("reportBox").textContent = text; }
     function setReportStatus(text, cls){
       const st = $("reportStatus");
       st.textContent = text;
@@ -1164,13 +1093,11 @@
     }
     function setCopyEnabled(enabled){
       const b = $("copyReportBtn");
-      if(enabled) b.removeAttribute("disabled");
-      else b.setAttribute("disabled","disabled");
+      if(enabled) b.removeAttribute("disabled"); else b.setAttribute("disabled","disabled");
     }
     function setGenEnabled(enabled){
       const b = $("genReportBtn");
-      if(enabled) b.removeAttribute("disabled");
-      else b.setAttribute("disabled","disabled");
+      if(enabled) b.removeAttribute("disabled"); else b.setAttribute("disabled","disabled");
     }
 
     function renderMistakes(mistakes, courseFilter){
@@ -1193,7 +1120,6 @@
 
       const pick = getPick();
       const pickSet = new Set((Array.isArray(pick.ids) ? pick.ids : []).map(x=>String(x)));
-
       const tipsCache = getSmartTipsCache();
 
       filtered.slice().sort((a,b)=>(Number(b.ts||0)-Number(a.ts||0))).forEach(m=>{
@@ -1223,9 +1149,7 @@
           </div>
 
           <div class="smartTipsRow">
-            <button class="smartTipsBtn smartTipsBtnEl" type="button">
-              ${escapeHtml(t.smartTips)}
-            </button>
+            <button class="smartTipsBtn smartTipsBtnEl" type="button">${escapeHtml(t.smartTips)}</button>
             <span class="smartTipsPill smartTipsPillEl" style="display:${hasCached ? "inline-flex" : "none"}">${escapeHtml(t.smartTipsCached)}</span>
           </div>
 
@@ -1270,9 +1194,7 @@
           tipsBox.style.display = "none";
           tipsBox.textContent = "";
         }
-        function isTipsVisible(){
-          return tipsBox.style.display !== "none";
-        }
+        function isTipsVisible(){ return tipsBox.style.display !== "none"; }
 
         tipsBtn?.addEventListener("click", async () => {
           const tt = T[LANG];
@@ -1292,7 +1214,6 @@
             return;
           }
 
-          if(!tipsBtn) return;
           tipsBtn.setAttribute("disabled","disabled");
           showTips(tt.smartTipsLoading);
 
@@ -1445,7 +1366,6 @@
       const filteredMistakes = course ? mistakes.filter(m => String(m.course||"").trim() === course) : mistakes;
 
       const reportN = filteredHistory.length;
-
       if(reportN < 3){
         setReportStatus(t.reportNeed3(reportN), "warn");
         setReportUiText("—");
@@ -1519,8 +1439,8 @@
       buildCourseOptions(history, mistakes);
 
       const course = String($("courseFilter")?.value || "").trim();
-
       const topStatus = $("topStatus");
+
       if(history.length === 0){
         topStatus.textContent = t.noData;
         topStatus.className = "status warn";
@@ -1570,7 +1490,6 @@
       updateSelPill();
       updateToggleLabels();
 
-      // Teacher report gating
       const filteredHistory = course ? history.filter(h => String(h.course||"").trim() === course) : history;
       renderTeacherReportState(filteredHistory);
     }
@@ -1667,7 +1586,6 @@
       lsSet(LS_MISTAKES, mistakes);
 
       if(st){ st.textContent = (LANG==="sv" ? "Synk klar." : "Sync done."); st.className="status ok"; }
-
       renderAll();
     }
 
@@ -1675,11 +1593,8 @@
     $("courseFilter").addEventListener("change", () => renderAll());
     $("showMode").addEventListener("change", () => {
       const mode = String($("showMode").value || "mistakes");
-      if(mode === "all"){
-        openSection("#examListCard");
-      } else {
-        openSection("#mistakeCard");
-      }
+      if(mode === "all") openSection("#examListCard");
+      else openSection("#mistakeCard");
     });
 
     $("syncBtn").addEventListener("click", async () => {
@@ -1716,11 +1631,7 @@
       localStorage.removeItem(LS_MISTAKES);
       localStorage.removeItem(LS_LAST);
       localStorage.removeItem(LS_TRAIN_PICK);
-
-      // (NY) nolla tips cache också (valfritt men gör "rensning" komplett)
       localStorage.removeItem(LS_SMART_TIPS_CACHE);
-
-      // (NY) nolla report cache också
       localStorage.removeItem(LS_TEACHER_REPORT_CACHE);
 
       renderAll();
@@ -1765,7 +1676,7 @@
       });
     }
 
-    // ===== INIT (ÄNDRAD ENDAST GENOM TILLAGG: gate före render/sync) =====
+    // ===== INIT =====
     (async () => {
       applyLang();
       bindToggles();
@@ -1776,12 +1687,10 @@
 
       renderAll();
 
-      // Auto-sync best effort om inloggad + försök läsa namn
+      // Auto-sync + namn
       (async () => {
-        // 1) namn från local först
         USER_NAME = getNameFromLocal();
 
-        // 2) försök konto-namn om saknas
         if(!USER_NAME){
           const n = await tryLoadNameFromAccount();
           if(n){
@@ -1790,7 +1699,6 @@
           }
         }
 
-        // 3) sync om inloggad
         if(db){
           const uid = await getUserId();
           if(uid){
@@ -1798,7 +1706,6 @@
           }
         }
 
-        // 4) re-render så coachen får med namn
         renderAll();
       })();
     })();
