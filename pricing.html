@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="sv">
+<head>
+ <meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+ <title>ProviaAi – Priser & Medlemskap</title>
+ <meta name="description" content="Jämför Basic (19 kr/mån) och Premium (59 kr/mån) för ProviaAi." />
+
+ <style>
+ :root{
+ --deep:#052A1E; --deep2:#041E16;
+ --mint:#2BE38C; --mint2:#16B876;
+ --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
+ --shadow:0 18px 55px rgba(5,42,30,.14);
+ --radius:18px; --max:1100px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+ }
+ *{box-sizing:border-box}
+ html{scroll-behavior:smooth}
+ body{
+ margin:0;font-family:var(--font);color:#071812;background:var(--bg);
+ background:
+ radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
+ radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
+ var(--bg);
+ }
+ a{text-decoration:none;color:inherit}
+
+ header{
+ position:sticky;top:0;z-index:3000;
+ background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
+ border-bottom:1px solid var(--border);
+ }
+ .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
+ .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+ .brand{display:flex;align-items:center;gap:12px;min-width:0}
+ .brand img{height:52px;width:auto;display:block}
+ .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
+ .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+
+ .btn{
+ display:inline-flex;align-items:center;justify-content:center;
+ padding:12px 16px;border-radius:14px;
+ font-weight:1000;font-size:14px;border:1px solid var(--border);
+ cursor:pointer;white-space:nowrap;
+ background:rgba(255,255,255,.92);color:var(--deep);
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+ transform:translateZ(0);
+ }
+ .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22)}
+ .btn:active{transform:translateY(0) scale(.985)}
+ .btnPrimary{
+ background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
+ box-shadow:0 14px 28px rgba(22,184,118,.22)
+ }
+ .btnPrimary:hover{box-shadow:0 18px 36px rgba(22,184,118,.24)}
+
+ .card{
+ background:rgba(255,255,255,.92);
+ border:1px solid var(--border);
+ border-radius:var(--radius);
+ box-shadow:var(--shadow);
+ padding:clamp(16px,3vw,22px);
+ margin:14px 0;
+ overflow:hidden;
+ position:relative;
+ }
+ .card:before{
+ content:"";
+ position:absolute;inset:-70px -70px auto auto;
+ width:190px;height:190px;border-radius:999px;
+ background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
+ pointer-events:none;
+ }
+
+ .hTitle{margin:0;color:var(--deep);font-weight:1100;letter-spacing:-.02em;font-size:clamp(24px,3.6vw,36px)}
+ .hSub{margin:10px 0 0;color:var(--muted);font-weight:800;line-height:1.45}
+ .sectionTitle{margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);font-size:16px}
+ .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
+
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+ @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
+
+ .plan{
+ border:1px solid var(--border);
+ border-radius:18px;
+ background:#fff;
+ padding:16px;
+ position:relative;
+ overflow:hidden;
+ }
+ .plan:before{
+ content:"";
+ position:absolute;inset:-70px -70px auto auto;
+ width:170px;height:170px;border-radius:999px;
+ background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.10), transparent 60%);
+ pointer-events:none;
+ }
+ .planTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+ .planName{margin:0;font-weight:1100;color:var(--deep);font-size:16px}
+ .planPrice{display:flex;align-items:baseline;gap:6px;font-weight:1100;color:var(--deep)}
+ .planPrice .num{font-size:26px;letter-spacing:-.02em}
+ .planPrice .per{font-size:12px;color:var(--muted);font-weight:900}
+ .pill{
+ font-size:11px;font-weight:1000;color:var(--muted);
+ border:1px solid var(--border);
+ border-radius:999px;padding:4px 8px;background:#fff;
+ }
+ .list{margin:10px 0 0;padding:0 0 0 16px;color:#0A2219;font-weight:850;line-height:1.6}
+ .hr{height:1px;background:rgba(5,42,30,.10);margin:12px 0}
+
+ .note{
+ margin-top:10px;
+ border:1px solid var(--border);
+ border-radius:16px;
+ background:rgba(255,255,255,.92);
+ padding:12px;
+ color:var(--muted);
+ font-weight:850;
+ font-size:12px;
+ line-height:1.45;
+ }
+
+ footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
+ </style>
+</head>
+
+<body>
+ <header>
+ <div class="wrap topbar">
+ <a class="brand" href="index.html">
+ <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+ <div>
+ <div class="name">ProviaAi</div>
+ <div class="tag">Priser • Medlemskap</div>
+ </div>
+ </a>
+
+ <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+ <a class="btn" href="index.html">Till startsidan</a>
+ <a class="btn btnPrimary" href="app.html">Starta ProviaAi</a>
+ </div>
+ </div>
+ </header>
+
+ <main class="wrap">
+ <section class="card">
+ <h1 class="hTitle">Priser & medlemskap</h1>
+ <p class="hSub">Sidan är publik och kräver ingen inloggning. Jämför Basic och Premium.</p>
+
+ <div class="grid2" aria-label="Prisplaner">
+ <div class="plan" aria-label="Basic">
+ <div class="planTop">
+ <div>
+ <p class="planName">Basic</p>
+ <span class="pill">För egen provträning</span>
+ </div>
+ <div class="planPrice">
+ <span class="num">19</span>
+ <span class="per">kr/mån</span>
+ </div>
+ </div>
+
+ <div class="hr"></div>
+
+ <p class="sectionSub">Innehåller grundfunktioner:</p>
+ <ul class="list">
+ <li>Göra prov (mockprov) från material</li>
+ <li>Se resultat</li>
+ <li>Spara historik</li>
+ </ul>
+
+ <div class="note">Basic ska kunna använda appen, men ska inte ha tillgång till förbättringssidan.</div>
+ </div>
+
+ <div class="plan" aria-label="Premium">
+ <div class="planTop">
+ <div>
+ <p class="planName">Premium</p>
+ <span class="pill">Alla AI-funktioner</span>
+ </div>
+ <div class="planPrice">
+ <span class="num">59</span>
+ <span class="per">kr/mån</span>
+ </div>
+ </div>
+
+ <div class="hr"></div>
+
+ <p class="sectionSub">Innehåller allt i Basic + avancerade AI-funktioner:</p>
+ <ul class="list">
+ <li>Förbättringssidan</li>
+ <li>AI-coach</li>
+ <li>Smart tips</li>
+ <li>Lärarrapporter</li>
+ <li>Träning från misstag</li>
+ </ul>
+
+ <div class="note">Premium och admin ska ha full tillgång till förbättringssidan.</div>
+ </div>
+ </div>
+ </section>
+
+ <section class="card">
+ <p class="sectionTitle">Roller (översikt)</p>
+ <p class="sectionSub">Roller lagras i tabellen <b>user_roles</b> i Supabase.</p>
+ <ul class="list">
+ <li><b>pending</b> – väntar på admin att tilldela roll</li>
+ <li><b>basic</b> – appen (grundfunktioner), inte förbättringssidan</li>
+ <li><b>premium</b> – full access inkl. förbättringssidan</li>
+ <li><b>admin</b> – full access</li>
+ </ul>
+ </section>
+ </main>
+
+ <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+</body>
+</html>
