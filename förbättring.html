@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="sv">
 <head>
@@ -238,20 +239,6 @@
       gap:8px;
     }
     .reportBtn[disabled]{opacity:.65;cursor:not-allowed}
-
-    /* ===== DEBUG (NY) ===== */
-    .debugCard{
-      margin-top:12px;
-      border:1px dashed rgba(5,42,30,.25);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      font-weight:850;
-      font-size:12px;
-      line-height:1.45;
-      white-space:pre-wrap;
-    }
-    .debugRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
   </style>
 </head>
 
@@ -279,12 +266,6 @@
       <h1 class="title" id="pageTitle">Din förbättring</h1>
       <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
       <div class="status" id="topStatus"></div>
-
-      <!-- DEBUG (NY) -->
-      <div class="debugCard" id="debugBox" style="display:none"></div>
-      <div class="debugRow" id="debugRow" style="display:none">
-        <button class="tinyBtn" type="button" id="debugCopyBtn">Kopiera debug</button>
-      </div>
 
       <div class="quickNav" id="quickNav">
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
@@ -783,16 +764,6 @@
       if(syncBtn) syncBtn.setAttribute("disabled","disabled");
     }
 
-    // ===== DEBUG (NY) =====
-    function setDebug(text){
-      const box = $("debugBox");
-      const row = $("debugRow");
-      if(!box || !row) return;
-      box.style.display = "block";
-      row.style.display = "flex";
-      box.textContent = String(text || "");
-    }
-
     async function mustHaveImproveAccess(){
       const info = {
         step: "start",
@@ -881,11 +852,6 @@
     async function gateImprovePage(){
       const access = await mustHaveImproveAccess();
 
-      // Visa debug alltid
-      if(access?.debug){
-        setDebug(JSON.stringify(access.debug, null, 2));
-      }
-
       if(access.ok){
         setTopStatus(
           (LANG==="sv" ? `Åtkomst OK (roll: ${access.role}).` : `Access OK (role: ${access.role}).`),
@@ -921,15 +887,6 @@
 
       return false;
     }
-
-    // Kopiera debug
-    document.addEventListener("click", async (e) => {
-      if(e.target && e.target.id === "debugCopyBtn"){
-        const box = $("debugBox");
-        const txt = box ? box.textContent : "";
-        try{ await navigator.clipboard.writeText(txt); } catch {}
-      }
-    });
     // ===== SLUT: ACCESS GATE =====
 
     // ===== Coach (mer personlig + fokus på metoder + tips) =====
@@ -1745,8 +1702,6 @@
     });
 
     $("resetBtn").addEventListener("click", async () => {
-      const t = T[LANG];
-
       localStorage.setItem(LS_CLEAR_TS, String(Date.now()));
 
       localStorage.removeItem(LS_HISTORY);
