@@ -739,6 +739,92 @@
       return {delta: a1 - a0, base: "prev3"};
     }
 
+    // ===== (NYTT TILLAGG) ACCESS GATE FÖR FÖRBÄTTRINGSSIDAN =====
+    // Kräver att du har /api/check-role som returnerar JSON med minst: { role: "basic" | "premium" | "admin" }
+    // Tillåter: premium + admin
+    function setTopStatus(text, cls){
+      const el = $("topStatus");
+      if(!el) return;
+      el.textContent = text;
+      el.className = "status" + (cls ? (" " + cls) : "");
+    }
+
+    function disablePageInteractions(){
+      const main = document.querySelector("main.wrap");
+      if(main){
+        main.style.pointerEvents = "none";
+        main.style.userSelect = "none";
+        main.style.filter = "grayscale(0.35)";
+        main.style.opacity = "0.7";
+      }
+      const resetBtn = $("resetBtn");
+      if(resetBtn) resetBtn.setAttribute("disabled","disabled");
+      const syncBtn = $("syncBtn");
+      if(syncBtn) syncBtn.setAttribute("disabled","disabled");
+    }
+
+    async function mustHaveImproveAccess(){
+      // Om db saknas kan vi inte verifiera. Lås sidan.
+      if(!db) return { ok:false, reason:"no_db" };
+
+      const { data, error } = await db.auth.getUser();
+      if(error || !data?.user?.id) return { ok:false, reason:"not_logged_in" };
+
+      const uid = data.user.id;
+
+      const r = await fetch("/api/check-role", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ user_id: uid })
+      });
+
+      const out = await r.json().catch(() => ({}));
+      if(!r.ok) return { ok:false, reason:"api_error", detail: out?.error };
+
+      const role = String(out?.role || "");
+      const allowed = (role === "premium" || role === "admin");
+      return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
+    }
+
+    async function gateImprovePage(){
+      const access = await mustHaveImproveAccess();
+
+      if(access.ok){
+        return true;
+      }
+
+      // Lås UI om ingen access
+      disablePageInteractions();
+
+      if(access.reason === "not_logged_in"){
+        setTopStatus(LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement.", "warn");
+      } else if(access.reason === "no_access"){
+        setTopStatus(
+          LANG==="sv"
+            ? "Förbättring ingår inte i din plan. Uppgradera för åtkomst."
+            : "Improvement is not included in your plan. Upgrade for access.",
+          "warn"
+        );
+      } else if(access.reason === "api_error"){
+        setTopStatus(
+          LANG==="sv"
+            ? "Kunde inte verifiera åtkomst (API-fel)."
+            : "Could not verify access (API error).",
+          "bad"
+        );
+      } else {
+        setTopStatus(
+          LANG==="sv"
+            ? "Kunde inte verifiera åtkomst."
+            : "Could not verify access.",
+          "bad"
+        );
+      }
+
+      return false;
+    }
+    // ===== SLUT: ACCESS GATE =====
+
     // ===== Coach (mer personlig + fokus på metoder + tips) =====
     function avgPercent(arr){
       const a = (arr||[]).map(x => Number(x.percent)||0).filter(n => Number.isFinite(n));
@@ -1116,11 +1202,9 @@
           return tipsBox.style.display !== "none";
         }
 
-        // Om tips redan finns i cache: visa/dölj direkt utan API
         tipsBtn?.addEventListener("click", async () => {
           const tt = T[LANG];
 
-          // toggle hide if open
           if(isTipsVisible()){
             hideTips();
             return;
@@ -1136,7 +1220,6 @@
             return;
           }
 
-          // fetch via API
           if(!tipsBtn) return;
           tipsBtn.setAttribute("disabled","disabled");
           showTips(tt.smartTipsLoading);
@@ -1612,36 +1695,42 @@
       });
     }
 
-    applyLang();
-    bindToggles();
-    restoreUiOpenFromStorage();
-    renderAll();
-
-    // Auto-sync best effort om inloggad + försök läsa namn
+    // ===== INIT (ÄNDRAD ENDAST GENOM TILLAGG: gate före render/sync) =====
     (async () => {
-      // 1) namn från local först
-      USER_NAME = getNameFromLocal();
+      applyLang();
+      bindToggles();
+      restoreUiOpenFromStorage();
 
-      // 2) försök konto-namn om saknas
-      if(!USER_NAME){
-        const n = await tryLoadNameFromAccount();
-        if(n){
-          USER_NAME = n;
-          // spara lokalt så coach alltid kan hälsa
-          try{ localStorage.setItem(LS_USER_NAME_A, USER_NAME); } catch {}
-        }
-      }
+      const ok = await gateImprovePage();
+      if(!ok) return;
 
-      // 3) sync om inloggad
-      if(db){
-        const uid = await getUserId();
-        if(uid){
-          await syncFromAccount();
-        }
-      }
-
-      // 4) re-render så coachen får med namn
       renderAll();
+
+      // Auto-sync best effort om inloggad + försök läsa namn
+      (async () => {
+        // 1) namn från local först
+        USER_NAME = getNameFromLocal();
+
+        // 2) försök konto-namn om saknas
+        if(!USER_NAME){
+          const n = await tryLoadNameFromAccount();
+          if(n){
+            USER_NAME = n;
+            try{ localStorage.setItem(LS_USER_NAME_A, USER_NAME); } catch {}
+          }
+        }
+
+        // 3) sync om inloggad
+        if(db){
+          const uid = await getUserId();
+          if(uid){
+            await syncFromAccount();
+          }
+        }
+
+        // 4) re-render så coachen får med namn
+        renderAll();
+      })();
     })();
   </script>
 </body>
