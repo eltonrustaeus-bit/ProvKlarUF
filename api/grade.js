@@ -178,7 +178,7 @@ module.exports = async function handler(req, res) {
     for (const q of questions) {
       const id = String(q.id ?? "");
       const type = String(q.type ?? "");
-      const maxP = Number(q.points ?? 0) || 0;
+      const maxP = Number(q.max_points ?? q.points ?? 0) || 0;
       maxTotal += maxP;
 
       const userAns = answerMap.get(id) ?? "";
@@ -199,8 +199,8 @@ module.exports = async function handler(req, res) {
                 ? "Rätt."
                 : "Fel."
               : pts === maxP
-                ? "Correct."
-                : "Incorrect.";
+              ? "Correct."
+              : "Incorrect.";
         } else {
           pts = 0;
           fb =
@@ -254,21 +254,21 @@ module.exports = async function handler(req, res) {
       "1) Fakta: Använd ENDAST 'material' som faktakälla. Om materialet inte räcker, skriv tydligt 'Otillräckliga data i materialet' i feedback och ge lägre poäng.\n" +
       "2) Poäng: points måste vara tal inom [0..max_points]. max_points måste matcha uppgiften.\n" +
       "3) Feedback (kort och precis):\n" +
-      "   - Börja med 1 rad: 'Poäng: X/Y.'\n" +
-      "   - Sedan 2–5 korta punkter: (a) vad som var korrekt, (b) vad som saknas/fel, (c) exakt vad som krävs för full poäng.\n" +
-      "   - Avsluta med 1 konkret nästa-övning (en mening), gärna kopplat till student_context.\n" +
+      " - Börja med 1 rad: 'Poäng: X/Y.'\n" +
+      " - Sedan 2–5 korta punkter: (a) vad som var korrekt, (b) vad som saknas/fel, (c) exakt vad som krävs för full poäng.\n" +
+      " - Avsluta med 1 konkret nästa-övning (en mening), gärna kopplat till student_context.\n" +
       "4) Personlig anpassning:\n" +
-      "   - Använd student_context (history + mistakes) för att nämna 1 återkommande svaghet eller styrka när relevant.\n" +
-      "   - Inga antaganden utöver context.\n" +
+      " - Använd student_context (history + mistakes) för att nämna 1 återkommande svaghet eller styrka när relevant.\n" +
+      " - Inga antaganden utöver context.\n" +
       "5) Model_answer:\n" +
-      "   - Skriv ett fullpoängssvar som är tydligt, strukturerat och direkt baserat på materialet.\n" +
-      "   - Om materialet saknar info: skriv ett svar som tydligt markerar vad som inte kan fastställas från materialet.\n" +
+      " - Skriv ett fullpoängssvar som är tydligt, strukturerat och direkt baserat på materialet.\n" +
+      " - Om materialet saknar info: skriv ett svar som tydligt markerar vad som inte kan fastställas från materialet.\n" +
       "6) concept_tag:\n" +
-      "   - Kort tagg (2–5 ord). Om oklart: 'Okänt'.\n" +
+      " - Kort tagg (2–5 ord). Om oklart: 'Okänt'.\n" +
       "7) error_tags:\n" +
-      "   - 0–5 taggar, välj från:\n" +
-      "     ['definition_missing','concept_confusion','calculation_error','units_missing','method_missing','reasoning_gap','missing_steps','structure_weak','example_missing','language_unclear','off_topic','insufficient_material']\n" +
-      "   - Tagga bara sådant du kan se i elevsvaret. Om inget: [].\n" +
+      " - 0–5 taggar, välj från:\n" +
+      " ['definition_missing','concept_confusion','calculation_error','units_missing','method_missing','reasoning_gap','missing_steps','structure_weak','example_missing','language_unclear','off_topic','insufficient_material']\n" +
+      " - Tagga bara sådant du kan se i elevsvaret. Om inget: [].\n" +
       "8) Språk: Professionellt. Inga fluff-fraser.\n";
 
     const systemEn =
@@ -278,9 +278,9 @@ module.exports = async function handler(req, res) {
       "1) Facts: Use ONLY 'material' as the factual source. If material is insufficient, explicitly say 'Insufficient data in the material' in feedback and award fewer points.\n" +
       "2) Scoring: points must be within [0..max_points]. max_points must match the item.\n" +
       "3) Feedback:\n" +
-      "   - Start with: 'Score: X/Y.'\n" +
-      "   - 2–5 bullets: correct parts, missing/incorrect, what is required for full score.\n" +
-      "   - End with 1 next practice step.\n" +
+      " - Start with: 'Score: X/Y.'\n" +
+      " - 2–5 bullets: correct parts, missing/incorrect, what is required for full score.\n" +
+      " - End with 1 next practice step.\n" +
       "4) Personalization: Use student_context (history + mistakes) when relevant; do not invent.\n" +
       "5) Model_answer: Full-score answer grounded in material; if insufficient, state what cannot be determined.\n" +
       "6) concept_tag: 2–5 words; if unclear: 'Unknown'.\n" +
