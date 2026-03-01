@@ -868,12 +868,20 @@
           (LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement."),
           "warn"
         );
-      } else if(access.reason === "no_access"){
-        setTopStatus(
-          (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
-          "warn"
-        );
-      } else if(access.reason === "no_db"){
+} else if(access.reason === "no_access"){
+  if(access.role === "pending"){
+    setTopStatus(
+      (LANG==="sv" ? "Väntar på admin att tilldela roll." : "Waiting for admin to assign a role."),
+      "warn"
+    );
+  } else {
+    setTopStatus(
+      (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
+      "warn"
+    );
+  }
+} else {
+(access.reason === "no_db"){
         setTopStatus(
           (LANG==="sv" ? "Supabase-klient saknas (db=null)." : "Supabase client missing (db=null)."),
           "bad"
