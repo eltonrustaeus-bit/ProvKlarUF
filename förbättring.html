@@ -792,42 +792,40 @@
     }
 
     async function gateImprovePage(){
-      const access = await mustHaveImproveAccess();
 
-      if(access.ok){
-        return true;
-      }
+  const access = await mustHaveImproveAccess();
 
-      // Lås UI om ingen access
-      disablePageInteractions();
+  if(access.ok){
+    return true;
+  }
 
-      if(access.reason === "not_logged_in"){
-        setTopStatus(LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement.", "warn");
-      } else if(access.reason === "no_access"){
-        setTopStatus(
-          LANG==="sv"
-            ? "Förbättring ingår inte i din plan. Uppgradera för åtkomst."
-            : "Improvement is not included in your plan. Upgrade for access.",
-          "warn"
-        );
-      } else if(access.reason === "api_error"){
-        setTopStatus(
-          LANG==="sv"
-            ? "Kunde inte verifiera åtkomst (API-fel)."
-            : "Could not verify access (API error).",
-          "bad"
-        );
-      } else {
-        setTopStatus(
-          LANG==="sv"
-            ? "Kunde inte verifiera åtkomst."
-            : "Could not verify access.",
-          "bad"
-        );
-      }
+  // Lås UI
+  disablePageInteractions();
 
-      return false;
-    }
+  if(access.reason === "not_logged_in"){
+
+    setTopStatus(
+      LANG==="sv"
+        ? "Logga in för att använda Förbättring."
+        : "Log in to use Improvement.",
+      "warn"
+    );
+
+  } else {
+
+    // ALLT som inte är godkänt räknas som ingen plan
+    setTopStatus(
+      LANG==="sv"
+        ? "Förbättring ingår inte i din plan. Uppgradera för åtkomst."
+        : "Improvement is not included in your plan. Upgrade for access.",
+      "warn"
+    );
+
+  }
+
+  return false;
+
+}
     // ===== SLUT: ACCESS GATE =====
 
     // ===== Coach (mer personlig + fokus på metoder + tips) =====
