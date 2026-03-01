@@ -238,6 +238,20 @@
       gap:8px;
     }
     .reportBtn[disabled]{opacity:.65;cursor:not-allowed}
+
+    /* ===== DEBUG (NY) ===== */
+    .debugCard{
+      margin-top:12px;
+      border:1px dashed rgba(5,42,30,.25);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:850;
+      font-size:12px;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .debugRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
   </style>
 </head>
 
@@ -265,6 +279,12 @@
       <h1 class="title" id="pageTitle">Din förbättring</h1>
       <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
       <div class="status" id="topStatus"></div>
+
+      <!-- DEBUG (NY) -->
+      <div class="debugCard" id="debugBox" style="display:none"></div>
+      <div class="debugRow" id="debugRow" style="display:none">
+        <button class="tinyBtn" type="button" id="debugCopyBtn">Kopiera debug</button>
+      </div>
 
       <div class="quickNav" id="quickNav">
         <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
@@ -763,69 +783,153 @@
       if(syncBtn) syncBtn.setAttribute("disabled","disabled");
     }
 
+    // ===== DEBUG (NY) =====
+    function setDebug(text){
+      const box = $("debugBox");
+      const row = $("debugRow");
+      if(!box || !row) return;
+      box.style.display = "block";
+      row.style.display = "flex";
+      box.textContent = String(text || "");
+    }
+
     async function mustHaveImproveAccess(){
-      // Om db saknas kan vi inte verifiera. Lås sidan.
-      if(!db) return { ok:false, reason:"no_db" };
+      const info = {
+        step: "start",
+        hasDb: !!db,
+        origin: (typeof location !== "undefined" ? location.origin : ""),
+        checkRoleUrl: "/api/check-role",
+        time: new Date().toISOString(),
+        session: { hasSession: false, hasToken: false, uid: "" },
+        api: { ok: false, status: null, role: null, raw: null, error: null }
+      };
 
-      // Hämta session för access_token (krävs av API)
-      const { data: sessData, error: sessErr } = await db.auth.getSession();
-      if(sessErr) return { ok:false, reason:"not_logged_in" };
+      try{
+        if(!db){
+          info.step = "no_db";
+          return { ok:false, reason:"no_db", debug: info };
+        }
 
-      const session = sessData?.session || null;
-      const access_token = session?.access_token || "";
-      const uid = session?.user?.id || "";
+        info.step = "get_session";
+        const { data: sessData, error: sessErr } = await db.auth.getSession();
+        if(sessErr){
+          info.step = "session_error";
+          info.sessionError = String(sessErr?.message || sessErr);
+          return { ok:false, reason:"not_logged_in", debug: info };
+        }
 
-      if(!uid || !access_token) return { ok:false, reason:"not_logged_in" };
+        const session = sessData?.session || null;
+        const access_token = session?.access_token || "";
+        const uid = session?.user?.id || "";
 
-      const r = await fetch("/api/check-role", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ user_id: uid, access_token })
-      });
+        info.session.hasSession = !!session;
+        info.session.hasToken = !!access_token;
+        info.session.uid = uid;
 
-      const out = await r.json().catch(() => ({}));
-      if(!r.ok) return { ok:false, reason:"api_error", detail: out?.error };
+        if(!uid || !access_token){
+          info.step = "missing_uid_or_token";
+          return { ok:false, reason:"not_logged_in", debug: info };
+        }
 
-      const role = String(out?.role || "");
-      const allowed = (role === "premium" || role === "admin");
-      return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
+        info.step = "call_api";
+        try{
+          const r = await fetch("/api/check-role", {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({ user_id: uid, access_token })
+          });
+
+          info.api.status = r.status;
+
+          const outText = await r.text();
+          info.api.raw = outText;
+
+          let outJson = null;
+          try{ outJson = JSON.parse(outText); } catch { outJson = null; }
+
+          if(!r.ok){
+            info.step = "api_not_ok";
+            info.api.ok = false;
+            info.api.error = (outJson && outJson.error) ? String(outJson.error) : "non-200";
+            return { ok:false, reason:"api_error", detail: info.api.error, debug: info };
+          }
+
+          const role = String(outJson?.role || "");
+          info.api.ok = true;
+          info.api.role = role;
+
+          const allowed = (role === "premium" || role === "admin");
+          info.step = allowed ? "allowed" : "no_access";
+          return allowed
+            ? { ok:true, role, debug: info }
+            : { ok:false, reason:"no_access", role, debug: info };
+
+        } catch(e){
+          info.step = "fetch_failed";
+          info.api.ok = false;
+          info.api.error = String(e);
+          return { ok:false, reason:"api_error", detail:String(e), debug: info };
+        }
+
+      } catch(e){
+        info.step = "unexpected_error";
+        info.error = String(e);
+        return { ok:false, reason:"api_error", detail:String(e), debug: info };
+      }
     }
 
     async function gateImprovePage(){
+      const access = await mustHaveImproveAccess();
 
-  const access = await mustHaveImproveAccess();
+      // Visa debug alltid
+      if(access?.debug){
+        setDebug(JSON.stringify(access.debug, null, 2));
+      }
 
-  if(access.ok){
-    return true;
-  }
+      if(access.ok){
+        setTopStatus(
+          (LANG==="sv" ? `Åtkomst OK (roll: ${access.role}).` : `Access OK (role: ${access.role}).`),
+          "ok"
+        );
+        return true;
+      }
 
-  // Lås UI
-  disablePageInteractions();
+      // Lås UI
+      disablePageInteractions();
 
-  if(access.reason === "not_logged_in"){
+      if(access.reason === "not_logged_in"){
+        setTopStatus(
+          (LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement."),
+          "warn"
+        );
+      } else if(access.reason === "no_access"){
+        setTopStatus(
+          (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
+          "warn"
+        );
+      } else if(access.reason === "no_db"){
+        setTopStatus(
+          (LANG==="sv" ? "Supabase-klient saknas (db=null)." : "Supabase client missing (db=null)."),
+          "bad"
+        );
+      } else {
+        setTopStatus(
+          (LANG==="sv" ? `API-fel: ${access.detail || "okänt"}` : `API error: ${access.detail || "unknown"}`),
+          "bad"
+        );
+      }
 
-    setTopStatus(
-      LANG==="sv"
-        ? "Logga in för att använda Förbättring."
-        : "Log in to use Improvement.",
-      "warn"
-    );
+      return false;
+    }
 
-  } else {
-
-    // ALLT som inte är godkänt räknas som ingen plan
-    setTopStatus(
-      LANG==="sv"
-        ? "Förbättring ingår inte i din plan. Uppgradera för åtkomst."
-        : "Improvement is not included in your plan. Upgrade for access.",
-      "warn"
-    );
-
-  }
-
-  return false;
-
-}
+    // Kopiera debug
+    document.addEventListener("click", async (e) => {
+      if(e.target && e.target.id === "debugCopyBtn"){
+        const box = $("debugBox");
+        const txt = box ? box.textContent : "";
+        try{ await navigator.clipboard.writeText(txt); } catch {}
+      }
+    });
     // ===== SLUT: ACCESS GATE =====
 
     // ===== Coach (mer personlig + fokus på metoder + tips) =====
