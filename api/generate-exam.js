@@ -1,269 +1,140 @@
-// /api/generate-exam.js
+// Vercel Serverless Function (Node.js)
+// Returnerar { ok:true, exam:{ title, level, questions:[{id, type, points, question, options?}] } }
 
-function json(res, status, obj) {
- res.statusCode = status;
- res.setHeader("Content-Type", "application/json; charset=utf-8");
- res.end(JSON.stringify(obj));
+function clampInt(n, min, max) {
+  n = Number(n);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
-function safeString(x, maxLen = 200000) {
- const s = typeof x === "string" ? x : "";
- return s.length > maxLen ? s.slice(0, maxLen) : s;
+function pickSentences(text, maxCount = 80) {
+  const cleaned = String(text || "")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // Prioritera punktlistor/rubriker
+  const bullets = cleaned.filter(l => /^[-•*]/.test(l)).map(l => l.replace(/^[-•*]\s*/, ""));
+  const lines = bullets.length ? bullets : cleaned;
+
+  const out = [];
+  for (const l of lines) {
+    // Split på enkla meningsgränser utan att bli för aggressiv
+    const parts = l.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean);
+    for (const p of parts) {
+      if (p.length >= 18) out.push(p);
+      if (out.length >= maxCount) return out;
+    }
+  }
+  return out;
 }
 
-function asEnum(x, allowed, fallback) {
- return allowed.includes(x) ? x : fallback;
+function makeShortQuestionFromSentence(s, lang) {
+  // Enkel, deterministisk frågegenerator (ingen AI)
+  // Bygger frågor runt definition/förklaring/exempel.
+  const sv = lang === "sv";
+  if (/^\w+\s*:\s*/.test(s)) {
+    const [head, rest] = s.split(/:\s*/, 2);
+    return sv
+      ? `Förklara begreppet "${head}".`
+      : `Explain the concept "${head}".`;
+  }
+  if (/(=|≈|→)/.test(s)) {
+    return sv
+      ? `Förklara vad som menas med: ${s}`
+      : `Explain what this means: ${s}`;
+  }
+  return sv
+    ? `Sammanfatta och förklara: "${s}"`
+    : `Summarize and explain: "${s}"`;
 }
 
-function toInt(x, fallback) {
- const n = Number.parseInt(String(x), 10);
- return Number.isFinite(n) ? n : fallback;
+function makeMcOptionsFromSentence(s, lang) {
+  // Skapar 4 alternativ: 1 "rätt-ish" (baserad på meningens nyckelord) + 3 distraktorer
+  const sv = lang === "sv";
+  const words = s
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .split(/\s+/)
+    .filter(w => w.length >= 5)
+    .slice(0, 10);
+
+  const key = words.slice(0, 3).join(" ");
+  const a = sv ? `Stämmer med texten: ${key || "huvudpoängen"}` : `Matches the text: ${key || "main point"}`;
+  const b = sv ? `Handlar främst om något annat (inte detta avsnitt)` : `Mainly about something else (not this section)`;
+  const c = sv ? `Överdriver eller generaliserar felaktigt` : `Overstates or generalizes incorrectly`;
+  const d = sv ? `Motsäger textens huvudidé` : `Contradicts the text's main idea`;
+
+  return [a, b, c, d];
 }
 
-function buildMockExamSchema(n) {
- return {
- type: "json_schema",
- name: "mock_exam",
- strict: true,
- schema: {
- type: "object",
- additionalProperties: false,
- required: ["title", "level", "questions"],
- properties: {
- title: { type: "string" },
- level: { type: "string", enum: ["E", "C", "A"] },
- questions: {
- type: "array",
- minItems: n,
- maxItems: n,
- items: {
- type: "object",
- additionalProperties: false,
- required: [
- "id",
- "type",
- "points",
- "question",
- "options",
- "correct_index",
- "rubric",
- "model_answer"
- ],
- properties: {
- id: { type: "string" },
- type: { type: "string", enum: ["mc", "short"] },
- points: { type: "number" },
- question: { type: "string" },
- options: {
- type: "array",
- items: { type: "string" },
- maxItems: 6
- },
- correct_index: { type: "integer" },
- rubric: { type: "string" },
- model_answer: { type: "string" }
- }
- }
- }
- }
- }
- }
- };
+export default async function handler(req, res) {
+  try {
+    if (req.method !== "POST") {
+      res.status(405).json({ ok: false, error: "Method not allowed" });
+      return;
+    }
+
+    const body = req.body || {};
+    const lang = (body.lang === "en") ? "en" : "sv";
+    const level = String(body.level || "C").toUpperCase();
+    const qType = String(body.qType || "mix");
+    const num = clampInt(body.numQuestions ?? 12, 3, 20);
+    const pastedText = String(body.pastedText || "").trim();
+
+    if (!pastedText) {
+      res.status(400).json({ ok: false, error: (lang === "sv") ? "Material saknas." : "Missing material." });
+      return;
+    }
+
+    const sents = pickSentences(pastedText, 120);
+    if (!sents.length) {
+      res.status(400).json({ ok: false, error: (lang === "sv") ? "Kunde inte tolka material." : "Could not parse material." });
+      return;
+    }
+
+    const questions = [];
+    for (let i = 0; i < num; i++) {
+      const s = sents[i % sents.length];
+      const id = String(i + 1);
+
+      const type =
+        (qType === "mc") ? "mc" :
+        (qType === "short") ? "short" :
+        (i % 3 === 0 ? "mc" : "short");
+
+      const points =
+        (level === "A") ? 3 :
+        (level === "C") ? 2 : 1;
+
+      if (type === "mc") {
+        questions.push({
+          id,
+          type: "mc",
+          points,
+          question: (lang === "sv")
+            ? `Vilket påstående stämmer bäst med materialet? (Bas: "${s.slice(0, 80)}…")`
+            : `Which statement best matches the material? (Base: "${s.slice(0, 80)}…")`,
+          options: makeMcOptionsFromSentence(s, lang)
+        });
+      } else {
+        questions.push({
+          id,
+          type: "short",
+          points,
+          question: makeShortQuestionFromSentence(s, lang)
+        });
+      }
+    }
+
+    const exam = {
+      title: (lang === "sv") ? "Mockprov" : "Mock exam",
+      level,
+      questions
+    };
+
+    res.status(200).json({ ok: true, exam });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "Server error" });
+  }
 }
-
-async function readJsonBody(req) {
- const chunks = [];
- for await (const c of req) chunks.push(c);
- const raw = Buffer.concat(chunks).toString("utf8");
- if (!raw) return {};
- return JSON.parse(raw);
-}
-
-function extractOpenAIOutputText(data) {
- const outputText =
- (Array.isArray(data?.output) &&
- data.output
- .flatMap((o) => (Array.isArray(o?.content) ? o.content : []))
- .find((c) => c?.type === "output_text")?.text) ||
- data?.output_text ||
- null;
-
- return typeof outputText === "string" ? outputText : null;
-}
-
-module.exports = async function handler(req, res) {
- if (req.method !== "POST") {
- res.setHeader("Allow", "POST");
- return json(res, 405, { ok: false });
- }
-
- let parsed;
-
- try {
- parsed = await readJsonBody(req);
- } catch (e) {
- return json(res, 400, {
- ok: false,
- error: "bad json"
- });
- }
-
- const pastedText = safeString(parsed.pastedText);
-
- if (!pastedText.trim())
- return json(res, 400, {
- ok: false,
- error: "Missing pastedText"
- });
-
- const level = asEnum(parsed.level, ["E", "C", "A"], "C");
-
- const qType = asEnum(parsed.qType, ["mix", "mc", "short"], "mix");
-
- const numQuestions = Math.min(
- 20,
- Math.max(
- 3,
- toInt(parsed.numQuestions, 10)
- )
- );
-
- const course = safeString(parsed.course, 200);
-
- const systemPrompt =
- "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
- "Du MÅSTE följa JSON-schemat exakt och bara returnera giltig JSON (ingen markdown, ingen text före/efter). " +
- "EXAKT antal frågor. " +
- "Regler per fråga: " +
- "1) id måste vara en sträng (t.ex. 'q1', 'q2', ...). " +
- "2) type får bara vara 'mc' eller 'short'. " +
- "3) points ska vara ett rimligt tal per fråga (t.ex. 1–5). " +
- "4) Om type=='mc': options ska ha 3–5 alternativ och correct_index ska vara 0..(options.length-1). " +
- "5) Om type=='short': options måste vara [] och correct_index måste vara -1. " +
- "6) rubric ska vara kort, poängfokuserad och tydlig. " +
- "7) model_answer ska alltid finnas. För mc: förklara varför rätt alternativ är rätt. För short: skriv ett fullpoängssvar.";
-
- const mixRule =
- qType === "mc"
- ? "Gör ALLA frågor som flervalsfrågor (mc)."
- : qType === "short"
- ? "Gör ALLA frågor som kortsvar (short)."
- : "Gör en blandning av 'mc' och 'short' (ungefär hälften/hälften).";
-
- const userPrompt =
- `Skapa ett mockprov på nivå ${level}.
- Antal frågor: ${numQuestions}.
- Frågetyp-val: ${qType}. ${mixRule}
- ${course ? `Kurs/ämne: ${course}.` : ""}
-
- Material (använd bara detta som underlag):
- ${pastedText}`;
-
- async function runOpenAI() {
- const key = process.env.OPENAI_API_KEY;
-
- if (!key)
- return {
- ok: false,
- error: "no openai key"
- };
-
- const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-
- const r = await fetch(
- "https://api.openai.com/v1/responses",
- {
- method: "POST",
- headers: {
- Authorization: `Bearer ${key}`,
- "Content-Type": "application/json"
- },
- body: JSON.stringify({
- model,
- input: [
- { role: "system", content: systemPrompt },
- { role: "user", content: userPrompt }
- ],
- text: {
- format: buildMockExamSchema(numQuestions)
- }
- })
- }
- );
-
- const raw = await r.text();
-
- let data;
-
- try {
- data = JSON.parse(raw);
- } catch {
- return {
- ok: false,
- error: "openai non json"
- };
- }
-
- if (!r.ok) {
- return {
- ok: false,
- error: "openai error",
- status: r.status,
- details: data
- };
- }
-
- const out = extractOpenAIOutputText(data);
-
- if (!out)
- return {
- ok: false,
- error: "no output"
- };
-
- return {
- ok: true,
- outputText: out,
- provider: "openai",
- model
- };
- }
-
- try {
- const first = await runOpenAI();
-
- if (!first.ok)
- return json(res, 500, first);
-
- const outputText = first.outputText;
-
- let exam;
-
- try {
- exam = JSON.parse(outputText);
- } catch (e) {
- return json(res, 500, {
- ok: false,
- error: "Could not parse model JSON",
- details: String(e),
- outputText
- });
- }
-
- return json(res, 200, {
- ok: true,
- exam,
- meta: {
- provider: first.provider,
- model: first.model
- }
- });
- }
- catch (e) {
- return json(res, 500, {
- ok: false,
- error: "Server error",
- details: String(e)
- });
- }
-};
