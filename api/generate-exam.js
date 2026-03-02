@@ -206,6 +206,350 @@ function makeMcBundleFromSentence(s, lang, level) {
  return { question, options, correct_index, rubric, model_answer };
 }
 
+function looksLikeMath(course, pastedText) {
+ const s = (String(course || "") + "\n" + String(pastedText || "")).toLowerCase();
+ const kw = [
+  "matematik", "math", "algebra", "ekvation", "funktion", "polynom",
+  "potens", "exponent", "log", "ln", "derivata", "integral",
+  "geometri", "sannolikhet", "statistik", "bråk", "procent",
+  "linjär", "kvadrat", "parabel", "f(x)"
+ ];
+ if (kw.some(k => s.includes(k))) return true;
+ if (/[=<>]/.test(s) && /[xyz]/.test(s)) return true;
+ if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true;
+ if (/[a-z]\s*\^\s*\d/.test(s)) return true;
+ if (/\bf\(\s*x\s*\)/.test(s)) return true;
+ return false;
+}
+
+function makeRng(seed) {
+ let x = (seed >>> 0) || 1;
+ return function next() {
+  x = (Math.imul(x, 1664525) + 1013904223) >>> 0;
+  return x / 4294967296;
+ };
+}
+
+function pickNumbersFromText(text, limit = 20) {
+ const s = String(text || "");
+ const m = s.match(/-?\d+(?:[.,]\d+)?/g) || [];
+ const out = [];
+ for (const raw of m) {
+  const v = Number(String(raw).replace(",", "."));
+  if (!Number.isFinite(v)) continue;
+  out.push(v);
+  if (out.length >= limit) break;
+ }
+ return out;
+}
+
+function buildMathQuestion(kind, lang, level, type, points, a, b, c, d) {
+ const sv = lang === "sv";
+ if (kind === "linear") {
+  // a*x + b = c  (a != 0)
+  const aa = a === 0 ? 2 : a;
+  const x = (c - b) / aa;
+
+  const qText = sv
+  ? `Lös ekvationen: ${aa}x ${b >= 0 ? "+ " + b : "- " + Math.abs(b)} = ${c}.`
+  : `Solve the equation: ${aa}x ${b >= 0 ? "+ " + b : "- " + Math.abs(b)} = ${c}.`;
+
+  const rubric = sv
+  ? `Metod ${Math.max(1, points - 1)}p, slutsvar 1p.`
+  : `Method ${Math.max(1, points - 1)}p, final answer 1p.`;
+
+  const model = sv
+  ? `Flytta ${b >= 0 ? b : "(" + b + ")"} till höger: ${aa}x = ${c} ${b >= 0 ? "- " + b : "+ " + Math.abs(b)} = ${c - b}.\nDela med ${aa}: x = ${(c - b)}/${aa} = ${x}.`
+  : `Move ${b >= 0 ? b : "(" + b + ")"} to the right: ${aa}x = ${c} ${b >= 0 ? "- " + b : "+ " + Math.abs(b)} = ${c - b}.\nDivide by ${aa}: x = ${(c - b)}/${aa} = ${x}.`;
+
+  if (type === "mc") {
+   const correct = x;
+   const optsRaw = [
+    { v: correct, why: "correct", ok: true },
+    { v: (c + b) / aa, why: "sign", ok: false },
+    { v: (c - b) / (aa === 0 ? 1 : (aa + 1)), why: "divide", ok: false },
+    { v: correct + 1, why: "off", ok: false }
+   ];
+   const seed = stableHash(kind + "|" + lang + "|" + level + "|" + aa + "|" + b + "|" + c);
+   const shuffled = stableShuffle(optsRaw, seed);
+   const options = shuffled.map(o => String(o.v));
+   const correct_index = shuffled.findIndex(o => o.ok);
+
+   const mcRubric = sv
+   ? "1p: Rätt svar."
+   : "1p: Correct answer.";
+
+   const mcModel = sv
+   ? model + `\nSlutsvar: x = ${x}.`
+   : model + `\nFinal answer: x = ${x}.`;
+
+   return { question: qText, options, correct_index, rubric: mcRubric, model_answer: mcModel };
+  }
+
+  return { question: qText, options: [], correct_index: -1, rubric, model_answer: (sv ? (model + `\nSlutsvar: x = ${x}.`) : (model + `\nFinal answer: x = ${x}.`)) };
+ }
+
+ if (kind === "quadratic_roots") {
+  // (x - p)(x - q)=0 -> x^2 - (p+q)x + pq
+  const p = a;
+  const q = b;
+  const B = -(p + q);
+  const C = p * q;
+
+  const qText = sv
+  ? `Bestäm nollställena till funktionen f(x) = x² ${B >= 0 ? "+ " + B : "- " + Math.abs(B)}x ${C >= 0 ? "+ " + C : "- " + Math.abs(C)}.`
+  : `Find the zeros of f(x) = x² ${B >= 0 ? "+ " + B : "- " + Math.abs(B)}x ${C >= 0 ? "+ " + C : "- " + Math.abs(C)}.`;
+
+  const rubric = sv
+  ? `Metod ${Math.max(1, points - 1)}p, nollställen 1p.`
+  : `Method ${Math.max(1, points - 1)}p, roots 1p.`;
+
+  const model = sv
+  ? `Sätt f(x)=0:\n0 = x² ${B >= 0 ? "+ " + B : "- " + Math.abs(B)}x ${C >= 0 ? "+ " + C : "- " + Math.abs(C)}.\nFaktorisera: (x - ${p})(x - ${q}) = 0.\nAlltså x = ${p} eller x = ${q}.`
+  : `Set f(x)=0:\n0 = x² ${B >= 0 ? "+ " + B : "- " + Math.abs(B)}x ${C >= 0 ? "+ " + C : "- " + Math.abs(C)}.\nFactor: (x - ${p})(x - ${q}) = 0.\nSo x = ${p} or x = ${q}.`;
+
+  if (type === "mc") {
+   const optsRaw = [
+    { v: `${p} och ${q}`, ok: true },
+    { v: `${-p} och ${-q}`, ok: false },
+    { v: `${p + q} och ${p * q}`, ok: false },
+    { v: `${p} och ${-q}`, ok: false }
+   ];
+   const seed = stableHash(kind + "|" + lang + "|" + level + "|" + p + "|" + q);
+   const shuffled = stableShuffle(optsRaw, seed);
+   const options = shuffled.map(o => String(o.v));
+   const correct_index = shuffled.findIndex(o => o.ok);
+
+   const mcRubric = sv
+   ? "1p: Rätt nollställen."
+   : "1p: Correct roots.";
+
+   const mcModel = sv
+   ? model + `\nSlutsvar: x = ${p}, x = ${q}.`
+   : model + `\nFinal answer: x = ${p}, x = ${q}.`;
+
+   return { question: qText, options, correct_index, rubric: mcRubric, model_answer: mcModel };
+  }
+
+  return { question: qText, options: [], correct_index: -1, rubric, model_answer: (sv ? (model + `\nSlutsvar: x = ${p}, x = ${q}.`) : (model + `\nFinal answer: x = ${p}, x = ${q}.`)) };
+ }
+
+ if (kind === "percent_change") {
+  // new = old*(1 + r/100)
+  const oldV = a;
+  const r = b;
+  const newV = oldV * (1 + r / 100);
+
+  const qText = sv
+  ? `Ett värde är ${oldV}. Det ökar med ${r}%. Vad blir det nya värdet?`
+  : `A value is ${oldV}. It increases by ${r}%. What is the new value?`;
+
+  const rubric = sv
+  ? `Metod ${Math.max(1, points - 1)}p, slutsvar 1p.`
+  : `Method ${Math.max(1, points - 1)}p, final answer 1p.`;
+
+  const model = sv
+  ? `Ökning med ${r}% betyder multiplicera med (1 + ${r}/100) = ${1 + r / 100}.\nNytt värde = ${oldV} · ${1 + r / 100} = ${newV}.`
+  : `An increase of ${r}% means multiply by (1 + ${r}/100) = ${1 + r / 100}.\nNew value = ${oldV} · ${1 + r / 100} = ${newV}.`;
+
+  if (type === "mc") {
+   const correct = newV;
+   const optsRaw = [
+    { v: correct, ok: true },
+    { v: oldV + r, ok: false },
+    { v: oldV * (r / 100), ok: false },
+    { v: oldV * (1 - r / 100), ok: false }
+   ];
+   const seed = stableHash(kind + "|" + lang + "|" + level + "|" + oldV + "|" + r);
+   const shuffled = stableShuffle(optsRaw, seed);
+   const options = shuffled.map(o => String(o.v));
+   const correct_index = shuffled.findIndex(o => o.ok);
+
+   const mcRubric = sv
+   ? "1p: Rätt värde."
+   : "1p: Correct value.";
+
+   const mcModel = sv
+   ? model + `\nSlutsvar: ${newV}.`
+   : model + `\nFinal answer: ${newV}.`;
+
+   return { question: qText, options, correct_index, rubric: mcRubric, model_answer: mcModel };
+  }
+
+  return { question: qText, options: [], correct_index: -1, rubric, model_answer: (sv ? (model + `\nSlutsvar: ${newV}.`) : (model + `\nFinal answer: ${newV}.`)) };
+ }
+
+ if (kind === "power_equation") {
+  // base^x = target, where target = base^k
+  const base = a;
+  const k = b;
+  const target = Math.pow(base, k);
+
+  const qText = sv
+  ? `Lös potensekvationen: ${base}^x = ${target}.`
+  : `Solve the exponential equation: ${base}^x = ${target}.`;
+
+  const rubric = sv
+  ? `Metod ${Math.max(1, points - 1)}p, slutsvar 1p.`
+  : `Method ${Math.max(1, points - 1)}p, final answer 1p.`;
+
+  const model = sv
+  ? `Skriv ${target} som en potens med bas ${base}: ${target} = ${base}^${k}.\nDå gäller ${base}^x = ${base}^${k} ⇒ x = ${k}.`
+  : `Write ${target} as a power with base ${base}: ${target} = ${base}^${k}.\nThen ${base}^x = ${base}^${k} ⇒ x = ${k}.`;
+
+  if (type === "mc") {
+   const optsRaw = [
+    { v: k, ok: true },
+    { v: k + 1, ok: false },
+    { v: k - 1, ok: false },
+    { v: base, ok: false }
+   ];
+   const seed = stableHash(kind + "|" + lang + "|" + level + "|" + base + "|" + k);
+   const shuffled = stableShuffle(optsRaw, seed);
+   const options = shuffled.map(o => String(o.v));
+   const correct_index = shuffled.findIndex(o => o.ok);
+
+   const mcRubric = sv
+   ? "1p: Rätt exponent."
+   : "1p: Correct exponent.";
+
+   const mcModel = sv
+   ? model + `\nSlutsvar: x = ${k}.`
+   : model + `\nFinal answer: x = ${k}.`;
+
+   return { question: qText, options, correct_index, rubric: mcRubric, model_answer: mcModel };
+  }
+
+  return { question: qText, options: [], correct_index: -1, rubric, model_answer: (sv ? (model + `\nSlutsvar: x = ${k}.`) : (model + `\nFinal answer: x = ${k}.`)) };
+ }
+
+ // Fallback (ska inte triggas)
+ const qText = sv ? "MATTE: Beräkna ett värde." : "MATH: Compute a value.";
+ const rubric = sv ? "Metod 1p, slutsvar 1p." : "Method 1p, final answer 1p.";
+ const model = sv ? "Otillräckliga data för verifiering." : "Insufficient data for verification.";
+ return { question: qText, options: [], correct_index: -1, rubric, model_answer: model };
+}
+
+function generateMathQuestions(num, lang, level, qType, pastedText, course) {
+ const seed = stableHash("math|" + course + "|" + pastedText + "|" + lang + "|" + level + "|" + qType);
+ const rng = makeRng(seed);
+
+ const nums = pickNumbersFromText(pastedText, 40);
+ const fallback = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
+ const pool = (nums.length ? nums : fallback).map(n => {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return 0;
+  return x;
+ });
+
+ function pickInt(min, max) {
+  const r = rng();
+  const v = min + Math.floor(r * (max - min + 1));
+  return v;
+ }
+
+ function pickFromPoolInt(minAbs, maxAbs) {
+  const v = pool.length ? pool[Math.floor(rng() * pool.length)] : pickInt(minAbs, maxAbs);
+  const n = Math.round(Number(v) || 0);
+  const clamped = Math.max(-maxAbs, Math.min(maxAbs, n));
+  return Math.abs(clamped) < minAbs ? (clamped < 0 ? -minAbs : minAbs) : clamped;
+ }
+
+ const out = [];
+ for (let i = 0; i < num; i++) {
+  const id = String(i + 1);
+
+  const type =
+  (qType === "mc") ? "mc" :
+  (qType === "short") ? "short" :
+  (i % 3 === 0 ? "mc" : "short");
+
+  const points =
+  (type === "mc")
+  ? ((level === "A") ? 2 : (level === "C") ? 1 : 1)
+  : ((level === "A") ? 4 : (level === "C") ? 3 : 2);
+
+  // 70–90% beräkningsfrågor: här är alla “beräkning”, varierar bara typ och område
+  const kinds = ["linear", "quadratic_roots", "percent_change", "power_equation"];
+  const kind = kinds[i % kinds.length];
+
+  if (kind === "linear") {
+   const a = pickFromPoolInt(1, 9) || 2;
+   const b = pickFromPoolInt(0, 20);
+   const x = pickFromPoolInt(1, 12);
+   const c = a * x + b;
+
+   const built = buildMathQuestion("linear", lang, level, type, points, a, b, c, 0);
+   out.push({
+    id,
+    type,
+    points,
+    question: built.question,
+    options: built.options,
+    correct_index: built.correct_index,
+    rubric: built.rubric,
+    model_answer: built.model_answer
+   });
+   continue;
+  }
+
+  if (kind === "quadratic_roots") {
+   // välj heltalsrötter p och q
+   const p = pickInt(-6, 6) || 2;
+   const q = pickInt(-6, 6) || -1;
+   const built = buildMathQuestion("quadratic_roots", lang, level, type, points, p, q, 0, 0);
+   out.push({
+    id,
+    type,
+    points,
+    question: built.question,
+    options: built.options,
+    correct_index: built.correct_index,
+    rubric: built.rubric,
+    model_answer: built.model_answer
+   });
+   continue;
+  }
+
+  if (kind === "percent_change") {
+   const oldV = Math.abs(pickFromPoolInt(10, 200)) || 100;
+   const r = Math.abs(pickFromPoolInt(5, 50)) || 20;
+   const built = buildMathQuestion("percent_change", lang, level, type, points, oldV, r, 0, 0);
+   out.push({
+    id,
+    type,
+    points,
+    question: built.question,
+    options: built.options,
+    correct_index: built.correct_index,
+    rubric: built.rubric,
+    model_answer: built.model_answer
+   });
+   continue;
+  }
+
+  if (kind === "power_equation") {
+   const baseOptions = [2, 3, 5, 10];
+   const base = baseOptions[Math.floor(rng() * baseOptions.length)];
+   const k = pickInt(2, 6);
+   const built = buildMathQuestion("power_equation", lang, level, type, points, base, k, 0, 0);
+   out.push({
+    id,
+    type,
+    points,
+    question: built.question,
+    options: built.options,
+    correct_index: built.correct_index,
+    rubric: built.rubric,
+    model_answer: built.model_answer
+   });
+   continue;
+  }
+ }
+
+ return out;
+}
+
 export default async function handler(req, res) {
  try {
   if (req.method !== "POST") {
@@ -223,6 +567,23 @@ export default async function handler(req, res) {
 
   if (!pastedText) {
    res.status(400).json({ ok: false, error: (lang === "sv") ? "Material saknas." : "Missing material." });
+   return;
+  }
+
+  const isMath = looksLikeMath(course, pastedText);
+
+  if (isMath) {
+   const questions = generateMathQuestions(num, lang, level, qType, pastedText, course);
+
+   const exam = {
+    title: (lang === "sv")
+    ? (course ? `Mockprov – ${course}` : "Mockprov")
+    : (course ? `Mock exam – ${course}` : "Mock exam"),
+    level,
+    questions
+   };
+
+   res.status(200).json({ ok: true, exam });
    return;
   }
 
