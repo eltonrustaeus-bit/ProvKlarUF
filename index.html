@@ -8,21 +8,21 @@
 
  <style>
  :root{
- --deep:#0B1220; --deep2:#0A0F1A;
- --mint:#7C3AED; --mint2:#6366F1;
- --bg:#F7F7FB; --muted:#5B6476; --border:rgba(11,18,32,.12);
- --shadow:0 18px 55px rgba(11,18,32,.10);
+ --deep:#052A1E; --deep2:#041E16;
+ --mint:#2BE38C; --mint2:#16B876;
+ --bg:#050806; --muted:#556072; --border:rgba(5,42,30,.14);
+ --shadow:0 18px 55px rgba(5,42,30,.14);
  --radius:18px; --max:1100px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
  }
  *{box-sizing:border-box}
  html{scroll-behavior:smooth}
  :target{scroll-margin-top:92px}
  body{
- margin:0;font-family:var(--font);color:#0B1220;background:var(--bg);
+ margin:0;font-family:var(--font);color:#071812;background:var(--bg);
  background:
- radial-gradient(900px 520px at 12% -10%, rgba(99,102,241,.18), transparent 60%),
- radial-gradient(820px 460px at 95% 12%, rgba(124,58,237,.10), transparent 55%),
- linear-gradient(180deg, rgba(247,247,251,1), rgba(247,247,251,1));
+ radial-gradient(900px 520px at 12% -10%, rgba(43,227,140,.20), transparent 60%),
+ radial-gradient(820px 460px at 95% 12%, rgba(22,184,118,.12), transparent 55%),
+ linear-gradient(180deg, rgba(5,8,6,1), rgba(5,8,6,1));
  position:relative;
  }
  body:before{
@@ -31,12 +31,12 @@
  inset:-120px;
  pointer-events:none;
  z-index:0;
- opacity:.16;
+ opacity:.18;
  background:
- radial-gradient(650px 380px at 18% 10%, rgba(99,102,241,.18), transparent 62%),
- radial-gradient(560px 320px at 86% 18%, rgba(124,58,237,.12), transparent 60%),
- radial-gradient(800px 520px at 55% 110%, rgba(11,18,32,.06), transparent 60%);
- filter:saturate(115%);
+ radial-gradient(650px 380px at 18% 10%, rgba(43,227,140,.18), transparent 62%),
+ radial-gradient(560px 320px at 86% 18%, rgba(22,184,118,.12), transparent 60%),
+ radial-gradient(800px 520px at 55% 110%, rgba(255,255,255,.06), transparent 60%);
+ filter:saturate(120%);
  animation:bgFloat 18s ease-in-out infinite;
  }
  @keyframes bgFloat{
@@ -48,7 +48,7 @@
 
  header{
  position:sticky;top:0;z-index:3000;
- background:rgba(247,247,251,.78);backdrop-filter:saturate(160%) blur(12px);
+ background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
  border-bottom:1px solid var(--border);
  }
  .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px);position:relative;z-index:1}
@@ -67,13 +67,13 @@
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
  transform:translateZ(0);
  }
- .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(11,18,32,.10);border-color:rgba(99,102,241,.22);background:rgba(255,255,255,.98)}
+ .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22);background:rgba(255,255,255,.98)}
  .btn:active{transform:translateY(0) scale(.985)}
  .btnPrimary{
- background:linear-gradient(135deg, rgba(99,102,241,1), rgba(124,58,237,1));color:#fff;border-color:rgba(99,102,241,.28);
- box-shadow:0 14px 28px rgba(99,102,241,.22)
+ background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
+ box-shadow:0 14px 28px rgba(22,184,118,.22)
  }
- .btnPrimary:hover{box-shadow:0 18px 36px rgba(99,102,241,.24)}
+ .btnPrimary:hover{box-shadow:0 18px 36px rgba(22,184,118,.24)}
 
  /* menu */
  .menuWrap{position:relative;z-index:4000}
@@ -82,7 +82,7 @@
  background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
  }
- .iconBtn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(11,18,32,.10);border-color:rgba(99,102,241,.22);background:rgba(255,255,255,.98)}
+ .iconBtn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22);background:rgba(255,255,255,.98)}
  .iconBtn:active{transform:translateY(0) scale(.985)}
  .bars{width:18px;height:12px;display:grid;gap:3px}
  .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
@@ -91,7 +91,7 @@
  background:rgba(255,255,255,.98);
  border:1px solid var(--border);
  border-radius:16px;
- box-shadow:0 22px 60px rgba(11,18,32,.18);
+ box-shadow:0 22px 60px rgba(5,42,30,.18);
  padding:8px;
  display:none;
  z-index:5000;
@@ -110,7 +110,7 @@
  font-size:13px;
  text-align:left;
  }
- .dropdown a:hover, .dropdown button:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.16)}
+ .dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
  .pill{
  font-size:11px;font-weight:1000;color:var(--muted);
  border:1px solid var(--border);
@@ -130,14 +130,14 @@
  }
  .aiDot{
  width:9px;height:9px;border-radius:999px;
- background:rgba(99,102,241,.95);
- box-shadow:0 0 0 0 rgba(99,102,241,.45);
+ background:rgba(22,184,118,.95);
+ box-shadow:0 0 0 0 rgba(22,184,118,.45);
  animation:aiPulse 1.8s ease-in-out infinite;
  }
  @keyframes aiPulse{
- 0%{box-shadow:0 0 0 0 rgba(99,102,241,.45)}
- 60%{box-shadow:0 0 0 9px rgba(99,102,241,0)}
- 100%{box-shadow:0 0 0 0 rgba(99,102,241,0)}
+ 0%{box-shadow:0 0 0 0 rgba(22,184,118,.45)}
+ 60%{box-shadow:0 0 0 9px rgba(22,184,118,0)}
+ 100%{box-shadow:0 0 0 0 rgba(22,184,118,0)}
  }
 
  .hero{
@@ -145,7 +145,7 @@
  border-radius:22px;
  box-shadow:var(--shadow);
  overflow:hidden;
- background:linear-gradient(135deg, rgba(11,18,32,.98), rgba(10,15,26,.92));
+ background:linear-gradient(135deg, rgba(5,42,30,.98), rgba(4,30,22,.92));
  position:relative;
  }
  .heroBg{
@@ -156,9 +156,9 @@
  .heroOverlay{
  position:absolute;inset:0;
  background:
- radial-gradient(900px 520px at 35% 40%, rgba(99,102,241,.22), transparent 62%),
- radial-gradient(760px 520px at 90% 25%, rgba(124,58,237,.14), transparent 60%),
- linear-gradient(135deg, rgba(11,18,32,.82), rgba(10,15,26,.78));
+ radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.22), transparent 62%),
+ radial-gradient(760px 520px at 90% 25%, rgba(22,184,118,.14), transparent 60%),
+ linear-gradient(135deg, rgba(5,42,30,.82), rgba(4,30,22,.78));
  }
  .heroInner{
  position:relative;
@@ -167,12 +167,12 @@
  grid-template-columns: 1.2fr .8fr;
  gap:18px;
  align-items:start;
- color:#F4F6FF;
+ color:#EFFFF6;
  }
  @media (max-width: 900px){ .heroInner{grid-template-columns:1fr} }
 
  .hTitle{font-size:clamp(28px,4.2vw,44px);font-weight:1100;letter-spacing:-.02em;margin:0}
- .hSub{margin:10px 0 0;color:rgba(244,246,255,.86);font-weight:800;line-height:1.45}
+ .hSub{margin:10px 0 0;color:rgba(239,255,246,.86);font-weight:800;line-height:1.45}
  .heroActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
  .cardRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
  @media (max-width: 900px){ .cardRow{grid-template-columns:1fr} }
@@ -185,9 +185,9 @@
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  transform:translateZ(0);
  }
- .miniCard:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(0,0,0,.18);border-color:rgba(99,102,241,.22)}
- .miniTitle{margin:0;color:#F4F6FF;font-weight:1100;font-size:14px}
- .miniText{margin:8px 0 0;color:rgba(244,246,255,.84);font-weight:800;font-size:12px;line-height:1.45}
+ .miniCard:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(0,0,0,.18);border-color:rgba(43,227,140,.22)}
+ .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
+ .miniText{margin:8px 0 0;color:rgba(239,255,246,.84);font-weight:800;font-size:12px;line-height:1.45}
 
  .demoCard{
  margin-top:14px;
@@ -199,9 +199,9 @@
  position:relative;
  }
  .demoTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
- .demoTitle{margin:0;color:#F4F6FF;font-weight:1100;font-size:13px}
+ .demoTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:13px}
  .demoPill{
- font-size:11px;font-weight:1000;color:rgba(244,246,255,.86);
+ font-size:11px;font-weight:1000;color:rgba(239,255,246,.86);
  border:1px solid rgba(255,255,255,.18);
  border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.06);
  }
@@ -211,7 +211,7 @@
  font-weight:850;
  font-size:12px;
  line-height:1.45;
- color:rgba(244,246,255,.86);
+ color:rgba(239,255,246,.86);
  white-space:pre-wrap;
  min-height:58px;
  }
@@ -224,7 +224,7 @@
  .barFill{
  height:100%;
  width:0%;
- background:linear-gradient(90deg, rgba(99,102,241,.92), rgba(124,58,237,.92));
+ background:linear-gradient(90deg, rgba(43,227,140,.85), rgba(22,184,118,.95));
  transition:width .35s ease;
  }
  .demoGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
@@ -235,8 +235,8 @@
  border-radius:14px;
  padding:10px;
  }
- .demoBoxTitle{margin:0;color:#F4F6FF;font-weight:1050;font-size:12px}
- .demoBoxText{margin:6px 0 0;color:rgba(244,246,255,.84);font-weight:850;font-size:12px;line-height:1.45}
+ .demoBoxTitle{margin:0;color:#EFFFF6;font-weight:1050;font-size:12px}
+ .demoBoxText{margin:6px 0 0;color:rgba(239,255,246,.84);font-weight:850;font-size:12px;line-height:1.45}
  .demoSvg{width:100%;height:62px;display:block;margin-top:6px}
 
  .card{
@@ -251,12 +251,12 @@
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  transform:translateZ(0);
  }
- .card:hover{transform:translateY(-3px);box-shadow:0 26px 66px rgba(11,18,32,.16);border-color:rgba(99,102,241,.18)}
+ .card:hover{transform:translateY(-3px);box-shadow:0 26px 66px rgba(5,42,30,.18);border-color:rgba(43,227,140,.18)}
  .card:before{
  content:"";
  position:absolute;inset:-70px -70px auto auto;
  width:190px;height:190px;border-radius:999px;
- background:radial-gradient(circle at 30% 30%, rgba(99,102,241,.12), transparent 62%);
+ background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.12), transparent 62%);
  pointer-events:none;
  }
  .sectionTitle{
@@ -377,8 +377,8 @@
  <div class="demoBox">
  <p class="demoBoxTitle">Utveckling</p>
  <svg class="demoSvg" viewBox="0 0 220 62" role="img" aria-label="Utvecklingsgraf">
- <path d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(244,246,255,.22)" stroke-width="3" stroke-linecap="round"/>
- <path id="demoPath" d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(99,102,241,.95)" stroke-width="3" stroke-linecap="round"/>
+ <path d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(239,255,246,.24)" stroke-width="3" stroke-linecap="round"/>
+ <path id="demoPath" d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(43,227,140,.95)" stroke-width="3" stroke-linecap="round"/>
  </svg>
  <p class="demoBoxText" id="demoCoach">—</p>
  </div>
