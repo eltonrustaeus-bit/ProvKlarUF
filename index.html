@@ -20,9 +20,9 @@
  body{
  margin:0;font-family:var(--font);color:#071812;background:var(--bg);
  background:
- radial-gradient(900px 520px at 12% -10%, rgba(43,227,140,.20), transparent 60%),
- radial-gradient(820px 460px at 95% 12%, rgba(22,184,118,.12), transparent 55%),
- linear-gradient(180deg, rgba(5,8,6,1), rgba(5,8,6,1));
+ radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
+ radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
+ var(--bg);
  position:relative;
  }
  body:before{
@@ -33,15 +33,16 @@
  z-index:0;
  opacity:.18;
  background:
- radial-gradient(650px 380px at 18% 10%, rgba(43,227,140,.18), transparent 62%),
- radial-gradient(560px 320px at 86% 18%, rgba(22,184,118,.12), transparent 60%),
- radial-gradient(800px 520px at 55% 110%, rgba(255,255,255,.06), transparent 60%);
+ radial-gradient(650px 380px at 20% 10%, rgba(43,227,140,.18), transparent 60%),
+ radial-gradient(560px 320px at 85% 20%, rgba(43,227,140,.12), transparent 55%),
+ repeating-radial-gradient(circle at 12% 18%, rgba(5,42,30,.10) 0 1px, transparent 1px 14px),
+ repeating-radial-gradient(circle at 78% 72%, rgba(5,42,30,.08) 0 1px, transparent 1px 16px);
  filter:saturate(120%);
  animation:bgFloat 18s ease-in-out infinite;
  }
  @keyframes bgFloat{
  0%{transform:translate3d(0,0,0)}
- 50%{transform:translate3d(14px,-8px,0)}
+ 50%{transform:translate3d(18px,-10px,0)}
  100%{transform:translate3d(0,0,0)}
  }
  a{text-decoration:none;color:inherit}
@@ -64,10 +65,10 @@
  font-weight:1000;font-size:14px;border:1px solid var(--border);
  cursor:pointer;white-space:nowrap;
  background:rgba(255,255,255,.92);color:var(--deep);
- transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  transform:translateZ(0);
  }
- .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22);background:rgba(255,255,255,.98)}
+ .btn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22)}
  .btn:active{transform:translateY(0) scale(.985)}
  .btnPrimary{
  background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
@@ -80,9 +81,9 @@
  .iconBtn{
  width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
  background:rgba(255,255,255,.92);cursor:pointer;display:grid;place-items:center;
- transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
+ transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  }
- .iconBtn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22);background:rgba(255,255,255,.98)}
+ .iconBtn:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 12px 26px rgba(5,42,30,.10);border-color:rgba(43,227,140,.22)}
  .iconBtn:active{transform:translateY(0) scale(.985)}
  .bars{width:18px;height:12px;display:grid;gap:3px}
  .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
@@ -151,14 +152,13 @@
  .heroBg{
  position:absolute;inset:0;
  background:url("image/proviaai-hero.png") center/cover no-repeat;
- opacity:.62;filter:saturate(110%) contrast(105%);
+ opacity:.92;filter:saturate(115%);
  }
  .heroOverlay{
  position:absolute;inset:0;
  background:
- radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.22), transparent 62%),
- radial-gradient(760px 520px at 90% 25%, rgba(22,184,118,.14), transparent 60%),
- linear-gradient(135deg, rgba(5,42,30,.82), rgba(4,30,22,.78));
+ radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.22), transparent 60%),
+ linear-gradient(135deg, rgba(5,42,30,.78), rgba(4,30,22,.72));
  }
  .heroInner{
  position:relative;
@@ -172,14 +172,14 @@
  @media (max-width: 900px){ .heroInner{grid-template-columns:1fr} }
 
  .hTitle{font-size:clamp(28px,4.2vw,44px);font-weight:1100;letter-spacing:-.02em;margin:0}
- .hSub{margin:10px 0 0;color:rgba(239,255,246,.86);font-weight:800;line-height:1.45}
+ .hSub{margin:10px 0 0;color:rgba(239,255,246,.88);font-weight:800;line-height:1.45}
  .heroActions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
  .cardRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
  @media (max-width: 900px){ .cardRow{grid-template-columns:1fr} }
 
  .miniCard{
- background:rgba(255,255,255,.08);
- border:1px solid rgba(255,255,255,.14);
+ background:rgba(255,255,255,.10);
+ border:1px solid rgba(255,255,255,.16);
  border-radius:18px;
  padding:14px;
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
@@ -187,12 +187,12 @@
  }
  .miniCard:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(0,0,0,.18);border-color:rgba(43,227,140,.22)}
  .miniTitle{margin:0;color:#EFFFF6;font-weight:1100;font-size:14px}
- .miniText{margin:8px 0 0;color:rgba(239,255,246,.84);font-weight:800;font-size:12px;line-height:1.45}
+ .miniText{margin:8px 0 0;color:rgba(239,255,246,.86);font-weight:800;font-size:12px;line-height:1.45}
 
  .demoCard{
  margin-top:14px;
- background:rgba(255,255,255,.08);
- border:1px solid rgba(255,255,255,.14);
+ background:rgba(255,255,255,.10);
+ border:1px solid rgba(255,255,255,.16);
  border-radius:18px;
  padding:14px;
  overflow:hidden;
@@ -211,13 +211,13 @@
  font-weight:850;
  font-size:12px;
  line-height:1.45;
- color:rgba(239,255,246,.86);
+ color:rgba(239,255,246,.88);
  white-space:pre-wrap;
  min-height:58px;
  }
  .barWrap{
  height:10px;border-radius:999px;
- border:1px solid rgba(255,255,255,.16);
+ border:1px solid rgba(255,255,255,.18);
  background:rgba(255,255,255,.06);
  overflow:hidden;
  }
@@ -230,13 +230,13 @@
  .demoGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
  @media (max-width: 900px){ .demoGrid{grid-template-columns:1fr} }
  .demoBox{
- border:1px solid rgba(255,255,255,.14);
+ border:1px solid rgba(255,255,255,.16);
  background:rgba(255,255,255,.06);
  border-radius:14px;
  padding:10px;
  }
  .demoBoxTitle{margin:0;color:#EFFFF6;font-weight:1050;font-size:12px}
- .demoBoxText{margin:6px 0 0;color:rgba(239,255,246,.84);font-weight:850;font-size:12px;line-height:1.45}
+ .demoBoxText{margin:6px 0 0;color:rgba(239,255,246,.86);font-weight:850;font-size:12px;line-height:1.45}
  .demoSvg{width:100%;height:62px;display:block;margin-top:6px}
 
  .card{
@@ -251,12 +251,12 @@
  transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
  transform:translateZ(0);
  }
- .card:hover{transform:translateY(-3px);box-shadow:0 26px 66px rgba(5,42,30,.18);border-color:rgba(43,227,140,.18)}
+ .card:hover{transform:translateY(-3px);box-shadow:0 26px 66px rgba(5,42,30,.18);border-color:rgba(43,227,140,.22)}
  .card:before{
  content:"";
  position:absolute;inset:-70px -70px auto auto;
  width:190px;height:190px;border-radius:999px;
- background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.12), transparent 62%);
+ background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
  pointer-events:none;
  }
  .sectionTitle{
@@ -264,7 +264,7 @@
  font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
  }
  .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
- .list{margin:10px 0 0;padding:0 0 0 16px;color:#0B1220;font-weight:850;line-height:1.5}
+ .list{margin:10px 0 0;padding:0 0 0 16px;color:#0A2219;font-weight:850;line-height:1.5}
  .badgeRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
  .badge{
  display:inline-flex;align-items:center;gap:8px;
@@ -381,6 +381,7 @@
  <path id="demoPath" d="M10 52 C 60 48, 80 40, 110 34 S 165 22, 210 14" fill="none" stroke="rgba(43,227,140,.95)" stroke-width="3" stroke-linecap="round"/>
  </svg>
  <p class="demoBoxText" id="demoCoach">—</p>
+ </div>
  </div>
  </div>
  </div>
