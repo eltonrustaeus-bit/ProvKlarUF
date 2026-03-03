@@ -75,7 +75,9 @@
  background:rgba(12,28,22,.9);
  }
  .btn:active{transform:translateY(0) scale(.98);box-shadow:0 7px 18px rgba(8,22,16,.35)}
- .btn:focus-visible{
+ .btn:focus-visible,
+ .iconBtn:focus-visible,
+ .dropdown a:focus-visible{
  outline:none;
  box-shadow:0 0 0 2px rgba(4,8,7,.95), 0 0 0 4px rgba(43,227,140,.62);
  border-color:rgba(43,227,140,.75);
@@ -85,6 +87,70 @@
  box-shadow:0 16px 34px rgba(22,184,118,.28), 0 0 0 1px rgba(255,255,255,.08) inset
  }
  .btnPrimary:hover{box-shadow:0 20px 40px rgba(22,184,118,.30), 0 0 0 1px rgba(255,255,255,.12) inset}
+
+ /* Header menu (som index.html) */
+ .headerActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ .aiStatus{
+ display:inline-flex;align-items:center;gap:8px;
+ border:1px solid var(--border);
+ background:rgba(10,22,18,.82);
+ border-radius:999px;
+ padding:8px 10px;
+ font-weight:900;
+ font-size:12px;
+ color:var(--deep);
+ }
+ .aiDot{
+ width:9px;height:9px;border-radius:999px;
+ background:rgba(22,184,118,.95);
+ box-shadow:0 0 0 0 rgba(22,184,118,.45);
+ animation:aiPulse 1.9s ease-in-out infinite;
+ }
+ .menuWrap{position:relative;z-index:4000}
+ .iconBtn{
+ width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
+ background:rgba(10,22,18,.82);cursor:pointer;display:grid;place-items:center;
+ transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease;
+ }
+ .iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(8,22,16,.4);border-color:rgba(43,227,140,.42)}
+ .iconBtn:active{transform:translateY(0) scale(.985)}
+ .bars{width:18px;height:12px;display:grid;gap:3px}
+ .bars span{display:block;height:2px;background:#D9FDEB;border-radius:2px;opacity:.95}
+ .dropdown{
+ position:absolute;right:0;top:54px;min-width:265px;
+ background:rgba(6,14,11,.97);
+ border:1px solid rgba(102,255,191,.2);
+ border-radius:16px;
+ box-shadow:0 22px 60px rgba(0,0,0,.45);
+ padding:8px;
+ display:none;
+ opacity:0;
+ transform:translateY(-6px) scale(.985);
+ z-index:5000;
+ }
+ .dropdown.is-open{display:block;opacity:1;transform:translateY(0) scale(1);transition:opacity .18s ease, transform .18s ease}
+ .dropdown.is-closing{display:block;opacity:0;transform:translateY(-4px) scale(.99);transition:opacity .14s ease, transform .14s ease}
+ .dropdown a{
+ width:100%;
+ display:flex;align-items:center;justify-content:space-between;
+ gap:10px;
+ padding:10px 12px;
+ border-radius:12px;
+ border:1px solid transparent;
+ background:transparent;
+ cursor:pointer;
+ font-weight:900;
+ color:#e6fff1;
+ font-size:13px;
+ text-align:left;
+ transition:background-color .16s ease, border-color .16s ease, transform .16s ease;
+ }
+ .dropdown a:hover{background:rgba(43,227,140,.12);border-color:rgba(43,227,140,.25);transform:translateX(1px)}
+ @keyframes aiPulse{
+ 0%{box-shadow:0 0 0 0 rgba(22,184,118,.45)}
+ 65%{box-shadow:0 0 0 9px rgba(22,184,118,0)}
+ 100%{box-shadow:0 0 0 0 rgba(22,184,118,0)}
+ }
 
  .card{
  background:linear-gradient(180deg, rgba(9,19,15,.92), rgba(7,14,12,.92));
@@ -190,6 +256,7 @@
  html{scroll-behavior:auto}
  *, *::before, *::after{animation:none !important;transition:none !important}
  .reveal{opacity:1;transform:none;filter:none}
+ .dropdown,.dropdown.is-open,.dropdown.is-closing{opacity:1;transform:none}
  }
  </style>
 </head>
@@ -205,9 +272,19 @@
  </div>
  </a>
 
- <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
- <a class="btn" href="index.html">Till startsidan</a>
- <a class="btn btnPrimary" href="app.html">Starta ProviaAi</a>
+ <div class="headerActions">
+ <span class="aiStatus" aria-label="AI-status"><span class="aiDot" aria-hidden="true"></span><span>AI aktiv</span></span>
+ <div class="menuWrap">
+ <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu">
+ <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+ </button>
+ <div class="dropdown" id="menu">
+ <a href="index.html"><span>Till startsidan</span><span class="pill">Hem</span></a>
+ <a href="app.html"><span>Starta ProviaAi</span><span class="pill">App</span></a>
+ <a href="pricing.html"><span>Priser</span><span class="pill">19/59</span></a>
+ <a href="förbättring.html"><span>Förbättring</span><span class="pill">AI</span></a>
+ </div>
+ </div>
  </div>
  </div>
  </header>
@@ -292,13 +369,51 @@
  reveals.forEach((el)=>io.observe(el));
  })();
 
- // Menu dropdown fade+slide hook utan att ändra befintlig funktionalitet
+ // Meny i hörnet: samma stil/funktion som index med AI aktiv + toggle
  (function(){
- const toggles = document.querySelectorAll('[data-menu-toggle]');
- toggles.forEach((btn)=>{
- const target = document.querySelector(btn.getAttribute('data-menu-toggle'));
- if(!target) return;
- btn.addEventListener('click', ()=>target.classList.toggle('is-open'));
+ const menuBtn = document.getElementById("menuBtn");
+ const menu = document.getElementById("menu");
+ if(!menuBtn || !menu) return;
+ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ let closeTimer;
+
+ function openMenu(){
+ clearTimeout(closeTimer);
+ menu.classList.remove("is-closing");
+ menu.style.display = "block";
+ requestAnimationFrame(() => menu.classList.add("is-open"));
+ menuBtn.setAttribute("aria-expanded", "true");
+ }
+ function closeMenu(){
+ menuBtn.setAttribute("aria-expanded", "false");
+ if(reducedMotion){
+ menu.classList.remove("is-open", "is-closing");
+ menu.style.display = "none";
+ return;
+ }
+ menu.classList.remove("is-open");
+ menu.classList.add("is-closing");
+ clearTimeout(closeTimer);
+ closeTimer = setTimeout(() => {
+ menu.classList.remove("is-closing");
+ menu.style.display = "none";
+ }, 150);
+ }
+
+ menuBtn.addEventListener("click", (e) => {
+ e.preventDefault();
+ e.stopPropagation();
+ menu.classList.contains("is-open") ? closeMenu() : openMenu();
+ });
+
+ document.addEventListener("click", (e) => {
+ if(!menu.classList.contains("is-open")) return;
+ if(menu.contains(e.target) || menuBtn.contains(e.target)) return;
+ closeMenu();
+ });
+
+ document.addEventListener("keydown", (e) => {
+ if(e.key === "Escape" && menu.classList.contains("is-open")) closeMenu();
  });
  })();
  </script>
