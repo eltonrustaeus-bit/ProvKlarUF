@@ -1,2127 +1,1850 @@
 <!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProviaAi – App</title>
-
-  <style>
-    :root{
-      --deep:#E8FFF4; --deep2:#b7d9c9;
-      --mint:#2BE38C; --mint2:#16B876;
-      --bg:#050808; --muted:#9bb3a8; --border:rgba(120,255,195,.18);
-      --shadow:0 18px 55px rgba(0,0,0,.45);
-      --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1080px;
-      --danger:#ff8f8f; --ok:#67dcb0; --warn:#f4ce78;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    :target{scroll-margin-top:92px}
-    body{
-      margin:0;font-family:var(--font);line-height:1.55;
-      background:
-        radial-gradient(900px 450px at 14% -12%, rgba(43,227,140,.15), transparent 62%),
-        radial-gradient(780px 420px at 90% 16%, rgba(43,227,140,.08), transparent 58%),
-        linear-gradient(165deg, #030505 0%, #050909 45%, #020404 100%);
-      color:#e9fff4;
-      position:relative;
-    }
-    body::before,
-    body::after{content:"";position:fixed;inset:-140px;pointer-events:none;z-index:0}
-    body::before{
-      /* Premium background: subtle aurora */
-      background:
-        radial-gradient(700px 360px at 16% 12%, rgba(43,227,140,.18), transparent 64%),
-        radial-gradient(760px 420px at 80% 20%, rgba(19,123,81,.18), transparent 66%);
-      opacity:.2;
-    }
-    body::after{
-      /* Premium background: subtle noise (CSS-only) */
-      background-image:
-        radial-gradient(rgba(255,255,255,.18) .7px, transparent .8px),
-        radial-gradient(rgba(255,255,255,.12) .6px, transparent .7px);
-      background-size:3px 3px, 5px 5px;
-      background-position:0 0, 1px 2px;
-      opacity:.08;
-    }
-    a{text-decoration:none;color:inherit}
-
-    header{
-      background:rgba(4,12,9,.82);backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:3000;
-    }
-    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(18px,3.4vw,28px);position:relative;z-index:1}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .brand img{height:54px;width:auto;display:block}
-    .brand .name{font-weight:1100;color:var(--deep);font-size:19px;line-height:1.05;letter-spacing:-.01em}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
-
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:12px 16px;border-radius:14px;
-      font-weight:1000;font-size:14px;border:1px solid var(--border);
-      cursor:pointer;white-space:nowrap;
-      background:rgba(11,22,17,.86);color:var(--deep);
-      user-select:none;
-      transition:transform .16s cubic-bezier(.22,.61,.36,1), box-shadow .2s ease, border-color .2s ease;
-    }
-    /* animation: button microinteractions */
-    .btn:hover{transform:translateY(-2px);border-color:rgba(105,255,193,.45);box-shadow:0 14px 32px rgba(22,184,118,.22), 0 0 0 1px rgba(106,255,193,.18) inset}
-    .btn:active{transform:translateY(0) scale(.985);box-shadow:0 8px 14px rgba(22,184,118,.18)}
-    .btn:focus-visible,
-    .iconBtn:focus-visible,
-    .dropdown a:focus-visible,
-    .dropdown button:focus-visible,
-    .toggleBtn:focus-visible{outline:2px solid rgba(138,255,211,.95);outline-offset:2px}
-    .btn:disabled{opacity:.6; cursor:not-allowed}
-    .btnPrimary{
-      position:relative;overflow:hidden;
-      background:linear-gradient(135deg, rgba(22,184,118,.96), rgba(15,142,92,.95));color:#f5fffa;border-color:rgba(22,184,118,.42);
-      box-shadow:0 14px 28px rgba(22,184,118,.22)
-    }
-    .btnPrimary::after{
-      content:"";position:absolute;inset:-1px auto -1px -40%;width:30%;
-      background:linear-gradient(110deg, transparent, rgba(255,255,255,.28), transparent);
-      transform:translateX(0);
-      transition:transform .24s cubic-bezier(.22,.61,.36,1);
-    }
-    .btnPrimary:hover::after{transform:translateX(360%)}
-
-    .card{
-      background:rgba(8,19,15,.88);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:clamp(16px,3vw,22px);
-      margin:14px 0;
-      overflow:hidden;
-      position:relative;
-    }
-    .card:before{
-      content:"";
-      position:absolute;inset:-70px -70px auto auto;
-      width:190px;height:190px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
-      pointer-events:none;
-    }
-    .sectionTitle{
-      margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
-      font-size:clamp(18px,2vw,22px);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-    }
-    .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:14px;line-height:1.5}
-
-    label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--deep);font-size:13px}
-    select,input,textarea{
-      width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:rgba(8,14,12,.9);
-      color:#e9fff4;font-family:inherit;font-size:14px;outline:none;
-    }
-    textarea{min-height:170px;resize:vertical}
-    input:focus, textarea:focus, select:focus{border-color:rgba(43,227,140,.55);box-shadow:0 0 0 5px rgba(43,227,140,.14)}
-
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:920px){ .grid2{grid-template-columns:1fr} }
-
-    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
-    .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
-
-    details{margin-top:10px}
-    summary{cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px}
-    pre{
-      margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-      background:rgba(6,12,10,.9);overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
-    }
-
-    .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(5,42,30,.18);border-top-color:rgba(22,184,118,.95);animation:spin .8s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    .qBox{margin-top:12px;padding:12px;border:1px solid rgba(126,255,198,.14);border-radius:16px;background:rgba(7,16,13,.9)}
-    .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
-    .qText{font-weight:900;color:#e8fff4;line-height:1.45}
-
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-
-    .menuWrap{position:relative;z-index:4000}
-    .iconBtn{
-      width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-      background:rgba(11,22,17,.9);cursor:pointer;display:grid;place-items:center;
-      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
-    .iconBtn:active{transform:translateY(0) scale(.985)}
-    .bars{width:18px;height:12px;display:grid;gap:3px}
-    .bars span{display:block;height:2px;background:#ddffef;border-radius:2px;opacity:.9}
-    .dropdown{
-      position:absolute;right:0;top:54px;min-width:270px;
-      background:rgba(7,16,13,.97);
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow:0 22px 60px rgba(0,0,0,.45);
-      padding:8px;
-      display:none;
-      opacity:0;
-      transform:translateY(-8px);
-      z-index:5000;
-    }
-    /* animation: dropdown fade + slide */
-    .dropdown.is-open{display:block;opacity:1;transform:translateY(0);transition:opacity .18s ease, transform .18s cubic-bezier(.22,.61,.36,1)}
-    .dropdown.is-closing{display:block;opacity:0;transform:translateY(-6px);transition:opacity .14s ease, transform .14s ease}
-    .dropdown a, .dropdown button{
-      width:100%;
-      display:flex;align-items:center;justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid transparent;
-      background:transparent;
-      cursor:pointer;
-      font-weight:950;
-      color:#e8fff4;
-      font-size:13px;
-      text-align:left;
-    }
-    .dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
-    .pill{
-      font-size:11px;font-weight:1000;color:var(--muted);
-      border:1px solid var(--border);
-      border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.03);
-    }
-
-    .loginOverlay{
-      position:fixed;inset:0;z-index:9999;
-      background:
-        radial-gradient(800px 420px at 20% 10%, rgba(43,227,140,.22), transparent 60%),
-        radial-gradient(700px 380px at 90% 20%, rgba(43,227,140,.10), transparent 55%),
-        linear-gradient(135deg, rgba(5,42,30,.98), rgba(4,30,22,.92));
-      display:flex;align-items:center;justify-content:center;padding:18px;
-    }
-    .loginCard{
-      width:min(680px, 100%);
-      background:rgba(7,16,13,.94);
-      border:1px solid rgba(255,255,255,.22);
-      border-radius:22px;
-      box-shadow:0 24px 70px rgba(0,0,0,.25);
-      overflow:hidden;
-    }
-    .loginTop{display:flex;gap:14px;align-items:center;padding:18px 18px 10px}
-    .loginTop img{height:68px;width:auto;display:block}
-    .loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1;text-shadow:0 0 16px rgba(43,227,140,.18)}
-    .loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
-    .loginBody{padding:12px 18px 18px}
-    .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
-
-    .authBox{
-      border:1px solid rgba(5,42,30,.12);
-      border-radius:16px;
-      padding:12px;
-      background:rgba(8,18,14,.72);
-    }
-    .authTitle{font-weight:1100;color:var(--deep);font-size:13px}
-    .miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
-
-    .uploadBox{
-      border:1px dashed rgba(5,42,30,.22);
-      border-radius:16px;
-      padding:12px;
-      background:rgba(8,18,14,.72);
-    }
-    .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
-    .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .fileRow input[type="file"]{max-width:320px}
-
-    .mcGroup{display:grid;gap:8px;margin-top:10px}
-    .mcOpt{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 12px;border-radius:14px;
-      border:1px solid rgba(5,42,30,.14);
-      background:rgba(8,18,14,.92); cursor:pointer;
-      font-weight:900; line-height:1.35;
-      text-align:left;
-      color:#e8fff4;
-      transition:transform .16s ease, border-color .16s ease, box-shadow .18s ease;
-    }
-    .mcOpt:hover{transform:translateY(-2px);border-color:rgba(43,227,140,.35);box-shadow:0 10px 22px rgba(0,0,0,.25)}
-    .mcOpt.sel{
-      border-color:rgba(43,227,140,.60);
-      box-shadow:0 0 0 5px rgba(43,227,140,.12);
-    }
-    .mcLetter{
-      width:28px;height:28px;border-radius:10px;
-      display:grid;place-items:center;
-      background:rgba(43,227,140,.09);
-      font-weight:1100;color:var(--deep);
-      flex:0 0 28px;
-    }
-    .mcText{font-weight:850;color:#e8fff4}
-
-    /* ============================
-       ÄNDRING: CLEAN TOGGLE/COLLAPSE
-       ============================ */
-    .card.collapsible{padding-bottom:14px}
-    .cardHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .toggleBtn{
-      padding:10px 12px;border-radius:12px;font-size:13px;font-weight:1100;
-      border:1px solid rgba(5,42,30,.12);
-      background:rgba(9,18,15,.9);
-      color:var(--deep);
-      display:inline-flex;align-items:center;gap:8px;
-    }
-    .chev{width:10px;height:10px;border-right:2px solid rgba(5,42,30,.65);border-bottom:2px solid rgba(5,42,30,.65);transform:rotate(-45deg);transition:transform .25s ease}
-    .card.open .chev{transform:rotate(45deg)}
-    .cardBody{
-      overflow:hidden;
-      max-height:0;
-      opacity:0;
-      filter:blur(6px);
-      transform:translateY(10px);
-      transition:max-height .26s cubic-bezier(.22,.61,.36,1), opacity .2s ease, filter .22s ease, transform .22s ease;
-    }
-    .card.open .cardBody{
-      max-height:8000px;
-      opacity:1;
-      filter:blur(0);
-      transform:translateY(0);
-    }
-    .card.open{padding-bottom:clamp(16px,3vw,22px)}
-
-    /* animation: card hover microinteraction */
-    .card{transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease}
-    .card:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(0,0,0,.45);border-color:rgba(106,255,193,.4)}
-
-    /* animation: reveal on scroll */
-    .reveal{opacity:0;transform:translateY(12px);filter:blur(8px);transition:opacity .24s ease, transform .24s cubic-bezier(.22,.61,.36,1), filter .24s ease}
-    .reveal.in{opacity:1;transform:translateY(0);filter:blur(0)}
-
-    /* accessibility: prefers-reduced-motion */
-    @media (prefers-reduced-motion: reduce){
-      html{scroll-behavior:auto}
-      *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
-      .dropdown,.dropdown.is-open,.dropdown.is-closing,.cardBody,.reveal{transform:none !important;filter:none !important}
-      .reveal{opacity:1}
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ProviaAi – App</title>
+<style>
+:root{
+--deep:#E8FFF4; --deep2:#b7d9c9;
+--mint:#2BE38C; --mint2:#16B876;
+--bg:#050808; --muted:#9bb3a8; --border:rgba(120,255,195,.18);
+--shadow:0 18px 55px rgba(0,0,0,.45);
+--radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1080px;
+--danger:#ff8f8f; --ok:#67dcb0; --warn:#f4ce78;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+:target{scroll-margin-top:92px}
+body{
+margin:0;font-family:var(--font);line-height:1.55;
+background:
+radial-gradient(900px 450px at 14% -12%, rgba(43,227,140,.15), transparent 62%),
+radial-gradient(780px 420px at 90% 16%, rgba(43,227,140,.08), transparent 58%),
+linear-gradient(165deg, #030505 0%, #050909 45%, #020404 100%);
+color:#e9fff4;
+position:relative;
+}
+body::before,
+body::after{content:"";position:fixed;inset:-140px;pointer-events:none;z-index:0}
+body::before{
+background:
+radial-gradient(700px 360px at 16% 12%, rgba(43,227,140,.18), transparent 64%),
+radial-gradient(760px 420px at 80% 20%, rgba(19,123,81,.18), transparent 66%);
+opacity:.2;
+}
+body::after{
+background-image:
+radial-gradient(rgba(255,255,255,.18) .7px, transparent .8px),
+radial-gradient(rgba(255,255,255,.12) .6px, transparent .7px);
+background-size:3px 3px, 5px 5px;
+background-position:0 0, 1px 2px;
+opacity:.08;
+}
+a{text-decoration:none;color:inherit}
+header{
+background:rgba(4,12,9,.82);backdrop-filter:saturate(140%) blur(10px);
+border-bottom:1px solid var(--border);
+position:sticky;top:0;z-index:3000;
+}
+.wrap{max-width:var(--max);margin:0 auto;padding:clamp(18px,3.4vw,28px);position:relative;z-index:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand img{height:54px;width:auto;display:block}
+.brand .name{font-weight:1100;color:var(--deep);font-size:19px;line-height:1.05;letter-spacing:-.01em}
+.brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+.btn{
+display:inline-flex;align-items:center;justify-content:center;
+padding:12px 16px;border-radius:14px;
+font-weight:1000;font-size:14px;border:1px solid var(--border);
+cursor:pointer;white-space:nowrap;
+background:rgba(11,22,17,.86);color:var(--deep);
+user-select:none;
+transition:transform .16s cubic-bezier(.22,.61,.36,1), box-shadow .2s ease, border-color .2s ease;
+}
+.btn:hover{transform:translateY(-2px);border-color:rgba(105,255,193,.45);box-shadow:0 14px 32px rgba(22,184,118,.22), 0 0 0 1px rgba(106,255,193,.18) inset}
+.btn:active{transform:translateY(0) scale(.985);box-shadow:0 8px 14px rgba(22,184,118,.18)}
+.btn:focus-visible,
+.iconBtn:focus-visible,
+.dropdown a:focus-visible,
+.dropdown button:focus-visible,
+.toggleBtn:focus-visible{outline:2px solid rgba(138,255,211,.95);outline-offset:2px}
+.btn:disabled{opacity:.6; cursor:not-allowed}
+.btnPrimary{
+position:relative;overflow:hidden;
+background:linear-gradient(135deg, rgba(22,184,118,.96), rgba(15,142,92,.95));color:#f5fffa;border-color:rgba(22,184,118,.42);
+box-shadow:0 14px 28px rgba(22,184,118,.22)
+}
+.btnPrimary::after{
+content:"";position:absolute;inset:-1px auto -1px -40%;width:30%;
+background:linear-gradient(110deg, transparent, rgba(255,255,255,.28), transparent);
+transform:translateX(0);
+transition:transform .24s cubic-bezier(.22,.61,.36,1);
+}
+.btnPrimary:hover::after{transform:translateX(360%)}
+.card{
+background:rgba(8,19,15,.88);
+border:1px solid var(--border);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:clamp(16px,3vw,22px);
+margin:14px 0;
+overflow:hidden;
+position:relative;
+}
+.card:before{
+content:"";
+position:absolute;inset:-70px -70px auto auto;
+width:190px;height:190px;border-radius:999px;
+background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
+pointer-events:none;
+}
+.sectionTitle{
+margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
+font-size:clamp(18px,2vw,22px);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+.sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:14px;line-height:1.5}
+label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--deep);font-size:13px}
+select,input,textarea{
+width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:rgba(8,14,12,.9);
+color:#e9fff4;font-family:inherit;font-size:14px;outline:none;
+}
+textarea{min-height:170px;resize:vertical}
+input:focus, textarea:focus, select:focus{border-color:rgba(43,227,140,.55);box-shadow:0 0 0 5px rgba(43,227,140,.14)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:920px){ .grid2{grid-template-columns:1fr} }
+.status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
+.status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
+details{margin-top:10px}
+summary{cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px}
+pre{
+margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
+background:rgba(6,12,10,.9);overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
+}
+.spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(5,42,30,.18);border-top-color:rgba(22,184,118,.95);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qBox{margin-top:12px;padding:12px;border:1px solid rgba(126,255,198,.14);border-radius:16px;background:rgba(7,16,13,.9)}
+.qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
+.qText{font-weight:900;color:#e8fff4;line-height:1.45}
+footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
+.menuWrap{position:relative;z-index:4000}
+.iconBtn{
+width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
+background:rgba(11,22,17,.9);cursor:pointer;display:grid;place-items:center;
+transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
+.iconBtn:active{transform:translateY(0) scale(.985)}
+.bars{width:18px;height:12px;display:grid;gap:3px}
+.bars span{display:block;height:2px;background:#ddffef;border-radius:2px;opacity:.9}
+.dropdown{
+position:absolute;right:0;top:54px;min-width:270px;
+background:rgba(7,16,13,.97);
+border:1px solid var(--border);
+border-radius:16px;
+box-shadow:0 22px 60px rgba(0,0,0,.45);
+padding:8px;
+display:none;
+opacity:0;
+transform:translateY(-8px);
+z-index:5000;
+}
+.dropdown.is-open{display:block;opacity:1;transform:translateY(0);transition:opacity .18s ease, transform .18s cubic-bezier(.22,.61,.36,1)}
+.dropdown.is-closing{display:block;opacity:0;transform:translateY(-6px);transition:opacity .14s ease, transform .14s ease}
+.dropdown a, .dropdown button{
+width:100%;
+display:flex;align-items:center;justify-content:space-between;
+gap:10px;
+padding:10px 12px;
+border-radius:12px;
+border:1px solid transparent;
+background:transparent;
+cursor:pointer;
+font-weight:950;
+color:#e8fff4;
+font-size:13px;
+text-align:left;
+}
+.dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
+.pill{
+font-size:11px;font-weight:1000;color:var(--muted);
+border:1px solid var(--border);
+border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.03);
+}
+.loginOverlay{
+position:fixed;inset:0;z-index:9999;
+background:
+radial-gradient(800px 420px at 20% 10%, rgba(43,227,140,.22), transparent 60%),
+radial-gradient(700px 380px at 90% 20%, rgba(43,227,140,.10), transparent 55%),
+linear-gradient(135deg, rgba(5,42,30,.98), rgba(4,30,22,.92));
+display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.loginCard{
+width:min(680px, 100%);
+background:rgba(7,16,13,.94);
+border:1px solid rgba(255,255,255,.22);
+border-radius:22px;
+box-shadow:0 24px 70px rgba(0,0,0,.25);
+overflow:hidden;
+}
+.loginTop{display:flex;gap:14px;align-items:center;padding:18px 18px 10px}
+.loginTop img{height:68px;width:auto;display:block}
+.loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1;text-shadow:0 0 16px rgba(43,227,140,.18)}
+.loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
+.loginBody{padding:12px 18px 18px}
+.loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
+.authBox{
+border:1px solid rgba(5,42,30,.12);
+border-radius:16px;
+padding:12px;
+background:rgba(8,18,14,.72);
+}
+.authTitle{font-weight:1100;color:var(--deep);font-size:13px}
+.miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
+.uploadBox{
+border:1px dashed rgba(5,42,30,.22);
+border-radius:16px;
+padding:12px;
+background:rgba(8,18,14,.72);
+}
+.uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
+.fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fileRow input[type="file"]{max-width:320px}
+.mcGroup{display:grid;gap:8px;margin-top:10px}
+.mcOpt{
+display:flex;align-items:center;gap:10px;
+padding:10px 12px;border-radius:14px;
+border:1px solid rgba(5,42,30,.14);
+background:rgba(8,18,14,.92); cursor:pointer;
+font-weight:900; line-height:1.35;
+text-align:left;
+color:#e8fff4;
+transition:transform .16s ease, border-color .16s ease, box-shadow .18s ease;
+}
+.mcOpt:hover{transform:translateY(-2px);border-color:rgba(43,227,140,.35);box-shadow:0 10px 22px rgba(0,0,0,.25)}
+.mcOpt.sel{
+border-color:rgba(43,227,140,.60);
+box-shadow:0 0 0 5px rgba(43,227,140,.12);
+}
+.mcLetter{
+width:28px;height:28px;border-radius:10px;
+display:grid;place-items:center;
+background:rgba(43,227,140,.09);
+font-weight:1100;color:var(--deep);
+flex:0 0 28px;
+}
+.mcText{font-weight:850;color:#e8fff4}
+.card.collapsible{padding-bottom:14px}
+.cardHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.toggleBtn{
+padding:10px 12px;border-radius:12px;font-size:13px;font-weight:1100;
+border:1px solid rgba(5,42,30,.12);
+background:rgba(9,18,15,.9);
+color:var(--deep);
+display:inline-flex;align-items:center;gap:8px;
+}
+.chev{width:10px;height:10px;border-right:2px solid rgba(5,42,30,.65);border-bottom:2px solid rgba(5,42,30,.65);transform:rotate(-45deg);transition:transform .25s ease}
+.card.open .chev{transform:rotate(45deg)}
+.cardBody{
+overflow:hidden;
+max-height:0;
+opacity:0;
+filter:blur(6px);
+transform:translateY(10px);
+transition:max-height .26s cubic-bezier(.22,.61,.36,1), opacity .2s ease, filter .22s ease, transform .22s ease;
+}
+.card.open .cardBody{
+max-height:8000px;
+opacity:1;
+filter:blur(0);
+transform:translateY(0);
+}
+.card.open{padding-bottom:clamp(16px,3vw,22px)}
+.card{transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease}
+.card:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(0,0,0,.45);border-color:rgba(106,255,193,.4)}
+.reveal{opacity:0;transform:translateY(12px);filter:blur(8px);transition:opacity .24s ease, transform .24s cubic-bezier(.22,.61,.36,1), filter .24s ease}
+.reveal.in{opacity:1;transform:translateY(0);filter:blur(0)}
+.pageLoader{
+position:fixed;inset:0;z-index:12000;display:grid;place-items:center;
+background:radial-gradient(900px 460px at 50% -10%, rgba(43,227,140,.12), transparent 60%), rgba(2,7,5,.96);
+opacity:1;visibility:visible;transition:opacity .24s ease, visibility .24s ease;
+}
+.pageLoader.done{opacity:0;visibility:hidden;pointer-events:none}
+.loaderOrb{width:66px;height:66px;border-radius:999px;position:relative;border:1px solid rgba(132,255,206,.35);box-shadow:0 0 0 8px rgba(22,184,118,.08), 0 0 44px rgba(22,184,118,.25) inset;animation:loaderPulse 1.6s ease-in-out infinite}
+.loaderOrb::before{content:"";position:absolute;inset:-8px;border-radius:999px;border:2px solid transparent;border-top-color:rgba(132,255,206,.95);border-right-color:rgba(132,255,206,.35);animation:spin 1.2s linear infinite}
+.loaderText{margin-top:14px;font-size:12px;font-weight:900;color:#cffff0;letter-spacing:.08em;text-transform:uppercase}
+@keyframes loaderPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+body{--mx:50%;--my:18%;}
+main.wrap::before{
+content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+background:radial-gradient(360px 360px at var(--mx) var(--my), rgba(43,227,140,.11), transparent 62%);
+opacity:.45;transition:opacity .2s ease;
+}
+.loginCard{animation:floatY 6s ease-in-out infinite}
+.card:first-of-type{animation:floatY 8s ease-in-out infinite}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.uploadBox{position:relative;overflow:hidden}
+.uploadBox::after{
+content:"";position:absolute;inset:0 auto 0 -40%;width:36%;
+background:linear-gradient(100deg, transparent, rgba(142,255,207,.12), transparent);
+transform:translateX(0);animation:scanShimmer 3.6s ease-in-out infinite;
+pointer-events:none;
+}
+@keyframes scanShimmer{0%,70%,100%{transform:translateX(0)}35%{transform:translateX(420%)}}
+@media (prefers-reduced-motion: reduce){
+html{scroll-behavior:auto}
+*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+.dropdown,.dropdown.is-open,.dropdown.is-closing,.cardBody,.reveal{transform:none !important;filter:none !important}
+.reveal{opacity:1}
+.loginCard,.card:first-of-type,.uploadBox::after,.loaderOrb{animation:none !important}
+}
+</style>
 </head>
-
 <body>
-
-  <!-- LOCK SCREEN -->
-  <div id="loginScreen" class="loginOverlay" aria-hidden="false">
-    <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
-      <div class="loginTop">
-        <img src="image/proviaai-logo.png" alt="ProviaAi logga">
-        <div>
-          <div class="ltTitle" id="lockTitle">ProviaAi</div>
-          <div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
-        </div>
-      </div>
-
-      <div class="loginBody">
-        <div class="authBox" id="authBox">
-          <div class="authTitle" id="authTitle">Logga in / Skapa konto</div>
-
-          <div class="grid2" style="margin-top:10px">
-            <div>
-              <label for="authEmail" id="authEmailLabel">E-post</label>
-              <input id="authEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
-            </div>
-            <div>
-              <label for="authPass" id="authPassLabel">Lösenord</label>
-              <input id="authPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
-            </div>
-          </div>
-
-          <div class="loginRow">
-            <button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
-            <button class="btn" type="button" id="signUpBtn">Skapa konto</button>
-            <a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
-            <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
-          </div>
-
-          <div class="miniHint" id="authHint">
-            Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br><br>
-          </div>
-        </div>
-
-        <details style="margin-top:12px" open>
-          <summary id="codeSummary">Alternativ inloggning: kod</summary>
-          <label for="accessCode" id="lockLabel">Åtkomstkod</label>
-          <input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-          <div class="loginRow">
-            <button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
-          </div>
-        </details>
-
-        <div id="errorMsg" class="err" aria-live="polite"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- APP -->
-  <header>
-    <div class="wrap topbar">
-      <a class="brand" href="index.html">
-        <img src="image/proviaai-logo.png" alt="ProviaAi logga">
-        <div>
-          <div class="name" id="brandName">ProviaAi</div>
-          <div class="tag" id="brandTag">Mockprov • Rättning • Modellsvar</div>
-        </div>
-      </a>
-
-      <div class="menuWrap">
-        <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
-          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-        </button>
-
-        <div class="dropdown" id="menu" aria-label="Menyval">
-          <a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
-          <a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
-          <a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
-          <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
-
-          <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
-
-          <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-          <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="wrap" id="appRoot">
-
-    <!-- ÄNDRING: collapsible + cardBody wrapper -->
-    <section class="card collapsible" id="material" data-collapsible="true">
-      <div class="cardHeaderRow">
-        <div class="sectionTitle" style="margin:0"><span id="tStep1">Steg 1 – Material</span></div>
-        <button class="toggleBtn" type="button" data-toggle-card="#material">
-          <span id="tg_material">Öppna</span><span class="chev" aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="cardBody">
-        <p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
-
-        <label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
-        <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
-
-        <div class="uploadBox" style="margin-top:12px">
-          <div class="uploadTop">
-            <div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
-            <div class="fileRow">
-              <input id="imageInput" type="file" accept="image/*" capture="environment" />
-              <button class="btn" id="ocrBtn" type="button">OCR till material</button>
-            </div>
-          </div>
-          <div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
-          <div class="status" id="ocrStatus"></div>
-        </div>
-
-        <div class="status warn" id="formatHint" style="margin-top:12px">
-          Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
-        </div>
-      </div>
-    </section>
-
-    <section class="card collapsible" id="settings" data-collapsible="true">
-      <div class="cardHeaderRow">
-        <div class="sectionTitle" style="margin:0">
-          <span id="tStep2">Steg 2 – Inställningar</span>
-          <a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
-        </div>
-        <button class="toggleBtn" type="button" data-toggle-card="#settings">
-          <span id="tg_settings">Öppna</span><span class="chev" aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="cardBody">
-        <p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
-
-        <div class="grid2">
-          <div>
-            <label for="level" id="tLevel">Nivå (E/C/A)</label>
-            <select id="level">
-              <option value="E">E</option>
-              <option value="C" selected>C</option>
-              <option value="A">A</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
-
-            <!-- ÄNDRING: behåll #course för befintlig logik, men göm den -->
-            <input id="course" placeholder="Ex: Matematik 2b / Historia 1b" style="display:none" />
-
-            <!-- ÄNDRING: Kursbibliotek + manuell kurs -->
-            <div class="coursePicker" style="display:grid;gap:10px;margin-top:6px">
-              <label style="display:grid;gap:6px;margin:0">
-                <input id="courseSearch" type="text"
-                       placeholder="Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
-                       list="courseDatalist" autocomplete="off">
-                <datalist id="courseDatalist"></datalist>
-                <div style="font-size:12px;color:var(--muted);font-weight:750;line-height:1.35">
-                  Välj från listan eller skriv. Om den inte finns: använd “Annan kurs” nedan.
-                </div>
-              </label>
-
-              <div style="display:grid;gap:8px">
-                <label style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0">
-                  <input id="useCustomCourse" type="checkbox" style="width:18px;height:18px">
-                  <span style="font-weight:900">Annan kurs (skriv manuellt)</span>
-                </label>
-
-                <input id="customCourse" type="text"
-                       placeholder="Skriv kurs/ämne exakt som du vill ha det..."
-                       disabled>
-
-                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                  <button id="saveCustomCourse" type="button" class="btn">Spara i min lista</button>
-                  <span id="coursePickerStatus" style="font-size:12px;color:var(--muted);font-weight:750"></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid2" style="margin-top:12px">
-          <div>
-            <label for="qType" id="tQType">Frågetyp</label>
-            <select id="qType">
-              <option value="mix" selected id="qtMix">Blandat</option>
-              <option value="mc" id="qtMc">Flervalsfrågor</option>
-              <option value="short" id="qtShort">Kortsvar</option>
-            </select>
-          </div>
-          <div>
-            <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
-            <select id="numQuestions">
-              <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-              <option>9</option><option>10</option><option>11</option><option selected>12</option>
-              <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-          <button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-          <button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-          <button class="btn" id="clearBtn" type="button">Rensa</button>
-
-          <span style="display:flex;gap:10px;align-items:center">
-            <span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
-            <!-- miniState visar quota tydligt -->
-            <span class="sectionSub" id="miniState">Prov idag kvar: —</span>
-          </span>
-        </div>
-
-        <div class="status" id="status"></div>
-
-        <details id="debugWrap" style="display:none">
-          <summary id="debugTitle">Debug</summary>
-          <pre id="debug"></pre>
-        </details>
-      </div>
-    </section>
-
-    <section class="card collapsible" id="exam" data-collapsible="true">
-      <div class="cardHeaderRow">
-        <div class="sectionTitle" style="margin:0"><span id="tStep3">Steg 3 – Mockprov</span></div>
-        <button class="toggleBtn" type="button" data-toggle-card="#exam">
-          <span id="tg_exam">Öppna</span><span class="chev" aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="cardBody">
-        <div class="status" id="examMeta">Ingen provdata ännu.</div>
-        <div id="examBody"></div>
-      </div>
-    </section>
-
-    <section class="card collapsible" id="result" data-collapsible="true">
-      <div class="cardHeaderRow">
-        <div class="sectionTitle" style="margin:0"><span id="tStep4">Steg 4 – Rättning</span></div>
-        <button class="toggleBtn" type="button" data-toggle-card="#result">
-          <span id="tg_result">Öppna</span><span class="chev" aria-hidden="true"></span>
-        </button>
-      </div>
-      <div class="cardBody">
-        <div class="status" id="resultMeta">Ingen rättning ännu.</div>
-        <div id="resultBody"></div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script>
-    // ============================
-    // SUPABASE KEYS
-    // ============================
-    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8";
-    const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim();
-
-    // ===== LOGIN CONFIG (fallback kod) =====
-    const ACCESS_CODE = "provia123";
-    const ACCESS_FLAG_KEY = "proviaai_app_access";
-
-    // ===== STORAGE KEYS =====
-    const LS_HISTORY = "proviaai_history";
-    const LS_MISTAKES = "proviaai_mistakes";
-    const LS_LAST = "proviaai_last_result";
-    const LS_MATERIAL = "proviaai_last_material";
-    const LS_CLEAR_TS = "proviaai_cleared_ts";
-
-    // valda misstag från förbättringssidan
-    const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[], done:[]? }
-
-    // ===== QUOTA UI (server-first, local fallback) =====
-    const LS_QUOTA_FALLBACK_PREFIX = "proviaai_quota_fallback_"; // per user per day
-
-    // ===== ÄNDRING: UI TOGGLE STATE =====
-    const LS_UI_OPEN = "proviaai_ui_open"; // { material:true/false, settings:true/false, exam:true/false, result:true/false }
-
-    // ===== ÄNDRING: COURSE LIBRARY STORAGE =====
-    const LS_CUSTOM_COURSES = "proviaai_custom_courses";
-
-    const $ = (id) => document.getElementById(id);
-
-    function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
-    function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
-    function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
-    function lsGetNum(key, fallback=0){ const n = Number(localStorage.getItem(key)||fallback); return Number.isFinite(n) ? n : fallback; }
-    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-    }
-
-    // ===== I18N =====
-    let LANG = localStorage.getItem("proviaai_lang") || "sv";
-    const T = {
-      sv:{
-        brandTag:"Mockprov • Rättning • Modellsvar",
-        lockSub:"Åtkomst krävs för att använda appen",
-        lockLabel:"Åtkomstkod",
-        unlock:"Lås upp",
-        toInfo:"Till infosidan",
-        toImprove:"Förbättring",
-        m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
-        mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
-        step1:"Steg 1 – Material",
-        step1Sub:"Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
-        pasteLabel:"Material (klistra in text)",
-        pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
-        ocrTitle:"Bild → OCR (valfritt)",
-        ocrBtn:"OCR till material",
-        ocrHint:"Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.",
-        tip:"Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.",
-        step2:"Steg 2 – Inställningar",
-        step2Sub:"Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.",
-        level:"Nivå (E/C/A)",
-        course:"Ämne/kurs (valfritt)",
-        coursePH:"Ex: Matematik 2b / Historia 1b",
-        qType:"Frågetyp",
-        qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
-        num:"Antal frågor (exakt)",
-        gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
-        ready:"Prov idag kvar: —",
-        debug:"Debug",
-        step3:"Steg 3 – Mockprov",
-        step4:"Steg 4 – Rättning",
-        noExam:"Ingen provdata ännu.",
-        noGrade:"Ingen rättning ännu.",
-        needMat:"Klistra in material först.",
-        genWorking:"Skapar mockprov…",
-        gradeWorking:"Rättar prov…",
-        genDone:"Mockprov klart.",
-        gradeDone:"Rättning klar. Sparad till förbättring.",
-        wrongCode:"Fel kod.",
-        ocrNoFile:"Välj en bild först.",
-        ocrWorking:"OCR pågår…",
-        ocrDone:"OCR klart. Texten lades in i materialet.",
-        writeAnswer:"Skriv ditt svar här…",
-        fullScore:"Vad som ger full poäng (modellsvar)",
-        genFirst:"Skapa mockprov först.",
-        cleared:"Allt rensat. Börja om.",
-        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
-        pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
-        trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
-        quotaUnknown:"Prov idag: —",
-        quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
-        openSection:"Öppna",
-        closeSection:"Stäng"
-      },
-      en:{
-        brandTag:"Mock exams • Grading • Model answers",
-        lockSub:"Access is required to use the app",
-        lockLabel:"Access code",
-        unlock:"Unlock",
-        toInfo:"Go to info page",
-        toImprove:"Improve",
-        m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
-        mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
-        step1:"Step 1 – Material",
-        step1Sub:"Paste text. Optional: choose an image or take a photo → OCR adds text into your material.",
-        pasteLabel:"Material (paste text)",
-        pastePH:"Headings → bullet points → definitions/formulas → examples",
-        ocrTitle:"Image → OCR (optional)",
-        ocrBtn:"OCR into material",
-        ocrHint:"Tip: sharp photo from above, good light, high contrast.",
-        tip:"Tip: headings + bullet points produce more accurate questions and grading.",
-        step2:"Step 2 – Settings",
-        step2Sub:"Choose level (E/C/A), question type and an exact number of questions.",
-        level:"Level (E/C/A)",
-        course:"Subject/course (optional)",
-        coursePH:"e.g., Math / History",
-        qType:"Question type",
-        qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
-        num:"Number of questions (exact)",
-        gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
-        ready:"Exams left today: —",
-        debug:"Debug",
-        step3:"Step 3 – Mock exam",
-        step4:"Step 4 – Grading",
-        noExam:"No exam data yet.",
-        noGrade:"No grading yet.",
-        needMat:"Paste material first.",
-        genWorking:"Generating mock exam…",
-        gradeWorking:"Grading…",
-        genDone:"Mock exam ready.",
-        gradeDone:"Grading done. Saved to Improve page.",
-        wrongCode:"Wrong code.",
-        ocrNoFile:"Choose an image first.",
-        ocrWorking:"Running OCR…",
-        ocrDone:"OCR done. Text was added to the material.",
-        writeAnswer:"Write your answer here…",
-        fullScore:"Full-score model answer",
-        genFirst:"Generate an exam first.",
-        cleared:"Cleared. Start again.",
-        footer:"ProviaAi is study support and does not provide official grades.",
-        pending:"Waiting for admin approval. You’ll get access once approved.",
-        trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
-        quotaUnknown:"Exams today: —",
-        quotaHit:"Daily limit reached. Try again tomorrow.",
-        openSection:"Open",
-        closeSection:"Close"
-      }
-    };
-
-    // ===== DEBUG/ERROR REPORTING =====
-    function showDebug(txt){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "block";
-      pre.textContent = txt || "";
-    }
-    function hideDebug(){
-      const wrap = $("debugWrap"), pre = $("debug");
-      if(!wrap || !pre) return;
-      wrap.style.display = "none";
-      pre.textContent = "";
-    }
-    function reportErr(err){
-      const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
-      showDebug(msg);
-      const s = $("status");
-      if(s){
-        s.className = "status bad";
-        s.textContent = "JS-fel: se Debug.";
-      }
-      const em = $("errorMsg");
-      if(em) em.textContent = "JS-fel: se Debug.";
-    }
-    window.addEventListener("error", (e) => reportErr(e.error || e.message));
-    window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
-
-    // ===== SUPABASE INIT (robust) =====
-    const USE_SUPABASE =
-      typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-      typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
-
-    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
-    const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
-      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
-
-    // ===== AUTH HELPERS =====
-    async function getAccessToken(){
-      if(!db) return "";
-      try{
-        const { data, error } = await db.auth.getSession();
-        if(error) return "";
-        return data?.session?.access_token || "";
-      } catch {
-        return "";
-      }
-    }
-
-    // ===== POST JSON (ÄNDRING: skickar Authorization: Bearer <token> när inloggad) =====
-    async function postJson(path, payload){
-      const token = await getAccessToken();
-      const headers = { "Content-Type":"application/json" };
-      if(token) headers["Authorization"] = `Bearer ${token}`;
-
-      const resp = await fetch(path, {
-        method:"POST",
-        headers,
-        body: JSON.stringify(payload)
-      });
-      const raw = await resp.text();
-      let data = null;
-      try{ data = JSON.parse(raw); } catch {}
-      return { ok: resp.ok, status: resp.status, raw, data };
-    }
-
-    // ===== SAVE DATA TO ACCOUNT (user_exams) =====
-    async function getUserId(){
-      if(!db) return null;
-      const { data, error } = await db.auth.getUser();
-      if(error) return null;
-      return data?.user?.id || null;
-    }
-
-    async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
-      if(!db) return { ok:false, error:"Supabase not configured" };
-      const userId = await getUserId();
-      if(!userId) return { ok:false, error:"Not logged in" };
-
-      const row = {
-        user_id: userId,
-        course: course || null,
-        level: level || null,
-        qtype: qType || null,
-        material: material || "",
-        exam: exam || null,
-        answers: answers || null,
-        result: result || null,
-        created_at: new Date().toISOString()
-      };
-
-      const { data, error } = await db
-        .from("user_exams")
-        .insert([row])
-        .select("id");
-
-      if(error) return { ok:false, error: error.message || String(error) };
-
-      const id = Array.isArray(data) && data[0] ? data[0].id : null;
-      return { ok:true, id };
-    }
-
-    // ===== QUOTA (server-first via 429 payload; fallback local) =====
-    function ymd(d=new Date()){
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const day = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${day}`;
-    }
-
-    async function quotaFallbackKey(){
-      const uid = (await getUserId()) || "guest";
-      return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
-    }
-
-    // local fallback defaults until server tells us limit
-    let quotaState = { limit: null, count: null };
-
-    function normalizeLimit(x){
-      if(x === null || x === undefined) return null;
-      if(x === "unlimited") return Infinity;
-      const n = Number(x);
-      if(!Number.isFinite(n)) return null;
-      if(n <= 0) return 0;
-      return n;
-    }
-
-    function normalizeCount(x){
-      const n = Number(x);
-      if(!Number.isFinite(n) || n < 0) return null;
-      return Math.floor(n);
-    }
-
-    async function readFallbackCount(){
-      const k = await quotaFallbackKey();
-      return lsGetNum(k, 0);
-    }
-    async function writeFallbackCount(n){
-      const k = await quotaFallbackKey();
-      localStorage.setItem(k, String(Math.max(0, Math.floor(n))));
-    }
-
-    async function setQuotaFromServerMaybe(obj){
-      // expects { limit, count } from 429 response
-      const lim = normalizeLimit(obj?.limit);
-      const cnt = normalizeCount(obj?.count);
-      if(lim === null || cnt === null) return false;
-      quotaState.limit = lim;
-      quotaState.count = cnt;
-      // sync fallback so UI keeps same after reload
-      await writeFallbackCount(cnt);
-      await refreshQuotaUi();
-      return true;
-    }
-
-    async function bumpQuotaFallbackOnSuccess(){
-      // used when server does not provide quota on success
-      const cur = await readFallbackCount();
-      await writeFallbackCount(cur + 1);
-    }
-
-    // ÄNDRING: visa både "genererat idag" + "kvar idag"
-    async function refreshQuotaUi(){
-      const ms = document.getElementById("miniState");
-      if(!ms) return;
-
-      const t = T[LANG];
-      const fallbackCount = await readFallbackCount();
-
-      const limit = (quotaState.limit !== null) ? quotaState.limit : null;
-      const count = (quotaState.count !== null) ? quotaState.count : fallbackCount;
-
-      if(limit === null){
-        ms.textContent = t.quotaUnknown;
-        return;
-      }
-
-      const limitText = (limit === Infinity) ? "∞" : String(limit);
-      const left = (limit === Infinity) ? Infinity : Math.max(limit - count, 0);
-      const leftText = (left === Infinity) ? "∞" : String(left);
-
-      if(LANG === "sv"){
-        ms.textContent = `Prov idag: ${count}/${limitText} • Kvar: ${leftText}`;
-      } else {
-        ms.textContent = `Exams today: ${count}/${limitText} • Left: ${leftText}`;
-      }
-    }
-
-    // ===== SYNC FROM ACCOUNT -> LOCAL (cross-device) =====
-    function mergeMistakesFromExamRows(rows){
-      const out = [];
-      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-
-      (rows || []).forEach(r => {
-        const createdTs = Date.parse(r.created_at) || 0;
-        if(createdTs <= clearTs) return;
-
-        const exam = r.exam || null;
-        const result = r.result || null;
-        const answers = r.answers || null;
-
-        const qById = new Map(((exam && exam.questions) ? exam.questions : []).map(q => [String(q.id), q]));
-        const aById = new Map((Array.isArray(answers) ? answers : []).map(a => [String(a.id), String(a.answer || "")]));
-
-        const per = (result && Array.isArray(result.per_question)) ? result.per_question : [];
-        per.forEach(item => {
-          const got = Number(item.points || 0);
-          const mx = Number(item.max_points || 0);
-          if(mx > 0 && got < mx){
-            const qid = String(item.id);
-            const q = qById.get(qid) || {};
-            out.push({
-              ts: createdTs || Date.now(),
-              course: r.course || "",
-              level: r.level || "C",
-              qType: q.type || (r.qtype || "mix"),
-              id: qid,
-              question: String(q.question || ""),
-              user_answer: String(aById.get(qid) || ""),
-              feedback: String(item.feedback || ""),
-              model_answer: String(item.model_answer || ""),
-              points: got,
-              max_points: mx
-            });
-          }
-        });
-      });
-
-      while(out.length > 200) out.shift();
-      return out;
-    }
-
-    async function loadExamsFromAccountToLocal(){
-      if(!db) return;
-      const uid = await getUserId();
-      if(!uid) return;
-
-      const { data, error } = await db
-        .from("user_exams")
-        .select("id, created_at, course, level, qtype, material, exam, answers, result")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: true })
-        .limit(500);
-
-      if(error) return;
-
-      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-      const filtered = (data || []).filter((r) => {
-        const ts = Date.parse(r.created_at) || 0;
-        return ts > clearTs;
-      });
-
-      const history = (filtered || []).map((r) => ({
-        ts: Date.parse(r.created_at) || Date.now(),
-        course: r.course || "",
-        level: r.level || "C",
-        qType: r.qtype || "mix",
-        total_points: r.result?.total_points ?? 0,
-        max_points: r.result?.max_points ?? 0,
-        percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
-      }));
-
-      lsSet(LS_HISTORY, history);
-
-      const last = filtered && filtered.length ? filtered[filtered.length - 1] : null;
-      if(last){
-        lsSet(LS_LAST, {
-          ts: Date.parse(last.created_at) || Date.now(),
-          attempt: history[history.length - 1],
-          exam: last.exam,
-          result: last.result
-        });
-        if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
-      } else {
-        try{ localStorage.removeItem(LS_LAST); } catch {}
-      }
-
-      const mergedMistakes = mergeMistakesFromExamRows(filtered);
-      lsSet(LS_MISTAKES, mergedMistakes);
-    }
-
-    async function ensureUserProfileRow(){
-      if(!db) return;
-      const uid = await getUserId();
-      if(!uid) return;
-
-      const { data: existing, error } = await db
-        .from("user_profiles")
-        .select("id")
-        .eq("id", uid)
-        .maybeSingle();
-
-      if(error) return;
-
-      if(!existing){
-        await db.from("user_profiles").insert([{ id: uid }]);
-      }
-    }
-
-    async function updateMastery(result){
-      if(!db) return;
-      const uid = await getUserId();
-      if(!uid) return;
-
-      const { data: profile } = await db
-        .from("user_profiles")
-        .select("mastery")
-        .eq("id", uid)
-        .maybeSingle();
-
-      if(!profile) return;
-
-      const mastery = profile.mastery || {};
-
-      (result.per_question || []).forEach(q => {
-        const concept = (q.concept_tag || "okänt").toString();
-        const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
-
-        const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
-        const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
-        mastery[concept] = updated;
-      });
-
-      await db.from("user_profiles").update({ mastery }).eq("id", uid);
-    }
-
-    // ===== SAFE HELPERS =====
-    function onClick(id, fn){
-      const el = $(id);
-      if(!el) return false;
-      el.addEventListener("click", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
-      return true;
-    }
-    function onKey(fn){
-      document.addEventListener("keydown", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
-    }
-
-    // ===== UI MOTION HELPERS =====
-    function openMenuAnimated(){
-      const m = $("menu");
-      if(!m) return;
-      m.classList.remove("is-closing");
-      m.style.display = "block";
-      requestAnimationFrame(() => m.classList.add("is-open"));
-    }
-    function closeMenuAnimated(){
-      const m = $("menu");
-      if(!m) return;
-      if(!m.classList.contains("is-open")){ m.style.display = "none"; return; }
-      m.classList.remove("is-open");
-      m.classList.add("is-closing");
-      window.setTimeout(() => {
-        m.classList.remove("is-closing");
-        m.style.display = "none";
-      }, 180);
-    }
-    function initReveal(){
-      const nodes = Array.from(document.querySelectorAll(".card, .qBox, .uploadBox"));
-      nodes.forEach((el, i) => {
-        el.classList.add("reveal");
-        el.style.transitionDelay = `${Math.min(i * 16, 120)}ms`;
-      });
-
-      const io = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if(entry.isIntersecting){
-            entry.target.classList.add("in");
-            io.unobserve(entry.target);
-          }
-        });
-      }, { threshold:.1, rootMargin:"0px 0px -8% 0px" });
-
-      nodes.forEach((el) => io.observe(el));
-    }
-
-    // ===== UI refs =====
-    const spinWrap = () => $("spinWrap");
-    const miniStateEl = () => $("miniState");
-    const statusEl = () => $("status");
-    const pastedTextEl = () => $("pastedText");
-    const levelEl = () => $("level");
-    const courseEl = () => $("course");
-    const qTypeEl = () => $("qType");
-    const numQuestionsEl = () => $("numQuestions");
-    const examMetaEl = () => $("examMeta");
-    const examBodyEl = () => $("examBody");
-    const resultMetaEl = () => $("resultMeta");
-    const resultBodyEl = () => $("resultBody");
-    const imageInputEl = () => $("imageInput");
-    const ocrStatusEl = () => $("ocrStatus");
-
-    let currentExam = null;
-
-    function setBusy(isBusy, label){
-      const sw = spinWrap(), ms = miniStateEl();
-      if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
-      if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
-
-      const genBtn = $("generateExamBtn");
-      const gradeBtn = $("gradeBtn");
-      const clearBtn = $("clearBtn");
-      const ocrBtn = $("ocrBtn");
-      if(genBtn) genBtn.disabled = isBusy;
-      if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
-      if(clearBtn) clearBtn.disabled = isBusy;
-      if(ocrBtn) ocrBtn.disabled = isBusy;
-
-      const signIn = $("signInBtn");
-      const signUp = $("signUpBtn");
-      const unlock = $("unlockBtn");
-      if(signIn) signIn.disabled = isBusy;
-      if(signUp) signUp.disabled = isBusy;
-      if(unlock) unlock.disabled = isBusy;
-    }
-
-    function setStatus(txt, kind){
-      const s = statusEl();
-      if(!s) return;
-      s.className = "status" + (kind ? (" " + kind) : "");
-      s.textContent = txt || "";
-    }
-    function setOcrStatus(txt, kind){
-      const s = ocrStatusEl();
-      if(!s) return;
-      s.className = "status" + (kind ? (" " + kind) : "");
-      s.textContent = txt || "";
-    }
-
-    // ===== LOCK / UNLOCK =====
-    function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
-    function showLock(){
-      const s = $("loginScreen");
-      if(!s) return;
-      s.style.display = "flex";
-      s.setAttribute("aria-hidden","false");
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    }
-    function hideLock(){
-      const s = $("loginScreen");
-      if(!s) return;
-      s.style.display = "none";
-      s.setAttribute("aria-hidden","true");
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    }
-    function setLockError(msg){
-      const em = $("errorMsg");
-      if(em) em.textContent = msg || "";
-    }
-    function unlockByCode(){
-      const input = $("accessCode");
-      const v = (input?.value || "").trim();
-      if(v === ACCESS_CODE){
-        localStorage.setItem(ACCESS_FLAG_KEY, "true");
-        setLockError("");
-        hideLock();
-        runTrainModeIfRequested();
-      } else {
-        setLockError(T[LANG].wrongCode);
-      }
-    }
-    async function logout(){
-      localStorage.removeItem(ACCESS_FLAG_KEY);
-      closeMenuAnimated();
-      if(db){ try{ await db.auth.signOut(); } catch {} }
-      showLock();
-      await refreshQuotaUi();
-    }
-
-    // ===== APPROVAL CHECK =====
-    async function checkApprovalAndUnlock(session){
-      if(!db) return false;
-      const user = session?.user;
-      if(!user?.id) return false;
-
-      const { data: prof, error } = await db
-        .from("profiles")
-        .select("approved, role")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if(error){
-        setLockError(String(error.message || error));
-        return false;
-      }
-
-      if(!prof){
-        setLockError("Profil saknas i databasen (profiles).");
-        showLock();
-        return false;
-      }
-
-      if(!prof.approved){
-        setLockError(T[LANG].pending);
-        showLock();
-        return false;
-      }
-
-      setLockError("");
-      hideLock();
-      return true;
-    }
-
-    async function signInEmail(){
-      hideDebug();
-      if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
-
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
-
-      setBusy(true, "…");
-      try{
-        const { data, error } = await db.auth.signInWithPassword({ email, password });
-        if(error){ setLockError(error.message); return; }
-        const ok = await checkApprovalAndUnlock(data.session);
-        if(ok){
-          await loadExamsFromAccountToLocal();
-          await ensureUserProfileRow();
-          runTrainModeIfRequested();
-        }
-      } finally {
-        setBusy(false, T[LANG].ready);
-      }
-    }
-
-    async function signUpEmail(){
-      hideDebug();
-      if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
-
-      const email = ($("authEmail")?.value || "").trim();
-      const password = $("authPass")?.value || "";
-      if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
-
-      setBusy(true, "…");
-      try{
-        const { data, error } = await db.auth.signUp({ email, password });
-        if(error){ setLockError(error.message); return; }
-
-        if(data?.session){
-          const ok = await checkApprovalAndUnlock(data.session);
-          if(ok){ await loadExamsFromAccountToLocal(); }
-        } else {
-          setLockError(T[LANG].pending);
-          showLock();
-        }
-      } finally {
-        setBusy(false, T[LANG].ready);
-      }
-
-      runTrainModeIfRequested();
-    }
-
-    // ===== TRAIN MODE =====
-    function buildTrainingMaterialFromMistakes(mistakes, pickedIds){
-      const src = Array.isArray(mistakes) ? mistakes : [];
-      const idSet = (Array.isArray(pickedIds) && pickedIds.length)
-        ? new Set(pickedIds.map(x => String(x)))
-        : null;
-
-      const filtered = idSet ? src.filter(m => idSet.has(String(m.id))) : src;
-      const recent = filtered.slice(-30).reverse();
-
-      const course = (courseEl()?.value || "").trim();
-      const headerSv =
-        `TRÄNING PÅ DINA MISSTAG\n` +
-        `${course ? `Kurs: ${course}\n` : ""}` +
-        `Instruktion: Skapa prov som bara testar dessa svaga delar.\n\n`;
-
-      const headerEn =
-        `TRAINING FROM YOUR MISTAKES\n` +
-        `${course ? `Course: ${course}\n` : ""}` +
-        `Instruction: Generate exams that focus only on these weak areas.\n\n`;
-
-      const blocks = recent.map((m, i) => {
-        const q = String(m.question || "").trim();
-        const fb = String(m.feedback || "").trim();
-        const model = String(m.model_answer || "").trim();
-        const tag = `${m.points}/${m.max_points}`;
-
-        if(LANG === "sv"){
-          return (
-            `MISSTAG ${i+1} (${tag})\n` +
-            `Fråga: ${q}\n` +
-            `Varför poäng tappades: ${fb || "—"}\n` +
-            `Modellsvar (full poäng): ${model || "—"}\n`
-          );
-        }
-        return (
-          `MISTAKE ${i+1} (${tag})\n` +
-          `Question: ${q}\n` +
-          `Why points were lost: ${fb || "—"}\n` +
-          `Full-score model answer: ${model || "—"}\n`
-        );
-      }).join("\n---\n\n");
-
-      return (LANG === "sv" ? headerSv : headerEn) + blocks;
-    }
-
-    function runTrainModeIfRequested(){
-      const hash = (window.location.hash || "").toLowerCase();
-      if(hash !== "#train") return;
-
-      const mistakes = lsGetArray(LS_MISTAKES);
-      if(!mistakes.length){
-        setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
-        openCardById("result", true);
-        document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
-        return;
-      }
-
-      const pick = lsGetObj(LS_TRAIN_PICK);
-      const pickedIds = Array.isArray(pick?.ids) ? pick.ids : [];
-
-      const mat = buildTrainingMaterialFromMistakes(mistakes, pickedIds);
-      if(pastedTextEl()) pastedTextEl().value = mat;
-      try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
-
-      if(qTypeEl()) qTypeEl().value = "mix";
-      if(numQuestionsEl()) numQuestionsEl().value = "12";
-
-      setStatus(T[LANG].trainLoaded, "ok");
-      openCardById("material", true);
-      document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
-    }
-
-    // ============================
-    // ÄNDRING: TOGGLE / COLLAPSE LOGIC
-    // ============================
-    function readUiState(){
-      const s = lsGetObj(LS_UI_OPEN) || {};
-      return {
-        material: !!s.material,
-        settings: !!s.settings,
-        exam: !!s.exam,
-        result: !!s.result
-      };
-    }
-    function writeUiState(next){
-      lsSet(LS_UI_OPEN, next);
-    }
-    function setToggleLabel(cardId, isOpen){
-      const t = T[LANG];
-      const map = { material:"tg_material", settings:"tg_settings", exam:"tg_exam", result:"tg_result" };
-      const el = $(map[cardId]);
-      if(el) el.textContent = isOpen ? t.closeSection : t.openSection;
-    }
-    function setCardOpen(cardEl, open){
-      if(!cardEl) return;
-      const id = cardEl.id;
-      if(open) cardEl.classList.add("open");
-      else cardEl.classList.remove("open");
-      setToggleLabel(id, open);
-
-      const state = readUiState();
-      if(id in state){
-        state[id] = !!open;
-        writeUiState(state);
-      }
-    }
-    function openCardById(id, open=true){
-      const el = document.getElementById(id);
-      if(!el) return;
-      setCardOpen(el, open);
-    }
-    function initCollapsibles(){
-      const state = readUiState();
-
-      // default: allt stängt (kravet: klicka för att se)
-      // om tidigare state finns i LS_UI_OPEN, respektera det.
-      const hasAnySaved = !!lsGetObj(LS_UI_OPEN);
-      const defaults = hasAnySaved ? state : { material:false, settings:false, exam:false, result:false };
-
-      ["material","settings","exam","result"].forEach(id => {
-        const el = document.getElementById(id);
-        if(!el) return;
-        el.classList.add("collapsible");
-        setCardOpen(el, !!defaults[id]);
-      });
-
-      document.querySelectorAll('button[data-toggle-card]').forEach(btn => {
-        btn.addEventListener("click", () => {
-          const sel = btn.getAttribute("data-toggle-card");
-          const card = sel ? document.querySelector(sel) : null;
-          if(!card) return;
-          const open = !card.classList.contains("open");
-          setCardOpen(card, open);
-        });
-      });
-    }
-
-    // ============================
-    // ÄNDRING: COURSE LIBRARY LOGIC (sync -> #course)
-    // ============================
-    const STANDARD_COURSES = [
-      // Grundskola (ämnen)
-      "Matematik (grundskola)",
-      "Svenska (grundskola)",
-      "Svenska som andraspråk (grundskola)",
-      "Engelska (grundskola)",
-      "Biologi (grundskola)",
-      "Fysik (grundskola)",
-      "Kemi (grundskola)",
-      "Geografi (grundskola)",
-      "Historia (grundskola)",
-      "Religionskunskap (grundskola)",
-      "Samhällskunskap (grundskola)",
-      "Teknik (grundskola)",
-      "Idrott och hälsa (grundskola)",
-      "Hem- och konsumentkunskap (grundskola)",
-      "Bild (grundskola)",
-      "Musik (grundskola)",
-      "Slöjd (grundskola)",
-      "Moderna språk (grundskola)",
-
-      // Gymnasiet (vanliga)
-      "Matematik 1a","Matematik 1b","Matematik 1c",
-      "Matematik 2a","Matematik 2b","Matematik 2c",
-      "Matematik 3b","Matematik 3c",
-      "Matematik 4","Matematik 5",
-
-      "Svenska 1","Svenska 2","Svenska 3",
-      "Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3",
-      "Engelska 5","Engelska 6","Engelska 7",
-
-      "Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2",
-      "Historia 1a1","Historia 1a2","Historia 1b","Historia 2",
-      "Religionskunskap 1","Religionskunskap 2",
-      "Geografi 1",
-
-      "Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2",
-      "Biologi 1","Biologi 2",
-      "Fysik 1a","Fysik 1","Fysik 2",
-      "Kemi 1","Kemi 2",
-
-      "Idrott och hälsa 1","Idrott och hälsa 2",
-      "Psykologi 1","Psykologi 2",
-      "Filosofi 1","Filosofi 2",
-
-      "Företagsekonomi 1","Företagsekonomi 2",
-      "Entreprenörskap","Entreprenörskap och företagande",
-      "Juridik 1","Juridik 2","Juridik 3",
-      "Privatjuridik",
-      "Internationell ekonomi",
-      "Marknadsföring",
-      "Redovisning",
-
-      "Programmering 1","Programmering 2",
-      "Webbutveckling 1","Webbutveckling 2",
-      "Dator- och nätverksteknik",
-      "Digitalt skapande 1"
-    ];
-
-    function normCourse(s){
-      return String(s||"").trim().replace(/\s+/g," ");
-    }
-
-    function getAllCourses(){
-      const custom = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
-      const std = STANDARD_COURSES.map(normCourse).filter(Boolean);
-      const set = new Set([...std, ...custom]);
-      return Array.from(set).sort((a,b)=>a.localeCompare(b, "sv"));
-    }
-
-    function fillCourseDatalist(){
-      const dl = document.getElementById("courseDatalist");
-      if(!dl) return;
-      dl.innerHTML = "";
-      getAllCourses().forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        dl.appendChild(opt);
-      });
-    }
-
-    function getSelectedCourseFromPicker(){
-      const useCustom = !!document.getElementById("useCustomCourse")?.checked;
-      const custom = normCourse(document.getElementById("customCourse")?.value);
-      const search = normCourse(document.getElementById("courseSearch")?.value);
-      return useCustom ? custom : search;
-    }
-
-    function syncPickerToHiddenCourse(){
-      const v = getSelectedCourseFromPicker();
-      const hidden = courseEl();
-      if(hidden) hidden.value = v;
-    }
-
-    function initCourseLibrary(){
-      fillCourseDatalist();
-
-      const chk = document.getElementById("useCustomCourse");
-      const custom = document.getElementById("customCourse");
-      const search = document.getElementById("courseSearch");
-      const status = document.getElementById("coursePickerStatus");
-      const saveBtn = document.getElementById("saveCustomCourse");
-
-      const syncEnable = () => {
-        const on = !!chk?.checked;
-        if(custom) custom.disabled = !on;
-        if(search) search.disabled = on;
-        if(status) status.textContent = "";
-        syncPickerToHiddenCourse();
-      };
-
-      chk?.addEventListener("change", syncEnable);
-
-      search?.addEventListener("input", () => syncPickerToHiddenCourse());
-      search?.addEventListener("change", () => syncPickerToHiddenCourse());
-      custom?.addEventListener("input", () => syncPickerToHiddenCourse());
-      custom?.addEventListener("change", () => syncPickerToHiddenCourse());
-
-      saveBtn?.addEventListener("click", () => {
-        const name = normCourse(custom?.value);
-        if(!name){
-          if(status) status.textContent = (LANG==="sv") ? "Skriv ett namn först." : "Type a name first.";
-          return;
-        }
-        const list = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
-        if(!list.includes(name)) list.push(name);
-        lsSet(LS_CUSTOM_COURSES, list);
-        fillCourseDatalist();
-        if(status) status.textContent = (LANG==="sv") ? `Sparad: ${name}` : `Saved: ${name}`;
-        syncPickerToHiddenCourse();
-      });
-
-      // init state
-      syncEnable();
-      syncPickerToHiddenCourse();
-    }
-
-    // ===== APP RENDERING =====
-    function applyLang(){
-      const t = T[LANG];
-      const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
-
-      set("brandTag", t.brandTag);
-      set("lockSub", t.lockSub);
-      set("lockLabel", t.lockLabel);
-      set("unlockBtn", t.unlock);
-      set("toInfoBtn", t.toInfo);
-      set("toImproveBtn", t.toImprove);
-
-      set("m1", t.m1); set("m2", t.m2); set("m3", t.m3); set("m4", t.m4);
-      set("mImprove", t.mImprove);
-      set("mLang", t.mLang);
-      set("mLogout", t.mLogout);
-      set("langPill", LANG.toUpperCase());
-
-      set("tStep1", t.step1);
-      set("tStep1Sub", t.step1Sub);
-      set("tPasteLabel", t.pasteLabel);
-      const pt = $("pastedText"); if(pt) pt.placeholder = t.pastePH;
-      set("tOcrTitle", t.ocrTitle);
-      set("ocrBtn", t.ocrBtn);
-      set("tOcrHint", t.ocrHint);
-      set("formatHint", t.tip);
-
-      set("tStep2", t.step2);
-      set("tStep2Sub", t.step2Sub);
-      set("tLevel", t.level);
-      set("tCourse", t.course);
-
-      // behåll original #course placeholder (hidden), men uppdatera ändå:
-      const c = $("course"); if(c) c.placeholder = t.coursePH;
-
-      set("tQType", t.qType);
-      set("qtMix", t.qtMix);
-      set("qtMc", t.qtMc);
-      set("qtShort", t.qtShort);
-      set("tNum", t.num);
-      set("generateExamBtn", t.gen);
-      set("gradeBtn", t.grade);
-      set("clearBtn", t.clear);
-      set("improveBtnInline", t.mImprove);
-
-      set("debugTitle", t.debug);
-      set("tStep3", t.step3);
-      set("tStep4", t.step4);
-      set("footerText", t.footer);
-
-      // ÄNDRING: uppdatera toggle-texter enligt språk + state
-      ["material","settings","exam","result"].forEach(id => {
-        const el = document.getElementById(id);
-        if(!el) return;
-        setToggleLabel(id, el.classList.contains("open"));
-      });
-
-      const eb = examBodyEl(), rb = resultBodyEl();
-      if(eb && !eb.children.length) set("examMeta", t.noExam);
-      if(rb && !rb.children.length) set("resultMeta", t.noGrade);
-
-      // ÄNDRING: uppdatera kursväljare-placeholder
-      const cs = document.getElementById("courseSearch");
-      const cc = document.getElementById("customCourse");
-      const sc = document.getElementById("saveCustomCourse");
-      if(cs){
-        cs.placeholder = (LANG==="sv")
-          ? "Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
-          : "Search e.g. Math, English, Business...";
-      }
-      if(cc){
-        cc.placeholder = (LANG==="sv")
-          ? "Skriv kurs/ämne exakt som du vill ha det..."
-          : "Type the subject/course exactly as you want...";
-      }
-      if(sc){
-        sc.textContent = (LANG==="sv") ? "Spara i min lista" : "Save to my list";
-      }
-    }
-
-    async function fileToDataUrl(file){
-      return new Promise((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(String(fr.result || ""));
-        fr.onerror = () => reject(new Error("FileReader error"));
-        fr.readAsDataURL(file);
-      });
-    }
-
-    function renderExam(exam){
-      currentExam = exam;
-      const qs = Array.isArray(exam.questions) ? exam.questions : [];
-      const t = T[LANG];
-
-      const em = examMetaEl(), eb = examBodyEl(), rm = resultMetaEl(), rb = resultBodyEl();
-      if(em) em.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
-      if(eb) eb.innerHTML = "";
-      if(rm) rm.textContent = t.noGrade;
-      if(rb) rb.innerHTML = "";
-
-      qs.forEach((q, idx) => {
-        const box = document.createElement("div");
-        box.className = "qBox";
-        const qid = String(q.id ?? (idx+1));
-
-        const meta = document.createElement("div");
-        meta.className = "qMeta";
-        meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
-
-        const text = document.createElement("div");
-        text.className = "qText";
-        text.textContent = q.question ?? "";
-
-        box.appendChild(meta);
-        box.appendChild(text);
-
-        if((q.type === "mc") && Array.isArray(q.options) && q.options.length){
-          const group = document.createElement("div");
-          group.className = "mcGroup";
-          group.dataset.qid = qid;
-
-          const hidden = document.createElement("input");
-          hidden.type = "hidden";
-          hidden.className = "mcAnswer";
-          hidden.dataset.qid = qid;
-          hidden.value = "";
-          box.appendChild(hidden);
-
-          q.options.forEach((opt, i) => {
-            const letter = String.fromCharCode(65 + i);
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "mcOpt";
-            btn.dataset.letter = letter;
-            btn.dataset.qid = qid;
-            btn.innerHTML = `<span class="mcLetter">${letter}</span><span class="mcText">${escapeHtml(opt)}</span>`;
-            btn.addEventListener("click", () => {
-              group.querySelectorAll(".mcOpt").forEach(x => x.classList.remove("sel"));
-              btn.classList.add("sel");
-              hidden.value = letter;
-            });
-            group.appendChild(btn);
-          });
-
-          box.appendChild(group);
-          eb?.appendChild(box);
-          return;
-        }
-
-        const ans = document.createElement("textarea");
-        ans.className = "answer";
-        ans.placeholder = t.writeAnswer;
-        ans.dataset.qid = qid;
-        ans.style.marginTop = "10px";
-        ans.style.minHeight = "110px";
-        box.appendChild(ans);
-        eb?.appendChild(box);
-      });
-
-      const gradeBtn = $("gradeBtn");
-      if(gradeBtn) gradeBtn.disabled = qs.length === 0;
-    }
-
-    function renderResult(r){
-      const t = T[LANG];
-      const rm = resultMetaEl(), rb = resultBodyEl();
-      if(rm) rm.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
-
-      const wrap = document.createElement("div");
-      (r.per_question || []).forEach(item => {
-        const d = document.createElement("div");
-        d.className = "qBox";
-        const model = String(item.model_answer || "").trim();
-        d.innerHTML = `
-          <div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
-          <div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
-          <div style="margin-top:10px;border-top:1px solid rgba(5,42,30,.12);padding-top:10px">
-            <div style="font-weight:1100;color:#052A1E;margin-bottom:6px;font-size:13px">${t.fullScore}</div>
-            <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
-          </div>
-        `;
-        wrap.appendChild(d);
-      });
-
-      if(rb){
-        rb.innerHTML = "";
-        rb.appendChild(wrap);
-      }
-    }
-
-    function clearAll(){
-      const t = T[LANG];
-      if(pastedTextEl()) pastedTextEl().value = "";
-      if(courseEl()) courseEl().value = "";
-      if(levelEl()) levelEl().value = "C";
-      if(qTypeEl()) qTypeEl().value = "mix";
-      if(numQuestionsEl()) numQuestionsEl().value = "12";
-      if(imageInputEl()) imageInputEl().value = "";
-      setOcrStatus("");
-      currentExam = null;
-
-      // ÄNDRING: nollställ kursväljaren
-      const chk = document.getElementById("useCustomCourse");
-      const cs = document.getElementById("courseSearch");
-      const cc = document.getElementById("customCourse");
-      const st = document.getElementById("coursePickerStatus");
-      if(chk) chk.checked = false;
-      if(cs) cs.value = "";
-      if(cc) cc.value = "";
-      if(st) st.textContent = "";
-      // sync till hidden course
-      try{
-        const customEnabled = !!chk?.checked;
-        if(cc) cc.disabled = !customEnabled;
-        if(cs) cs.disabled = customEnabled;
-      } catch {}
-      if(courseEl()) courseEl().value = "";
-
-      if(examMetaEl()) examMetaEl().textContent = t.noExam;
-      if(examBodyEl()) examBodyEl().innerHTML = "";
-      if(resultMetaEl()) resultMetaEl().textContent = t.noGrade;
-      if(resultBodyEl()) resultBodyEl().innerHTML = "";
-
-      const gradeBtn = $("gradeBtn");
-      if(gradeBtn) gradeBtn.disabled = true;
-
-      setStatus(t.cleared, "ok");
-      hideDebug();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // ===== INIT EVENTS =====
-    window.addEventListener("DOMContentLoaded", async () => {
-      try{
-        initCollapsibles(); // init collapse state
-        initCourseLibrary(); // ÄNDRING: kursbibliotek init
-        applyLang();
-        initReveal();
-        await refreshQuotaUi();
-        setStatus("");
-
-        onClick("menuBtn", (e) => {
-          e.preventDefault(); e.stopPropagation();
-          const m = $("menu");
-          if(!m) return;
-          if(m.classList.contains("is-open")) closeMenuAnimated();
-          else openMenuAnimated();
-        });
-
-        document.addEventListener("click", (e) => {
-          const m = $("menu");
-          const mb = $("menuBtn");
-          if(!m || !mb) return;
-          if(!m.classList.contains("is-open")) return;
-          if(m.contains(e.target) || mb.contains(e.target)) return;
-          closeMenuAnimated();
-        });
-
-        const menuEl = $("menu");
-        if(menuEl){
-          menuEl.addEventListener("click", (e) => {
-            const a = e.target.closest("a[data-scroll]");
-            if(!a) return;
-            e.preventDefault();
-            const sel = a.getAttribute("data-scroll");
-            closeMenuAnimated();
-            const el = document.querySelector(sel);
-            if(el){
-              // öppna kortet innan scroll
-              if(el.classList.contains("collapsible")) setCardOpen(el, true);
-              el.scrollIntoView({behavior:"smooth", block:"start"});
-            }
-          });
-        }
-
-        onKey((e) => { if(e.key === "Escape") closeMenuAnimated(); });
-
-        onClick("langBtn", async () => {
-          LANG = (LANG === "sv") ? "en" : "sv";
-          localStorage.setItem("proviaai_lang", LANG);
-          applyLang();
-          await refreshQuotaUi();
-          closeMenuAnimated();
-          runTrainModeIfRequested();
-        });
-
-        onClick("logoutTopBtn", async () => { await logout(); });
-
-        onClick("unlockBtn", async () => { unlockByCode(); await refreshQuotaUi(); });
-        onClick("signInBtn", async () => { await signInEmail(); await refreshQuotaUi(); });
-        onClick("signUpBtn", async () => { await signUpEmail(); await refreshQuotaUi(); });
-
-        onKey((e) => {
-          if(e.key !== "Enter") return;
-          const s = $("loginScreen");
-          const visible = s && s.style.display !== "none";
-          if(!visible) return;
-          const email = ($("authEmail")?.value || "").trim();
-          const pass = $("authPass")?.value || "";
-          if(email && pass) signInEmail();
-          else unlockByCode();
-        });
-
-        onClick("ocrBtn", async () => {
-          hideDebug();
-          const t = T[LANG];
-          const inp = imageInputEl();
-          const file = inp?.files && inp.files[0];
-          if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
-          setBusy(true, t.ocrWorking);
-          setOcrStatus(t.ocrWorking, "warn");
-          try{
-            const dataUrl = await fileToDataUrl(file);
-            const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
-            if(!res.ok || !res.data || !res.data.ok){
-              setBusy(false, t.ready);
-              setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
-              showDebug(res.raw);
-              return;
-            }
-            const extracted = String(res.data.text || "").trim();
-            if(extracted){
-              const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
-              const base = (pastedTextEl()?.value || "").trim();
-              if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
-            }
-            setBusy(false, t.ready);
-            setOcrStatus(t.ocrDone, "ok");
-          }catch(e){
-            setBusy(false, T[LANG].ready);
-            setOcrStatus("OCR error.", "bad");
-            reportErr(e);
-          }
-        });
-
-        onClick("generateExamBtn", async () => {
-          hideDebug();
-          setStatus("");
-          const t = T[LANG];
-
-          const pastedText = (pastedTextEl()?.value || "").trim();
-          if(!pastedText){
-            setStatus(t.needMat, "bad");
-            openCardById("material", true);
-            document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
-            return;
-          }
-
-          const qType = qTypeEl()?.value || "mix";
-          if(!["mix","mc","short"].includes(qType)){
-            setStatus("Ogiltig frågetyp.", "bad");
-            return;
-          }
-
-          const payload = {
-            lang: LANG,
-            level: levelEl()?.value || "C",
-            course: (courseEl()?.value || "").trim(),
-            qType,
-            pastedText,
-            numQuestions: Number(numQuestionsEl()?.value || 12)
-          };
-
-          setBusy(true, t.genWorking);
-          setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
-
-          const res = await postJson("/api/generate-exam", payload);
-
-          // om servern säger quota slut (429) => uppdatera UI med serverns limit/count
-          if(res.status === 429 && res.data){
-            await setQuotaFromServerMaybe(res.data);
-            setBusy(false, t.ready);
-            setStatus(res.data?.error || t.quotaHit, "bad");
-            return;
-          }
-
-          if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false, t.ready);
-            setStatus(`Error (HTTP ${res.status}).`, "bad");
-            showDebug(res.raw);
-            return;
-          }
-
-          // quota UI
-          await bumpQuotaFallbackOnSuccess();
-          await refreshQuotaUi();
-
-          try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-          renderExam(res.data.exam);
-
-          setBusy(false, t.ready);
-          setStatus(t.genDone, "ok");
-
-          // öppna exam-kortet automatiskt
-          openCardById("exam", true);
-          document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
-        });
-
-        onClick("gradeBtn", async () => {
-          hideDebug();
-          const t = T[LANG];
-
-          if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-            setStatus(t.genFirst, "bad");
-            return;
-          }
-
-          const answers = [];
-          currentExam.questions.forEach((q, idx) => {
-            const qid = String(q.id ?? (idx+1));
-            if(q.type === "mc"){
-              const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
-              answers.push({ id: qid, answer: (hidden?.value || "").trim() });
-            } else {
-              const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
-              answers.push({ id: qid, answer: (ta?.value || "").trim() });
-            }
-          });
-
-          const pastedText = (pastedTextEl()?.value || "").trim();
-          const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
-
-          setBusy(true, t.gradeWorking);
-          setStatus(t.gradeWorking, "");
-
-          const res = await postJson("/api/grade", payload);
-          if(!res.ok || !res.data || !res.data.ok){
-            setBusy(false, t.ready);
-            setStatus(`Error (HTTP ${res.status}).`, "bad");
-            showDebug(res.raw);
-            return;
-          }
-
-          const result = res.data.result;
-          renderResult(result);
-
-          await ensureUserProfileRow();
-          await updateMastery(result);
-
-          // spara till konto endast här
-          try{
-            await saveExamToAccount({
-              material: pastedText,
-              course: (courseEl()?.value || "").trim(),
-              level: levelEl()?.value || "C",
-              qType: qTypeEl()?.value || "mix",
-              exam: {
-                title: currentExam.title || "",
-                level: currentExam.level || (levelEl()?.value || "C"),
-                questions: currentExam.questions || []
-              },
-              answers,
-              result
-            });
-          } catch {}
-
-          // lokal historik + felbank
-          const ts = Date.now();
-          const max = Number(result.max_points || 0);
-          const total = Number(result.total_points || 0);
-          const percent = max > 0 ? Math.round((total / max) * 100) : 0;
-
-          const attempt = {
-            ts,
-            course: (courseEl()?.value || "").trim(),
-            level: levelEl()?.value || "C",
-            qType: qTypeEl()?.value || "mix",
-            numQuestions: Number(numQuestionsEl()?.value || 12),
-            total_points: total,
-            max_points: max,
-            percent
-          };
-
-          const history = lsGetArray(LS_HISTORY);
-          history.push(attempt);
-          while(history.length > 60) history.shift();
-          lsSet(LS_HISTORY, history);
-
-          lsSet(LS_LAST, {
-            ts,
-            attempt,
-            exam: {
-              title: currentExam.title || "",
-              level: currentExam.level || (levelEl()?.value || "C"),
-              questions: currentExam.questions || []
-            },
-            result
-          });
-
-          const mistakes = lsGetArray(LS_MISTAKES);
-          const qById = new Map((currentExam.questions || []).map(q => [String(q.id ?? ""), q]));
-          const aById = new Map(answers.map(a => [String(a.id), a.answer]));
-
-          (result.per_question || []).forEach(item => {
-            const got = Number(item.points || 0);
-            const m = Number(item.max_points || 0);
-            if(m > 0 && got < m){
-              const q = qById.get(String(item.id)) || {};
-              mistakes.push({
-                ts,
-                course: attempt.course,
-                level: attempt.level,
-                qType: q.type || (qTypeEl()?.value || "mix"),
-                id: String(item.id),
-                question: String(q.question || ""),
-                user_answer: String(aById.get(String(item.id)) || ""),
-                feedback: String(item.feedback || ""),
-                model_answer: String(item.model_answer || ""),
-                points: got,
-                max_points: m
-              });
-            }
-          });
-
-          while(mistakes.length > 200) mistakes.shift();
-          lsSet(LS_MISTAKES, mistakes);
-
-          try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-
-          setBusy(false, t.ready);
-          setStatus(t.gradeDone, "ok");
-
-          // öppna result-kortet automatiskt
-          openCardById("result", true);
-          document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
-        });
-
-        onClick("clearBtn", clearAll);
-
-        window.addEventListener("hashchange", () => {
-          const lockVisible = $("loginScreen") && $("loginScreen").style.display !== "none";
-          if(!lockVisible) runTrainModeIfRequested();
-        });
-
-        // LOCK STARTUP
-        if(db){
-          try{
-            const { data } = await db.auth.getSession();
-            if(data?.session){
-              const ok = await checkApprovalAndUnlock(data.session);
-              if(ok){
-                await loadExamsFromAccountToLocal();
-                runTrainModeIfRequested();
-              } else {
-                showLock();
-              }
-            } else {
-              if(isUnlocked()){
-                hideLock();
-                runTrainModeIfRequested();
-              } else {
-                showLock();
-              }
-            }
-          }catch(e){
-            setLockError(String(e?.message || e));
-            if(isUnlocked()){
-              hideLock();
-              runTrainModeIfRequested();
-            } else {
-              showLock();
-            }
-          }
-        } else {
-          if(isUnlocked()){
-            hideLock();
-            runTrainModeIfRequested();
-          } else {
-            showLock();
-          }
-        }
-
-        await refreshQuotaUi();
-
-      }catch(err){
-        reportErr(err);
-      }
-    });
-  </script>
+<div id="pageLoader" class="pageLoader" aria-hidden="true">
+<div style="display:grid;place-items:center">
+<div class="loaderOrb" aria-hidden="true"></div>
+<div class="loaderText">ProviaAI</div>
+</div>
+</div>
+<div id="loginScreen" class="loginOverlay" aria-hidden="false">
+<div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
+<div class="loginTop">
+<img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<div>
+<div class="ltTitle" id="lockTitle">ProviaAi</div>
+<div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
+</div>
+</div>
+<div class="loginBody">
+<div class="authBox" id="authBox">
+<div class="authTitle" id="authTitle">Logga in / Skapa konto</div>
+<div class="grid2" style="margin-top:10px">
+<div>
+<label for="authEmail" id="authEmailLabel">E-post</label>
+<input id="authEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
+</div>
+<div>
+<label for="authPass" id="authPassLabel">Lösenord</label>
+<input id="authPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
+</div>
+</div>
+<div class="loginRow">
+<button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
+<button class="btn" type="button" id="signUpBtn">Skapa konto</button>
+<a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
+<a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+</div>
+<div class="miniHint" id="authHint">
+Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br><br>
+</div>
+</div>
+<details style="margin-top:12px" open>
+<summary id="codeSummary">Alternativ inloggning: kod</summary>
+<label for="accessCode" id="lockLabel">Åtkomstkod</label>
+<input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
+<div class="loginRow">
+<button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+</div>
+</details>
+<div id="errorMsg" class="err" aria-live="polite"></div>
+</div>
+</div>
+</div>
+<header>
+<div class="wrap topbar">
+<a class="brand" href="index.html">
+<img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<div>
+<div class="name" id="brandName">ProviaAi</div>
+<div class="tag" id="brandTag">Mockprov • Rättning • Modellsvar</div>
+</div>
+</a>
+<div class="menuWrap">
+<button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
+<div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+</button>
+<div class="dropdown" id="menu" aria-label="Menyval">
+<a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
+<a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
+<a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
+<a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
+<a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
+<button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
+<button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+</div>
+</div>
+</div>
+</header>
+<main class="wrap" id="appRoot">
+<section class="card collapsible" id="material" data-collapsible="true">
+<div class="cardHeaderRow">
+<div class="sectionTitle" style="margin:0"><span id="tStep1">Steg 1 – Material</span></div>
+<button class="toggleBtn" type="button" data-toggle-card="#material">
+<span id="tg_material">Öppna</span><span class="chev" aria-hidden="true"></span>
+</button>
+</div>
+<div class="cardBody">
+<p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
+<label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
+<textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
+<div class="uploadBox" style="margin-top:12px">
+<div class="uploadTop">
+<div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
+<div class="fileRow">
+<input id="imageInput" type="file" accept="image/*" capture="environment" />
+<button class="btn" id="ocrBtn" type="button">OCR till material</button>
+</div>
+</div>
+<div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
+<div class="status" id="ocrStatus"></div>
+</div>
+<div class="status warn" id="formatHint" style="margin-top:12px">
+Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
+</div>
+</div>
+</section>
+<section class="card collapsible" id="settings" data-collapsible="true">
+<div class="cardHeaderRow">
+<div class="sectionTitle" style="margin:0">
+<span id="tStep2">Steg 2 – Inställningar</span>
+<a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
+</div>
+<button class="toggleBtn" type="button" data-toggle-card="#settings">
+<span id="tg_settings">Öppna</span><span class="chev" aria-hidden="true"></span>
+</button>
+</div>
+<div class="cardBody">
+<p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
+<div class="grid2">
+<div>
+<label for="level" id="tLevel">Nivå (E/C/A)</label>
+<select id="level">
+<option value="E">E</option>
+<option value="C" selected>C</option>
+<option value="A">A</option>
+</select>
+</div>
+<div>
+<label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
+<input id="course" placeholder="Ex: Matematik 2b / Historia 1b" style="display:none" />
+<div class="coursePicker" style="display:grid;gap:10px;margin-top:6px">
+<label style="display:grid;gap:6px;margin:0">
+<input id="courseSearch" type="text"
+placeholder="Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
+list="courseDatalist" autocomplete="off">
+<datalist id="courseDatalist"></datalist>
+<div style="font-size:12px;color:var(--muted);font-weight:750;line-height:1.35">
+Välj från listan eller skriv. Om den inte finns: använd “Annan kurs” nedan.
+</div>
+</label>
+<div style="display:grid;gap:8px">
+<label style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0">
+<input id="useCustomCourse" type="checkbox" style="width:18px;height:18px">
+<span style="font-weight:900">Annan kurs (skriv manuellt)</span>
+</label>
+<input id="customCourse" type="text"
+placeholder="Skriv kurs/ämne exakt som du vill ha det..."
+disabled>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<button id="saveCustomCourse" type="button" class="btn">Spara i min lista</button>
+<span id="coursePickerStatus" style="font-size:12px;color:var(--muted);font-weight:750"></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid2" style="margin-top:12px">
+<div>
+<label for="qType" id="tQType">Frågetyp</label>
+<select id="qType">
+<option value="mix" selected id="qtMix">Blandat</option>
+<option value="mc" id="qtMc">Flervalsfrågor</option>
+<option value="short" id="qtShort">Kortsvar</option>
+</select>
+</div>
+<div>
+<label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
+<select id="numQuestions">
+<option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+<option>9</option><option>10</option><option>11</option><option selected>12</option>
+<option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+</select>
+</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
+<button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
+<button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
+<button class="btn" id="clearBtn" type="button">Rensa</button>
+<span style="display:flex;gap:10px;align-items:center">
+<span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
+<span class="sectionSub" id="miniState">Prov idag kvar: —</span>
+</span>
+</div>
+<div class="status" id="status"></div>
+<details id="debugWrap" style="display:none">
+<summary id="debugTitle">Debug</summary>
+<pre id="debug"></pre>
+</details>
+</div>
+</section>
+<section class="card collapsible" id="exam" data-collapsible="true">
+<div class="cardHeaderRow">
+<div class="sectionTitle" style="margin:0"><span id="tStep3">Steg 3 – Mockprov</span></div>
+<button class="toggleBtn" type="button" data-toggle-card="#exam">
+<span id="tg_exam">Öppna</span><span class="chev" aria-hidden="true"></span>
+</button>
+</div>
+<div class="cardBody">
+<div class="status" id="examMeta">Ingen provdata ännu.</div>
+<div id="examBody"></div>
+</div>
+</section>
+<section class="card collapsible" id="result" data-collapsible="true">
+<div class="cardHeaderRow">
+<div class="sectionTitle" style="margin:0"><span id="tStep4">Steg 4 – Rättning</span></div>
+<button class="toggleBtn" type="button" data-toggle-card="#result">
+<span id="tg_result">Öppna</span><span class="chev" aria-hidden="true"></span>
+</button>
+</div>
+<div class="cardBody">
+<div class="status" id="resultMeta">Ingen rättning ännu.</div>
+<div id="resultBody"></div>
+</div>
+</section>
+</main>
+<footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
+const SUPABASE_ANON_KEY_RAW = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8";
+const SUPABASE_ANON_KEY = (SUPABASE_ANON_KEY_RAW || "").trim();
+const ACCESS_CODE = "provia123";
+const ACCESS_FLAG_KEY = "proviaai_app_access";
+const LS_HISTORY = "proviaai_history";
+const LS_MISTAKES = "proviaai_mistakes";
+const LS_LAST = "proviaai_last_result";
+const LS_MATERIAL = "proviaai_last_material";
+const LS_CLEAR_TS = "proviaai_cleared_ts";
+const LS_TRAIN_PICK = "proviaai_train_pick";
+const LS_QUOTA_FALLBACK_PREFIX = "proviaai_quota_fallback_";
+const LS_UI_OPEN = "proviaai_ui_open";
+const LS_CUSTOM_COURSES = "proviaai_custom_courses";
+const $ = (id) => document.getElementById(id);
+function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
+function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
+function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
+function lsGetNum(key, fallback=0){ const n = Number(localStorage.getItem(key)||fallback); return Number.isFinite(n) ? n : fallback; }
+function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+function escapeHtml(s){
+return String(s ?? "")
+.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+.replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+let LANG = localStorage.getItem("proviaai_lang") || "sv";
+const T = {
+sv:{
+brandTag:"Mockprov • Rättning • Modellsvar",
+lockSub:"Åtkomst krävs för att använda appen",
+lockLabel:"Åtkomstkod",
+unlock:"Lås upp",
+toInfo:"Till infosidan",
+toImprove:"Förbättring",
+m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
+mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
+step1:"Steg 1 – Material",
+step1Sub:"Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
+pasteLabel:"Material (klistra in text)",
+pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
+ocrTitle:"Bild → OCR (valfritt)",
+ocrBtn:"OCR till material",
+ocrHint:"Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.",
+tip:"Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.",
+step2:"Steg 2 – Inställningar",
+step2Sub:"Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.",
+level:"Nivå (E/C/A)",
+course:"Ämne/kurs (valfritt)",
+coursePH:"Ex: Matematik 2b / Historia 1b",
+qType:"Frågetyp",
+qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
+num:"Antal frågor (exakt)",
+gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
+ready:"Prov idag kvar: —",
+debug:"Debug",
+step3:"Steg 3 – Mockprov",
+step4:"Steg 4 – Rättning",
+noExam:"Ingen provdata ännu.",
+noGrade:"Ingen rättning ännu.",
+needMat:"Klistra in material först.",
+genWorking:"Skapar mockprov…",
+gradeWorking:"Rättar prov…",
+genDone:"Mockprov klart.",
+gradeDone:"Rättning klar. Sparad till förbättring.",
+wrongCode:"Fel kod.",
+ocrNoFile:"Välj en bild först.",
+ocrWorking:"OCR pågår…",
+ocrDone:"OCR klart. Texten lades in i materialet.",
+writeAnswer:"Skriv ditt svar här…",
+fullScore:"Vad som ger full poäng (modellsvar)",
+genFirst:"Skapa mockprov först.",
+cleared:"Allt rensat. Börja om.",
+footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
+pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
+trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
+quotaUnknown:"Prov idag: —",
+quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
+openSection:"Öppna",
+closeSection:"Stäng"
+},
+en:{
+brandTag:"Mock exams • Grading • Model answers",
+lockSub:"Access is required to use the app",
+lockLabel:"Access code",
+unlock:"Unlock",
+toInfo:"Go to info page",
+toImprove:"Improve",
+m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
+mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
+step1:"Step 1 – Material",
+step1Sub:"Paste text. Optional: choose an image or take a photo → OCR adds text into your material.",
+pasteLabel:"Material (paste text)",
+pastePH:"Headings → bullet points → definitions/formulas → examples",
+ocrTitle:"Image → OCR (optional)",
+ocrBtn:"OCR into material",
+ocrHint:"Tip: sharp photo from above, good light, high contrast.",
+tip:"Tip: headings + bullet points produce more accurate questions and grading.",
+step2:"Step 2 – Settings",
+step2Sub:"Choose level (E/C/A), question type and an exact number of questions.",
+level:"Level (E/C/A)",
+course:"Subject/course (optional)",
+coursePH:"e.g., Math / History",
+qType:"Question type",
+qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
+num:"Number of questions (exact)",
+gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
+ready:"Exams left today: —",
+debug:"Debug",
+step3:"Step 3 – Mock exam",
+step4:"Step 4 – Grading",
+noExam:"No exam data yet.",
+noGrade:"No grading yet.",
+needMat:"Paste material first.",
+genWorking:"Generating mock exam…",
+gradeWorking:"Grading…",
+genDone:"Mock exam ready.",
+gradeDone:"Grading done. Saved to Improve page.",
+wrongCode:"Wrong code.",
+ocrNoFile:"Choose an image first.",
+ocrWorking:"Running OCR…",
+ocrDone:"OCR done. Text was added to the material.",
+writeAnswer:"Write your answer here…",
+fullScore:"Full-score model answer",
+genFirst:"Generate an exam first.",
+cleared:"Cleared. Start again.",
+footer:"ProviaAi is study support and does not provide official grades.",
+pending:"Waiting for admin approval. You’ll get access once approved.",
+trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
+quotaUnknown:"Exams today: —",
+quotaHit:"Daily limit reached. Try again tomorrow.",
+openSection:"Open",
+closeSection:"Close"
+}
+};
+function showDebug(txt){
+const wrap = $("debugWrap"), pre = $("debug");
+if(!wrap || !pre) return;
+wrap.style.display = "block";
+pre.textContent = txt || "";
+}
+function hideDebug(){
+const wrap = $("debugWrap"), pre = $("debug");
+if(!wrap || !pre) return;
+wrap.style.display = "none";
+pre.textContent = "";
+}
+function reportErr(err){
+const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
+showDebug(msg);
+const s = $("status");
+if(s){
+s.className = "status bad";
+s.textContent = "JS-fel: se Debug.";
+}
+const em = $("errorMsg");
+if(em) em.textContent = "JS-fel: se Debug.";
+}
+window.addEventListener("error", (e) => reportErr(e.error || e.message));
+window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
+const USE_SUPABASE =
+typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
+typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
+const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
+const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
+? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+: null;
+async function getAccessToken(){
+if(!db) return "";
+try{
+const { data, error } = await db.auth.getSession();
+if(error) return "";
+return data?.session?.access_token || "";
+} catch {
+return "";
+}
+}
+async function postJson(path, payload){
+const token = await getAccessToken();
+const headers = { "Content-Type":"application/json" };
+if(token) headers["Authorization"] = `Bearer ${token}`;
+const resp = await fetch(path, {
+method:"POST",
+headers,
+body: JSON.stringify(payload)
+});
+const raw = await resp.text();
+let data = null;
+try{ data = JSON.parse(raw); } catch {}
+return { ok: resp.ok, status: resp.status, raw, data };
+}
+async function getUserId(){
+if(!db) return null;
+const { data, error } = await db.auth.getUser();
+if(error) return null;
+return data?.user?.id || null;
+}
+async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
+if(!db) return { ok:false, error:"Supabase not configured" };
+const userId = await getUserId();
+if(!userId) return { ok:false, error:"Not logged in" };
+const row = {
+user_id: userId,
+course: course || null,
+level: level || null,
+qtype: qType || null,
+material: material || "",
+exam: exam || null,
+answers: answers || null,
+result: result || null,
+created_at: new Date().toISOString()
+};
+const { data, error } = await db
+.from("user_exams")
+.insert([row])
+.select("id");
+if(error) return { ok:false, error: error.message || String(error) };
+const id = Array.isArray(data) && data[0] ? data[0].id : null;
+return { ok:true, id };
+}
+function ymd(d=new Date()){
+const y = d.getFullYear();
+const m = String(d.getMonth()+1).padStart(2,"0");
+const day = String(d.getDate()).padStart(2,"0");
+return `${y}-${m}-${day}`;
+}
+async function quotaFallbackKey(){
+const uid = (await getUserId()) || "guest";
+return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
+}
+let quotaState = { limit: null, count: null };
+function normalizeLimit(x){
+if(x === null || x === undefined) return null;
+if(x === "unlimited") return Infinity;
+const n = Number(x);
+if(!Number.isFinite(n)) return null;
+if(n <= 0) return 0;
+return n;
+}
+function normalizeCount(x){
+const n = Number(x);
+if(!Number.isFinite(n) || n < 0) return null;
+return Math.floor(n);
+}
+async function readFallbackCount(){
+const k = await quotaFallbackKey();
+return lsGetNum(k, 0);
+}
+async function writeFallbackCount(n){
+const k = await quotaFallbackKey();
+localStorage.setItem(k, String(Math.max(0, Math.floor(n))));
+}
+async function setQuotaFromServerMaybe(obj){
+const lim = normalizeLimit(obj?.limit);
+const cnt = normalizeCount(obj?.count);
+if(lim === null || cnt === null) return false;
+quotaState.limit = lim;
+quotaState.count = cnt;
+await writeFallbackCount(cnt);
+await refreshQuotaUi();
+return true;
+}
+async function bumpQuotaFallbackOnSuccess(){
+const cur = await readFallbackCount();
+await writeFallbackCount(cur + 1);
+}
+async function refreshQuotaUi(){
+const ms = document.getElementById("miniState");
+if(!ms) return;
+const t = T[LANG];
+const fallbackCount = await readFallbackCount();
+const limit = (quotaState.limit !== null) ? quotaState.limit : null;
+const count = (quotaState.count !== null) ? quotaState.count : fallbackCount;
+if(limit === null){
+ms.textContent = t.quotaUnknown;
+return;
+}
+const limitText = (limit === Infinity) ? "∞" : String(limit);
+const left = (limit === Infinity) ? Infinity : Math.max(limit - count, 0);
+const leftText = (left === Infinity) ? "∞" : String(left);
+if(LANG === "sv"){
+ms.textContent = `Prov idag: ${count}/${limitText} • Kvar: ${leftText}`;
+} else {
+ms.textContent = `Exams today: ${count}/${limitText} • Left: ${leftText}`;
+}
+}
+function mergeMistakesFromExamRows(rows){
+const out = [];
+const clearTs = lsGetNum(LS_CLEAR_TS, 0);
+(rows || []).forEach(r => {
+const createdTs = Date.parse(r.created_at) || 0;
+if(createdTs <= clearTs) return;
+const exam = r.exam || null;
+const result = r.result || null;
+const answers = r.answers || null;
+const qById = new Map(((exam && exam.questions) ? exam.questions : []).map(q => [String(q.id), q]));
+const aById = new Map((Array.isArray(answers) ? answers : []).map(a => [String(a.id), String(a.answer || "")]));
+const per = (result && Array.isArray(result.per_question)) ? result.per_question : [];
+per.forEach(item => {
+const got = Number(item.points || 0);
+const mx = Number(item.max_points || 0);
+if(mx > 0 && got < mx){
+const qid = String(item.id);
+const q = qById.get(qid) || {};
+out.push({
+ts: createdTs || Date.now(),
+course: r.course || "",
+level: r.level || "C",
+qType: q.type || (r.qtype || "mix"),
+id: qid,
+question: String(q.question || ""),
+user_answer: String(aById.get(qid) || ""),
+feedback: String(item.feedback || ""),
+model_answer: String(item.model_answer || ""),
+points: got,
+max_points: mx
+});
+}
+});
+});
+while(out.length > 200) out.shift();
+return out;
+}
+async function loadExamsFromAccountToLocal(){
+if(!db) return;
+const uid = await getUserId();
+if(!uid) return;
+const { data, error } = await db
+.from("user_exams")
+.select("id, created_at, course, level, qtype, material, exam, answers, result")
+.eq("user_id", uid)
+.order("created_at", { ascending: true })
+.limit(500);
+if(error) return;
+const clearTs = lsGetNum(LS_CLEAR_TS, 0);
+const filtered = (data || []).filter((r) => {
+const ts = Date.parse(r.created_at) || 0;
+return ts > clearTs;
+});
+const history = (filtered || []).map((r) => ({
+ts: Date.parse(r.created_at) || Date.now(),
+course: r.course || "",
+level: r.level || "C",
+qType: r.qtype || "mix",
+total_points: r.result?.total_points ?? 0,
+max_points: r.result?.max_points ?? 0,
+percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
+}));
+lsSet(LS_HISTORY, history);
+const last = filtered && filtered.length ? filtered[filtered.length - 1] : null;
+if(last){
+lsSet(LS_LAST, {
+ts: Date.parse(last.created_at) || Date.now(),
+attempt: history[history.length - 1],
+exam: last.exam,
+result: last.result
+});
+if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
+} else {
+try{ localStorage.removeItem(LS_LAST); } catch {}
+}
+const mergedMistakes = mergeMistakesFromExamRows(filtered);
+lsSet(LS_MISTAKES, mergedMistakes);
+}
+async function ensureUserProfileRow(){
+if(!db) return;
+const uid = await getUserId();
+if(!uid) return;
+const { data: existing, error } = await db
+.from("user_profiles")
+.select("id")
+.eq("id", uid)
+.maybeSingle();
+if(error) return;
+if(!existing){
+await db.from("user_profiles").insert([{ id: uid }]);
+}
+}
+async function updateMastery(result){
+if(!db) return;
+const uid = await getUserId();
+if(!uid) return;
+const { data: profile } = await db
+.from("user_profiles")
+.select("mastery")
+.eq("id", uid)
+.maybeSingle();
+if(!profile) return;
+const mastery = profile.mastery || {};
+(result.per_question || []).forEach(q => {
+const concept = (q.concept_tag || "okänt").toString();
+const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
+const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
+const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
+mastery[concept] = updated;
+});
+await db.from("user_profiles").update({ mastery }).eq("id", uid);
+}
+function onClick(id, fn){
+const el = $(id);
+if(!el) return false;
+el.addEventListener("click", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
+return true;
+}
+function onKey(fn){
+document.addEventListener("keydown", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
+}
+function openMenuAnimated(){
+const m = $("menu");
+if(!m) return;
+m.classList.remove("is-closing");
+m.style.display = "block";
+requestAnimationFrame(() => m.classList.add("is-open"));
+}
+function closeMenuAnimated(){
+const m = $("menu");
+if(!m) return;
+if(!m.classList.contains("is-open")){ m.style.display = "none"; return; }
+m.classList.remove("is-open");
+m.classList.add("is-closing");
+window.setTimeout(() => {
+m.classList.remove("is-closing");
+m.style.display = "none";
+}, 180);
+}
+function initMouseGlow(){
+let raf = null;
+window.addEventListener("mousemove", (e) => {
+if(raf) return;
+raf = requestAnimationFrame(() => {
+document.body.style.setProperty("--mx", `${e.clientX}px`);
+document.body.style.setProperty("--my", `${e.clientY}px`);
+raf = null;
+});
+}, { passive:true });
+}
+function hidePageLoader(){
+const l = $("pageLoader");
+if(!l) return;
+window.setTimeout(() => l.classList.add("done"), 180);
+}
+function initReveal(){
+const nodes = Array.from(document.querySelectorAll(".card, .qBox, .uploadBox"));
+nodes.forEach((el, i) => {
+el.classList.add("reveal");
+el.style.transitionDelay = `${Math.min(i * 16, 120)}ms`;
+});
+const io = new IntersectionObserver((entries) => {
+entries.forEach((entry) => {
+if(entry.isIntersecting){
+entry.target.classList.add("in");
+io.unobserve(entry.target);
+}
+});
+}, { threshold:.1, rootMargin:"0px 0px -8% 0px" });
+nodes.forEach((el) => io.observe(el));
+}
+const spinWrap = () => $("spinWrap");
+const miniStateEl = () => $("miniState");
+const statusEl = () => $("status");
+const pastedTextEl = () => $("pastedText");
+const levelEl = () => $("level");
+const courseEl = () => $("course");
+const qTypeEl = () => $("qType");
+const numQuestionsEl = () => $("numQuestions");
+const examMetaEl = () => $("examMeta");
+const examBodyEl = () => $("examBody");
+const resultMetaEl = () => $("resultMeta");
+const resultBodyEl = () => $("resultBody");
+const imageInputEl = () => $("imageInput");
+const ocrStatusEl = () => $("ocrStatus");
+let currentExam = null;
+function setBusy(isBusy, label){
+const sw = spinWrap(), ms = miniStateEl();
+if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
+if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
+const genBtn = $("generateExamBtn");
+const gradeBtn = $("gradeBtn");
+const clearBtn = $("clearBtn");
+const ocrBtn = $("ocrBtn");
+if(genBtn) genBtn.disabled = isBusy;
+if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
+if(clearBtn) clearBtn.disabled = isBusy;
+if(ocrBtn) ocrBtn.disabled = isBusy;
+const signIn = $("signInBtn");
+const signUp = $("signUpBtn");
+const unlock = $("unlockBtn");
+if(signIn) signIn.disabled = isBusy;
+if(signUp) signUp.disabled = isBusy;
+if(unlock) unlock.disabled = isBusy;
+}
+function setStatus(txt, kind){
+const s = statusEl();
+if(!s) return;
+s.className = "status" + (kind ? (" " + kind) : "");
+s.textContent = txt || "";
+}
+function setOcrStatus(txt, kind){
+const s = ocrStatusEl();
+if(!s) return;
+s.className = "status" + (kind ? (" " + kind) : "");
+s.textContent = txt || "";
+}
+function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
+function showLock(){
+const s = $("loginScreen");
+if(!s) return;
+s.style.display = "flex";
+s.setAttribute("aria-hidden","false");
+document.documentElement.style.overflow = "hidden";
+document.body.style.overflow = "hidden";
+}
+function hideLock(){
+const s = $("loginScreen");
+if(!s) return;
+s.style.display = "none";
+s.setAttribute("aria-hidden","true");
+document.documentElement.style.overflow = "";
+document.body.style.overflow = "";
+}
+function setLockError(msg){
+const em = $("errorMsg");
+if(em) em.textContent = msg || "";
+}
+function unlockByCode(){
+const input = $("accessCode");
+const v = (input?.value || "").trim();
+if(v === ACCESS_CODE){
+localStorage.setItem(ACCESS_FLAG_KEY, "true");
+setLockError("");
+hideLock();
+runTrainModeIfRequested();
+} else {
+setLockError(T[LANG].wrongCode);
+}
+}
+async function logout(){
+localStorage.removeItem(ACCESS_FLAG_KEY);
+closeMenuAnimated();
+if(db){ try{ await db.auth.signOut(); } catch {} }
+showLock();
+await refreshQuotaUi();
+}
+async function checkApprovalAndUnlock(session){
+if(!db) return false;
+const user = session?.user;
+if(!user?.id) return false;
+const { data: prof, error } = await db
+.from("profiles")
+.select("approved, role")
+.eq("id", user.id)
+.maybeSingle();
+if(error){
+setLockError(String(error.message || error));
+return false;
+}
+if(!prof){
+setLockError("Profil saknas i databasen (profiles).");
+showLock();
+return false;
+}
+if(!prof.approved){
+setLockError(T[LANG].pending);
+showLock();
+return false;
+}
+setLockError("");
+hideLock();
+return true;
+}
+async function signInEmail(){
+hideDebug();
+if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
+const email = ($("authEmail")?.value || "").trim();
+const password = $("authPass")?.value || "";
+if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
+setBusy(true, "…");
+try{
+const { data, error } = await db.auth.signInWithPassword({ email, password });
+if(error){ setLockError(error.message); return; }
+const ok = await checkApprovalAndUnlock(data.session);
+if(ok){
+await loadExamsFromAccountToLocal();
+await ensureUserProfileRow();
+runTrainModeIfRequested();
+}
+} finally {
+setBusy(false, T[LANG].ready);
+}
+}
+async function signUpEmail(){
+hideDebug();
+if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
+const email = ($("authEmail")?.value || "").trim();
+const password = $("authPass")?.value || "";
+if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
+setBusy(true, "…");
+try{
+const { data, error } = await db.auth.signUp({ email, password });
+if(error){ setLockError(error.message); return; }
+if(data?.session){
+const ok = await checkApprovalAndUnlock(data.session);
+if(ok){ await loadExamsFromAccountToLocal(); }
+} else {
+setLockError(T[LANG].pending);
+showLock();
+}
+} finally {
+setBusy(false, T[LANG].ready);
+}
+runTrainModeIfRequested();
+}
+function buildTrainingMaterialFromMistakes(mistakes, pickedIds){
+const src = Array.isArray(mistakes) ? mistakes : [];
+const idSet = (Array.isArray(pickedIds) && pickedIds.length)
+? new Set(pickedIds.map(x => String(x)))
+: null;
+const filtered = idSet ? src.filter(m => idSet.has(String(m.id))) : src;
+const recent = filtered.slice(-30).reverse();
+const course = (courseEl()?.value || "").trim();
+const headerSv =
+`TRÄNING PÅ DINA MISSTAG\n` +
+`${course ? `Kurs: ${course}\n` : ""}` +
+`Instruktion: Skapa prov som bara testar dessa svaga delar.\n\n`;
+const headerEn =
+`TRAINING FROM YOUR MISTAKES\n` +
+`${course ? `Course: ${course}\n` : ""}` +
+`Instruction: Generate exams that focus only on these weak areas.\n\n`;
+const blocks = recent.map((m, i) => {
+const q = String(m.question || "").trim();
+const fb = String(m.feedback || "").trim();
+const model = String(m.model_answer || "").trim();
+const tag = `${m.points}/${m.max_points}`;
+if(LANG === "sv"){
+return (
+`MISSTAG ${i+1} (${tag})\n` +
+`Fråga: ${q}\n` +
+`Varför poäng tappades: ${fb || "—"}\n` +
+`Modellsvar (full poäng): ${model || "—"}\n`
+);
+}
+return (
+`MISTAKE ${i+1} (${tag})\n` +
+`Question: ${q}\n` +
+`Why points were lost: ${fb || "—"}\n` +
+`Full-score model answer: ${model || "—"}\n`
+);
+}).join("\n---\n\n");
+return (LANG === "sv" ? headerSv : headerEn) + blocks;
+}
+function runTrainModeIfRequested(){
+const hash = (window.location.hash || "").toLowerCase();
+if(hash !== "#train") return;
+const mistakes = lsGetArray(LS_MISTAKES);
+if(!mistakes.length){
+setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
+openCardById("result", true);
+document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
+return;
+}
+const pick = lsGetObj(LS_TRAIN_PICK);
+const pickedIds = Array.isArray(pick?.ids) ? pick.ids : [];
+const mat = buildTrainingMaterialFromMistakes(mistakes, pickedIds);
+if(pastedTextEl()) pastedTextEl().value = mat;
+try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
+if(qTypeEl()) qTypeEl().value = "mix";
+if(numQuestionsEl()) numQuestionsEl().value = "12";
+setStatus(T[LANG].trainLoaded, "ok");
+openCardById("material", true);
+document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+}
+function readUiState(){
+const s = lsGetObj(LS_UI_OPEN) || {};
+return {
+material: !!s.material,
+settings: !!s.settings,
+exam: !!s.exam,
+result: !!s.result
+};
+}
+function writeUiState(next){
+lsSet(LS_UI_OPEN, next);
+}
+function setToggleLabel(cardId, isOpen){
+const t = T[LANG];
+const map = { material:"tg_material", settings:"tg_settings", exam:"tg_exam", result:"tg_result" };
+const el = $(map[cardId]);
+if(el) el.textContent = isOpen ? t.closeSection : t.openSection;
+}
+function setCardOpen(cardEl, open){
+if(!cardEl) return;
+const id = cardEl.id;
+if(open) cardEl.classList.add("open");
+else cardEl.classList.remove("open");
+setToggleLabel(id, open);
+const state = readUiState();
+if(id in state){
+state[id] = !!open;
+writeUiState(state);
+}
+}
+function openCardById(id, open=true){
+const el = document.getElementById(id);
+if(!el) return;
+setCardOpen(el, open);
+}
+function initCollapsibles(){
+const state = readUiState();
+const hasAnySaved = !!lsGetObj(LS_UI_OPEN);
+const defaults = hasAnySaved ? state : { material:false, settings:false, exam:false, result:false };
+["material","settings","exam","result"].forEach(id => {
+const el = document.getElementById(id);
+if(!el) return;
+el.classList.add("collapsible");
+setCardOpen(el, !!defaults[id]);
+});
+document.querySelectorAll('button[data-toggle-card]').forEach(btn => {
+btn.addEventListener("click", () => {
+const sel = btn.getAttribute("data-toggle-card");
+const card = sel ? document.querySelector(sel) : null;
+if(!card) return;
+const open = !card.classList.contains("open");
+setCardOpen(card, open);
+});
+});
+}
+const STANDARD_COURSES = [
+"Matematik (grundskola)",
+"Svenska (grundskola)",
+"Svenska som andraspråk (grundskola)",
+"Engelska (grundskola)",
+"Biologi (grundskola)",
+"Fysik (grundskola)",
+"Kemi (grundskola)",
+"Geografi (grundskola)",
+"Historia (grundskola)",
+"Religionskunskap (grundskola)",
+"Samhällskunskap (grundskola)",
+"Teknik (grundskola)",
+"Idrott och hälsa (grundskola)",
+"Hem- och konsumentkunskap (grundskola)",
+"Bild (grundskola)",
+"Musik (grundskola)",
+"Slöjd (grundskola)",
+"Moderna språk (grundskola)",
+"Matematik 1a","Matematik 1b","Matematik 1c",
+"Matematik 2a","Matematik 2b","Matematik 2c",
+"Matematik 3b","Matematik 3c",
+"Matematik 4","Matematik 5",
+"Svenska 1","Svenska 2","Svenska 3",
+"Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3",
+"Engelska 5","Engelska 6","Engelska 7",
+"Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2",
+"Historia 1a1","Historia 1a2","Historia 1b","Historia 2",
+"Religionskunskap 1","Religionskunskap 2",
+"Geografi 1",
+"Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2",
+"Biologi 1","Biologi 2",
+"Fysik 1a","Fysik 1","Fysik 2",
+"Kemi 1","Kemi 2",
+"Idrott och hälsa 1","Idrott och hälsa 2",
+"Psykologi 1","Psykologi 2",
+"Filosofi 1","Filosofi 2",
+"Företagsekonomi 1","Företagsekonomi 2",
+"Entreprenörskap","Entreprenörskap och företagande",
+"Juridik 1","Juridik 2","Juridik 3",
+"Privatjuridik",
+"Internationell ekonomi",
+"Marknadsföring",
+"Redovisning",
+"Programmering 1","Programmering 2",
+"Webbutveckling 1","Webbutveckling 2",
+"Dator- och nätverksteknik",
+"Digitalt skapande 1"
+];
+function normCourse(s){
+return String(s||"").trim().replace(/\s+/g," ");
+}
+function getAllCourses(){
+const custom = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
+const std = STANDARD_COURSES.map(normCourse).filter(Boolean);
+const set = new Set([...std, ...custom]);
+return Array.from(set).sort((a,b)=>a.localeCompare(b, "sv"));
+}
+function fillCourseDatalist(){
+const dl = document.getElementById("courseDatalist");
+if(!dl) return;
+dl.innerHTML = "";
+getAllCourses().forEach(c => {
+const opt = document.createElement("option");
+opt.value = c;
+dl.appendChild(opt);
+});
+}
+function getSelectedCourseFromPicker(){
+const useCustom = !!document.getElementById("useCustomCourse")?.checked;
+const custom = normCourse(document.getElementById("customCourse")?.value);
+const search = normCourse(document.getElementById("courseSearch")?.value);
+return useCustom ? custom : search;
+}
+function syncPickerToHiddenCourse(){
+const v = getSelectedCourseFromPicker();
+const hidden = courseEl();
+if(hidden) hidden.value = v;
+}
+function initCourseLibrary(){
+fillCourseDatalist();
+const chk = document.getElementById("useCustomCourse");
+const custom = document.getElementById("customCourse");
+const search = document.getElementById("courseSearch");
+const status = document.getElementById("coursePickerStatus");
+const saveBtn = document.getElementById("saveCustomCourse");
+const syncEnable = () => {
+const on = !!chk?.checked;
+if(custom) custom.disabled = !on;
+if(search) search.disabled = on;
+if(status) status.textContent = "";
+syncPickerToHiddenCourse();
+};
+chk?.addEventListener("change", syncEnable);
+search?.addEventListener("input", () => syncPickerToHiddenCourse());
+search?.addEventListener("change", () => syncPickerToHiddenCourse());
+custom?.addEventListener("input", () => syncPickerToHiddenCourse());
+custom?.addEventListener("change", () => syncPickerToHiddenCourse());
+saveBtn?.addEventListener("click", () => {
+const name = normCourse(custom?.value);
+if(!name){
+if(status) status.textContent = (LANG==="sv") ? "Skriv ett namn först." : "Type a name first.";
+return;
+}
+const list = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
+if(!list.includes(name)) list.push(name);
+lsSet(LS_CUSTOM_COURSES, list);
+fillCourseDatalist();
+if(status) status.textContent = (LANG==="sv") ? `Sparad: ${name}` : `Saved: ${name}`;
+syncPickerToHiddenCourse();
+});
+syncEnable();
+syncPickerToHiddenCourse();
+}
+function applyLang(){
+const t = T[LANG];
+const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
+set("brandTag", t.brandTag);
+set("lockSub", t.lockSub);
+set("lockLabel", t.lockLabel);
+set("unlockBtn", t.unlock);
+set("toInfoBtn", t.toInfo);
+set("toImproveBtn", t.toImprove);
+set("m1", t.m1); set("m2", t.m2); set("m3", t.m3); set("m4", t.m4);
+set("mImprove", t.mImprove);
+set("mLang", t.mLang);
+set("mLogout", t.mLogout);
+set("langPill", LANG.toUpperCase());
+set("tStep1", t.step1);
+set("tStep1Sub", t.step1Sub);
+set("tPasteLabel", t.pasteLabel);
+const pt = $("pastedText"); if(pt) pt.placeholder = t.pastePH;
+set("tOcrTitle", t.ocrTitle);
+set("ocrBtn", t.ocrBtn);
+set("tOcrHint", t.ocrHint);
+set("formatHint", t.tip);
+set("tStep2", t.step2);
+set("tStep2Sub", t.step2Sub);
+set("tLevel", t.level);
+set("tCourse", t.course);
+const c = $("course"); if(c) c.placeholder = t.coursePH;
+set("tQType", t.qType);
+set("qtMix", t.qtMix);
+set("qtMc", t.qtMc);
+set("qtShort", t.qtShort);
+set("tNum", t.num);
+set("generateExamBtn", t.gen);
+set("gradeBtn", t.grade);
+set("clearBtn", t.clear);
+set("improveBtnInline", t.mImprove);
+set("debugTitle", t.debug);
+set("tStep3", t.step3);
+set("tStep4", t.step4);
+set("footerText", t.footer);
+["material","settings","exam","result"].forEach(id => {
+const el = document.getElementById(id);
+if(!el) return;
+setToggleLabel(id, el.classList.contains("open"));
+});
+const eb = examBodyEl(), rb = resultBodyEl();
+if(eb && !eb.children.length) set("examMeta", t.noExam);
+if(rb && !rb.children.length) set("resultMeta", t.noGrade);
+const cs = document.getElementById("courseSearch");
+const cc = document.getElementById("customCourse");
+const sc = document.getElementById("saveCustomCourse");
+if(cs){
+cs.placeholder = (LANG==="sv")
+? "Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
+: "Search e.g. Math, English, Business...";
+}
+if(cc){
+cc.placeholder = (LANG==="sv")
+? "Skriv kurs/ämne exakt som du vill ha det..."
+: "Type the subject/course exactly as you want...";
+}
+if(sc){
+sc.textContent = (LANG==="sv") ? "Spara i min lista" : "Save to my list";
+}
+}
+async function fileToDataUrl(file){
+return new Promise((resolve, reject) => {
+const fr = new FileReader();
+fr.onload = () => resolve(String(fr.result || ""));
+fr.onerror = () => reject(new Error("FileReader error"));
+fr.readAsDataURL(file);
+});
+}
+function renderExam(exam){
+currentExam = exam;
+const qs = Array.isArray(exam.questions) ? exam.questions : [];
+const t = T[LANG];
+const em = examMetaEl(), eb = examBodyEl(), rm = resultMetaEl(), rb = resultBodyEl();
+if(em) em.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+if(eb) eb.innerHTML = "";
+if(rm) rm.textContent = t.noGrade;
+if(rb) rb.innerHTML = "";
+qs.forEach((q, idx) => {
+const box = document.createElement("div");
+box.className = "qBox";
+const qid = String(q.id ?? (idx+1));
+const meta = document.createElement("div");
+meta.className = "qMeta";
+meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
+const text = document.createElement("div");
+text.className = "qText";
+text.textContent = q.question ?? "";
+box.appendChild(meta);
+box.appendChild(text);
+if((q.type === "mc") && Array.isArray(q.options) && q.options.length){
+const group = document.createElement("div");
+group.className = "mcGroup";
+group.dataset.qid = qid;
+const hidden = document.createElement("input");
+hidden.type = "hidden";
+hidden.className = "mcAnswer";
+hidden.dataset.qid = qid;
+hidden.value = "";
+box.appendChild(hidden);
+q.options.forEach((opt, i) => {
+const letter = String.fromCharCode(65 + i);
+const btn = document.createElement("button");
+btn.type = "button";
+btn.className = "mcOpt";
+btn.dataset.letter = letter;
+btn.dataset.qid = qid;
+btn.innerHTML = `<span class="mcLetter">${letter}</span><span class="mcText">${escapeHtml(opt)}</span>`;
+btn.addEventListener("click", () => {
+group.querySelectorAll(".mcOpt").forEach(x => x.classList.remove("sel"));
+btn.classList.add("sel");
+hidden.value = letter;
+});
+group.appendChild(btn);
+});
+box.appendChild(group);
+eb?.appendChild(box);
+return;
+}
+const ans = document.createElement("textarea");
+ans.className = "answer";
+ans.placeholder = t.writeAnswer;
+ans.dataset.qid = qid;
+ans.style.marginTop = "10px";
+ans.style.minHeight = "110px";
+box.appendChild(ans);
+eb?.appendChild(box);
+});
+const gradeBtn = $("gradeBtn");
+if(gradeBtn) gradeBtn.disabled = qs.length === 0;
+}
+function renderResult(r){
+const t = T[LANG];
+const rm = resultMetaEl(), rb = resultBodyEl();
+if(rm) rm.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
+const wrap = document.createElement("div");
+(r.per_question || []).forEach(item => {
+const d = document.createElement("div");
+d.className = "qBox";
+const model = String(item.model_answer || "").trim();
+d.innerHTML = `
+<div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
+<div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
+<div style="margin-top:10px;border-top:1px solid rgba(5,42,30,.12);padding-top:10px">
+<div style="font-weight:1100;color:#052A1E;margin-bottom:6px;font-size:13px">${t.fullScore}</div>
+<div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
+</div>
+`;
+wrap.appendChild(d);
+});
+if(rb){
+rb.innerHTML = "";
+rb.appendChild(wrap);
+}
+}
+function clearAll(){
+const t = T[LANG];
+if(pastedTextEl()) pastedTextEl().value = "";
+if(courseEl()) courseEl().value = "";
+if(levelEl()) levelEl().value = "C";
+if(qTypeEl()) qTypeEl().value = "mix";
+if(numQuestionsEl()) numQuestionsEl().value = "12";
+if(imageInputEl()) imageInputEl().value = "";
+setOcrStatus("");
+currentExam = null;
+const chk = document.getElementById("useCustomCourse");
+const cs = document.getElementById("courseSearch");
+const cc = document.getElementById("customCourse");
+const st = document.getElementById("coursePickerStatus");
+if(chk) chk.checked = false;
+if(cs) cs.value = "";
+if(cc) cc.value = "";
+if(st) st.textContent = "";
+try{
+const customEnabled = !!chk?.checked;
+if(cc) cc.disabled = !customEnabled;
+if(cs) cs.disabled = customEnabled;
+} catch {}
+if(courseEl()) courseEl().value = "";
+if(examMetaEl()) examMetaEl().textContent = t.noExam;
+if(examBodyEl()) examBodyEl().innerHTML = "";
+if(resultMetaEl()) resultMetaEl().textContent = t.noGrade;
+if(resultBodyEl()) resultBodyEl().innerHTML = "";
+const gradeBtn = $("gradeBtn");
+if(gradeBtn) gradeBtn.disabled = true;
+setStatus(t.cleared, "ok");
+hideDebug();
+window.scrollTo({ top: 0, behavior: "smooth" });
+}
+window.addEventListener("DOMContentLoaded", async () => {
+try{
+initCollapsibles(); // init collapse state
+initCourseLibrary(); // ÄNDRING: kursbibliotek init
+applyLang();
+initMouseGlow();
+initReveal();
+hidePageLoader();
+await refreshQuotaUi();
+setStatus("");
+onClick("menuBtn", (e) => {
+e.preventDefault(); e.stopPropagation();
+const m = $("menu");
+if(!m) return;
+if(m.classList.contains("is-open")) closeMenuAnimated();
+else openMenuAnimated();
+});
+document.addEventListener("click", (e) => {
+const m = $("menu");
+const mb = $("menuBtn");
+if(!m || !mb) return;
+if(!m.classList.contains("is-open")) return;
+if(m.contains(e.target) || mb.contains(e.target)) return;
+closeMenuAnimated();
+});
+const menuEl = $("menu");
+if(menuEl){
+menuEl.addEventListener("click", (e) => {
+const a = e.target.closest("a[data-scroll]");
+if(!a) return;
+e.preventDefault();
+const sel = a.getAttribute("data-scroll");
+closeMenuAnimated();
+const el = document.querySelector(sel);
+if(el){
+if(el.classList.contains("collapsible")) setCardOpen(el, true);
+el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+});
+}
+onKey((e) => { if(e.key === "Escape") closeMenuAnimated(); });
+onClick("langBtn", async () => {
+LANG = (LANG === "sv") ? "en" : "sv";
+localStorage.setItem("proviaai_lang", LANG);
+applyLang();
+await refreshQuotaUi();
+closeMenuAnimated();
+runTrainModeIfRequested();
+});
+onClick("logoutTopBtn", async () => { await logout(); });
+onClick("unlockBtn", async () => { unlockByCode(); await refreshQuotaUi(); });
+onClick("signInBtn", async () => { await signInEmail(); await refreshQuotaUi(); });
+onClick("signUpBtn", async () => { await signUpEmail(); await refreshQuotaUi(); });
+onKey((e) => {
+if(e.key !== "Enter") return;
+const s = $("loginScreen");
+const visible = s && s.style.display !== "none";
+if(!visible) return;
+const email = ($("authEmail")?.value || "").trim();
+const pass = $("authPass")?.value || "";
+if(email && pass) signInEmail();
+else unlockByCode();
+});
+onClick("ocrBtn", async () => {
+hideDebug();
+const t = T[LANG];
+const inp = imageInputEl();
+const file = inp?.files && inp.files[0];
+if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
+setBusy(true, t.ocrWorking);
+setOcrStatus(t.ocrWorking, "warn");
+try{
+const dataUrl = await fileToDataUrl(file);
+const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
+if(!res.ok || !res.data || !res.data.ok){
+setBusy(false, t.ready);
+setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
+showDebug(res.raw);
+return;
+}
+const extracted = String(res.data.text || "").trim();
+if(extracted){
+const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
+const base = (pastedTextEl()?.value || "").trim();
+if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
+}
+setBusy(false, t.ready);
+setOcrStatus(t.ocrDone, "ok");
+}catch(e){
+setBusy(false, T[LANG].ready);
+setOcrStatus("OCR error.", "bad");
+reportErr(e);
+}
+});
+onClick("generateExamBtn", async () => {
+hideDebug();
+setStatus("");
+const t = T[LANG];
+const pastedText = (pastedTextEl()?.value || "").trim();
+if(!pastedText){
+setStatus(t.needMat, "bad");
+openCardById("material", true);
+document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+return;
+}
+const qType = qTypeEl()?.value || "mix";
+if(!["mix","mc","short"].includes(qType)){
+setStatus("Ogiltig frågetyp.", "bad");
+return;
+}
+const payload = {
+lang: LANG,
+level: levelEl()?.value || "C",
+course: (courseEl()?.value || "").trim(),
+qType,
+pastedText,
+numQuestions: Number(numQuestionsEl()?.value || 12)
+};
+setBusy(true, t.genWorking);
+setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
+const res = await postJson("/api/generate-exam", payload);
+if(res.status === 429 && res.data){
+await setQuotaFromServerMaybe(res.data);
+setBusy(false, t.ready);
+setStatus(res.data?.error || t.quotaHit, "bad");
+return;
+}
+if(!res.ok || !res.data || !res.data.ok){
+setBusy(false, t.ready);
+setStatus(`Error (HTTP ${res.status}).`, "bad");
+showDebug(res.raw);
+return;
+}
+await bumpQuotaFallbackOnSuccess();
+await refreshQuotaUi();
+try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
+renderExam(res.data.exam);
+setBusy(false, t.ready);
+setStatus(t.genDone, "ok");
+openCardById("exam", true);
+document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
+});
+onClick("gradeBtn", async () => {
+hideDebug();
+const t = T[LANG];
+if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
+setStatus(t.genFirst, "bad");
+return;
+}
+const answers = [];
+currentExam.questions.forEach((q, idx) => {
+const qid = String(q.id ?? (idx+1));
+if(q.type === "mc"){
+const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
+answers.push({ id: qid, answer: (hidden?.value || "").trim() });
+} else {
+const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
+answers.push({ id: qid, answer: (ta?.value || "").trim() });
+}
+});
+const pastedText = (pastedTextEl()?.value || "").trim();
+const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
+setBusy(true, t.gradeWorking);
+setStatus(t.gradeWorking, "");
+const res = await postJson("/api/grade", payload);
+if(!res.ok || !res.data || !res.data.ok){
+setBusy(false, t.ready);
+setStatus(`Error (HTTP ${res.status}).`, "bad");
+showDebug(res.raw);
+return;
+}
+const result = res.data.result;
+renderResult(result);
+await ensureUserProfileRow();
+await updateMastery(result);
+try{
+await saveExamToAccount({
+material: pastedText,
+course: (courseEl()?.value || "").trim(),
+level: levelEl()?.value || "C",
+qType: qTypeEl()?.value || "mix",
+exam: {
+title: currentExam.title || "",
+level: currentExam.level || (levelEl()?.value || "C"),
+questions: currentExam.questions || []
+},
+answers,
+result
+});
+} catch {}
+const ts = Date.now();
+const max = Number(result.max_points || 0);
+const total = Number(result.total_points || 0);
+const percent = max > 0 ? Math.round((total / max) * 100) : 0;
+const attempt = {
+ts,
+course: (courseEl()?.value || "").trim(),
+level: levelEl()?.value || "C",
+qType: qTypeEl()?.value || "mix",
+numQuestions: Number(numQuestionsEl()?.value || 12),
+total_points: total,
+max_points: max,
+percent
+};
+const history = lsGetArray(LS_HISTORY);
+history.push(attempt);
+while(history.length > 60) history.shift();
+lsSet(LS_HISTORY, history);
+lsSet(LS_LAST, {
+ts,
+attempt,
+exam: {
+title: currentExam.title || "",
+level: currentExam.level || (levelEl()?.value || "C"),
+questions: currentExam.questions || []
+},
+result
+});
+const mistakes = lsGetArray(LS_MISTAKES);
+const qById = new Map((currentExam.questions || []).map(q => [String(q.id ?? ""), q]));
+const aById = new Map(answers.map(a => [String(a.id), a.answer]));
+(result.per_question || []).forEach(item => {
+const got = Number(item.points || 0);
+const m = Number(item.max_points || 0);
+if(m > 0 && got < m){
+const q = qById.get(String(item.id)) || {};
+mistakes.push({
+ts,
+course: attempt.course,
+level: attempt.level,
+qType: q.type || (qTypeEl()?.value || "mix"),
+id: String(item.id),
+question: String(q.question || ""),
+user_answer: String(aById.get(String(item.id)) || ""),
+feedback: String(item.feedback || ""),
+model_answer: String(item.model_answer || ""),
+points: got,
+max_points: m
+});
+}
+});
+while(mistakes.length > 200) mistakes.shift();
+lsSet(LS_MISTAKES, mistakes);
+try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
+setBusy(false, t.ready);
+setStatus(t.gradeDone, "ok");
+openCardById("result", true);
+document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
+});
+onClick("clearBtn", clearAll);
+window.addEventListener("hashchange", () => {
+const lockVisible = $("loginScreen") && $("loginScreen").style.display !== "none";
+if(!lockVisible) runTrainModeIfRequested();
+});
+if(db){
+try{
+const { data } = await db.auth.getSession();
+if(data?.session){
+const ok = await checkApprovalAndUnlock(data.session);
+if(ok){
+await loadExamsFromAccountToLocal();
+runTrainModeIfRequested();
+} else {
+showLock();
+}
+} else {
+if(isUnlocked()){
+hideLock();
+runTrainModeIfRequested();
+} else {
+showLock();
+}
+}
+}catch(e){
+setLockError(String(e?.message || e));
+if(isUnlocked()){
+hideLock();
+runTrainModeIfRequested();
+} else {
+showLock();
+}
+}
+} else {
+if(isUnlocked()){
+hideLock();
+runTrainModeIfRequested();
+} else {
+showLock();
+}
+}
+await refreshQuotaUi();
+}catch(err){
+reportErr(err);
+}
+});
+</script>
 </body>
 </html>
