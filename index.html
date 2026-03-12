@@ -222,6 +222,32 @@
  radial-gradient(900px 520px at 35% 40%, rgba(43,227,140,.23), transparent 60%),
  linear-gradient(135deg, rgba(2,8,6,.72), rgba(2,8,6,.84));
  }
+ /* globe hero layer (inspired by provided reference, no external libs) */
+ .heroGlobe{
+ position:absolute;
+ inset:8% auto auto 50%;
+ width:min(46vw, 520px);
+ aspect-ratio:1;
+ border-radius:999px;
+ pointer-events:none;
+ transform:translateX(-8%);
+ background:
+ radial-gradient(circle at 50% 50%, rgba(43,227,140,.16) 0 34%, rgba(43,227,140,.06) 56%, rgba(43,227,140,0) 68%),
+ repeating-linear-gradient(0deg, rgba(205,255,228,.22) 0 1px, transparent 1px 14px),
+ repeating-linear-gradient(90deg, rgba(205,255,228,.18) 0 1px, transparent 1px 14px);
+ border:1px solid rgba(115,255,196,.34);
+ box-shadow:0 0 80px rgba(43,227,140,.18), inset 0 0 24px rgba(43,227,140,.12);
+ opacity:.52;
+ filter:blur(.2px);
+ animation:globeSpin 28s linear infinite;
+ }
+ .heroGlobe::before{
+ content:"";
+ position:absolute;inset:0;border-radius:999px;
+ background:radial-gradient(circle at 34% 28%, rgba(255,255,255,.2), transparent 52%);
+ opacity:.5;
+ }
+ @keyframes globeSpin{to{transform:translateX(-8%) rotate(360deg)}}
  /* mouse glow in hero */
  .heroMouseGlow{
  position:absolute;
@@ -389,6 +415,7 @@
  .reveal{opacity:1;transform:none;filter:none}
  .dropdown,.dropdown.is-open,.dropdown.is-closing{opacity:1;transform:none}
  .heroMouseGlow{display:none}
+ .heroGlobe{animation:none}
  }
  </style>
 </head>
@@ -429,6 +456,7 @@
  <section class="hero reveal" id="heroSection">
  <div class="heroBg"></div>
  <div class="heroOverlay"></div>
+ <div class="heroGlobe" aria-hidden="true"></div>
  <div class="heroMouseGlow" id="heroMouseGlow" aria-hidden="true"></div>
 
  <div class="heroInner">
