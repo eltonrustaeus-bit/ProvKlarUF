@@ -7,7 +7,6 @@
 
   <style>
     :root{
-      /* Design tokens: dark surface system */
       --deep:#E7FFF2; --deep2:#C8EADB;
       --mint:#2BE38C; --mint2:#16B876;
       --bg:#040806;
@@ -23,8 +22,31 @@
       --radius:18px; --max:1040px;
       --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200;
+      --header-bg:rgba(5,12,9,.84);
+      --card-hover-shadow:0 22px 58px rgba(0,0,0,.48), 0 0 0 1px rgba(43,227,140,.14) inset;
     }
+
+    /* ===== LIGHT MODE ===== */
+    body.light{
+      --deep:#0a3d22; --deep2:#1a5c38;
+      --mint:#16B876; --mint2:#0d9460;
+      --bg:#f0faf4;
+      --surface-1:rgba(255,255,255,.92);
+      --surface-2:rgba(240,250,244,.96);
+      --surface-glass:rgba(255,255,255,.80);
+      --text:#0d2b1a;
+      --muted:#4a7a62;
+      --border:rgba(22,184,118,.20);
+      --border-strong:rgba(22,184,118,.45);
+      --glow:rgba(22,184,118,.18);
+      --shadow:0 8px 32px rgba(10,60,35,.10);
+      --danger:#b91c1c; --ok:#0d7a50; --warn:#92400e;
+      --header-bg:rgba(240,250,244,.92);
+      --card-hover-shadow:0 12px 36px rgba(10,60,35,.14), 0 0 0 1px rgba(22,184,118,.18) inset;
+    }
+
     *{box-sizing:border-box}
+
     body{
       margin:0;font-family:var(--font);color:var(--text);background:var(--bg);
       background:
@@ -34,22 +56,25 @@
       position:relative;
       line-height:1.6;
       letter-spacing:.01em;
+      transition:background .35s ease, color .35s ease;
     }
-    body:before,
-    body:after{
-      content:"";
-      position:fixed;
-      inset:-120px;
-      pointer-events:none;
-      z-index:0;
+    body.light{
+      background:
+        radial-gradient(900px 450px at 15% -10%, rgba(22,184,118,.10), transparent 60%),
+        radial-gradient(800px 420px at 95% 18%, rgba(22,184,118,.08), transparent 55%),
+        linear-gradient(165deg, #edf7f2 0%, #f0faf4 42%, #e8f7f0 100%);
     }
+
+    body:before,body:after{content:"";position:fixed;inset:-120px;pointer-events:none;z-index:0;}
     body:before{
       background:
         radial-gradient(760px 400px at 14% 12%, rgba(43,227,140,.14), transparent 62%),
         radial-gradient(680px 340px at 88% 20%, rgba(35,180,120,.12), transparent 60%);
       opacity:.18;
       animation:bgFloat 18s ease-in-out infinite;
+      transition:opacity .35s ease;
     }
+    body.light:before{opacity:.10;}
     body:after{
       opacity:.14;
       background-image:
@@ -57,24 +82,27 @@
         radial-gradient(rgba(255,255,255,.12) .6px, transparent .6px);
       background-size:3px 3px, 5px 5px;
       background-position:0 0, 1px 2px;
+      transition:opacity .35s ease;
     }
-    @keyframes bgFloat{
-      0%{transform:translate3d(0,0,0)}
-      50%{transform:translate3d(12px,-8px,0)}
-      100%{transform:translate3d(0,0,0)}
-    }
+    body.light:after{opacity:.04;}
+
+    @keyframes bgFloat{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(12px,-8px,0)}100%{transform:translate3d(0,0,0)}}
+
     a{text-decoration:none;color:inherit}
+
     header{
       position:sticky;top:0;z-index:3000;
-      background:rgba(5,12,9,.84);backdrop-filter:saturate(140%) blur(12px);
+      background:var(--header-bg);
+      backdrop-filter:saturate(140%) blur(12px);
       border-bottom:1px solid var(--border);
+      transition:background .35s ease, border-color .35s ease;
     }
     .wrap{max-width:var(--max);margin:0 auto;padding:clamp(16px,3vw,28px);position:relative;z-index:1}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
     .brand img{height:52px;width:auto;display:block}
-    .brand .name{font-weight:900;color:var(--deep);font-size:18px;line-height:1.05;letter-spacing:-.01em}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+    .brand .name{font-weight:900;color:var(--deep);font-size:18px;line-height:1.05;letter-spacing:-.01em;transition:color .35s ease}
+    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1;transition:color .35s ease}
 
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
@@ -83,7 +111,7 @@
       cursor:pointer;white-space:nowrap;
       background:var(--surface-2);color:var(--deep);
       user-select:none;
-      transition:transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s cubic-bezier(.22,.61,.36,1), border-color .18s ease, background-color .18s ease;
+      transition:transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s cubic-bezier(.22,.61,.36,1), border-color .18s ease, background-color .35s ease, color .35s ease;
       position:relative;overflow:hidden;
     }
     .btn:before{
@@ -95,7 +123,7 @@
       transition:transform .24s ease;
       pointer-events:none;
     }
-    .btn:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 12px 28px rgba(0,0,0,.35), 0 0 0 1px var(--glow) inset}
+    .btn:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 12px 28px rgba(0,0,0,.25), 0 0 0 1px var(--glow) inset}
     .btn:hover:before{transform:translateX(140%)}
     .btn:active{transform:translateY(0) scale(.985)}
     .btn:focus-visible,
@@ -114,11 +142,26 @@
       box-shadow:0 14px 28px rgba(22,184,118,.22)
     }
     .btnDanger{background:rgba(139,29,29,.12);color:#ffb8b8;border-color:rgba(255,140,140,.3)}
+    body.light .btnDanger{background:rgba(185,28,28,.08);color:#b91c1c;border-color:rgba(185,28,28,.25)}
     .pill{
       font-size:11px;font-weight:1000;color:var(--muted);
       border:1px solid var(--border);
       border-radius:999px;padding:4px 8px;background:var(--surface-2);
+      transition:background .35s ease, border-color .35s ease, color .35s ease;
     }
+
+    /* ===== THEME TOGGLE ===== */
+    .themeToggle{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:9px 13px;border-radius:14px;
+      border:1px solid var(--border);background:var(--surface-2);
+      cursor:pointer;font-weight:900;font-size:13px;color:var(--muted);
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .35s ease, color .35s ease;
+      user-select:none;
+    }
+    .themeToggle:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+    .themeToggle .themeIcon{font-size:15px;line-height:1;transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+    .themeToggle:hover .themeIcon{transform:rotate(20deg) scale(1.15)}
 
     .card{
       background:var(--surface-1);
@@ -129,12 +172,12 @@
       margin:14px 0;
       overflow:hidden;
       position:relative;
-      transition:transform .2s cubic-bezier(.22,.61,.36,1), box-shadow .2s cubic-bezier(.22,.61,.36,1), border-color .2s ease;
+      transition:transform .2s cubic-bezier(.22,.61,.36,1), box-shadow .2s cubic-bezier(.22,.61,.36,1), border-color .2s ease, background .35s ease;
     }
     .card:hover{
       transform:translateY(-3px);
       border-color:var(--border-strong);
-      box-shadow:0 22px 58px rgba(0,0,0,.48), 0 0 0 1px rgba(43,227,140,.14) inset;
+      box-shadow:var(--card-hover-shadow);
     }
     .card:before{
       content:"";
@@ -142,10 +185,12 @@
       width:190px;height:190px;border-radius:999px;
       background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
       pointer-events:none;
+      transition:opacity .35s ease;
     }
+    body.light .card:before{opacity:.5}
 
-    .title{margin:0 0 8px;font-weight:900;color:var(--deep);letter-spacing:-.015em;font-size:clamp(19px,2.5vw,30px);line-height:1.14}
-    .sub{margin:0;color:var(--muted);font-weight:650;font-size:clamp(13px,1.2vw,15px);line-height:1.55}
+    .title{margin:0 0 8px;font-weight:900;color:var(--deep);letter-spacing:-.015em;font-size:clamp(19px,2.5vw,30px);line-height:1.14;transition:color .35s ease}
+    .sub{margin:0;color:var(--muted);font-weight:650;font-size:clamp(13px,1.2vw,15px);line-height:1.55;transition:color .35s ease}
     h1.title{
       background:linear-gradient(140deg, #f0fff7 0%, #c8f6df 34%, #8df1bd 68%, #f0fff7 100%);
       -webkit-background-clip:text;
@@ -153,50 +198,61 @@
       color:transparent;
       text-shadow:0 0 22px rgba(43,227,140,.14);
     }
+    body.light h1.title{
+      background:linear-gradient(140deg, #0a3d22 0%, #16B876 50%, #0a3d22 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow:none;
+    }
 
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:900px){ .grid2{grid-template-columns:1fr} }
     .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     @media (max-width:900px){ .grid3{grid-template-columns:1fr} }
 
-    .box{border:1px solid var(--border);border-radius:16px;padding:12px;background:var(--surface-glass);box-shadow:0 8px 26px rgba(0,0,0,.24)}
-    .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px}
-    .boxText{margin:0;color:var(--text);font-weight:700;font-size:12px;line-height:1.5;white-space:pre-wrap}
+    .box{
+      border:1px solid var(--border);border-radius:16px;padding:12px;
+      background:var(--surface-glass);box-shadow:0 8px 26px rgba(0,0,0,.24);
+      transition:background .35s ease, border-color .35s ease;
+    }
+    .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px;transition:color .35s ease}
+    .boxText{margin:0;color:var(--text);font-weight:700;font-size:12px;line-height:1.5;white-space:pre-wrap;transition:color .35s ease}
 
-    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
+    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word;transition:color .35s ease}
     .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
 
-    .mistake{border:1px solid var(--border);border-radius:16px;background:var(--surface-glass);padding:12px;transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease}
+    .mistake{border:1px solid var(--border);border-radius:16px;background:var(--surface-glass);padding:12px;transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .35s ease}
     .mistake:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 14px 34px rgba(0,0,0,.34)}
     .mistakeTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .mId{font-weight:1100;color:var(--deep);font-size:12px}
-    .mMeta{font-weight:900;color:var(--muted);font-size:12px}
-    .mQ{margin-top:8px;font-weight:780;color:var(--text);line-height:1.52}
-    .mSmall{margin-top:8px;color:var(--text);font-weight:680;font-size:12px;line-height:1.52;white-space:pre-wrap}
-    .divider{height:1px;background:rgba(5,42,30,.10);margin:10px 0}
+    .mId{font-weight:1100;color:var(--deep);font-size:12px;transition:color .35s ease}
+    .mMeta{font-weight:900;color:var(--muted);font-size:12px;transition:color .35s ease}
+    .mQ{margin-top:8px;font-weight:780;color:var(--text);line-height:1.52;transition:color .35s ease}
+    .mSmall{margin-top:8px;color:var(--text);font-weight:680;font-size:12px;line-height:1.52;white-space:pre-wrap;transition:color .35s ease}
+    .divider{height:1px;background:var(--border);margin:10px 0;transition:background .35s ease}
 
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     select, input[type="text"]{
       padding:10px 12px;border-radius:14px;border:1px solid var(--border);
       font-family:inherit;font-size:14px;background:var(--surface-2);outline:none;color:var(--text);
+      transition:background .35s ease, border-color .35s ease, color .35s ease;
     }
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       border:1px solid var(--border);background:var(--surface-2);border-radius:999px;
       padding:8px 10px;font-weight:900;font-size:12px;color:var(--deep);
+      transition:background .35s ease, border-color .35s ease, color .35s ease;
     }
     .chk{width:18px;height:18px}
     .tinyBtn{
       padding:8px 10px;border-radius:12px;border:1px solid var(--border);
       background:var(--surface-2);cursor:pointer;font-weight:850;font-size:12px;color:var(--deep);
       display:inline-flex;align-items:center;gap:10px;
-      transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+      transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .35s ease, color .35s ease;
     }
     .tinyBtn:hover{transform:translateY(-2px);border-color:rgba(43,227,140,.45);box-shadow:0 10px 20px rgba(0,0,0,.28)}
-    .tinyBtnPrimary{
-      background:rgba(22,184,118,.10);
-      border-color:rgba(22,184,118,.25);
-    }
+    .tinyBtnPrimary{background:rgba(22,184,118,.10);border-color:rgba(22,184,118,.25);}
+
     .sectionHeader{
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
       margin-bottom:6px;
@@ -205,74 +261,105 @@
 
     /* Collapsible */
     .sectionBody{
-      margin-top:10px;
-      overflow:hidden;
-      max-height:3200px;
-      opacity:1;
-      transform-origin:top;
-      transition:max-height .24s cubic-bezier(.22,.61,.36,1), opacity .18s ease, transform .22s ease;
+      margin-top:10px;overflow:hidden;max-height:3200px;opacity:1;transform-origin:top;
+      transition:max-height .28s cubic-bezier(.22,.61,.36,1), opacity .22s ease, transform .24s ease;
     }
-    .collapsed .sectionBody{
-      max-height:0;
-      opacity:0;
-      transform:translateY(-8px);
-      margin-top:0;
-    }
+    .collapsed .sectionBody{max-height:0;opacity:0;transform:translateY(-8px);margin-top:0;}
 
     .toggleBtn{border-radius:14px;padding:8px 12px;}
     .chev{
       width:22px;height:22px;border-radius:10px;
       display:grid;place-items:center;
       background:rgba(120,255,197,.08);
-      font-weight:1100;
-      line-height:1;
+      font-weight:1100;line-height:1;
       transition:transform .2s ease;
       user-select:none;
     }
     .collapsed .chev{ transform:rotate(-90deg); }
 
-    .quickNav{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .quickNav .tinyBtn{border-radius:999px}
+    /* ===== STEP NAV (redesigned quickNav) ===== */
+    .stepNav{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:8px;
+      margin-top:18px;
+    }
+    @media(max-width:700px){.stepNav{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:400px){.stepNav{grid-template-columns:1fr}}
 
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:650}
+    .stepBtn{
+      display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+      padding:12px 14px;border-radius:14px;
+      border:1px solid var(--border);background:var(--surface-glass);
+      cursor:pointer;text-align:left;
+      transition:transform .18s cubic-bezier(.22,.61,.36,1), border-color .18s ease, box-shadow .18s ease, background .35s ease;
+      position:relative;overflow:hidden;
+    }
+    .stepBtn:before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(135deg, rgba(43,227,140,.06) 0%, transparent 60%);
+      opacity:0;transition:opacity .2s ease;
+    }
+    .stepBtn:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:0 12px 28px rgba(0,0,0,.22)}
+    .stepBtn:hover:before{opacity:1}
+    .stepBtn:active{transform:translateY(0) scale(.98)}
+    .stepNum{
+      font-size:10px;font-weight:1000;color:var(--mint2);
+      letter-spacing:.06em;text-transform:uppercase;
+    }
+    .stepLabel{font-size:12px;font-weight:900;color:var(--deep);line-height:1.2;transition:color .35s ease}
+    .stepDesc{font-size:11px;font-weight:650;color:var(--muted);line-height:1.35;transition:color .35s ease}
+    .stepIcon{font-size:18px;margin-bottom:2px}
+
+    /* ===== HOW-TO BANNER ===== */
+    .howToBanner{
+      display:flex;align-items:flex-start;gap:14px;
+      padding:14px 16px;border-radius:14px;
+      border:1px solid rgba(43,227,140,.18);
+      background:rgba(43,227,140,.06);
+      margin-top:14px;
+    }
+    body.light .howToBanner{background:rgba(22,184,118,.06);border-color:rgba(22,184,118,.20)}
+    .howToBanner .howToIcon{font-size:20px;flex-shrink:0;margin-top:1px}
+    .howToText{font-size:12px;font-weight:750;color:var(--muted);line-height:1.5;transition:color .35s ease}
+    .howToText strong{color:var(--deep);font-weight:1000}
+
+    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:650;transition:border-color .35s ease, color .35s ease}
 
     .menuWrap{position:relative;z-index:4000}
     .iconBtn{
       width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
       background:var(--surface-2);cursor:pointer;display:grid;place-items:center;
-      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .35s ease;
     }
     .iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,160,104,.22);border-color:var(--border-strong)}
     .iconBtn:active{transform:translateY(0) scale(.985)}
     .bars{width:18px;height:12px;display:grid;gap:3px}
-    .bars span{display:block;height:2px;background:#D9FDEB;border-radius:2px;opacity:.95}
+    .bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.95;transition:background .35s ease}
     .dropdown{
       position:absolute;right:0;top:54px;min-width:260px;
-      background:rgba(6,14,11,.97);
+      background:var(--surface-2);
       border:1px solid var(--border);
       border-radius:16px;
       box-shadow:0 22px 60px rgba(0,0,0,.45);
       padding:8px;
-      display:none;
-      opacity:0;
-      transform:translateY(-8px);
-      z-index:5000;
+      display:none;opacity:0;transform:translateY(-8px);z-index:5000;
+      transition:background .35s ease, border-color .35s ease;
     }
-    /* Dropdown animation: fade + slide */
     .dropdown.is-open{display:block;opacity:1;transform:translateY(0);transition:opacity .2s ease, transform .2s ease}
     .dropdown.is-closing{display:block;opacity:0;transform:translateY(-6px);transition:opacity .16s ease, transform .16s ease}
     .dropdown a, .dropdown button{
       width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
       padding:10px 12px;border-radius:12px;border:1px solid transparent;background:transparent;
       cursor:pointer;font-weight:850;color:var(--text);font-size:13px;text-align:left;
+      transition:background .15s ease, color .35s ease;
     }
     .dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.12);border-color:rgba(43,227,140,.25)}
 
-    /* Reveal animation enhancement: smooth ease + blur */
-    .reveal{opacity:0;transform:translateY(12px);filter:blur(6px);transition:opacity .24s cubic-bezier(.22,.61,.36,1), transform .24s cubic-bezier(.22,.61,.36,1), filter .24s ease}
+    /* ===== REVEAL ===== */
+    .reveal{opacity:0;transform:translateY(14px);filter:blur(5px);transition:opacity .3s cubic-bezier(.22,.61,.36,1), transform .3s cubic-bezier(.22,.61,.36,1), filter .28s ease}
     .reveal.in{opacity:1;transform:none;filter:blur(0)}
 
-    /* prefers-reduced-motion */
     @media (prefers-reduced-motion: reduce){
       *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
       .reveal{opacity:1;transform:none;filter:none}
@@ -281,83 +368,50 @@
 
     /* SMART TIPS */
     .smartTipsBox{
-      margin-top:10px;
-      border:1px solid var(--border);
-      background:var(--surface-glass);
-      border-radius:14px;
-      padding:10px 12px;
-      white-space:pre-wrap;
-      font-weight:850;
-      font-size:12px;
-      line-height:1.45;
+      margin-top:10px;border:1px solid var(--border);background:var(--surface-glass);border-radius:14px;
+      padding:10px 12px;white-space:pre-wrap;font-weight:850;font-size:12px;line-height:1.45;
+      transition:background .35s ease, border-color .35s ease;
     }
-    .smartTipsRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:10px;
-    }
+    .smartTipsRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
     .smartTipsBtn{
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(22,184,118,.14);
-      border-color:rgba(22,184,118,.25);
-      cursor:pointer;
-      font-weight:950;
-      font-size:12px;
-      color:var(--deep);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(22,184,118,.14);border-color:rgba(22,184,118,.25);
+      cursor:pointer;font-weight:950;font-size:12px;color:var(--deep);
+      display:inline-flex;align-items:center;gap:8px;
+      transition:transform .16s ease, box-shadow .16s ease, background .35s ease, color .35s ease;
     }
+    .smartTipsBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,184,118,.18)}
     .smartTipsBtn[disabled]{opacity:.65;cursor:not-allowed}
     .smartTipsPill{
-      font-size:11px;
-      font-weight:1000;
-      border:1px solid var(--border);
-      border-radius:999px;
-      padding:4px 8px;
-      background:var(--surface-2);
-      color:var(--muted);
+      font-size:11px;font-weight:1000;border:1px solid var(--border);border-radius:999px;
+      padding:4px 8px;background:var(--surface-2);color:var(--muted);
     }
 
     /* TEACHER REPORT */
     .reportBox{
-      margin-top:10px;
-      border:1px solid var(--border);
-      background:var(--surface-glass);
-      border-radius:14px;
-      padding:10px 12px;
-      white-space:pre-wrap;
-      font-weight:850;
-      font-size:12px;
-      line-height:1.45;
-      min-height:120px;
+      margin-top:10px;border:1px solid var(--border);background:var(--surface-glass);border-radius:14px;
+      padding:10px 12px;white-space:pre-wrap;font-weight:850;font-size:12px;line-height:1.45;
+      min-height:120px;transition:background .35s ease, border-color .35s ease;
     }
-    .reportRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:10px;
-    }
+    .reportRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
     .reportBtn{
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(22,184,118,.14);
-      border-color:rgba(22,184,118,.25);
-      cursor:pointer;
-      font-weight:950;
-      font-size:12px;
-      color:var(--deep);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(22,184,118,.14);border-color:rgba(22,184,118,.25);
+      cursor:pointer;font-weight:950;font-size:12px;color:var(--deep);
+      display:inline-flex;align-items:center;gap:8px;
+      transition:transform .16s ease, box-shadow .16s ease, background .35s ease, color .35s ease;
     }
+    .reportBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,184,118,.18)}
     .reportBtn[disabled]{opacity:.65;cursor:not-allowed}
+
+    /* Section badge */
+    .sectionBadge{
+      display:inline-flex;align-items:center;gap:5px;
+      font-size:11px;font-weight:1000;color:var(--mint2);
+      letter-spacing:.04em;text-transform:uppercase;
+      margin-bottom:4px;
+    }
+    .sectionBadgeDot{width:6px;height:6px;border-radius:999px;background:var(--mint2);display:inline-block}
   </style>
 </head>
 
@@ -374,6 +428,10 @@
 
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <a class="btn" href="app.html" id="toAppBtn">Till appen</a>
+        <button class="themeToggle" id="themeToggle" type="button" aria-label="Byt tema">
+          <span class="themeIcon" id="themeIcon">🌙</span>
+          <span id="themeLabel">Light</span>
+        </button>
         <button class="btn" id="langBtn" type="button"><span id="langLabel">English</span><span class="pill" id="langPill">SV</span></button>
         <button class="btn btnDanger" id="resetBtn" type="button">Rensa historik</button>
         <div class="menuWrap">
@@ -399,18 +457,51 @@
       <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
       <div class="status" id="topStatus"></div>
 
-      <div class="quickNav" id="quickNav">
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#reportCard" id="navReport">Rapport</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Träna</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#mistakeCard" id="navMistakes">Felbank</button>
+      <div class="howToBanner">
+        <span class="howToIcon">💡</span>
+        <div class="howToText" id="howToText">
+          <strong>Så här använder du sidan:</strong> Synka dina prov från kontot, öppna sedan de sektioner du vill. Träna dina misstag direkt eller låt AI:n analysera din progress.
+        </div>
+      </div>
+
+      <div class="stepNav" id="quickNav">
+        <button class="stepBtn" type="button" data-open="#examListCard" id="navExams">
+          <span class="stepIcon">📋</span>
+          <span class="stepNum">Steg 1</span>
+          <span class="stepLabel" id="navExamsLabel">Prov</span>
+          <span class="stepDesc" id="navExamsDesc">Se dina genomförda prov</span>
+        </button>
+        <button class="stepBtn" type="button" data-open="#coachCard" id="navCoach">
+          <span class="stepIcon">🤖</span>
+          <span class="stepNum">Steg 2</span>
+          <span class="stepLabel" id="navCoachLabel">Coach</span>
+          <span class="stepDesc" id="navCoachDesc">AI-analys av din progress</span>
+        </button>
+        <button class="stepBtn" type="button" data-open="#reportCard" id="navReport">
+          <span class="stepIcon">📄</span>
+          <span class="stepNum">Steg 3</span>
+          <span class="stepLabel" id="navReportLabel">Rapport</span>
+          <span class="stepDesc" id="navReportDesc">Skapa lärarrapport</span>
+        </button>
+        <button class="stepBtn" type="button" data-open="#readyCard" id="navReady">
+          <span class="stepIcon">🎯</span>
+          <span class="stepNum">Steg 4</span>
+          <span class="stepLabel" id="navReadyLabel">Träna</span>
+          <span class="stepDesc" id="navReadyDesc">Öva på dina misstag</span>
+        </button>
+        <button class="stepBtn" type="button" data-open="#mistakeCard" id="navMistakes">
+          <span class="stepIcon">❌</span>
+          <span class="stepNum">Steg 5</span>
+          <span class="stepLabel" id="navMistakesLabel">Felbank</span>
+          <span class="stepDesc" id="navMistakesDesc">Alla frågor du missat</span>
+        </button>
       </div>
     </section>
 
     <section class="card collapsed reveal" id="examListCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
+          <div class="sectionBadge"><span class="sectionBadgeDot"></span>Steg 1</div>
           <h2 class="title" id="examListTitle" style="font-size:16px">Prov (kategorier)</h2>
           <p class="sub" id="examListSub">Filtrera per kurs och klicka ett prov för att visa relevanta misstag.</p>
         </div>
@@ -445,6 +536,7 @@
     <section class="card collapsed reveal" id="coachCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
+          <div class="sectionBadge"><span class="sectionBadgeDot"></span>Steg 2</div>
           <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
           <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
         </div>
@@ -479,6 +571,7 @@
     <section class="card collapsed reveal" id="reportCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
+          <div class="sectionBadge"><span class="sectionBadgeDot"></span>Steg 3</div>
           <h2 class="title" id="reportTitle" style="font-size:16px">Lärarrapport</h2>
           <p class="sub" id="reportSub">Kort rapport baserad på minst 3 genomförda prov.</p>
         </div>
@@ -503,6 +596,7 @@
     <section class="card collapsed reveal" id="readyCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
+          <div class="sectionBadge"><span class="sectionBadgeDot"></span>Steg 4</div>
           <h2 class="title" id="readyTitle" style="font-size:16px">Träna dina misstag</h2>
           <p class="sub" id="readySub">Markera i felbanken och träna bara det du behöver.</p>
         </div>
@@ -523,6 +617,7 @@
     <section class="card collapsed reveal" id="mistakeCard">
       <div class="sectionHeader">
         <div class="sectionHeaderLeft">
+          <div class="sectionBadge"><span class="sectionBadgeDot"></span>Steg 5</div>
           <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
           <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
         </div>
@@ -549,22 +644,38 @@
     const LS_LAST = "proviaai_last_result";
     const LS_MATERIAL = "proviaai_last_material";
     const LS_CLEAR_TS = "proviaai_cleared_ts";
-
-    // val/markering för träning
-    const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[...], course:"..." }
-
-    // UI state för collapsible
-    const LS_UI_OPEN = "proviaai_ui_open_improve"; // { "#cardId": true/false, ... }
-
-    // användarnamn
+    const LS_TRAIN_PICK = "proviaai_train_pick";
+    const LS_UI_OPEN = "proviaai_ui_open_improve";
     const LS_USER_NAME_A = "proviaai_user_name";
     const LS_USER_NAME_B = "proviaai_name";
+    const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache";
+    const LS_TEACHER_REPORT_CACHE = "proviaai_teacher_report_cache";
+    const LS_THEME = "proviaai_theme";
 
-    // Smart tips cache
-    const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache"; // { "<course>::<id>": "text", ... }
+    // ===== THEME =====
+    let THEME = localStorage.getItem(LS_THEME) || "dark";
 
-    // Teacher report cache
-    const LS_TEACHER_REPORT_CACHE = "proviaai_teacher_report_cache"; // { "<course>": { ts:number, n:number, text:string } }
+    function applyTheme(theme){
+      THEME = theme;
+      document.body.classList.toggle("light", theme === "light");
+      const icon = document.getElementById("themeIcon");
+      const label = document.getElementById("themeLabel");
+      if(icon) icon.textContent = theme === "light" ? "☀️" : "🌙";
+      if(label) label.textContent = theme === "light" ? "Dark" : "Light";
+      localStorage.setItem(LS_THEME, theme);
+    }
+
+    // Apply theme immediately (before DOM ready to prevent flash)
+    applyTheme(THEME);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.getElementById("themeToggle");
+      if(toggleBtn){
+        toggleBtn.addEventListener("click", () => {
+          applyTheme(THEME === "dark" ? "light" : "dark");
+        });
+      }
+    });
 
     // ===== SUPABASE =====
     const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
@@ -623,6 +734,7 @@
         title:"Din förbättring",
         sub:"Bygger på prov du har rättat i appen.",
         noData:"Ingen sparad provdata hittades. Gör ett prov i appen och tryck Rätta prov.",
+        howTo:"<strong>Så här använder du sidan:</strong> Synka dina prov från kontot, öppna sedan de sektioner du vill. Träna dina misstag direkt eller låt AI:n analysera din progress.",
         coachTitle:"Coach (personlig sammanfattning)",
         coachSub:"Baserad på din historik och felbank.",
         coachHeader:"Rekommendation",
@@ -669,7 +781,17 @@
         reportCreate:"Skapa rapport",
         reportCopy:"Kopiera",
         reportCopied:"Kopierad",
-        reportBasedOn:(n)=> `Baserad på ${n} prov`
+        reportBasedOn:(n)=> `Baserad på ${n} prov`,
+        navExamsLabel:"Prov",
+        navExamsDesc:"Se dina genomförda prov",
+        navCoachLabel:"Coach",
+        navCoachDesc:"AI-analys av din progress",
+        navReportLabel:"Rapport",
+        navReportDesc:"Skapa lärarrapport",
+        navReadyLabel:"Träna",
+        navReadyDesc:"Öva på dina misstag",
+        navMistakesLabel:"Felbank",
+        navMistakesDesc:"Alla frågor du missat"
       },
       en:{
         tag:"Improve • Coach • History",
@@ -678,6 +800,7 @@
         title:"Your improvement",
         sub:"Built from exams you graded in the app.",
         noData:"No saved exam data found. Create an exam in the app and click Grade.",
+        howTo:"<strong>How to use this page:</strong> Sync your exams from your account, then open the sections you want. Train your mistakes directly or let the AI analyze your progress.",
         coachTitle:"Coach (personal summary)",
         coachSub:"Based on your history and mistake library.",
         coachHeader:"Recommendation",
@@ -724,13 +847,23 @@
         reportCreate:"Generate report",
         reportCopy:"Copy",
         reportCopied:"Copied",
-        reportBasedOn:(n)=> `Based on ${n} exams`
+        reportBasedOn:(n)=> `Based on ${n} exams`,
+        navExamsLabel:"Exams",
+        navExamsDesc:"View completed exams",
+        navCoachLabel:"Coach",
+        navCoachDesc:"AI analysis of progress",
+        navReportLabel:"Report",
+        navReportDesc:"Generate teacher report",
+        navReadyLabel:"Train",
+        navReadyDesc:"Practice your mistakes",
+        navMistakesLabel:"Mistakes",
+        navMistakesDesc:"All questions you missed"
       }
     };
 
     const $ = (id) => document.getElementById(id);
 
-    // ===== Collapsible helpers (persist + auto-open on nav) =====
+    // ===== Collapsible helpers =====
     function getUiOpenState(){ return lsGetObj(LS_UI_OPEN) || {}; }
     function setUiOpenState(obj){ lsSet(LS_UI_OPEN, obj); }
 
@@ -808,6 +941,9 @@
       $("pageTitle").textContent = t.title;
       $("pageSub").textContent = t.sub;
 
+      const howToEl = $("howToText");
+      if(howToEl) howToEl.innerHTML = t.howTo;
+
       $("coachTitle").textContent = t.coachTitle;
       $("coachSub").textContent = t.coachSub;
       $("coachHeader").textContent = t.coachHeader;
@@ -841,11 +977,16 @@
       $("showModeLabel").textContent = t.show;
       $("syncBtn").textContent = t.sync;
 
-      $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
-      $("navCoach").textContent = "Coach";
-      $("navReport").textContent = t.reportNav;
-      $("navReady").textContent = (LANG==="sv") ? "Träna" : "Train";
-      $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
+      if($("navExamsLabel")) $("navExamsLabel").textContent = t.navExamsLabel;
+      if($("navExamsDesc")) $("navExamsDesc").textContent = t.navExamsDesc;
+      if($("navCoachLabel")) $("navCoachLabel").textContent = t.navCoachLabel;
+      if($("navCoachDesc")) $("navCoachDesc").textContent = t.navCoachDesc;
+      if($("navReportLabel")) $("navReportLabel").textContent = t.navReportLabel;
+      if($("navReportDesc")) $("navReportDesc").textContent = t.navReportDesc;
+      if($("navReadyLabel")) $("navReadyLabel").textContent = t.navReadyLabel;
+      if($("navReadyDesc")) $("navReadyDesc").textContent = t.navReadyDesc;
+      if($("navMistakesLabel")) $("navMistakesLabel").textContent = t.navMistakesLabel;
+      if($("navMistakesDesc")) $("navMistakesDesc").textContent = t.navMistakesDesc;
 
       updateToggleLabels();
     }
@@ -868,7 +1009,7 @@
       return {delta: a1 - a0, base: "prev3"};
     }
 
-    // ===== ACCESS GATE (FIXAD) =====
+    // ===== ACCESS GATE =====
     function setTopStatus(text, cls){
       const el = $("topStatus");
       if(!el) return;
@@ -890,7 +1031,6 @@
       if(syncBtn) syncBtn.setAttribute("disabled","disabled");
     }
 
-    // VIKTIGT: om sidan tidigare låsts, måste vi kunna låsa upp igen
     function enablePageInteractions(){
       const main = document.querySelector("main.wrap");
       if(main){
@@ -950,7 +1090,6 @@
         return true;
       }
 
-      // Lås UI
       disablePageInteractions();
 
       if(access.reason === "not_logged_in"){
@@ -984,7 +1123,6 @@
 
       return false;
     }
-    // ===== SLUT: ACCESS GATE =====
 
     // ===== Coach =====
     function avgPercent(arr){
@@ -1317,7 +1455,6 @@
           renderAll();
         });
 
-        // Smart tips handler
         const tipsBtn = d.querySelector(".smartTipsBtnEl");
         const tipsBox = d.querySelector(".smartTipsBoxEl");
         const tipsPill = d.querySelector(".smartTipsPillEl");
@@ -1630,7 +1767,7 @@
       renderTeacherReportState(filteredHistory);
     }
 
-    // ===== SYNC (konto -> localStorage) =====
+    // ===== SYNC =====
     function mergeMistakesFromExamRows(rows){
       const out = [];
       const clearTs = lsGetNum(LS_CLEAR_TS, 0);
@@ -1812,8 +1949,7 @@
       });
     }
 
-
-    // ===== MENU (same hamburger pattern as index) =====
+    // ===== MENU =====
     function bindMenu(){
       const menuBtn = $("menuBtn");
       const menu = $("menu");
@@ -1847,7 +1983,7 @@
       });
     }
 
-    // ===== Reveal observer (smooth blur->0) =====
+    // ===== Reveal =====
     function initReveal(){
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const els = Array.from(document.querySelectorAll(".reveal"));
@@ -1864,7 +2000,7 @@
         });
       }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
       els.forEach((el, i) => {
-        el.style.transitionDelay = `${Math.min(i * 40, 180)}ms`;
+        el.style.transitionDelay = `${Math.min(i * 50, 200)}ms`;
         io.observe(el);
       });
     }
@@ -1882,7 +2018,6 @@
 
       renderAll();
 
-      // Auto-sync + namn
       (async () => {
         USER_NAME = getNameFromLocal();
 
