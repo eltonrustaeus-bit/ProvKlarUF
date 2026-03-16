@@ -12,28 +12,70 @@
 --shadow:0 18px 55px rgba(0,0,0,.45);
 --radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1080px;
 --danger:#ff8f8f; --ok:#67dcb0; --warn:#f4ce78;
+--card-bg:rgba(8,19,15,.88);
+--input-bg:rgba(8,14,12,.9);
+--header-bg:rgba(4,12,9,.82);
+--text-main:#e9fff4;
+--text-body:#e8fff4;
+--login-bg:rgba(7,16,13,.94);
+--qbox-bg:rgba(7,16,13,.9);
+--overlay-bg:rgba(5,42,30,.98);
+--overlay-bg2:rgba(4,30,22,.92);
+--step-inactive:rgba(43,227,140,.18);
+--step-active:rgba(22,184,118,.96);
+--step-done:rgba(22,184,118,.60);
+--step-text-inactive:var(--muted);
+--step-text-active:#f5fffa;
+--step-border:rgba(43,227,140,.35);
+}
+html[data-theme="light"]{
+--deep:#0a2e1e; --deep2:#1a5c3a;
+--mint:#16B876; --mint2:#0f8e5c;
+--bg:#f0faf5; --muted:#4a7a62; --border:rgba(22,120,90,.22);
+--shadow:0 8px 32px rgba(0,80,40,.12);
+--danger:#c0392b; --ok:#1a8a5a; --warn:#b8860b;
+--card-bg:rgba(255,255,255,.92);
+--input-bg:rgba(240,250,245,.95);
+--header-bg:rgba(240,250,245,.92);
+--text-main:#0a2e1e;
+--text-body:#0d3520;
+--login-bg:rgba(250,255,252,.97);
+--qbox-bg:rgba(245,255,250,.95);
+--overlay-bg:rgba(220,245,235,.98);
+--overlay-bg2:rgba(210,240,228,.95);
+--step-inactive:rgba(22,184,118,.15);
+--step-active:rgba(22,184,118,.96);
+--step-done:rgba(22,184,118,.55);
+--step-text-inactive:#4a7a62;
+--step-text-active:#fff;
+--step-border:rgba(22,120,80,.30);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 :target{scroll-margin-top:92px}
 body{
 margin:0;font-family:var(--font);line-height:1.55;
+background:var(--bg);
+color:var(--text-main);
+position:relative;
+transition:background .25s ease, color .25s ease;
+}
+html[data-theme="dark"] body{
 background:
 radial-gradient(900px 450px at 14% -12%, rgba(43,227,140,.15), transparent 62%),
 radial-gradient(780px 420px at 90% 16%, rgba(43,227,140,.08), transparent 58%),
 linear-gradient(165deg, #030505 0%, #050909 45%, #020404 100%);
 color:#e9fff4;
-position:relative;
 }
-body::before,
-body::after{content:"";position:fixed;inset:-140px;pointer-events:none;z-index:0}
-body::before{
+html[data-theme="dark"] body::before,
+html[data-theme="dark"] body::after{content:"";position:fixed;inset:-140px;pointer-events:none;z-index:0}
+html[data-theme="dark"] body::before{
 background:
 radial-gradient(700px 360px at 16% 12%, rgba(43,227,140,.18), transparent 64%),
 radial-gradient(760px 420px at 80% 20%, rgba(19,123,81,.18), transparent 66%);
 opacity:.2;
 }
-body::after{
+html[data-theme="dark"] body::after{
 background-image:
 radial-gradient(rgba(255,255,255,.18) .7px, transparent .8px),
 radial-gradient(rgba(255,255,255,.12) .6px, transparent .7px);
@@ -41,11 +83,15 @@ background-size:3px 3px, 5px 5px;
 background-position:0 0, 1px 2px;
 opacity:.08;
 }
+html[data-theme="light"] body{
+background:linear-gradient(160deg, #e8f8f0 0%, #f4fdf8 50%, #edf7f2 100%);
+}
 a{text-decoration:none;color:inherit}
 header{
-background:rgba(4,12,9,.82);backdrop-filter:saturate(140%) blur(10px);
+background:var(--header-bg);backdrop-filter:saturate(140%) blur(10px);
 border-bottom:1px solid var(--border);
 position:sticky;top:0;z-index:3000;
+transition:background .25s ease;
 }
 .wrap{max-width:var(--max);margin:0 auto;padding:clamp(18px,3.4vw,28px);position:relative;z-index:1}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -58,7 +104,7 @@ display:inline-flex;align-items:center;justify-content:center;
 padding:12px 16px;border-radius:14px;
 font-weight:1000;font-size:14px;border:1px solid var(--border);
 cursor:pointer;white-space:nowrap;
-background:rgba(11,22,17,.86);color:var(--deep);
+background:var(--card-bg);color:var(--deep);
 user-select:none;
 transition:transform .16s cubic-bezier(.22,.61,.36,1), box-shadow .2s ease, border-color .2s ease;
 }
@@ -83,7 +129,7 @@ transition:transform .24s cubic-bezier(.22,.61,.36,1);
 }
 .btnPrimary:hover::after{transform:translateX(360%)}
 .card{
-background:rgba(8,19,15,.88);
+background:var(--card-bg);
 border:1px solid var(--border);
 border-radius:var(--radius);
 box-shadow:var(--shadow);
@@ -91,8 +137,9 @@ padding:clamp(16px,3vw,22px);
 margin:14px 0;
 overflow:hidden;
 position:relative;
+transition:background .25s ease, border-color .25s ease;
 }
-.card:before{
+html[data-theme="dark"] .card:before{
 content:"";
 position:absolute;inset:-70px -70px auto auto;
 width:190px;height:190px;border-radius:999px;
@@ -106,8 +153,9 @@ font-size:clamp(18px,2vw,22px);display:flex;align-items:center;justify-content:s
 .sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:14px;line-height:1.5}
 label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--deep);font-size:13px}
 select,input,textarea{
-width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:rgba(8,14,12,.9);
-color:#e9fff4;font-family:inherit;font-size:14px;outline:none;
+width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:var(--input-bg);
+color:var(--text-main);font-family:inherit;font-size:14px;outline:none;
+transition:background .25s ease, color .25s ease, border-color .2s ease;
 }
 textarea{min-height:170px;resize:vertical}
 input:focus, textarea:focus, select:focus{border-color:rgba(43,227,140,.55);box-shadow:0 0 0 5px rgba(43,227,140,.14)}
@@ -119,27 +167,39 @@ details{margin-top:10px}
 summary{cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px}
 pre{
 margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-background:rgba(6,12,10,.9);overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
+background:var(--input-bg);overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
 }
 .spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(5,42,30,.18);border-top-color:rgba(22,184,118,.95);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.qBox{margin-top:12px;padding:12px;border:1px solid rgba(126,255,198,.14);border-radius:16px;background:rgba(7,16,13,.9)}
+.qBox{margin-top:12px;padding:12px;border:1px solid rgba(126,255,198,.14);border-radius:16px;background:var(--qbox-bg);transition:background .25s ease}
+html[data-theme="light"] .qBox{border-color:rgba(22,120,80,.15)}
 .qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
-.qText{font-weight:900;color:#e8fff4;line-height:1.45}
+.qText{font-weight:900;color:var(--text-main);line-height:1.45}
 footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-.menuWrap{position:relative;z-index:4000}
+.menuWrap{position:relative;z-index:4000;display:flex;align-items:center;gap:8px}
 .iconBtn{
 width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-background:rgba(11,22,17,.9);cursor:pointer;display:grid;place-items:center;
+background:var(--card-bg);cursor:pointer;display:grid;place-items:center;
 transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 .iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
 .iconBtn:active{transform:translateY(0) scale(.985)}
 .bars{width:18px;height:12px;display:grid;gap:3px}
-.bars span{display:block;height:2px;background:#ddffef;border-radius:2px;opacity:.9}
+.bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
+
+/* Theme toggle button */
+.themeToggleBtn{
+width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
+background:var(--card-bg);cursor:pointer;display:grid;place-items:center;
+transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+font-size:18px;line-height:1;
+}
+.themeToggleBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
+.themeToggleBtn:active{transform:translateY(0) scale(.985)}
+
 .dropdown{
 position:absolute;right:0;top:54px;min-width:270px;
-background:rgba(7,16,13,.97);
+background:var(--login-bg);
 border:1px solid var(--border);
 border-radius:16px;
 box-shadow:0 22px 60px rgba(0,0,0,.45);
@@ -148,6 +208,7 @@ display:none;
 opacity:0;
 transform:translateY(-8px);
 z-index:5000;
+transition:background .25s ease;
 }
 .dropdown.is-open{display:block;opacity:1;transform:translateY(0);transition:opacity .18s ease, transform .18s cubic-bezier(.22,.61,.36,1)}
 .dropdown.is-closing{display:block;opacity:0;transform:translateY(-6px);transition:opacity .14s ease, transform .14s ease}
@@ -161,7 +222,7 @@ border:1px solid transparent;
 background:transparent;
 cursor:pointer;
 font-weight:950;
-color:#e8fff4;
+color:var(--text-main);
 font-size:13px;
 text-align:left;
 }
@@ -176,17 +237,19 @@ position:fixed;inset:0;z-index:9999;
 background:
 radial-gradient(800px 420px at 20% 10%, rgba(43,227,140,.22), transparent 60%),
 radial-gradient(700px 380px at 90% 20%, rgba(43,227,140,.10), transparent 55%),
-linear-gradient(135deg, rgba(5,42,30,.98), rgba(4,30,22,.92));
+linear-gradient(135deg, var(--overlay-bg), var(--overlay-bg2));
 display:flex;align-items:center;justify-content:center;padding:18px;
 }
 .loginCard{
 width:min(680px, 100%);
-background:rgba(7,16,13,.94);
+background:var(--login-bg);
 border:1px solid rgba(255,255,255,.22);
 border-radius:22px;
 box-shadow:0 24px 70px rgba(0,0,0,.25);
 overflow:hidden;
+transition:background .25s ease;
 }
+html[data-theme="light"] .loginCard{border-color:rgba(22,120,80,.25)}
 .loginTop{display:flex;gap:14px;align-items:center;padding:18px 18px 10px}
 .loginTop img{height:68px;width:auto;display:block}
 .loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1;text-shadow:0 0 16px rgba(43,227,140,.18)}
@@ -195,10 +258,10 @@ overflow:hidden;
 .loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
 .authBox{
-border:1px solid rgba(5,42,30,.12);
+border:1px solid var(--border);
 border-radius:16px;
 padding:12px;
-background:rgba(8,18,14,.72);
+background:var(--input-bg);
 }
 .authTitle{font-weight:1100;color:var(--deep);font-size:13px}
 .miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
@@ -206,8 +269,9 @@ background:rgba(8,18,14,.72);
 border:1px dashed rgba(5,42,30,.22);
 border-radius:16px;
 padding:12px;
-background:rgba(8,18,14,.72);
+background:var(--input-bg);
 }
+html[data-theme="light"] .uploadBox{border-color:rgba(22,120,80,.25)}
 .uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
 .fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -216,11 +280,11 @@ background:rgba(8,18,14,.72);
 .mcOpt{
 display:flex;align-items:center;gap:10px;
 padding:10px 12px;border-radius:14px;
-border:1px solid rgba(5,42,30,.14);
-background:rgba(8,18,14,.92); cursor:pointer;
+border:1px solid var(--border);
+background:var(--input-bg); cursor:pointer;
 font-weight:900; line-height:1.35;
 text-align:left;
-color:#e8fff4;
+color:var(--text-main);
 transition:transform .16s ease, border-color .16s ease, box-shadow .18s ease;
 }
 .mcOpt:hover{transform:translateY(-2px);border-color:rgba(43,227,140,.35);box-shadow:0 10px 22px rgba(0,0,0,.25)}
@@ -235,17 +299,20 @@ background:rgba(43,227,140,.09);
 font-weight:1100;color:var(--deep);
 flex:0 0 28px;
 }
-.mcText{font-weight:850;color:#e8fff4}
+.mcText{font-weight:850;color:var(--text-main)}
 .card.collapsible{padding-bottom:14px}
 .cardHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .toggleBtn{
 padding:10px 12px;border-radius:12px;font-size:13px;font-weight:1100;
-border:1px solid rgba(5,42,30,.12);
-background:rgba(9,18,15,.9);
+border:1px solid var(--border);
+background:var(--card-bg);
 color:var(--deep);
 display:inline-flex;align-items:center;gap:8px;
+cursor:pointer;
+transition:background .25s ease, border-color .2s ease;
 }
-.chev{width:10px;height:10px;border-right:2px solid rgba(5,42,30,.65);border-bottom:2px solid rgba(5,42,30,.65);transform:rotate(-45deg);transition:transform .25s ease}
+.toggleBtn:hover{border-color:rgba(43,227,140,.35)}
+.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .25s ease}
 .card.open .chev{transform:rotate(45deg)}
 .cardBody{
 overflow:hidden;
@@ -262,8 +329,9 @@ filter:blur(0);
 transform:translateY(0);
 }
 .card.open{padding-bottom:clamp(16px,3vw,22px)}
-.card{transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease}
+.card{transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease, background .25s ease}
 .card:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(0,0,0,.45);border-color:rgba(106,255,193,.4)}
+html[data-theme="light"] .card:hover{box-shadow:0 12px 32px rgba(22,120,80,.14);border-color:rgba(22,120,80,.35)}
 .reveal{opacity:0;transform:translateY(12px);filter:blur(8px);transition:opacity .24s ease, transform .24s cubic-bezier(.22,.61,.36,1), filter .24s ease}
 .reveal.in{opacity:1;transform:translateY(0);filter:blur(0)}
 .pageLoader{
@@ -276,8 +344,8 @@ opacity:1;visibility:visible;transition:opacity .24s ease, visibility .24s ease;
 .loaderOrb::before{content:"";position:absolute;inset:-8px;border-radius:999px;border:2px solid transparent;border-top-color:rgba(132,255,206,.95);border-right-color:rgba(132,255,206,.35);animation:spin 1.2s linear infinite}
 .loaderText{margin-top:14px;font-size:12px;font-weight:900;color:#cffff0;letter-spacing:.08em;text-transform:uppercase}
 @keyframes loaderPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
-body{--mx:50%;--my:18%;}
-main.wrap::before{
+html[data-theme="dark"] body{--mx:50%;--my:18%;}
+html[data-theme="dark"] main.wrap::before{
 content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 background:radial-gradient(360px 360px at var(--mx) var(--my), rgba(43,227,140,.11), transparent 62%);
 opacity:.45;transition:opacity .2s ease;
@@ -293,32 +361,88 @@ transform:translateX(0);animation:scanShimmer 3.6s ease-in-out infinite;
 pointer-events:none;
 }
 @keyframes scanShimmer{0%,70%,100%{transform:translateX(0)}35%{transform:translateX(420%)}}
-body[data-theme="light"]{
-color:#0b221a;
-background:
-radial-gradient(900px 450px at 14% -12%, rgba(22,184,118,.16), transparent 62%),
-radial-gradient(780px 420px at 90% 16%, rgba(22,184,118,.08), transparent 58%),
-linear-gradient(165deg, #f5fdf9 0%, #eef9f3 45%, #f8fdfb 100%);
+
+/* ── WIZARD STEPPER ── */
+.wizardStepper{
+display:flex;align-items:center;gap:0;
+margin:24px 0 8px;
+padding:0 2px;
+position:relative;
+z-index:1;
 }
-body[data-theme="light"] header{background:rgba(255,255,255,.86)}
-body[data-theme="light"] .btn,
-body[data-theme="light"] .iconBtn,
-body[data-theme="light"] .card,
-body[data-theme="light"] .qBox,
-body[data-theme="light"] .dropdown,
-body[data-theme="light"] .loginCard,
-body[data-theme="light"] .uploadBox,
-body[data-theme="light"] .authBox,
-body[data-theme="light"] select,
-body[data-theme="light"] input,
-body[data-theme="light"] textarea,
-body[data-theme="light"] pre{background:rgba(255,255,255,.92);color:#123226}
-body[data-theme="light"] .bars span{background:#123226}
-.stepRail{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 14px}
-.stepDot{padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:rgba(8,18,14,.72);font-size:12px;font-weight:900;color:var(--muted);text-align:center}
-.stepDot.active{color:var(--deep);border-color:rgba(43,227,140,.6);box-shadow:0 0 0 3px rgba(43,227,140,.12)}
-.stepDot.done{color:#b8ffda}
-body[data-theme="light"] .stepDot{background:rgba(255,255,255,.92);color:#3f5a50}
+.wizardStep{
+display:flex;align-items:center;gap:0;flex:1;cursor:pointer;
+}
+.wizardStep:last-child{flex:none}
+.stepInner{
+display:flex;flex-direction:column;align-items:center;gap:5px;
+padding:10px 8px;border-radius:14px;
+border:1px solid transparent;
+transition:background .18s ease, border-color .18s ease, transform .16s ease;
+min-width:64px;
+}
+.wizardStep:hover .stepInner{
+background:rgba(43,227,140,.07);
+border-color:var(--step-border);
+transform:translateY(-1px);
+}
+.stepCircle{
+width:32px;height:32px;border-radius:999px;
+display:grid;place-items:center;
+font-weight:1100;font-size:13px;
+border:2px solid var(--step-inactive);
+background:var(--step-inactive);
+color:var(--step-text-inactive);
+transition:background .22s ease, border-color .22s ease, color .22s ease, box-shadow .22s ease;
+}
+.wizardStep.active .stepCircle{
+background:var(--step-active);
+border-color:var(--step-active);
+color:var(--step-text-active);
+box-shadow:0 0 0 5px rgba(22,184,118,.18), 0 6px 18px rgba(22,184,118,.30);
+}
+.wizardStep.done .stepCircle{
+background:var(--step-done);
+border-color:var(--step-done);
+color:#fff;
+}
+.stepLabel{
+font-size:11px;font-weight:950;color:var(--step-text-inactive);
+text-align:center;line-height:1.2;
+transition:color .22s ease;
+white-space:nowrap;
+}
+.wizardStep.active .stepLabel{color:var(--mint)}
+.wizardStep.done .stepLabel{color:var(--muted)}
+.stepConnector{
+flex:1;height:2px;background:var(--step-inactive);
+border-radius:2px;margin:0 4px;margin-bottom:18px;
+transition:background .22s ease;
+min-width:12px;
+}
+.stepConnector.done{background:var(--step-done)}
+.wizardNavRow{
+display:flex;align-items:center;justify-content:space-between;gap:10px;
+margin-top:16px;
+flex-wrap:wrap;
+}
+.wizardNavRow .navHint{
+font-size:12px;color:var(--muted);font-weight:800;
+}
+
+@media (max-width:580px){
+.stepLabel{display:none}
+.stepInner{min-width:40px;padding:8px 4px}
+.wizardStepper{gap:0}
+}
+
+html[data-theme="light"] .status.ok{color:#1a8a5a}
+html[data-theme="light"] .status.bad{color:#c0392b}
+html[data-theme="light"] .status.warn{color:#946c00}
+html[data-theme="light"] pre{background:rgba(230,248,238,.9);color:#0a2e1e}
+html[data-theme="light"] .pill{background:rgba(22,120,80,.06)}
+html[data-theme="light"] .dropdown{box-shadow:0 12px 40px rgba(22,120,80,.15)}
+
 @media (prefers-reduced-motion: reduce){
 html{scroll-behavior:auto}
 *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -364,7 +488,7 @@ html{scroll-behavior:auto}
 <a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
 </div>
 <div class="miniHint" id="authHint">
-Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på godkännande” tills admin godkänner.<br><br>
+Om du har "admin-godkännande": nya konton kan fastna på "Väntar på godkännande" tills admin godkänner.<br><br>
 </div>
 </div>
 <details style="margin-top:12px" open>
@@ -389,6 +513,7 @@ Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på god
 </div>
 </a>
 <div class="menuWrap">
+<button class="themeToggleBtn" id="themeToggleBtn" type="button" aria-label="Växla tema" title="Växla ljust/mörkt läge">🌙</button>
 <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
 <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
 </button>
@@ -399,19 +524,44 @@ Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på god
 <a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
 <a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
 <button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-<button type="button" id="themeBtn"><span id="mTheme">Light mode</span><span class="pill" id="themePill">DARK</span></button>
 <button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
 </div>
 </div>
 </div>
 </header>
 <main class="wrap" id="appRoot">
-<div class="stepRail" id="stepRail" aria-label="Stegöversikt">
-<a class="stepDot" id="stepDot1" href="#material">1. Material</a>
-<a class="stepDot" id="stepDot2" href="#settings">2. Inställningar</a>
-<a class="stepDot" id="stepDot3" href="#exam">3. Mockprov</a>
-<a class="stepDot" id="stepDot4" href="#result">4. Rättning</a>
+
+<!-- WIZARD STEPPER -->
+<nav class="wizardStepper" id="wizardStepper" aria-label="Steg-navigering">
+<div class="wizardStep active" data-step="0" id="wStep0" tabindex="0" role="button" aria-label="Steg 1: Material">
+<div class="stepInner">
+<div class="stepCircle">1</div>
+<div class="stepLabel" id="wLabel0">Material</div>
 </div>
+</div>
+<div class="stepConnector" id="wConn0"></div>
+<div class="wizardStep" data-step="1" id="wStep1" tabindex="0" role="button" aria-label="Steg 2: Inställningar">
+<div class="stepInner">
+<div class="stepCircle">2</div>
+<div class="stepLabel" id="wLabel1">Inställningar</div>
+</div>
+</div>
+<div class="stepConnector" id="wConn1"></div>
+<div class="wizardStep" data-step="2" id="wStep2" tabindex="0" role="button" aria-label="Steg 3: Mockprov">
+<div class="stepInner">
+<div class="stepCircle">3</div>
+<div class="stepLabel" id="wLabel2">Mockprov</div>
+</div>
+</div>
+<div class="stepConnector" id="wConn2"></div>
+<div class="wizardStep" data-step="3" id="wStep3" tabindex="0" role="button" aria-label="Steg 4: Rättning">
+<div class="stepInner">
+<div class="stepCircle">4</div>
+<div class="stepLabel" id="wLabel3">Rättning</div>
+</div>
+</div>
+</nav>
+
 <section class="card collapsible" id="material" data-collapsible="true">
 <div class="cardHeaderRow">
 <div class="sectionTitle" style="margin:0"><span id="tStep1">Steg 1 – Material</span></div>
@@ -436,6 +586,10 @@ Om du har “admin-godkännande”: nya konton kan fastna på “Väntar på god
 </div>
 <div class="status warn" id="formatHint" style="margin-top:12px">
 Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
+</div>
+<div class="wizardNavRow">
+<span class="navHint" id="wHint0">Fyll i material ovan, sedan nästa steg →</span>
+<button class="btn btnPrimary" type="button" id="wNext0">Nästa: Inställningar →</button>
 </div>
 </div>
 </section>
@@ -470,7 +624,7 @@ placeholder="Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
 list="courseDatalist" autocomplete="off">
 <datalist id="courseDatalist"></datalist>
 <div style="font-size:12px;color:var(--muted);font-weight:750;line-height:1.35">
-Välj från listan eller skriv. Om den inte finns: använd “Annan kurs” nedan.
+Välj från listan eller skriv. Om den inte finns: använd "Annan kurs" nedan.
 </div>
 </label>
 <div style="display:grid;gap:8px">
@@ -502,7 +656,7 @@ disabled>
 <label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
 <select id="numQuestions">
 <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-<option>9</option><option>10</option><option>11</option><option selected>12</option>
+<option>9</option><option>10</option><option>11</option><option>12</option>
 <option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
 </select>
 </div>
@@ -521,6 +675,10 @@ disabled>
 <summary id="debugTitle">Debug</summary>
 <pre id="debug"></pre>
 </details>
+<div class="wizardNavRow">
+<button class="btn" type="button" id="wBack1">← Tillbaka</button>
+<span class="navHint" id="wHint1">Tryck "Skapa mockprov" för att gå vidare</span>
+</div>
 </div>
 </section>
 <section class="card collapsible" id="exam" data-collapsible="true">
@@ -533,6 +691,10 @@ disabled>
 <div class="cardBody">
 <div class="status" id="examMeta">Ingen provdata ännu.</div>
 <div id="examBody"></div>
+<div class="wizardNavRow" style="margin-top:16px">
+<button class="btn" type="button" id="wBack2">← Tillbaka</button>
+<button class="btn btnPrimary" type="button" id="wNext2" id="wGradeNav">Rätta prov →</button>
+</div>
 </div>
 </section>
 <section class="card collapsible" id="result" data-collapsible="true">
@@ -545,6 +707,10 @@ disabled>
 <div class="cardBody">
 <div class="status" id="resultMeta">Ingen rättning ännu.</div>
 <div id="resultBody"></div>
+<div class="wizardNavRow" style="margin-top:16px">
+<button class="btn" type="button" id="wBack3">← Tillbaka</button>
+<button class="btn btnPrimary" type="button" id="wRestart">Nytt prov →</button>
+</div>
 </div>
 </section>
 </main>
@@ -587,7 +753,7 @@ unlock:"Lås upp",
 toInfo:"Till infosidan",
 toImprove:"Förbättring",
 m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
-mImprove:"Förbättring", mLang:"English", mTheme:"Light mode", mLogout:"Logga ut",
+mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
 step1:"Steg 1 – Material",
 step1Sub:"Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
 pasteLabel:"Material (klistra in text)",
@@ -630,7 +796,14 @@ trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa e
 quotaUnknown:"Prov idag: —",
 quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
 openSection:"Öppna",
-closeSection:"Stäng"
+closeSection:"Stäng",
+wLabel0:"Material", wLabel1:"Inställningar", wLabel2:"Mockprov", wLabel3:"Rättning",
+wNext0:"Nästa: Inställningar →",
+wHint0:"Fyll i material ovan, sedan nästa steg →",
+wHint1:'Tryck "Skapa mockprov" för att gå vidare',
+wBack:"← Tillbaka",
+wNext2:"Rätta prov →",
+wRestart:"Nytt prov →"
 },
 en:{
 brandTag:"Mock exams • Grading • Model answers",
@@ -640,7 +813,7 @@ unlock:"Unlock",
 toInfo:"Go to info page",
 toImprove:"Improve",
 m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
-mImprove:"Improve", mLang:"Svenska", mTheme:"Dark mode", mLogout:"Log out",
+mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
 step1:"Step 1 – Material",
 step1Sub:"Paste text. Optional: choose an image or take a photo → OCR adds text into your material.",
 pasteLabel:"Material (paste text)",
@@ -678,12 +851,19 @@ fullScore:"Full-score model answer",
 genFirst:"Generate an exam first.",
 cleared:"Cleared. Start again.",
 footer:"ProviaAi is study support and does not provide official grades.",
-pending:"Waiting for admin approval. You’ll get access once approved.",
+pending:"Waiting for admin approval. You'll get access once approved.",
 trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
 quotaUnknown:"Exams today: —",
 quotaHit:"Daily limit reached. Try again tomorrow.",
 openSection:"Open",
-closeSection:"Close"
+closeSection:"Close",
+wLabel0:"Material", wLabel1:"Settings", wLabel2:"Mock exam", wLabel3:"Grading",
+wNext0:"Next: Settings →",
+wHint0:"Fill in material above, then next step →",
+wHint1:'Press "Generate mock exam" to continue',
+wBack:"← Back",
+wNext2:"Grade exam →",
+wRestart:"New exam →"
 }
 };
 function showDebug(txt){
@@ -1008,6 +1188,82 @@ io.unobserve(entry.target);
 }, { threshold:.1, rootMargin:"0px 0px -8% 0px" });
 nodes.forEach((el) => io.observe(el));
 }
+// ── THEME ──
+function applyTheme(theme){
+document.documentElement.setAttribute("data-theme", theme);
+localStorage.setItem(LS_THEME, theme);
+const btn = $("themeToggleBtn");
+if(btn) btn.textContent = (theme === "dark") ? "☀️" : "🌙";
+}
+function initTheme(){
+const saved = localStorage.getItem(LS_THEME);
+const preferred = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+applyTheme(saved || preferred);
+onClick("themeToggleBtn", () => {
+const cur = document.documentElement.getAttribute("data-theme") || "dark";
+applyTheme(cur === "dark" ? "light" : "dark");
+});
+}
+// ── WIZARD ──
+let currentWizardStep = 0;
+const WIZARD_STEPS = ["material", "settings", "exam", "result"];
+function setWizardStep(step, opts = {}){
+const { scroll = true } = opts;
+currentWizardStep = Math.max(0, Math.min(step, WIZARD_STEPS.length - 1));
+// update stepper UI
+WIZARD_STEPS.forEach((id, i) => {
+const el = $("wStep" + i);
+const conn = $("wConn" + i);
+if(el){
+el.classList.remove("active","done");
+if(i === currentWizardStep) el.classList.add("active");
+else if(i < currentWizardStep) el.classList.add("done");
+}
+if(conn){
+conn.classList.toggle("done", i < currentWizardStep);
+}
+// open/close cards
+const card = document.getElementById(id);
+if(card) setCardOpen(card, i === currentWizardStep);
+});
+if(scroll){
+const activeCard = document.getElementById(WIZARD_STEPS[currentWizardStep]);
+if(activeCard) window.setTimeout(() => activeCard.scrollIntoView({behavior:"smooth", block:"start"}), 60);
+}
+}
+function initWizard(){
+// stepper clicks
+document.querySelectorAll(".wizardStep").forEach(el => {
+const step = parseInt(el.dataset.step, 10);
+el.addEventListener("click", () => setWizardStep(step));
+el.addEventListener("keydown", (e) => {
+if(e.key === "Enter" || e.key === " "){ e.preventDefault(); setWizardStep(step); }
+});
+});
+// nav buttons
+onClick("wNext0", () => {
+const mat = (pastedTextEl()?.value || "").trim();
+if(!mat){
+setStatus(T[LANG].needMat, "bad");
+return;
+}
+setWizardStep(1);
+});
+onClick("wBack1", () => setWizardStep(0));
+onClick("wBack2", () => setWizardStep(1));
+onClick("wNext2", async () => {
+// trigger grade
+const gradeBtn = $("gradeBtn");
+if(gradeBtn && !gradeBtn.disabled) gradeBtn.click();
+});
+onClick("wBack3", () => setWizardStep(2));
+onClick("wRestart", () => {
+clearAll();
+setWizardStep(0);
+});
+// start at step 0 all collapsed except material
+setWizardStep(0, { scroll: false });
+}
 const spinWrap = () => $("spinWrap");
 const miniStateEl = () => $("miniState");
 const statusEl = () => $("status");
@@ -1207,7 +1463,7 @@ if(hash !== "#train") return;
 const mistakes = lsGetArray(LS_MISTAKES);
 if(!mistakes.length){
 setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
-openCardById("result", true);
+setWizardStep(3);
 document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
 return;
 }
@@ -1219,7 +1475,7 @@ try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
 if(qTypeEl()) qTypeEl().value = "mix";
 if(numQuestionsEl()) numQuestionsEl().value = "12";
 setStatus(T[LANG].trainLoaded, "ok");
-openCardById("material", true);
+setWizardStep(0);
 document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
 }
 function readUiState(){
@@ -1258,14 +1514,11 @@ if(!el) return;
 setCardOpen(el, open);
 }
 function initCollapsibles(){
-const state = readUiState();
-const hasAnySaved = !!lsGetObj(LS_UI_OPEN);
-const defaults = hasAnySaved ? state : { material:false, settings:false, exam:false, result:false };
 ["material","settings","exam","result"].forEach(id => {
 const el = document.getElementById(id);
 if(!el) return;
 el.classList.add("collapsible");
-setCardOpen(el, !!defaults[id]);
+setCardOpen(el, false);
 });
 document.querySelectorAll('button[data-toggle-card]').forEach(btn => {
 btn.addEventListener("click", () => {
@@ -1391,28 +1644,6 @@ syncPickerToHiddenCourse();
 syncEnable();
 syncPickerToHiddenCourse();
 }
-function applyTheme(theme){
-const mode = theme === "light" ? "light" : "dark";
-document.body.setAttribute("data-theme", mode);
-localStorage.setItem(LS_THEME, mode);
-const p = $("themePill"), t = $("mTheme");
-if(p) p.textContent = mode === "light" ? "LIGHT" : "DARK";
-if(t) t.textContent = (LANG === "sv") ? (mode === "light" ? "Mörkt läge" : "Ljust läge") : (mode === "light" ? "Dark mode" : "Light mode");
-}
-function toggleTheme(){
-const cur = document.body.getAttribute("data-theme") || "dark";
-applyTheme(cur === "dark" ? "light" : "dark");
-}
-function updateStepRail(){
-const done1 = !!(pastedTextEl()?.value || "").trim();
-const done2 = !!(levelEl()?.value && qTypeEl()?.value && numQuestionsEl()?.value);
-const done3 = !!(currentExam && Array.isArray(currentExam.questions) && currentExam.questions.length);
-const done4 = !!(resultBodyEl() && resultBodyEl().children.length);
-const dots = [$("stepDot1"), $("stepDot2"), $("stepDot3"), $("stepDot4")];
-const states = [done1, done2, done3, done4];
-dots.forEach((d,i)=>{ if(!d) return; d.classList.toggle("done", states[i]); d.classList.toggle("active", i===states.findIndex(x=>!x) || (states.every(Boolean) && i===3)); });
-if(done1 && !done2) openCardById("settings", true);
-}
 function applyLang(){
 const t = T[LANG];
 const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
@@ -1425,7 +1656,6 @@ set("toImproveBtn", t.toImprove);
 set("m1", t.m1); set("m2", t.m2); set("m3", t.m3); set("m4", t.m4);
 set("mImprove", t.mImprove);
 set("mLang", t.mLang);
-if($("mTheme")) $("mTheme").textContent = t.mTheme;
 set("mLogout", t.mLogout);
 set("langPill", LANG.toUpperCase());
 set("tStep1", t.step1);
@@ -1454,6 +1684,19 @@ set("debugTitle", t.debug);
 set("tStep3", t.step3);
 set("tStep4", t.step4);
 set("footerText", t.footer);
+// wizard labels
+set("wLabel0", t.wLabel0);
+set("wLabel1", t.wLabel1);
+set("wLabel2", t.wLabel2);
+set("wLabel3", t.wLabel3);
+set("wNext0", t.wNext0);
+set("wHint0", t.wHint0);
+set("wHint1", t.wHint1);
+set("wBack1", t.wBack);
+set("wBack2", t.wBack);
+set("wBack3", t.wBack);
+set("wNext2", t.wNext2);
+set("wRestart", t.wRestart);
 ["material","settings","exam","result"].forEach(id => {
 const el = document.getElementById(id);
 if(!el) return;
@@ -1561,8 +1804,8 @@ const model = String(item.model_answer || "").trim();
 d.innerHTML = `
 <div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
 <div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
-<div style="margin-top:10px;border-top:1px solid rgba(5,42,30,.12);padding-top:10px">
-<div style="font-weight:1100;color:#052A1E;margin-bottom:6px;font-size:13px">${t.fullScore}</div>
+<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+<div style="font-weight:1100;color:var(--mint);margin-bottom:6px;font-size:13px">${t.fullScore}</div>
 <div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
 </div>
 `;
@@ -1576,7 +1819,6 @@ rb.appendChild(wrap);
 function clearAll(){
 const t = T[LANG];
 if(pastedTextEl()) pastedTextEl().value = "";
-updateStepRail();
 if(courseEl()) courseEl().value = "";
 if(levelEl()) levelEl().value = "C";
 if(qTypeEl()) qTypeEl().value = "mix";
@@ -1592,7 +1834,6 @@ if(chk) chk.checked = false;
 if(cs) cs.value = "";
 if(cc) cc.value = "";
 if(st) st.textContent = "";
-// sync till hidden course
 try{
 const customEnabled = !!chk?.checked;
 if(cc) cc.disabled = !customEnabled;
@@ -1611,16 +1852,16 @@ window.scrollTo({ top: 0, behavior: "smooth" });
 }
 window.addEventListener("DOMContentLoaded", async () => {
 try{
-initCollapsibles(); // init collapse state
-initCourseLibrary(); // ÄNDRING: kursbibliotek init
+initTheme();
+initCollapsibles();
+initWizard();
+initCourseLibrary();
 applyLang();
-applyTheme(localStorage.getItem(LS_THEME) || "dark");
 initMouseGlow();
 initReveal();
 hidePageLoader();
 await refreshQuotaUi();
 setStatus("");
-updateStepRail();
 onClick("menuBtn", (e) => {
 e.preventDefault(); e.stopPropagation();
 const m = $("menu");
@@ -1644,9 +1885,10 @@ if(!a) return;
 e.preventDefault();
 const sel = a.getAttribute("data-scroll");
 closeMenuAnimated();
+const stepMap = { "#material":0, "#settings":1, "#exam":2, "#result":3 };
+if(sel in stepMap){ setWizardStep(stepMap[sel]); return; }
 const el = document.querySelector(sel);
 if(el){
-// öppna kortet innan scroll
 if(el.classList.contains("collapsible")) setCardOpen(el, true);
 el.scrollIntoView({behavior:"smooth", block:"start"});
 }
@@ -1661,7 +1903,6 @@ await refreshQuotaUi();
 closeMenuAnimated();
 runTrainModeIfRequested();
 });
-onClick("themeBtn", () => { toggleTheme(); });
 onClick("logoutTopBtn", async () => { await logout(); });
 onClick("unlockBtn", async () => { unlockByCode(); await refreshQuotaUi(); });
 onClick("signInBtn", async () => { await signInEmail(); await refreshQuotaUi(); });
@@ -1676,10 +1917,6 @@ const pass = $("authPass")?.value || "";
 if(email && pass) signInEmail();
 else unlockByCode();
 });
-pastedTextEl()?.addEventListener("input", updateStepRail);
-levelEl()?.addEventListener("change", updateStepRail);
-qTypeEl()?.addEventListener("change", updateStepRail);
-numQuestionsEl()?.addEventListener("change", updateStepRail);
 onClick("ocrBtn", async () => {
 hideDebug();
 const t = T[LANG];
@@ -1702,7 +1939,6 @@ if(extracted){
 const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
 const base = (pastedTextEl()?.value || "").trim();
 if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
-updateStepRail();
 }
 setBusy(false, t.ready);
 setOcrStatus(t.ocrDone, "ok");
@@ -1715,12 +1951,11 @@ reportErr(e);
 onClick("generateExamBtn", async () => {
 hideDebug();
 setStatus("");
-updateStepRail();
 const t = T[LANG];
 const pastedText = (pastedTextEl()?.value || "").trim();
 if(!pastedText){
 setStatus(t.needMat, "bad");
-openCardById("material", true);
+setWizardStep(0);
 document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
 return;
 }
@@ -1758,9 +1993,7 @@ try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 renderExam(res.data.exam);
 setBusy(false, t.ready);
 setStatus(t.genDone, "ok");
-updateStepRail();
-openCardById("exam", true);
-document.querySelector("#exam")?.scrollIntoView({behavior:"smooth"});
+setWizardStep(2);
 });
 onClick("gradeBtn", async () => {
 hideDebug();
@@ -1795,7 +2028,6 @@ const result = res.data.result;
 renderResult(result);
 await ensureUserProfileRow();
 await updateMastery(result);
-// spara till konto endast här
 try{
 await saveExamToAccount({
 material: pastedText,
@@ -1811,7 +2043,6 @@ answers,
 result
 });
 } catch {}
-// lokal historik + felbank
 const ts = Date.now();
 const max = Number(result.max_points || 0);
 const total = Number(result.total_points || 0);
@@ -1868,9 +2099,7 @@ lsSet(LS_MISTAKES, mistakes);
 try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
 setBusy(false, t.ready);
 setStatus(t.gradeDone, "ok");
-updateStepRail();
-openCardById("result", true);
-document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
+setWizardStep(3);
 });
 onClick("clearBtn", clearAll);
 window.addEventListener("hashchange", () => {
