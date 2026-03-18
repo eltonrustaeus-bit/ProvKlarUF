@@ -4,610 +4,690 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ProviaAi – App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
+/* ── TOKENS ── */
 :root{
---deep:#E8FFF4; --deep2:#b7d9c9;
---mint:#2BE38C; --mint2:#16B876;
---bg:#050808; --muted:#9bb3a8; --border:rgba(120,255,195,.18);
---shadow:0 18px 55px rgba(0,0,0,.45);
---radius:18px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial; --max:1080px;
---danger:#ff8f8f; --ok:#67dcb0; --warn:#f4ce78;
---card-bg:rgba(8,19,15,.88);
---input-bg:rgba(8,14,12,.9);
---header-bg:rgba(4,12,9,.82);
---text-main:#e9fff4;
---text-body:#e8fff4;
---login-bg:rgba(7,16,13,.94);
---qbox-bg:rgba(7,16,13,.9);
---overlay-bg:rgba(5,42,30,.98);
---overlay-bg2:rgba(4,30,22,.92);
---step-inactive:rgba(43,227,140,.18);
---step-active:rgba(22,184,118,.96);
---step-done:rgba(22,184,118,.60);
---step-text-inactive:var(--muted);
---step-text-active:#f5fffa;
---step-border:rgba(43,227,140,.35);
+--a:#1bff8c; --a2:#16d475; --a-dim:rgba(27,255,140,.07);
+--bg:#08100d; --s:#111a15; --s2:#162019;
+--t:#e8f5ee; --t2:#a8c4b4; --t3:#6b8f7c;
+--l:rgba(27,255,140,.10); --l2:rgba(27,255,140,.22);
+--sh:0 8px 32px rgba(0,0,0,.50);
+--sh2:0 16px 48px rgba(0,0,0,.55);
+--sh3:0 24px 64px rgba(0,0,0,.65);
+--r:5px; --r2:3px;
+--max:1080px;
+--danger:#ff6b6b; --warn:#f4c842; --ok:#1bff8c;
 }
-html[data-theme="light"]{
---deep:#0a2e1e; --deep2:#1a5c3a;
---mint:#16B876; --mint2:#0f8e5c;
---bg:#f0faf5; --muted:#4a7a62; --border:rgba(22,120,90,.22);
---shadow:0 8px 32px rgba(0,80,40,.12);
---danger:#c0392b; --ok:#1a8a5a; --warn:#b8860b;
---card-bg:rgba(255,255,255,.92);
---input-bg:rgba(240,250,245,.95);
---header-bg:rgba(240,250,245,.92);
---text-main:#0a2e1e;
---text-body:#0d3520;
---login-bg:rgba(250,255,252,.97);
---qbox-bg:rgba(245,255,250,.95);
---overlay-bg:rgba(220,245,235,.98);
---overlay-bg2:rgba(210,240,228,.95);
---step-inactive:rgba(22,184,118,.15);
---step-active:rgba(22,184,118,.96);
---step-done:rgba(22,184,118,.55);
---step-text-inactive:#4a7a62;
---step-text-active:#fff;
---step-border:rgba(22,120,80,.30);
+body.light{
+--a:#0d9460; --a2:#0b7a50; --a-dim:rgba(13,148,96,.07);
+--bg:#f3f8f5; --s:#ffffff; --s2:#edf5f0;
+--t:#0c1e15; --t2:#3a6050; --t3:#7aaa92;
+--l:rgba(13,148,96,.11); --l2:rgba(13,148,96,.25);
+--sh:0 4px 20px rgba(0,0,0,.08);
+--sh2:0 8px 32px rgba(0,0,0,.11);
+--sh3:0 16px 48px rgba(0,0,0,.14);
+--danger:#c0392b; --warn:#946c00; --ok:#0d9460;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-:target{scroll-margin-top:92px}
+:target{scroll-margin-top:70px}
 body{
-margin:0;font-family:var(--font);line-height:1.55;
-background:var(--bg);
-color:var(--text-main);
-position:relative;
-transition:background .25s ease, color .25s ease;
-}
-html[data-theme="dark"] body{
-background:
-radial-gradient(900px 450px at 14% -12%, rgba(43,227,140,.15), transparent 62%),
-radial-gradient(780px 420px at 90% 16%, rgba(43,227,140,.08), transparent 58%),
-linear-gradient(165deg, #030505 0%, #050909 45%, #020404 100%);
-color:#e9fff4;
-}
-html[data-theme="dark"] body::before,
-html[data-theme="dark"] body::after{content:"";position:fixed;inset:-140px;pointer-events:none;z-index:0}
-html[data-theme="dark"] body::before{
-background:
-radial-gradient(700px 360px at 16% 12%, rgba(43,227,140,.18), transparent 64%),
-radial-gradient(760px 420px at 80% 20%, rgba(19,123,81,.18), transparent 66%);
-opacity:.2;
-}
-html[data-theme="dark"] body::after{
-background-image:
-radial-gradient(rgba(255,255,255,.18) .7px, transparent .8px),
-radial-gradient(rgba(255,255,255,.12) .6px, transparent .7px);
-background-size:3px 3px, 5px 5px;
-background-position:0 0, 1px 2px;
-opacity:.08;
-}
-html[data-theme="light"] body{
-background:linear-gradient(160deg, #e8f8f0 0%, #f4fdf8 50%, #edf7f2 100%);
+font-family:'DM Sans',system-ui,sans-serif;
+background:var(--bg);color:var(--t);
+line-height:1.6;min-height:100vh;
+transition:background .28s ease,color .28s ease;
 }
 a{text-decoration:none;color:inherit}
-header{
-background:var(--header-bg);backdrop-filter:saturate(140%) blur(10px);
-border-bottom:1px solid var(--border);
-position:sticky;top:0;z-index:3000;
-transition:background .25s ease;
-}
-.wrap{max-width:var(--max);margin:0 auto;padding:clamp(18px,3.4vw,28px);position:relative;z-index:1}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.brand{display:flex;align-items:center;gap:12px;min-width:0}
-.brand img{height:54px;width:auto;display:block}
-.brand .name{font-weight:1100;color:var(--deep);font-size:19px;line-height:1.05;letter-spacing:-.01em}
-.brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
-.btn{
-display:inline-flex;align-items:center;justify-content:center;
-padding:12px 16px;border-radius:14px;
-font-weight:1000;font-size:14px;border:1px solid var(--border);
-cursor:pointer;white-space:nowrap;
-background:var(--card-bg);color:var(--deep);
-user-select:none;
-transition:transform .16s cubic-bezier(.22,.61,.36,1), box-shadow .2s ease, border-color .2s ease;
-}
-.btn:hover{transform:translateY(-2px);border-color:rgba(105,255,193,.45);box-shadow:0 14px 32px rgba(22,184,118,.22), 0 0 0 1px rgba(106,255,193,.18) inset}
-.btn:active{transform:translateY(0) scale(.985);box-shadow:0 8px 14px rgba(22,184,118,.18)}
-.btn:focus-visible,
-.iconBtn:focus-visible,
-.dropdown a:focus-visible,
-.dropdown button:focus-visible,
-.toggleBtn:focus-visible{outline:2px solid rgba(138,255,211,.95);outline-offset:2px}
-.btn:disabled{opacity:.6; cursor:not-allowed}
-.btnPrimary{
-position:relative;overflow:hidden;
-background:linear-gradient(135deg, rgba(22,184,118,.96), rgba(15,142,92,.95));color:#f5fffa;border-color:rgba(22,184,118,.42);
-box-shadow:0 14px 28px rgba(22,184,118,.22)
-}
-.btnPrimary::after{
-content:"";position:absolute;inset:-1px auto -1px -40%;width:30%;
-background:linear-gradient(110deg, transparent, rgba(255,255,255,.28), transparent);
-transform:translateX(0);
-transition:transform .24s cubic-bezier(.22,.61,.36,1);
-}
-.btnPrimary:hover::after{transform:translateX(360%)}
-.card{
-background:var(--card-bg);
-border:1px solid var(--border);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:clamp(16px,3vw,22px);
-margin:14px 0;
-overflow:hidden;
-position:relative;
-transition:background .25s ease, border-color .25s ease;
-}
-html[data-theme="dark"] .card:before{
-content:"";
-position:absolute;inset:-70px -70px auto auto;
-width:190px;height:190px;border-radius:999px;
-background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
-pointer-events:none;
-}
-.sectionTitle{
-margin:0 0 6px;font-weight:1100;letter-spacing:-.01em;color:var(--deep);
-font-size:clamp(18px,2vw,22px);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-}
-.sectionSub{margin:0;color:var(--muted);font-weight:780;font-size:14px;line-height:1.5}
-label{display:block;margin:12px 0 6px;font-weight:1000;color:var(--deep);font-size:13px}
-select,input,textarea{
-width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:var(--input-bg);
-color:var(--text-main);font-family:inherit;font-size:14px;outline:none;
-transition:background .25s ease, color .25s ease, border-color .2s ease;
-}
-textarea{min-height:170px;resize:vertical}
-input:focus, textarea:focus, select:focus{border-color:rgba(43,227,140,.55);box-shadow:0 0 0 5px rgba(43,227,140,.14)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:920px){ .grid2{grid-template-columns:1fr} }
-.status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
-.status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
-details{margin-top:10px}
-summary{cursor:pointer;font-weight:1000;color:var(--deep);font-size:13px}
-pre{
-margin:10px 0 0;padding:12px;border-radius:14px;border:1px solid var(--border);
-background:var(--input-bg);overflow:auto;font-size:12px;line-height:1.35;white-space:pre-wrap;word-break:break-word;
-}
-.spinner{width:16px;height:16px;border-radius:999px;border:2px solid rgba(5,42,30,.18);border-top-color:rgba(22,184,118,.95);animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.qBox{margin-top:12px;padding:12px;border:1px solid rgba(126,255,198,.14);border-radius:16px;background:var(--qbox-bg);transition:background .25s ease}
-html[data-theme="light"] .qBox{border-color:rgba(22,120,80,.15)}
-.qMeta{color:var(--muted);font-weight:900;font-size:12px;margin-bottom:6px}
-.qText{font-weight:900;color:var(--text-main);line-height:1.45}
-footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-.menuWrap{position:relative;z-index:4000;display:flex;align-items:center;gap:8px}
-.iconBtn{
-width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-background:var(--card-bg);cursor:pointer;display:grid;place-items:center;
-transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
-.iconBtn:active{transform:translateY(0) scale(.985)}
-.bars{width:18px;height:12px;display:grid;gap:3px}
-.bars span{display:block;height:2px;background:var(--deep);border-radius:2px;opacity:.9}
+input,select,textarea,button{font-family:'DM Sans',system-ui,sans-serif}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--l2);border-radius:3px}
 
-/* Theme toggle button */
-.themeToggleBtn{
-width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
-background:var(--card-bg);cursor:pointer;display:grid;place-items:center;
-transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-font-size:18px;line-height:1;
-}
-.themeToggleBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(22,184,118,.25);border-color:rgba(105,255,193,.4)}
-.themeToggleBtn:active{transform:translateY(0) scale(.985)}
-
-.dropdown{
-position:absolute;right:0;top:54px;min-width:270px;
-background:var(--login-bg);
-border:1px solid var(--border);
-border-radius:16px;
-box-shadow:0 22px 60px rgba(0,0,0,.45);
-padding:8px;
-display:none;
-opacity:0;
-transform:translateY(-8px);
-z-index:5000;
-transition:background .25s ease;
-}
-.dropdown.is-open{display:block;opacity:1;transform:translateY(0);transition:opacity .18s ease, transform .18s cubic-bezier(.22,.61,.36,1)}
-.dropdown.is-closing{display:block;opacity:0;transform:translateY(-6px);transition:opacity .14s ease, transform .14s ease}
-.dropdown a, .dropdown button{
-width:100%;
-display:flex;align-items:center;justify-content:space-between;
-gap:10px;
-padding:10px 12px;
-border-radius:12px;
-border:1px solid transparent;
-background:transparent;
-cursor:pointer;
-font-weight:950;
-color:var(--text-main);
-font-size:13px;
-text-align:left;
-}
-.dropdown a:hover, .dropdown button:hover{background:rgba(43,227,140,.10);border-color:rgba(43,227,140,.18)}
-.pill{
-font-size:11px;font-weight:1000;color:var(--muted);
-border:1px solid var(--border);
-border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.03);
-}
-.loginOverlay{
-position:fixed;inset:0;z-index:9999;
-background:
-radial-gradient(800px 420px at 20% 10%, rgba(43,227,140,.22), transparent 60%),
-radial-gradient(700px 380px at 90% 20%, rgba(43,227,140,.10), transparent 55%),
-linear-gradient(135deg, var(--overlay-bg), var(--overlay-bg2));
-display:flex;align-items:center;justify-content:center;padding:18px;
-}
-.loginCard{
-width:min(680px, 100%);
-background:var(--login-bg);
-border:1px solid rgba(255,255,255,.22);
-border-radius:22px;
-box-shadow:0 24px 70px rgba(0,0,0,.25);
-overflow:hidden;
-transition:background .25s ease;
-}
-html[data-theme="light"] .loginCard{border-color:rgba(22,120,80,.25)}
-.loginTop{display:flex;gap:14px;align-items:center;padding:18px 18px 10px}
-.loginTop img{height:68px;width:auto;display:block}
-.loginTop .ltTitle{font-weight:1100;color:var(--deep);font-size:20px;line-height:1.1;text-shadow:0 0 16px rgba(43,227,140,.18)}
-.loginTop .ltSub{margin-top:4px;color:var(--muted);font-weight:800;font-size:12px}
-.loginBody{padding:12px 18px 18px}
-.loginRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.err{margin-top:10px;color:var(--danger);font-weight:900;font-size:12px}
-.authBox{
-border:1px solid var(--border);
-border-radius:16px;
-padding:12px;
-background:var(--input-bg);
-}
-.authTitle{font-weight:1100;color:var(--deep);font-size:13px}
-.miniHint{margin-top:6px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35}
-.uploadBox{
-border:1px dashed rgba(5,42,30,.22);
-border-radius:16px;
-padding:12px;
-background:var(--input-bg);
-}
-html[data-theme="light"] .uploadBox{border-color:rgba(22,120,80,.25)}
-.uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.smallHint{color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;margin-top:6px}
-.fileRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.fileRow input[type="file"]{max-width:320px}
-.mcGroup{display:grid;gap:8px;margin-top:10px}
-.mcOpt{
-display:flex;align-items:center;gap:10px;
-padding:10px 12px;border-radius:14px;
-border:1px solid var(--border);
-background:var(--input-bg); cursor:pointer;
-font-weight:900; line-height:1.35;
-text-align:left;
-color:var(--text-main);
-transition:transform .16s ease, border-color .16s ease, box-shadow .18s ease;
-}
-.mcOpt:hover{transform:translateY(-2px);border-color:rgba(43,227,140,.35);box-shadow:0 10px 22px rgba(0,0,0,.25)}
-.mcOpt.sel{
-border-color:rgba(43,227,140,.60);
-box-shadow:0 0 0 5px rgba(43,227,140,.12);
-}
-.mcLetter{
-width:28px;height:28px;border-radius:10px;
-display:grid;place-items:center;
-background:rgba(43,227,140,.09);
-font-weight:1100;color:var(--deep);
-flex:0 0 28px;
-}
-.mcText{font-weight:850;color:var(--text-main)}
-.card.collapsible{padding-bottom:14px}
-.cardHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.toggleBtn{
-padding:10px 12px;border-radius:12px;font-size:13px;font-weight:1100;
-border:1px solid var(--border);
-background:var(--card-bg);
-color:var(--deep);
-display:inline-flex;align-items:center;gap:8px;
-cursor:pointer;
-transition:background .25s ease, border-color .2s ease;
-}
-.toggleBtn:hover{border-color:rgba(43,227,140,.35)}
-.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .25s ease}
-.card.open .chev{transform:rotate(45deg)}
-.cardBody{
-overflow:hidden;
-max-height:0;
-opacity:0;
-filter:blur(6px);
-transform:translateY(10px);
-transition:max-height .26s cubic-bezier(.22,.61,.36,1), opacity .2s ease, filter .22s ease, transform .22s ease;
-}
-.card.open .cardBody{
-max-height:8000px;
-opacity:1;
-filter:blur(0);
-transform:translateY(0);
-}
-.card.open{padding-bottom:clamp(16px,3vw,22px)}
-.card{transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease, background .25s ease}
-.card:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(0,0,0,.45);border-color:rgba(106,255,193,.4)}
-html[data-theme="light"] .card:hover{box-shadow:0 12px 32px rgba(22,120,80,.14);border-color:rgba(22,120,80,.35)}
-.reveal{opacity:0;transform:translateY(12px);filter:blur(8px);transition:opacity .24s ease, transform .24s cubic-bezier(.22,.61,.36,1), filter .24s ease}
-.reveal.in{opacity:1;transform:translateY(0);filter:blur(0)}
+/* PAGE LOADER */
 .pageLoader{
 position:fixed;inset:0;z-index:12000;display:grid;place-items:center;
-background:radial-gradient(900px 460px at 50% -10%, rgba(43,227,140,.12), transparent 60%), rgba(2,7,5,.96);
-opacity:1;visibility:visible;transition:opacity .24s ease, visibility .24s ease;
+background:var(--bg);opacity:1;visibility:visible;
+transition:opacity .22s ease,visibility .22s ease;
 }
 .pageLoader.done{opacity:0;visibility:hidden;pointer-events:none}
-.loaderOrb{width:66px;height:66px;border-radius:999px;position:relative;border:1px solid rgba(132,255,206,.35);box-shadow:0 0 0 8px rgba(22,184,118,.08), 0 0 44px rgba(22,184,118,.25) inset;animation:loaderPulse 1.6s ease-in-out infinite}
-.loaderOrb::before{content:"";position:absolute;inset:-8px;border-radius:999px;border:2px solid transparent;border-top-color:rgba(132,255,206,.95);border-right-color:rgba(132,255,206,.35);animation:spin 1.2s linear infinite}
-.loaderText{margin-top:14px;font-size:12px;font-weight:900;color:#cffff0;letter-spacing:.08em;text-transform:uppercase}
-@keyframes loaderPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
-html[data-theme="dark"] body{--mx:50%;--my:18%;}
-html[data-theme="dark"] main.wrap::before{
-content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-background:radial-gradient(360px 360px at var(--mx) var(--my), rgba(43,227,140,.11), transparent 62%);
-opacity:.45;transition:opacity .2s ease;
+.loaderOrb{width:52px;height:52px;border-radius:50%;position:relative;border:1px solid var(--l2)}
+.loaderOrb::before{
+content:"";position:absolute;inset:-6px;border-radius:50%;
+border:2px solid transparent;
+border-top-color:var(--a);border-right-color:rgba(27,255,140,.3);
+animation:spin .9s linear infinite;
 }
-.loginCard{animation:floatY 6s ease-in-out infinite}
-.card:first-of-type{animation:floatY 8s ease-in-out infinite}
-@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-.uploadBox{position:relative;overflow:hidden}
+.loaderText{
+margin-top:14px;font-family:'DM Mono',monospace;font-size:11px;
+font-weight:500;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HEADER */
+header{
+height:56px;position:sticky;top:0;z-index:3000;
+background:rgba(8,16,13,.88);
+backdrop-filter:blur(18px) saturate(160%);
+border-bottom:1px solid var(--l);
+display:flex;align-items:center;
+transition:background .28s ease,border-color .28s ease;
+}
+body.light header{background:rgba(243,248,245,.92)}
+.hWrap{
+max-width:var(--max);width:100%;margin:0 auto;
+padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{height:30px;width:auto;display:block}
+.brandName{
+font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;
+color:var(--t);letter-spacing:-.02em;line-height:1;
+transition:color .28s ease;
+}
+.brandTag{
+font-family:'DM Mono',monospace;font-size:9.5px;font-weight:400;
+color:var(--t3);letter-spacing:.1em;text-transform:uppercase;
+margin-top:2px;line-height:1;transition:color .28s ease;
+}
+.hRight{display:flex;align-items:center;gap:6px}
+
+/* BUTTONS */
+.btn{
+display:inline-flex;align-items:center;justify-content:center;gap:7px;
+padding:0 14px;height:34px;
+font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;
+border:1px solid var(--l);border-radius:var(--r);
+background:var(--s2);color:var(--t);
+cursor:pointer;white-space:nowrap;position:relative;overflow:hidden;
+transition:transform .16s cubic-bezier(.22,.61,.36,1),box-shadow .16s ease,border-color .16s ease,background .28s ease,color .28s ease;
+}
+.btn::after{
+content:"";position:absolute;inset:0;
+background:linear-gradient(135deg,rgba(27,255,140,.06),transparent 55%);
+opacity:0;transition:opacity .16s ease;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--sh);border-color:var(--l2)}
+.btn:hover::after{opacity:1}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.btnP{background:var(--a);color:#08100d;border-color:var(--a);font-weight:700}
+body.light .btnP{color:#fff}
+.btnP:hover{background:var(--a2);border-color:var(--a2)}
+.btnP::after{background:linear-gradient(135deg,rgba(255,255,255,.15),transparent 55%)}
+.btnG{background:transparent;border-color:var(--l)}
+.btnG:hover{background:var(--a-dim);border-color:var(--l2)}
+
+/* THEME TOGGLE */
+.themeTgl{
+display:inline-flex;align-items:center;gap:6px;
+padding:0 12px;height:34px;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--t3);border:1px solid var(--l);border-radius:var(--r);
+background:transparent;cursor:pointer;
+transition:color .16s ease,border-color .16s ease,background .28s ease;
+}
+.themeTgl:hover{color:var(--t);border-color:var(--l2);background:var(--a-dim)}
+.tglIcon{display:inline-block;transition:transform .28s cubic-bezier(.22,.61,.36,1)}
+.themeTgl:hover .tglIcon{transform:rotate(18deg) scale(1.2)}
+
+/* MENU */
+.menuWrap{position:relative;z-index:4000}
+.menuBtn{
+width:34px;height:34px;padding:0;display:grid;place-items:center;
+border:1px solid var(--l);border-radius:var(--r);
+background:transparent;color:var(--t2);cursor:pointer;
+transition:border-color .16s ease,background .16s ease,color .16s ease;
+}
+.menuBtn:hover{border-color:var(--l2);background:var(--a-dim);color:var(--t)}
+.menuBtn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.barsIcon{display:grid;gap:3.5px;width:16px}
+.barsIcon span{display:block;height:1.5px;background:currentColor;border-radius:1px}
+.dropdown{
+position:absolute;right:0;top:calc(100% + 8px);min-width:230px;
+background:var(--s);border:1px solid var(--l);border-radius:var(--r);
+box-shadow:var(--sh3);padding:6px;
+display:none;opacity:0;transform:translateY(-6px) scale(.99);z-index:5000;
+}
+.dropdown.is-open{
+display:block;opacity:1;transform:translateY(0) scale(1);
+transition:opacity .16s cubic-bezier(.22,.61,.36,1),transform .16s cubic-bezier(.22,.61,.36,1);
+}
+.dropdown.is-closing{
+display:block;opacity:0;transform:translateY(-4px) scale(.99);
+transition:opacity .12s ease,transform .12s ease;
+}
+.ddItem{
+width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+padding:8px 10px;border-radius:var(--r2);border:1px solid transparent;
+background:transparent;cursor:pointer;
+font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;
+color:var(--t2);text-align:left;
+transition:background .12s ease,border-color .12s ease,color .12s ease;
+}
+.ddItem:hover{background:var(--a-dim);border-color:var(--l);color:var(--t)}
+.ddItem:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+.ddPill{
+font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+color:var(--t3);letter-spacing:.06em;
+border:1px solid var(--l);border-radius:var(--r2);
+padding:2px 7px;
+}
+.ddSep{height:1px;background:var(--l);margin:4px 2px}
+
+/* LAYOUT */
+.wrap{max-width:var(--max);margin:0 auto;padding:32px 24px;position:relative;z-index:1}
+
+/* HERO */
+.hero{padding:36px 0 24px}
+.eyebrow{
+display:flex;align-items:center;gap:10px;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--a);letter-spacing:.12em;text-transform:uppercase;
+margin-bottom:14px;
+}
+.eyebrow::before{content:"";display:block;width:18px;height:1.5px;background:var(--a);border-radius:1px}
+.heroTitle{
+font-weight:700;font-size:clamp(22px,3.8vw,38px);
+letter-spacing:-.035em;line-height:1.15;color:var(--t);margin-bottom:10px;
+}
+.heroTitle em{font-style:normal;color:var(--a)}
+.heroSub{font-size:14px;color:var(--t2);font-weight:400;max-width:560px;line-height:1.65}
+.statusRow{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.sDot{width:6px;height:6px;border-radius:50%;background:var(--t3);transition:background .28s ease,box-shadow .28s ease}
+.sDot.ok{background:var(--a);box-shadow:0 0 0 3px rgba(27,255,140,.18)}
+.statusLabel{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--t3);letter-spacing:.06em}
+
+/* HOW-TO */
+.howto{
+border-left:2px solid var(--a);background:var(--a-dim);
+border-radius:0 var(--r) var(--r) 0;
+padding:12px 16px;margin-bottom:24px;
+}
+.howtoTitle{
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--a);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;
+}
+.howtoText{font-size:13px;color:var(--t2);font-weight:400;line-height:1.55}
+
+/* WIZARD RAIL */
+.wizardWrap{margin-bottom:20px}
+.wizardRail{
+display:flex;align-items:center;
+background:var(--s);border:1px solid var(--l);border-radius:var(--r);
+padding:6px;gap:2px;overflow-x:auto;
+}
+.wStep{
+display:flex;align-items:center;gap:7px;
+padding:7px 12px;border-radius:var(--r2);
+font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;
+color:var(--t3);cursor:pointer;white-space:nowrap;
+border:1px solid transparent;
+transition:background .16s ease,color .16s ease,border-color .16s ease;
+flex:1;justify-content:center;
+}
+.wStep:hover{background:var(--a-dim);color:var(--t2);border-color:var(--l)}
+.wStep:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+.wStepNum{
+font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+width:20px;height:20px;border-radius:50%;
+display:grid;place-items:center;flex-shrink:0;
+background:var(--s2);border:1px solid var(--l);color:var(--t3);
+transition:background .16s ease,border-color .16s ease,color .16s ease;
+}
+.wStep.active{color:var(--t);background:var(--a-dim);border-color:var(--l2)}
+.wStep.active .wStepNum{background:var(--a);border-color:var(--a);color:#08100d}
+body.light .wStep.active .wStepNum{color:#fff}
+.wStep.done .wStepNum{background:rgba(27,255,140,.18);border-color:var(--l2);color:var(--a)}
+body.light .wStep.done .wStepNum{color:var(--a)}
+.wStep.done{color:var(--t2)}
+.wStepLabel{}
+@media(max-width:500px){.wStepLabel{display:none}.wStep{padding:7px 8px}}
+
+/* SECTIONS */
+.section{
+background:var(--s);border:1px solid var(--l);border-radius:var(--r);
+margin-bottom:8px;overflow:hidden;
+transition:border-color .28s ease,background .28s ease;
+}
+.section:hover{border-color:var(--l2)}
+.sHead{
+display:flex;align-items:center;gap:14px;
+padding:15px 20px;cursor:pointer;
+transition:background .16s ease;
+user-select:none;
+}
+.sHead:hover{background:var(--a-dim)}
+.sNum{
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--a);letter-spacing:.06em;flex-shrink:0;
+}
+.sMeta{flex:1;min-width:0}
+.sTitle{
+font-family:'DM Sans',sans-serif;font-weight:600;font-size:14.5px;
+color:var(--t);line-height:1.3;transition:color .28s ease;
+}
+.sDesc{
+font-family:'DM Mono',monospace;font-size:11.5px;color:var(--t3);
+font-weight:400;margin-top:2px;transition:color .28s ease;
+}
+.sChev{
+width:16px;height:16px;flex-shrink:0;color:var(--t3);
+transition:transform .22s cubic-bezier(.22,.61,.36,1),color .16s ease;
+}
+.section:not(.collapsed) .sChev{transform:rotate(90deg);color:var(--a)}
+.sDivider{
+height:1px;background:var(--l);
+transform:scaleX(0);transform-origin:left;
+transition:transform .22s cubic-bezier(.22,.61,.36,1),background .28s ease;
+}
+.section:not(.collapsed) .sDivider{transform:scaleX(1)}
+.sBody{
+max-height:5000px;opacity:1;padding:20px;
+transition:max-height .3s cubic-bezier(.22,.61,.36,1),opacity .22s ease,padding .22s ease;
+overflow:hidden;
+}
+.section.collapsed .sBody{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
+
+/* SECTION NAV */
+.sNav{
+display:flex;align-items:center;justify-content:space-between;gap:10px;
+margin-top:18px;padding-top:14px;border-top:1px solid var(--l);flex-wrap:wrap;
+}
+.sNavHint{
+font-family:'DM Mono',monospace;font-size:11px;font-weight:400;
+color:var(--t3);letter-spacing:.04em;
+}
+
+/* FORM */
+.fieldLabel{
+display:block;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--t3);letter-spacing:.08em;text-transform:uppercase;
+margin-bottom:7px;
+}
+select,input[type="text"],input[type="email"],input[type="password"],textarea{
+width:100%;padding:10px 12px;
+border:1px solid var(--l);border-radius:var(--r);
+background:var(--s2);color:var(--t);
+font-family:'DM Sans',sans-serif;font-size:13.5px;
+outline:none;
+transition:border-color .16s ease,background .28s ease,color .28s ease,box-shadow .16s ease;
+}
+select:focus,input[type="text"]:focus,input[type="email"]:focus,input[type="password"]:focus,textarea:focus{
+border-color:var(--l2);box-shadow:0 0 0 3px rgba(27,255,140,.08);
+}
+textarea{min-height:160px;resize:vertical;line-height:1.6}
+select option{background:var(--s);color:var(--t)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+
+/* STATUS TEXT */
+.stxt{
+font-family:'DM Mono',monospace;font-size:11.5px;font-weight:400;
+color:var(--t3);margin-top:8px;line-height:1.5;word-break:break-word;
+}
+.stxt.ok{color:var(--ok)} .stxt.bad{color:var(--danger)} .stxt.warn{color:var(--warn)}
+
+/* SPINNER */
+.spinner{
+width:14px;height:14px;border-radius:50%;
+border:1.5px solid rgba(27,255,140,.15);border-top-color:var(--a);
+animation:spin .7s linear infinite;flex-shrink:0;
+}
+body.light .spinner{border-color:rgba(13,148,96,.15);border-top-color:var(--a)}
+
+/* UPLOAD BOX */
+.uploadBox{
+border:1px dashed var(--l);border-radius:var(--r);
+padding:16px;background:var(--s2);
+position:relative;overflow:hidden;
+transition:border-color .16s ease,background .28s ease;
+}
+.uploadBox:hover{border-color:var(--l2)}
 .uploadBox::after{
 content:"";position:absolute;inset:0 auto 0 -40%;width:36%;
-background:linear-gradient(100deg, transparent, rgba(142,255,207,.12), transparent);
-transform:translateX(0);animation:scanShimmer 3.6s ease-in-out infinite;
-pointer-events:none;
+background:linear-gradient(100deg,transparent,rgba(27,255,140,.05),transparent);
+animation:shimmer 4s ease-in-out infinite;pointer-events:none;
 }
-@keyframes scanShimmer{0%,70%,100%{transform:translateX(0)}35%{transform:translateX(420%)}}
-
-/* ── WIZARD STEPPER ── */
-.wizardStepper{
-display:flex;align-items:center;gap:0;
-margin:24px 0 8px;
-padding:0 2px;
-position:relative;
-z-index:1;
+@keyframes shimmer{0%,70%,100%{transform:translateX(0)}35%{transform:translateX(500%)}}
+.uploadTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.uploadTitle{
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--t2);letter-spacing:.06em;text-transform:uppercase;
 }
-.wizardStep{
-display:flex;align-items:center;gap:0;flex:1;cursor:pointer;
-}
-.wizardStep:last-child{flex:none}
-.stepInner{
-display:flex;flex-direction:column;align-items:center;gap:5px;
-padding:10px 8px;border-radius:14px;
-border:1px solid transparent;
-transition:background .18s ease, border-color .18s ease, transform .16s ease;
-min-width:64px;
-}
-.wizardStep:hover .stepInner{
-background:rgba(43,227,140,.07);
-border-color:var(--step-border);
-transform:translateY(-1px);
-}
-.stepCircle{
-width:32px;height:32px;border-radius:999px;
-display:grid;place-items:center;
-font-weight:1100;font-size:13px;
-border:2px solid var(--step-inactive);
-background:var(--step-inactive);
-color:var(--step-text-inactive);
-transition:background .22s ease, border-color .22s ease, color .22s ease, box-shadow .22s ease;
-}
-.wizardStep.active .stepCircle{
-background:var(--step-active);
-border-color:var(--step-active);
-color:var(--step-text-active);
-box-shadow:0 0 0 5px rgba(22,184,118,.18), 0 6px 18px rgba(22,184,118,.30);
-}
-.wizardStep.done .stepCircle{
-background:var(--step-done);
-border-color:var(--step-done);
-color:#fff;
-}
-.stepLabel{
-font-size:11px;font-weight:950;color:var(--step-text-inactive);
-text-align:center;line-height:1.2;
-transition:color .22s ease;
-white-space:nowrap;
-}
-.wizardStep.active .stepLabel{color:var(--mint)}
-.wizardStep.done .stepLabel{color:var(--muted)}
-.stepConnector{
-flex:1;height:2px;background:var(--step-inactive);
-border-radius:2px;margin:0 4px;margin-bottom:18px;
-transition:background .22s ease;
-min-width:12px;
-}
-.stepConnector.done{background:var(--step-done)}
-.wizardNavRow{
-display:flex;align-items:center;justify-content:space-between;gap:10px;
-margin-top:16px;
-flex-wrap:wrap;
-}
-.wizardNavRow .navHint{
-font-size:12px;color:var(--muted);font-weight:800;
+.fileRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.fileRow input[type="file"]{
+max-width:260px;font-size:12px;color:var(--t3);
+background:transparent;border:none;padding:0;
 }
 
-@media (max-width:580px){
-.stepLabel{display:none}
-.stepInner{min-width:40px;padding:8px 4px}
-.wizardStepper{gap:0}
+/* TIP */
+.tipBox{
+border-left:2px solid var(--a);background:var(--a-dim);
+border-radius:0 var(--r) var(--r) 0;
+padding:10px 14px;margin-top:14px;
+font-size:12.5px;color:var(--t2);line-height:1.5;
 }
 
-html[data-theme="light"] .status.ok{color:#1a8a5a}
-html[data-theme="light"] .status.bad{color:#c0392b}
-html[data-theme="light"] .status.warn{color:#946c00}
-html[data-theme="light"] pre{background:rgba(230,248,238,.9);color:#0a2e1e}
-html[data-theme="light"] .pill{background:rgba(22,120,80,.06)}
-html[data-theme="light"] .dropdown{box-shadow:0 12px 40px rgba(22,120,80,.15)}
+/* COURSE PICKER */
+.coursePicker{display:grid;gap:10px;margin-top:6px}
+.checkRow{display:flex;gap:8px;align-items:center;margin-top:2px}
+.checkRow input[type="checkbox"]{width:15px;height:15px;accent-color:var(--a);cursor:pointer;flex-shrink:0}
+.checkLabel{font-size:13px;color:var(--t2);font-weight:500;cursor:pointer}
+.pickerHint{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-top:3px;line-height:1.4}
+.saveRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.pickerStatus{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)}
 
-@media (prefers-reduced-motion: reduce){
-html{scroll-behavior:auto}
+/* ACTIONS */
+.actRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px}
+
+/* DEBUG */
+details{margin-top:12px}
+summary{
+cursor:pointer;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--t3);letter-spacing:.06em;text-transform:uppercase;
+}
+pre{
+margin-top:10px;padding:12px;border-radius:var(--r);
+border:1px solid var(--l);background:var(--s2);
+font-family:'DM Mono',monospace;font-size:11.5px;
+line-height:1.45;white-space:pre-wrap;word-break:break-word;color:var(--t2);
+}
+
+/* EXAM QUESTIONS */
+.qBox{
+padding:14px 16px;border:1px solid var(--l);border-radius:var(--r);
+background:var(--s2);margin-top:10px;
+transition:border-color .16s ease,background .28s ease;
+}
+.qBox:hover{border-color:var(--l2)}
+.qMeta{
+font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;
+color:var(--t3);letter-spacing:.06em;margin-bottom:8px;
+}
+.qText{font-weight:600;font-size:14px;color:var(--t);line-height:1.5}
+.answerTa{
+margin-top:10px;padding:10px 12px;
+border:1px solid var(--l);border-radius:var(--r);
+background:var(--bg);color:var(--t);
+font-family:'DM Sans',sans-serif;font-size:13.5px;
+min-height:100px;resize:vertical;width:100%;outline:none;
+transition:border-color .16s ease,background .28s ease;
+}
+.answerTa:focus{border-color:var(--l2);box-shadow:0 0 0 3px rgba(27,255,140,.07)}
+
+/* MC */
+.mcGroup{display:grid;gap:7px;margin-top:10px}
+.mcOpt{
+display:flex;align-items:center;gap:10px;
+padding:10px 13px;border-radius:var(--r);
+border:1px solid var(--l);background:var(--bg);
+cursor:pointer;font-weight:500;font-size:13.5px;color:var(--t2);
+text-align:left;width:100%;
+transition:border-color .16s ease,background .16s ease,color .16s ease,transform .16s ease;
+}
+.mcOpt:hover{border-color:var(--l2);background:var(--a-dim);color:var(--t);transform:translateY(-1px)}
+.mcOpt.sel{border-color:var(--a);background:rgba(27,255,140,.07);color:var(--t)}
+body.light .mcOpt.sel{background:rgba(13,148,96,.07)}
+.mcLetter{
+width:24px;height:24px;border-radius:var(--r2);
+display:grid;place-items:center;flex-shrink:0;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+background:var(--s);border:1px solid var(--l);color:var(--t3);
+transition:background .16s ease,border-color .16s ease,color .16s ease;
+}
+.mcOpt.sel .mcLetter{background:var(--a);border-color:var(--a);color:#08100d}
+body.light .mcOpt.sel .mcLetter{color:#fff}
+
+/* RESULT */
+.resultItem{
+padding:14px 16px;border:1px solid var(--l);border-radius:var(--r);
+background:var(--s2);margin-top:10px;
+}
+.resultFeedback{font-size:13.5px;color:var(--t2);line-height:1.55;margin-top:6px}
+.resultModelLabel{
+font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;
+color:var(--a);letter-spacing:.08em;text-transform:uppercase;
+margin-top:12px;padding-top:12px;border-top:1px solid var(--l);margin-bottom:6px;
+}
+.resultModelText{font-size:13.5px;color:var(--t);white-space:pre-wrap;line-height:1.55;font-weight:400}
+
+/* LOGIN */
+.loginOverlay{
+position:fixed;inset:0;z-index:9999;
+background:var(--bg);
+display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.loginCard{
+width:min(560px,100%);
+background:var(--s);border:1px solid var(--l);border-radius:var(--r);
+box-shadow:var(--sh3);overflow:hidden;
+}
+.loginTop{
+display:flex;gap:14px;align-items:center;
+padding:20px 20px 16px;border-bottom:1px solid var(--l);
+}
+.loginTop img{height:34px;width:auto}
+.loginTitle{
+font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;
+color:var(--t);letter-spacing:-.02em;
+}
+.loginSub{
+font-family:'DM Mono',monospace;font-size:10.5px;
+color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-top:3px;
+}
+.loginBody{padding:20px}
+.authBlock{
+border:1px solid var(--l);border-radius:var(--r);
+padding:16px;background:var(--s2);margin-bottom:14px;
+}
+.authBlockTitle{
+font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;
+color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;
+}
+.loginBtnRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.loginHint{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-top:10px;line-height:1.5}
+.loginErr{font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500;color:var(--danger);margin-top:10px}
+.codeBlock{margin-top:14px}
+details summary.codeToggle{
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--t3);letter-spacing:.08em;text-transform:uppercase;
+cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;margin-bottom:10px;
+}
+details summary.codeToggle::before{content:"▸ "}
+details[open] summary.codeToggle::before{content:"▾ "}
+
+/* SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .28s ease,transform .28s cubic-bezier(.22,.61,.36,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* FOOTER */
+footer{
+border-top:1px solid var(--l);padding:20px 24px;text-align:center;
+font-family:'DM Mono',monospace;font-size:11px;
+color:var(--t3);letter-spacing:.04em;
+transition:border-color .28s ease,color .28s ease;
+}
+
+@media(prefers-reduced-motion:reduce){
 *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
-.dropdown,.dropdown.is-open,.dropdown.is-closing,.cardBody,.reveal{transform:none !important;filter:none !important}
-.reveal{opacity:1}
-.loginCard,.card:first-of-type,.uploadBox::after,.loaderOrb{animation:none !important}
+.reveal{opacity:1;transform:none}
 }
 </style>
 </head>
 <body>
+
 <div id="pageLoader" class="pageLoader" aria-hidden="true">
 <div style="display:grid;place-items:center">
-<div class="loaderOrb" aria-hidden="true"></div>
+<div class="loaderOrb"></div>
 <div class="loaderText">ProviaAI</div>
 </div>
 </div>
+
 <div id="loginScreen" class="loginOverlay" aria-hidden="false">
 <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
 <div class="loginTop">
 <img src="image/proviaai-logo.png" alt="ProviaAi logga">
 <div>
-<div class="ltTitle" id="lockTitle">ProviaAi</div>
-<div class="ltSub" id="lockSub">Åtkomst krävs för att använda appen</div>
+<div class="loginTitle" id="lockTitle">ProviaAi</div>
+<div class="loginSub" id="lockSub">Åtkomst krävs</div>
 </div>
 </div>
 <div class="loginBody">
-<div class="authBox" id="authBox">
-<div class="authTitle" id="authTitle">Logga in / Skapa konto</div>
-<div class="grid2" style="margin-top:10px">
+<div class="authBlock">
+<div class="authBlockTitle" id="authTitle">Logga in / Skapa konto</div>
+<div class="grid2">
 <div>
-<label for="authEmail" id="authEmailLabel">E-post</label>
+<label class="fieldLabel" for="authEmail" id="authEmailLabel">E-post</label>
 <input id="authEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
 </div>
 <div>
-<label for="authPass" id="authPassLabel">Lösenord</label>
+<label class="fieldLabel" for="authPass" id="authPassLabel">Lösenord</label>
 <input id="authPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
 </div>
 </div>
-<div class="loginRow">
-<button class="btn btnPrimary" type="button" id="signInBtn">Logga in</button>
-<button class="btn" type="button" id="signUpBtn">Skapa konto</button>
-<a class="btn" href="index.html" id="toInfoBtn">Till infosidan</a>
-<a class="btn" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+<div class="loginBtnRow">
+<button class="btn btnP" type="button" id="signInBtn">Logga in</button>
+<button class="btn btnG" type="button" id="signUpBtn">Skapa konto</button>
+<a class="btn btnG" href="index.html" id="toInfoBtn">Infosidan</a>
+<a class="btn btnG" href="förbättring.html" id="toImproveBtn">Förbättring</a>
 </div>
-<div class="miniHint" id="authHint">
-Om du har "admin-godkännande": nya konton kan fastna på "Väntar på godkännande" tills admin godkänner.<br><br>
+<div class="loginHint" id="authHint">Nya konton väntar på admin-godkännande.</div>
 </div>
-</div>
-<details style="margin-top:12px" open>
-<summary id="codeSummary">Alternativ inloggning: kod</summary>
-<label for="accessCode" id="lockLabel">Åtkomstkod</label>
-<input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" />
-<div class="loginRow">
-<button class="btn btnPrimary" type="button" id="unlockBtn">Lås upp</button>
+<details class="codeBlock">
+<summary class="codeToggle" id="codeSummary">Alternativ: åtkomstkod</summary>
+<label class="fieldLabel" for="accessCode" id="lockLabel">Åtkomstkod</label>
+<input id="accessCode" type="password" placeholder="Skriv koden…" autocomplete="off" style="margin-bottom:10px" />
+<div class="loginBtnRow">
+<button class="btn btnP" type="button" id="unlockBtn">Lås upp</button>
 </div>
 </details>
-<div id="errorMsg" class="err" aria-live="polite"></div>
+<div id="errorMsg" class="loginErr" aria-live="polite"></div>
 </div>
 </div>
 </div>
+
 <header>
-<div class="wrap topbar">
+<div class="hWrap">
 <a class="brand" href="index.html">
 <img src="image/proviaai-logo.png" alt="ProviaAi logga">
 <div>
-<div class="name" id="brandName">ProviaAi</div>
-<div class="tag" id="brandTag">Mockprov • Rättning • Modellsvar</div>
+<div class="brandName" id="brandName">ProviaAi</div>
+<div class="brandTag" id="brandTag">Mockprov · Rättning · Modellsvar</div>
 </div>
 </a>
+<div class="hRight">
+<button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
+<span class="tglIcon" id="tglIcon">🌙</span>
+<span id="tglLabel">Light</span>
+</button>
 <div class="menuWrap">
-<button class="themeToggleBtn" id="themeToggleBtn" type="button" aria-label="Växla tema" title="Växla ljust/mörkt läge">🌙</button>
-<button class="iconBtn" id="menuBtn" type="button" aria-label="Meny">
-<div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+<button class="menuBtn" id="menuBtn" type="button" aria-label="Meny">
+<div class="barsIcon" aria-hidden="true"><span></span><span></span><span></span></div>
 </button>
 <div class="dropdown" id="menu" aria-label="Menyval">
-<a href="#material" data-scroll="#material"><span id="m1">1) Material</span><span class="pill">Text/OCR</span></a>
-<a href="#settings" data-scroll="#settings"><span id="m2">2) Inställningar</span><span class="pill">Nivå</span></a>
-<a href="#exam" data-scroll="#exam"><span id="m3">3) Mockprov</span><span class="pill">Frågor</span></a>
-<a href="#result" data-scroll="#result"><span id="m4">4) Rättning</span><span class="pill">Modellsvar</span></a>
-<a href="förbättring.html"><span id="mImprove">Förbättring</span><span class="pill">Coach</span></a>
-<button type="button" id="langBtn"><span id="mLang">English</span><span class="pill" id="langPill">SV</span></button>
-<button type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="pill">Lås</span></button>
+<button class="ddItem" type="button" data-scroll="#material"><span id="m1">01 — Material</span><span class="ddPill">Text</span></button>
+<button class="ddItem" type="button" data-scroll="#settings"><span id="m2">02 — Inställningar</span><span class="ddPill">Nivå</span></button>
+<button class="ddItem" type="button" data-scroll="#exam"><span id="m3">03 — Mockprov</span><span class="ddPill">Frågor</span></button>
+<button class="ddItem" type="button" data-scroll="#result"><span id="m4">04 — Rättning</span><span class="ddPill">Svar</span></button>
+<div class="ddSep"></div>
+<a class="ddItem" href="förbättring.html"><span id="mImprove">Förbättring</span><span class="ddPill">Coach</span></a>
+<button class="ddItem" type="button" id="langBtn"><span id="mLang">English</span><span class="ddPill" id="langPill">SV</span></button>
+<button class="ddItem" type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="ddPill">Lås</span></button>
+</div>
 </div>
 </div>
 </div>
 </header>
+
 <main class="wrap" id="appRoot">
 
-<!-- WIZARD STEPPER -->
-<nav class="wizardStepper" id="wizardStepper" aria-label="Steg-navigering">
-<div class="wizardStep active" data-step="0" id="wStep0" tabindex="0" role="button" aria-label="Steg 1: Material">
-<div class="stepInner">
-<div class="stepCircle">1</div>
-<div class="stepLabel" id="wLabel0">Material</div>
+<div class="hero reveal">
+<div class="eyebrow">Provgenererare</div>
+<h1 class="heroTitle">Skapa <em>mockprov</em> på sekunder</h1>
+<p class="heroSub" id="heroSubText">Klistra in ditt studiematerial, välj nivå och antal frågor — ProviaAi genererar ett komplett prov med automatisk rättning och modellsvar.</p>
+<div class="statusRow">
+<div class="sDot ok" id="sDotMain"></div>
+<span class="statusLabel" id="miniState">PROV IDAG: —</span>
+<span id="spinWrap" style="display:none"><span class="spinner"></span></span>
 </div>
 </div>
-<div class="stepConnector" id="wConn0"></div>
-<div class="wizardStep" data-step="1" id="wStep1" tabindex="0" role="button" aria-label="Steg 2: Inställningar">
-<div class="stepInner">
-<div class="stepCircle">2</div>
-<div class="stepLabel" id="wLabel1">Inställningar</div>
-</div>
-</div>
-<div class="stepConnector" id="wConn1"></div>
-<div class="wizardStep" data-step="2" id="wStep2" tabindex="0" role="button" aria-label="Steg 3: Mockprov">
-<div class="stepInner">
-<div class="stepCircle">3</div>
-<div class="stepLabel" id="wLabel2">Mockprov</div>
-</div>
-</div>
-<div class="stepConnector" id="wConn2"></div>
-<div class="wizardStep" data-step="3" id="wStep3" tabindex="0" role="button" aria-label="Steg 4: Rättning">
-<div class="stepInner">
-<div class="stepCircle">4</div>
-<div class="stepLabel" id="wLabel3">Rättning</div>
-</div>
-</div>
-</nav>
 
-<section class="card collapsible" id="material" data-collapsible="true">
-<div class="cardHeaderRow">
-<div class="sectionTitle" style="margin:0"><span id="tStep1">Steg 1 – Material</span></div>
-<button class="toggleBtn" type="button" data-toggle-card="#material">
-<span id="tg_material">Öppna</span><span class="chev" aria-hidden="true"></span>
+<div class="howto reveal" id="howtoBox">
+<div class="howtoTitle" id="howtoTitle">Hur det fungerar</div>
+<div class="howtoText" id="howtoText">Följ stegen nedan i ordning: Lägg in material → Välj inställningar → Besvara provet → Se rättning. Du kan hoppa mellan steg via navigeringen nedan.</div>
+</div>
+
+<div class="wizardWrap reveal">
+<div class="wizardRail" id="wizardStepper" role="navigation" aria-label="Stegnavigering">
+<button class="wStep active" data-step="0" id="wStep0" type="button">
+<span class="wStepNum">01</span><span class="wStepLabel" id="wLabel0">Material</span>
+</button>
+<button class="wStep" data-step="1" id="wStep1" type="button">
+<span class="wStepNum">02</span><span class="wStepLabel" id="wLabel1">Inställningar</span>
+</button>
+<button class="wStep" data-step="2" id="wStep2" type="button">
+<span class="wStepNum">03</span><span class="wStepLabel" id="wLabel2">Mockprov</span>
+</button>
+<button class="wStep" data-step="3" id="wStep3" type="button">
+<span class="wStepNum">04</span><span class="wStepLabel" id="wLabel3">Rättning</span>
 </button>
 </div>
-<div class="cardBody">
-<p class="sectionSub" id="tStep1Sub">Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.</p>
-<label for="pastedText" id="tPasteLabel">Material (klistra in text)</label>
+</div>
+
+<!-- STEP 1 -->
+<div class="section reveal" id="material">
+<div class="sHead" data-toggle-section="material">
+<span class="sNum">01</span>
+<div class="sMeta">
+<div class="sTitle" id="tStep1">Material</div>
+<div class="sDesc" id="tStep1Sub">Klistra in text eller använd OCR för att extrahera text från bild</div>
+</div>
+<svg class="sChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+</div>
+<div class="sDivider"></div>
+<div class="sBody">
+<label class="fieldLabel" for="pastedText" id="tPasteLabel">Studiematerial</label>
 <textarea id="pastedText" placeholder="Rubriker → punktlista → definitioner/formler → exempel"></textarea>
-<div class="uploadBox" style="margin-top:12px">
+<div class="uploadBox" style="margin-top:16px">
 <div class="uploadTop">
-<div style="font-weight:1000;color:var(--deep);font-size:13px" id="tOcrTitle">Bild → OCR (valfritt)</div>
+<span class="uploadTitle" id="tOcrTitle">Bild → OCR (valfritt)</span>
+</div>
 <div class="fileRow">
 <input id="imageInput" type="file" accept="image/*" capture="environment" />
-<button class="btn" id="ocrBtn" type="button">OCR till material</button>
+<button class="btn btnG" id="ocrBtn" type="button">OCR till material</button>
+</div>
+<div class="stxt" id="tOcrHint" style="margin-top:8px">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
+<div class="stxt" id="ocrStatus"></div>
+</div>
+<div class="tipBox" id="formatHint">Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.</div>
+<div class="sNav">
+<span class="sNavHint" id="wHint0">Fyll i material ovan</span>
+<button class="btn btnP" type="button" id="wNext0">Nästa: Inställningar →</button>
 </div>
 </div>
-<div class="smallHint" id="tOcrHint">Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.</div>
-<div class="status" id="ocrStatus"></div>
 </div>
-<div class="status warn" id="formatHint" style="margin-top:12px">
-Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
+
+<!-- STEP 2 -->
+<div class="section collapsed reveal" id="settings">
+<div class="sHead" data-toggle-section="settings">
+<span class="sNum">02</span>
+<div class="sMeta">
+<div class="sTitle" id="tStep2">Inställningar</div>
+<div class="sDesc" id="tStep2Sub">Välj betygsnivå, frågetyp och antal frågor</div>
 </div>
-<div class="wizardNavRow">
-<span class="navHint" id="wHint0">Fyll i material ovan, sedan nästa steg →</span>
-<button class="btn btnPrimary" type="button" id="wNext0">Nästa: Inställningar →</button>
+<svg class="sChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
 </div>
-</div>
-</section>
-<section class="card collapsible" id="settings" data-collapsible="true">
-<div class="cardHeaderRow">
-<div class="sectionTitle" style="margin:0">
-<span id="tStep2">Steg 2 – Inställningar</span>
-<a class="btn" href="förbättring.html" id="improveBtnInline">Förbättring</a>
-</div>
-<button class="toggleBtn" type="button" data-toggle-card="#settings">
-<span id="tg_settings">Öppna</span><span class="chev" aria-hidden="true"></span>
-</button>
-</div>
-<div class="cardBody">
-<p class="sectionSub" id="tStep2Sub">Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.</p>
+<div class="sDivider"></div>
+<div class="sBody">
 <div class="grid2">
 <div>
-<label for="level" id="tLevel">Nivå (E/C/A)</label>
+<label class="fieldLabel" for="level" id="tLevel">Nivå (E / C / A)</label>
 <select id="level">
 <option value="E">E</option>
 <option value="C" selected>C</option>
@@ -615,37 +695,27 @@ Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.
 </select>
 </div>
 <div>
-<label for="course" id="tCourse">Ämne/kurs (valfritt)</label>
-<input id="course" placeholder="Ex: Matematik 2b / Historia 1b" style="display:none" />
-<div class="coursePicker" style="display:grid;gap:10px;margin-top:6px">
-<label style="display:grid;gap:6px;margin:0">
-<input id="courseSearch" type="text"
-placeholder="Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
-list="courseDatalist" autocomplete="off">
+<label class="fieldLabel" for="course" id="tCourse">Ämne / Kurs</label>
+<input id="course" placeholder="Ex: Matematik 2b" style="display:none" />
+<div class="coursePicker">
+<input id="courseSearch" type="text" placeholder="Sök kurs, t.ex. Matematik 4..." list="courseDatalist" autocomplete="off">
 <datalist id="courseDatalist"></datalist>
-<div style="font-size:12px;color:var(--muted);font-weight:750;line-height:1.35">
-Välj från listan eller skriv. Om den inte finns: använd "Annan kurs" nedan.
+<div class="pickerHint">Välj från listan eller skriv fritt.</div>
+<div class="checkRow">
+<input id="useCustomCourse" type="checkbox">
+<label class="checkLabel" for="useCustomCourse">Annan kurs (manuell)</label>
 </div>
-</label>
-<div style="display:grid;gap:8px">
-<label style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0">
-<input id="useCustomCourse" type="checkbox" style="width:18px;height:18px">
-<span style="font-weight:900">Annan kurs (skriv manuellt)</span>
-</label>
-<input id="customCourse" type="text"
-placeholder="Skriv kurs/ämne exakt som du vill ha det..."
-disabled>
-<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-<button id="saveCustomCourse" type="button" class="btn">Spara i min lista</button>
-<span id="coursePickerStatus" style="font-size:12px;color:var(--muted);font-weight:750"></span>
+<input id="customCourse" type="text" placeholder="Skriv kurs/ämne exakt..." disabled>
+<div class="saveRow">
+<button id="saveCustomCourse" type="button" class="btn btnG">Spara i min lista</button>
+<span id="coursePickerStatus" class="pickerStatus"></span>
 </div>
 </div>
 </div>
 </div>
-</div>
-<div class="grid2" style="margin-top:12px">
+<div class="grid2" style="margin-top:14px">
 <div>
-<label for="qType" id="tQType">Frågetyp</label>
+<label class="fieldLabel" for="qType" id="tQType">Frågetyp</label>
 <select id="qType">
 <option value="mix" selected id="qtMix">Blandat</option>
 <option value="mc" id="qtMc">Flervalsfrågor</option>
@@ -653,7 +723,7 @@ disabled>
 </select>
 </div>
 <div>
-<label for="numQuestions" id="tNum">Antal frågor (exakt)</label>
+<label class="fieldLabel" for="numQuestions" id="tNum">Antal frågor</label>
 <select id="numQuestions">
 <option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
 <option>9</option><option>10</option><option>11</option><option>12</option>
@@ -661,60 +731,67 @@ disabled>
 </select>
 </div>
 </div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center">
-<button class="btn btnPrimary" id="generateExamBtn" type="button">Skapa mockprov</button>
-<button class="btn" id="gradeBtn" type="button" disabled>Rätta prov</button>
-<button class="btn" id="clearBtn" type="button">Rensa</button>
-<span style="display:flex;gap:10px;align-items:center">
-<span id="spinWrap" style="display:none"><span class="spinner" aria-hidden="true"></span></span>
-<span class="sectionSub" id="miniState">Prov idag kvar: —</span>
-</span>
+<div class="actRow">
+<button class="btn btnP" id="generateExamBtn" type="button">Skapa mockprov</button>
+<button class="btn btnG" id="gradeBtn" type="button" disabled>Rätta prov</button>
+<button class="btn btnG" id="clearBtn" type="button">Rensa</button>
+<a class="btn btnG" href="förbättring.html" id="improveBtnInline">Förbättring</a>
 </div>
-<div class="status" id="status"></div>
+<div class="stxt" id="status"></div>
 <details id="debugWrap" style="display:none">
 <summary id="debugTitle">Debug</summary>
 <pre id="debug"></pre>
 </details>
-<div class="wizardNavRow">
-<button class="btn" type="button" id="wBack1">← Tillbaka</button>
-<span class="navHint" id="wHint1">Tryck "Skapa mockprov" för att gå vidare</span>
+<div class="sNav">
+<button class="btn btnG" type="button" id="wBack1">← Tillbaka</button>
+<span class="sNavHint" id="wHint1">Tryck "Skapa mockprov" för att fortsätta</span>
 </div>
 </div>
-</section>
-<section class="card collapsible" id="exam" data-collapsible="true">
-<div class="cardHeaderRow">
-<div class="sectionTitle" style="margin:0"><span id="tStep3">Steg 3 – Mockprov</span></div>
-<button class="toggleBtn" type="button" data-toggle-card="#exam">
-<span id="tg_exam">Öppna</span><span class="chev" aria-hidden="true"></span>
-</button>
 </div>
-<div class="cardBody">
-<div class="status" id="examMeta">Ingen provdata ännu.</div>
+
+<!-- STEP 3 -->
+<div class="section collapsed reveal" id="exam">
+<div class="sHead" data-toggle-section="exam">
+<span class="sNum">03</span>
+<div class="sMeta">
+<div class="sTitle" id="tStep3">Mockprov</div>
+<div class="sDesc" id="examMeta">Ingen provdata ännu.</div>
+</div>
+<svg class="sChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+</div>
+<div class="sDivider"></div>
+<div class="sBody">
 <div id="examBody"></div>
-<div class="wizardNavRow" style="margin-top:16px">
-<button class="btn" type="button" id="wBack2">← Tillbaka</button>
-<button class="btn btnPrimary" type="button" id="wNext2" id="wGradeNav">Rätta prov →</button>
+<div class="sNav">
+<button class="btn btnG" type="button" id="wBack2">← Tillbaka</button>
+<button class="btn btnP" type="button" id="wNext2">Rätta prov →</button>
 </div>
 </div>
-</section>
-<section class="card collapsible" id="result" data-collapsible="true">
-<div class="cardHeaderRow">
-<div class="sectionTitle" style="margin:0"><span id="tStep4">Steg 4 – Rättning</span></div>
-<button class="toggleBtn" type="button" data-toggle-card="#result">
-<span id="tg_result">Öppna</span><span class="chev" aria-hidden="true"></span>
-</button>
 </div>
-<div class="cardBody">
-<div class="status" id="resultMeta">Ingen rättning ännu.</div>
+
+<!-- STEP 4 -->
+<div class="section collapsed reveal" id="result">
+<div class="sHead" data-toggle-section="result">
+<span class="sNum">04</span>
+<div class="sMeta">
+<div class="sTitle" id="tStep4">Rättning</div>
+<div class="sDesc" id="resultMeta">Ingen rättning ännu.</div>
+</div>
+<svg class="sChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+</div>
+<div class="sDivider"></div>
+<div class="sBody">
 <div id="resultBody"></div>
-<div class="wizardNavRow" style="margin-top:16px">
-<button class="btn" type="button" id="wBack3">← Tillbaka</button>
-<button class="btn btnPrimary" type="button" id="wRestart">Nytt prov →</button>
+<div class="sNav">
+<button class="btn btnG" type="button" id="wBack3">← Tillbaka</button>
+<button class="btn btnP" type="button" id="wRestart">Nytt prov →</button>
 </div>
 </div>
-</section>
+</div>
+
 </main>
 <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
@@ -746,1406 +823,565 @@ return String(s ?? "")
 let LANG = localStorage.getItem("proviaai_lang") || "sv";
 const T = {
 sv:{
-brandTag:"Mockprov • Rättning • Modellsvar",
-lockSub:"Åtkomst krävs för att använda appen",
-lockLabel:"Åtkomstkod",
-unlock:"Lås upp",
-toInfo:"Till infosidan",
-toImprove:"Förbättring",
-m1:"1) Material", m2:"2) Inställningar", m3:"3) Mockprov", m4:"4) Rättning",
-mImprove:"Förbättring", mLang:"English", mLogout:"Logga ut",
-step1:"Steg 1 – Material",
-step1Sub:"Klistra in text. Valfritt: välj en bild eller ta foto → OCR lägger in text i materialet.",
-pasteLabel:"Material (klistra in text)",
-pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
-ocrTitle:"Bild → OCR (valfritt)",
-ocrBtn:"OCR till material",
+brandTag:"Mockprov · Rättning · Modellsvar",
+lockSub:"Åtkomst krävs",
+lockLabel:"Åtkomstkod",unlock:"Lås upp",toInfo:"Infosidan",toImprove:"Förbättring",
+m1:"01 — Material",m2:"02 — Inställningar",m3:"03 — Mockprov",m4:"04 — Rättning",
+mImprove:"Förbättring",mLang:"English",mLogout:"Logga ut",
+step1:"Material",step1Sub:"Klistra in text eller använd OCR för att extrahera text från bild",
+pasteLabel:"Studiematerial",pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
+ocrTitle:"Bild → OCR (valfritt)",ocrBtn:"OCR till material",
 ocrHint:"Tips: tydlig bild rakt ovanifrån, bra ljus, hög kontrast.",
 tip:"Tips: rubriker + punktlistor ger mer exakta frågor och bättre rättning.",
-step2:"Steg 2 – Inställningar",
-step2Sub:"Välj betygsnivå (E/C/A), frågetyp och exakt antal frågor.",
-level:"Nivå (E/C/A)",
-course:"Ämne/kurs (valfritt)",
-coursePH:"Ex: Matematik 2b / Historia 1b",
-qType:"Frågetyp",
-qtMix:"Blandat", qtMc:"Flervalsfrågor", qtShort:"Kortsvar",
-num:"Antal frågor (exakt)",
-gen:"Skapa mockprov", grade:"Rätta prov", clear:"Rensa",
-ready:"Prov idag kvar: —",
-debug:"Debug",
-step3:"Steg 3 – Mockprov",
-step4:"Steg 4 – Rättning",
-noExam:"Ingen provdata ännu.",
-noGrade:"Ingen rättning ännu.",
+step2:"Inställningar",step2Sub:"Välj betygsnivå, frågetyp och antal frågor",
+level:"Nivå (E / C / A)",course:"Ämne / Kurs",coursePH:"Ex: Matematik 2b",
+qType:"Frågetyp",qtMix:"Blandat",qtMc:"Flervalsfrågor",qtShort:"Kortsvar",
+num:"Antal frågor",
+gen:"Skapa mockprov",grade:"Rätta prov",clear:"Rensa",
+ready:"PROV IDAG: —",debug:"Debug",
+step3:"Mockprov",step4:"Rättning",
+noExam:"Ingen provdata ännu.",noGrade:"Ingen rättning ännu.",
 needMat:"Klistra in material först.",
-genWorking:"Skapar mockprov…",
-gradeWorking:"Rättar prov…",
-genDone:"Mockprov klart.",
-gradeDone:"Rättning klar. Sparad till förbättring.",
-wrongCode:"Fel kod.",
-ocrNoFile:"Välj en bild först.",
-ocrWorking:"OCR pågår…",
-ocrDone:"OCR klart. Texten lades in i materialet.",
-writeAnswer:"Skriv ditt svar här…",
-fullScore:"Vad som ger full poäng (modellsvar)",
-genFirst:"Skapa mockprov först.",
-cleared:"Allt rensat. Börja om.",
+genWorking:"Skapar mockprov…",gradeWorking:"Rättar prov…",
+genDone:"Mockprov klart.",gradeDone:"Rättning klar. Sparad till förbättring.",
+wrongCode:"Fel kod.",ocrNoFile:"Välj en bild först.",
+ocrWorking:"OCR pågår…",ocrDone:"OCR klart. Texten lades in i materialet.",
+writeAnswer:"Skriv ditt svar här…",fullScore:"Modellsvar (full poäng)",
+genFirst:"Skapa mockprov först.",cleared:"Allt rensat. Börja om.",
 footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
 pending:"Väntar på admin-godkännande. Du får tillgång när du blir godkänd.",
 trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
-quotaUnknown:"Prov idag: —",
-quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
-openSection:"Öppna",
-closeSection:"Stäng",
-wLabel0:"Material", wLabel1:"Inställningar", wLabel2:"Mockprov", wLabel3:"Rättning",
-wNext0:"Nästa: Inställningar →",
-wHint0:"Fyll i material ovan, sedan nästa steg →",
-wHint1:'Tryck "Skapa mockprov" för att gå vidare',
-wBack:"← Tillbaka",
-wNext2:"Rätta prov →",
-wRestart:"Nytt prov →"
+quotaUnknown:"PROV IDAG: —",quotaHit:"Dagens gräns är nådd. Försök igen imorgon.",
+openSection:"Öppna",closeSection:"Stäng",
+wLabel0:"Material",wLabel1:"Inställningar",wLabel2:"Mockprov",wLabel3:"Rättning",
+wNext0:"Nästa: Inställningar →",wHint0:"Fyll i material ovan",
+wHint1:'Tryck "Skapa mockprov" för att fortsätta',
+wBack:"← Tillbaka",wNext2:"Rätta prov →",wRestart:"Nytt prov →",
+heroSub:"Klistra in ditt studiematerial, välj nivå och antal frågor — ProviaAi genererar ett komplett prov med automatisk rättning och modellsvar.",
+howtoTitle:"Hur det fungerar",
+howtoText:"Följ stegen nedan i ordning: Lägg in material → Välj inställningar → Besvara provet → Se rättning. Du kan hoppa mellan steg via navigeringen.",
+lightLabel:"Light",darkLabel:"Dark"
 },
 en:{
-brandTag:"Mock exams • Grading • Model answers",
-lockSub:"Access is required to use the app",
-lockLabel:"Access code",
-unlock:"Unlock",
-toInfo:"Go to info page",
-toImprove:"Improve",
-m1:"1) Material", m2:"2) Settings", m3:"3) Mock exam", m4:"4) Grading",
-mImprove:"Improve", mLang:"Svenska", mLogout:"Log out",
-step1:"Step 1 – Material",
-step1Sub:"Paste text. Optional: choose an image or take a photo → OCR adds text into your material.",
-pasteLabel:"Material (paste text)",
-pastePH:"Headings → bullet points → definitions/formulas → examples",
-ocrTitle:"Image → OCR (optional)",
-ocrBtn:"OCR into material",
+brandTag:"Mock exams · Grading · Model answers",
+lockSub:"Access required",lockLabel:"Access code",unlock:"Unlock",
+toInfo:"Info page",toImprove:"Improve",
+m1:"01 — Material",m2:"02 — Settings",m3:"03 — Mock exam",m4:"04 — Grading",
+mImprove:"Improve",mLang:"Svenska",mLogout:"Log out",
+step1:"Material",step1Sub:"Paste text or use OCR to extract text from image",
+pasteLabel:"Study material",pastePH:"Headings → bullet points → definitions/formulas → examples",
+ocrTitle:"Image → OCR (optional)",ocrBtn:"OCR into material",
 ocrHint:"Tip: sharp photo from above, good light, high contrast.",
 tip:"Tip: headings + bullet points produce more accurate questions and grading.",
-step2:"Step 2 – Settings",
-step2Sub:"Choose level (E/C/A), question type and an exact number of questions.",
-level:"Level (E/C/A)",
-course:"Subject/course (optional)",
-coursePH:"e.g., Math / History",
-qType:"Question type",
-qtMix:"Mixed", qtMc:"Multiple choice", qtShort:"Short answer",
-num:"Number of questions (exact)",
-gen:"Generate mock exam", grade:"Grade exam", clear:"Clear",
-ready:"Exams left today: —",
-debug:"Debug",
-step3:"Step 3 – Mock exam",
-step4:"Step 4 – Grading",
-noExam:"No exam data yet.",
-noGrade:"No grading yet.",
+step2:"Settings",step2Sub:"Choose level, question type and number of questions",
+level:"Level (E / C / A)",course:"Subject / Course",coursePH:"e.g., Math / History",
+qType:"Question type",qtMix:"Mixed",qtMc:"Multiple choice",qtShort:"Short answer",
+num:"Number of questions",
+gen:"Generate mock exam",grade:"Grade exam",clear:"Clear",
+ready:"EXAMS TODAY: —",debug:"Debug",
+step3:"Mock exam",step4:"Grading",
+noExam:"No exam data yet.",noGrade:"No grading yet.",
 needMat:"Paste material first.",
-genWorking:"Generating mock exam…",
-gradeWorking:"Grading…",
-genDone:"Mock exam ready.",
-gradeDone:"Grading done. Saved to Improve page.",
-wrongCode:"Wrong code.",
-ocrNoFile:"Choose an image first.",
-ocrWorking:"Running OCR…",
-ocrDone:"OCR done. Text was added to the material.",
-writeAnswer:"Write your answer here…",
-fullScore:"Full-score model answer",
-genFirst:"Generate an exam first.",
-cleared:"Cleared. Start again.",
+genWorking:"Generating mock exam…",gradeWorking:"Grading…",
+genDone:"Mock exam ready.",gradeDone:"Grading done. Saved to Improve page.",
+wrongCode:"Wrong code.",ocrNoFile:"Choose an image first.",
+ocrWorking:"Running OCR…",ocrDone:"OCR done. Text was added to the material.",
+writeAnswer:"Write your answer here…",fullScore:"Full-score model answer",
+genFirst:"Generate an exam first.",cleared:"Cleared. Start again.",
 footer:"ProviaAi is study support and does not provide official grades.",
 pending:"Waiting for admin approval. You'll get access once approved.",
 trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
-quotaUnknown:"Exams today: —",
-quotaHit:"Daily limit reached. Try again tomorrow.",
-openSection:"Open",
-closeSection:"Close",
-wLabel0:"Material", wLabel1:"Settings", wLabel2:"Mock exam", wLabel3:"Grading",
-wNext0:"Next: Settings →",
-wHint0:"Fill in material above, then next step →",
+quotaUnknown:"EXAMS TODAY: —",quotaHit:"Daily limit reached. Try again tomorrow.",
+openSection:"Open",closeSection:"Close",
+wLabel0:"Material",wLabel1:"Settings",wLabel2:"Mock exam",wLabel3:"Grading",
+wNext0:"Next: Settings →",wHint0:"Fill in material above",
 wHint1:'Press "Generate mock exam" to continue',
-wBack:"← Back",
-wNext2:"Grade exam →",
-wRestart:"New exam →"
+wBack:"← Back",wNext2:"Grade exam →",wRestart:"New exam →",
+heroSub:"Paste your study material, choose level and number of questions — ProviaAi generates a complete exam with automatic grading and model answers.",
+howtoTitle:"How it works",
+howtoText:"Follow the steps in order: Add material → Choose settings → Answer the exam → See grading. You can jump between steps at any time.",
+lightLabel:"Light",darkLabel:"Dark"
 }
 };
-function showDebug(txt){
-const wrap = $("debugWrap"), pre = $("debug");
-if(!wrap || !pre) return;
-wrap.style.display = "block";
-pre.textContent = txt || "";
-}
-function hideDebug(){
-const wrap = $("debugWrap"), pre = $("debug");
-if(!wrap || !pre) return;
-wrap.style.display = "none";
-pre.textContent = "";
-}
-function reportErr(err){
-const msg = (err && (err.stack || err.message)) ? String(err.stack || err.message) : String(err);
-showDebug(msg);
-const s = $("status");
-if(s){
-s.className = "status bad";
-s.textContent = "JS-fel: se Debug.";
-}
-const em = $("errorMsg");
-if(em) em.textContent = "JS-fel: se Debug.";
-}
-window.addEventListener("error", (e) => reportErr(e.error || e.message));
-window.addEventListener("unhandledrejection", (e) => reportErr(e.reason));
-const USE_SUPABASE =
-typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("http") &&
-typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 40;
-const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
-const db = (USE_SUPABASE && SupabaseGlobal && typeof SupabaseGlobal.createClient === "function")
-? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-: null;
-async function getAccessToken(){
-if(!db) return "";
-try{
-const { data, error } = await db.auth.getSession();
-if(error) return "";
-return data?.session?.access_token || "";
-} catch {
-return "";
-}
-}
-async function postJson(path, payload){
-const token = await getAccessToken();
-const headers = { "Content-Type":"application/json" };
-if(token) headers["Authorization"] = `Bearer ${token}`;
-const resp = await fetch(path, {
-method:"POST",
-headers,
-body: JSON.stringify(payload)
-});
-const raw = await resp.text();
-let data = null;
-try{ data = JSON.parse(raw); } catch {}
-return { ok: resp.ok, status: resp.status, raw, data };
-}
-async function getUserId(){
-if(!db) return null;
-const { data, error } = await db.auth.getUser();
-if(error) return null;
-return data?.user?.id || null;
-}
-async function saveExamToAccount({ material, course, level, qType, exam, answers, result }){
-if(!db) return { ok:false, error:"Supabase not configured" };
-const userId = await getUserId();
-if(!userId) return { ok:false, error:"Not logged in" };
-const row = {
-user_id: userId,
-course: course || null,
-level: level || null,
-qtype: qType || null,
-material: material || "",
-exam: exam || null,
-answers: answers || null,
-result: result || null,
-created_at: new Date().toISOString()
-};
-const { data, error } = await db
-.from("user_exams")
-.insert([row])
-.select("id");
-if(error) return { ok:false, error: error.message || String(error) };
-const id = Array.isArray(data) && data[0] ? data[0].id : null;
-return { ok:true, id };
-}
-function ymd(d=new Date()){
-const y = d.getFullYear();
-const m = String(d.getMonth()+1).padStart(2,"0");
-const day = String(d.getDate()).padStart(2,"0");
-return `${y}-${m}-${day}`;
-}
-async function quotaFallbackKey(){
-const uid = (await getUserId()) || "guest";
-return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`;
-}
-let quotaState = { limit: null, count: null };
-function normalizeLimit(x){
-if(x === null || x === undefined) return null;
-if(x === "unlimited") return Infinity;
-const n = Number(x);
-if(!Number.isFinite(n)) return null;
-if(n <= 0) return 0;
-return n;
-}
-function normalizeCount(x){
-const n = Number(x);
-if(!Number.isFinite(n) || n < 0) return null;
-return Math.floor(n);
-}
-async function readFallbackCount(){
-const k = await quotaFallbackKey();
-return lsGetNum(k, 0);
-}
-async function writeFallbackCount(n){
-const k = await quotaFallbackKey();
-localStorage.setItem(k, String(Math.max(0, Math.floor(n))));
-}
-async function setQuotaFromServerMaybe(obj){
-const lim = normalizeLimit(obj?.limit);
-const cnt = normalizeCount(obj?.count);
-if(lim === null || cnt === null) return false;
-quotaState.limit = lim;
-quotaState.count = cnt;
-await writeFallbackCount(cnt);
-await refreshQuotaUi();
-return true;
-}
-async function bumpQuotaFallbackOnSuccess(){
-const cur = await readFallbackCount();
-await writeFallbackCount(cur + 1);
-}
-async function refreshQuotaUi(){
-const ms = document.getElementById("miniState");
-if(!ms) return;
-const t = T[LANG];
-const fallbackCount = await readFallbackCount();
-const limit = (quotaState.limit !== null) ? quotaState.limit : null;
-const count = (quotaState.count !== null) ? quotaState.count : fallbackCount;
-if(limit === null){
-ms.textContent = t.quotaUnknown;
-return;
-}
-const limitText = (limit === Infinity) ? "∞" : String(limit);
-const left = (limit === Infinity) ? Infinity : Math.max(limit - count, 0);
-const leftText = (left === Infinity) ? "∞" : String(left);
-if(LANG === "sv"){
-ms.textContent = `Prov idag: ${count}/${limitText} • Kvar: ${leftText}`;
-} else {
-ms.textContent = `Exams today: ${count}/${limitText} • Left: ${leftText}`;
-}
-}
-function mergeMistakesFromExamRows(rows){
-const out = [];
-const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-(rows || []).forEach(r => {
-const createdTs = Date.parse(r.created_at) || 0;
-if(createdTs <= clearTs) return;
-const exam = r.exam || null;
-const result = r.result || null;
-const answers = r.answers || null;
-const qById = new Map(((exam && exam.questions) ? exam.questions : []).map(q => [String(q.id), q]));
-const aById = new Map((Array.isArray(answers) ? answers : []).map(a => [String(a.id), String(a.answer || "")]));
-const per = (result && Array.isArray(result.per_question)) ? result.per_question : [];
-per.forEach(item => {
-const got = Number(item.points || 0);
-const mx = Number(item.max_points || 0);
-if(mx > 0 && got < mx){
-const qid = String(item.id);
-const q = qById.get(qid) || {};
-out.push({
-ts: createdTs || Date.now(),
-course: r.course || "",
-level: r.level || "C",
-qType: q.type || (r.qtype || "mix"),
-id: qid,
-question: String(q.question || ""),
-user_answer: String(aById.get(qid) || ""),
-feedback: String(item.feedback || ""),
-model_answer: String(item.model_answer || ""),
-points: got,
-max_points: mx
-});
-}
-});
-});
-while(out.length > 200) out.shift();
-return out;
-}
-async function loadExamsFromAccountToLocal(){
-if(!db) return;
-const uid = await getUserId();
-if(!uid) return;
-const { data, error } = await db
-.from("user_exams")
-.select("id, created_at, course, level, qtype, material, exam, answers, result")
-.eq("user_id", uid)
-.order("created_at", { ascending: true })
-.limit(500);
-if(error) return;
-const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-const filtered = (data || []).filter((r) => {
-const ts = Date.parse(r.created_at) || 0;
-return ts > clearTs;
-});
-const history = (filtered || []).map((r) => ({
-ts: Date.parse(r.created_at) || Date.now(),
-course: r.course || "",
-level: r.level || "C",
-qType: r.qtype || "mix",
-total_points: r.result?.total_points ?? 0,
-max_points: r.result?.max_points ?? 0,
-percent: (r.result?.max_points > 0) ? Math.round((r.result.total_points / r.result.max_points) * 100) : 0
-}));
-lsSet(LS_HISTORY, history);
-const last = filtered && filtered.length ? filtered[filtered.length - 1] : null;
-if(last){
-lsSet(LS_LAST, {
-ts: Date.parse(last.created_at) || Date.now(),
-attempt: history[history.length - 1],
-exam: last.exam,
-result: last.result
-});
-if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
-} else {
-try{ localStorage.removeItem(LS_LAST); } catch {}
-}
-const mergedMistakes = mergeMistakesFromExamRows(filtered);
-lsSet(LS_MISTAKES, mergedMistakes);
-}
-async function ensureUserProfileRow(){
-if(!db) return;
-const uid = await getUserId();
-if(!uid) return;
-const { data: existing, error } = await db
-.from("user_profiles")
-.select("id")
-.eq("id", uid)
-.maybeSingle();
-if(error) return;
-if(!existing){
-await db.from("user_profiles").insert([{ id: uid }]);
-}
-}
-async function updateMastery(result){
-if(!db) return;
-const uid = await getUserId();
-if(!uid) return;
-const { data: profile } = await db
-.from("user_profiles")
-.select("mastery")
-.eq("id", uid)
-.maybeSingle();
-if(!profile) return;
-const mastery = profile.mastery || {};
-(result.per_question || []).forEach(q => {
-const concept = (q.concept_tag || "okänt").toString();
-const ratio = (Number(q.max_points) > 0) ? (Number(q.points) / Number(q.max_points)) : 0;
-const old = Number.isFinite(Number(mastery[concept])) ? Number(mastery[concept]) : 50;
-const updated = Math.round(old * 0.8 + (ratio * 100) * 0.2);
-mastery[concept] = updated;
-});
-await db.from("user_profiles").update({ mastery }).eq("id", uid);
-}
-function onClick(id, fn){
-const el = $(id);
-if(!el) return false;
-el.addEventListener("click", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
-return true;
-}
-function onKey(fn){
-document.addEventListener("keydown", (e) => { try{ fn(e); } catch(err){ reportErr(err); } });
-}
-function openMenuAnimated(){
-const m = $("menu");
-if(!m) return;
-m.classList.remove("is-closing");
-m.style.display = "block";
-requestAnimationFrame(() => m.classList.add("is-open"));
-}
-function closeMenuAnimated(){
-const m = $("menu");
-if(!m) return;
-if(!m.classList.contains("is-open")){ m.style.display = "none"; return; }
-m.classList.remove("is-open");
-m.classList.add("is-closing");
-window.setTimeout(() => {
-m.classList.remove("is-closing");
-m.style.display = "none";
-}, 180);
-}
-function initMouseGlow(){
-let raf = null;
-window.addEventListener("mousemove", (e) => {
-if(raf) return;
-raf = requestAnimationFrame(() => {
-document.body.style.setProperty("--mx", `${e.clientX}px`);
-document.body.style.setProperty("--my", `${e.clientY}px`);
-raf = null;
-});
-}, { passive:true });
-}
-function hidePageLoader(){
-const l = $("pageLoader");
-if(!l) return;
-window.setTimeout(() => l.classList.add("done"), 180);
-}
-function initReveal(){
-const nodes = Array.from(document.querySelectorAll(".card, .qBox, .uploadBox"));
-nodes.forEach((el, i) => {
-el.classList.add("reveal");
-el.style.transitionDelay = `${Math.min(i * 16, 120)}ms`;
-});
-const io = new IntersectionObserver((entries) => {
-entries.forEach((entry) => {
-if(entry.isIntersecting){
-entry.target.classList.add("in");
-io.unobserve(entry.target);
-}
-});
-}, { threshold:.1, rootMargin:"0px 0px -8% 0px" });
-nodes.forEach((el) => io.observe(el));
-}
-// ── THEME ──
+
+/* THEME */
 function applyTheme(theme){
-document.documentElement.setAttribute("data-theme", theme);
+if(theme === "light") document.body.classList.add("light");
+else document.body.classList.remove("light");
 localStorage.setItem(LS_THEME, theme);
-const btn = $("themeToggleBtn");
-if(btn) btn.textContent = (theme === "dark") ? "☀️" : "🌙";
+const icon = $("tglIcon");
+const label = $("tglLabel");
+if(icon) icon.textContent = theme === "light" ? "🌙" : "☀️";
+if(label) label.textContent = theme === "light" ? (T[LANG]?.darkLabel||"Dark") : (T[LANG]?.lightLabel||"Light");
 }
 function initTheme(){
 const saved = localStorage.getItem(LS_THEME);
 const preferred = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 applyTheme(saved || preferred);
-onClick("themeToggleBtn", () => {
-const cur = document.documentElement.getAttribute("data-theme") || "dark";
-applyTheme(cur === "dark" ? "light" : "dark");
+const btn = $("themeToggleBtn");
+if(btn) btn.addEventListener("click", () => {
+applyTheme(document.body.classList.contains("light") ? "dark" : "light");
 });
 }
-// ── WIZARD ──
-let currentWizardStep = 0;
-const WIZARD_STEPS = ["material", "settings", "exam", "result"];
-function setWizardStep(step, opts = {}){
-const { scroll = true } = opts;
-currentWizardStep = Math.max(0, Math.min(step, WIZARD_STEPS.length - 1));
-// update stepper UI
-WIZARD_STEPS.forEach((id, i) => {
-const el = $("wStep" + i);
-const conn = $("wConn" + i);
-if(el){
-el.classList.remove("active","done");
-if(i === currentWizardStep) el.classList.add("active");
-else if(i < currentWizardStep) el.classList.add("done");
+
+function showDebug(txt){ const w=$("debugWrap"),p=$("debug"); if(!w||!p)return; w.style.display="block"; p.textContent=txt||""; }
+function hideDebug(){ const w=$("debugWrap"),p=$("debug"); if(!w||!p)return; w.style.display="none"; p.textContent=""; }
+function reportErr(err){
+const msg=(err&&(err.stack||err.message))?String(err.stack||err.message):String(err);
+showDebug(msg);
+const s=$("status"); if(s){s.className="stxt bad";s.textContent="JS-fel: se Debug.";}
+const em=$("errorMsg"); if(em) em.textContent="JS-fel: se Debug.";
 }
-if(conn){
-conn.classList.toggle("done", i < currentWizardStep);
+window.addEventListener("error",(e)=>reportErr(e.error||e.message));
+window.addEventListener("unhandledrejection",(e)=>reportErr(e.reason));
+
+const USE_SUPABASE=typeof SUPABASE_URL==="string"&&SUPABASE_URL.startsWith("http")&&typeof SUPABASE_ANON_KEY==="string"&&SUPABASE_ANON_KEY.length>40;
+const SupabaseGlobal=(typeof window!=="undefined")?window.supabase:null;
+const db=(USE_SUPABASE&&SupabaseGlobal&&typeof SupabaseGlobal.createClient==="function")?SupabaseGlobal.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+async function getAccessToken(){ if(!db) return ""; try{ const {data,error}=await db.auth.getSession(); if(error)return""; return data?.session?.access_token||""; }catch{return "";} }
+async function postJson(path,payload){
+const token=await getAccessToken(); const headers={"Content-Type":"application/json"};
+if(token) headers["Authorization"]=`Bearer ${token}`;
+const resp=await fetch(path,{method:"POST",headers,body:JSON.stringify(payload)});
+const raw=await resp.text(); let data=null; try{data=JSON.parse(raw);}catch{}
+return{ok:resp.ok,status:resp.status,raw,data};
 }
-// open/close cards
-const card = document.getElementById(id);
-if(card) setCardOpen(card, i === currentWizardStep);
+async function getUserId(){ if(!db)return null; const{data,error}=await db.auth.getUser(); if(error)return null; return data?.user?.id||null; }
+async function saveExamToAccount({material,course,level,qType,exam,answers,result}){
+if(!db)return{ok:false,error:"Supabase not configured"};
+const userId=await getUserId(); if(!userId)return{ok:false,error:"Not logged in"};
+const row={user_id:userId,course:course||null,level:level||null,qtype:qType||null,material:material||"",exam:exam||null,answers:answers||null,result:result||null,created_at:new Date().toISOString()};
+const{data,error}=await db.from("user_exams").insert([row]).select("id");
+if(error)return{ok:false,error:error.message||String(error)};
+return{ok:true,id:Array.isArray(data)&&data[0]?data[0].id:null};
+}
+function ymd(d=new Date()){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${day}`; }
+async function quotaFallbackKey(){ const uid=(await getUserId())||"guest"; return `${LS_QUOTA_FALLBACK_PREFIX}${uid}_${ymd()}`; }
+let quotaState={limit:null,count:null};
+function normalizeLimit(x){ if(x===null||x===undefined)return null; if(x==="unlimited")return Infinity; const n=Number(x); if(!Number.isFinite(n))return null; if(n<=0)return 0; return n; }
+function normalizeCount(x){ const n=Number(x); if(!Number.isFinite(n)||n<0)return null; return Math.floor(n); }
+async function readFallbackCount(){ const k=await quotaFallbackKey(); return lsGetNum(k,0); }
+async function writeFallbackCount(n){ const k=await quotaFallbackKey(); localStorage.setItem(k,String(Math.max(0,Math.floor(n)))); }
+async function setQuotaFromServerMaybe(obj){ const lim=normalizeLimit(obj?.limit),cnt=normalizeCount(obj?.count); if(lim===null||cnt===null)return false; quotaState.limit=lim; quotaState.count=cnt; await writeFallbackCount(cnt); await refreshQuotaUi(); return true; }
+async function bumpQuotaFallbackOnSuccess(){ const cur=await readFallbackCount(); await writeFallbackCount(cur+1); }
+async function refreshQuotaUi(){
+const ms=$("miniState"); if(!ms)return;
+const t=T[LANG];
+const fallbackCount=await readFallbackCount();
+const limit=(quotaState.limit!==null)?quotaState.limit:null;
+const count=(quotaState.count!==null)?quotaState.count:fallbackCount;
+if(limit===null){ms.textContent=t.quotaUnknown;return;}
+const limitText=(limit===Infinity)?"∞":String(limit);
+const left=(limit===Infinity)?Infinity:Math.max(limit-count,0);
+const leftText=(left===Infinity)?"∞":String(left);
+ms.textContent=(LANG==="sv")?`PROV IDAG: ${count}/${limitText} · KVAR: ${leftText}`:`EXAMS TODAY: ${count}/${limitText} · LEFT: ${leftText}`;
+}
+function mergeMistakesFromExamRows(rows){
+const out=[],clearTs=lsGetNum(LS_CLEAR_TS,0);
+(rows||[]).forEach(r=>{
+const createdTs=Date.parse(r.created_at)||0; if(createdTs<=clearTs)return;
+const exam=r.exam||null,result=r.result||null,answers=r.answers||null;
+const qById=new Map(((exam&&exam.questions)?exam.questions:[]).map(q=>[String(q.id),q]));
+const aById=new Map((Array.isArray(answers)?answers:[]).map(a=>[String(a.id),String(a.answer||"")]));
+const per=(result&&Array.isArray(result.per_question))?result.per_question:[];
+per.forEach(item=>{
+const got=Number(item.points||0),mx=Number(item.max_points||0);
+if(mx>0&&got<mx){const qid=String(item.id),q=qById.get(qid)||{};
+out.push({ts:createdTs||Date.now(),course:r.course||"",level:r.level||"C",qType:q.type||(r.qtype||"mix"),id:qid,question:String(q.question||""),user_answer:String(aById.get(qid)||""),feedback:String(item.feedback||""),model_answer:String(item.model_answer||""),points:got,max_points:mx});}
 });
-if(scroll){
-const activeCard = document.getElementById(WIZARD_STEPS[currentWizardStep]);
-if(activeCard) window.setTimeout(() => activeCard.scrollIntoView({behavior:"smooth", block:"start"}), 60);
+});
+while(out.length>200)out.shift(); return out;
 }
+async function loadExamsFromAccountToLocal(){
+if(!db)return; const uid=await getUserId(); if(!uid)return;
+const{data,error}=await db.from("user_exams").select("id,created_at,course,level,qtype,material,exam,answers,result").eq("user_id",uid).order("created_at",{ascending:true}).limit(500);
+if(error)return;
+const clearTs=lsGetNum(LS_CLEAR_TS,0);
+const filtered=(data||[]).filter(r=>(Date.parse(r.created_at)||0)>clearTs);
+const history=filtered.map(r=>({ts:Date.parse(r.created_at)||Date.now(),course:r.course||"",level:r.level||"C",qType:r.qtype||"mix",total_points:r.result?.total_points??0,max_points:r.result?.max_points??0,percent:(r.result?.max_points>0)?Math.round((r.result.total_points/r.result.max_points)*100):0}));
+lsSet(LS_HISTORY,history);
+const last=filtered&&filtered.length?filtered[filtered.length-1]:null;
+if(last){lsSet(LS_LAST,{ts:Date.parse(last.created_at)||Date.now(),attempt:history[history.length-1],exam:last.exam,result:last.result});if(typeof last.material==="string")localStorage.setItem(LS_MATERIAL,last.material);}
+else{try{localStorage.removeItem(LS_LAST);}catch{}}
+lsSet(LS_MISTAKES,mergeMistakesFromExamRows(filtered));
+}
+async function ensureUserProfileRow(){
+if(!db)return; const uid=await getUserId(); if(!uid)return;
+const{data:existing,error}=await db.from("user_profiles").select("id").eq("id",uid).maybeSingle();
+if(error)return; if(!existing)await db.from("user_profiles").insert([{id:uid}]);
+}
+async function updateMastery(result){
+if(!db)return; const uid=await getUserId(); if(!uid)return;
+const{data:profile}=await db.from("user_profiles").select("mastery").eq("id",uid).maybeSingle();
+if(!profile)return; const mastery=profile.mastery||{};
+(result.per_question||[]).forEach(q=>{
+const concept=(q.concept_tag||"okänt").toString();
+const ratio=(Number(q.max_points)>0)?(Number(q.points)/Number(q.max_points)):0;
+const old=Number.isFinite(Number(mastery[concept]))?Number(mastery[concept]):50;
+mastery[concept]=Math.round(old*0.8+(ratio*100)*0.2);
+});
+await db.from("user_profiles").update({mastery}).eq("id",uid);
+}
+function onClick(id,fn){ const el=$(id); if(!el)return false; el.addEventListener("click",(e)=>{try{fn(e);}catch(err){reportErr(err);}}); return true; }
+function onKey(fn){ document.addEventListener("keydown",(e)=>{try{fn(e);}catch(err){reportErr(err);}}); }
+
+function openMenuAnimated(){ const m=$("menu");if(!m)return;m.classList.remove("is-closing");m.style.display="block";requestAnimationFrame(()=>m.classList.add("is-open")); }
+function closeMenuAnimated(){ const m=$("menu");if(!m)return;if(!m.classList.contains("is-open")){m.style.display="none";return;}m.classList.remove("is-open");m.classList.add("is-closing");window.setTimeout(()=>{m.classList.remove("is-closing");m.style.display="none";},140); }
+function hidePageLoader(){ const l=$("pageLoader");if(!l)return;window.setTimeout(()=>l.classList.add("done"),180); }
+
+function initReveal(){
+const nodes=Array.from(document.querySelectorAll(".reveal"));
+nodes.forEach((el,i)=>{el.style.transitionDelay=`${Math.min(i*40,160)}ms`;});
+const io=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("in");io.unobserve(entry.target);}});},{threshold:.07,rootMargin:"0px 0px -5% 0px"});
+nodes.forEach(el=>io.observe(el));
+}
+
+function setSectionOpen(sectionEl,open){
+if(!sectionEl)return;
+if(open)sectionEl.classList.remove("collapsed"); else sectionEl.classList.add("collapsed");
+const state=lsGetObj(LS_UI_OPEN)||{};
+state[sectionEl.id]=!!open; lsSet(LS_UI_OPEN,state);
+}
+function initSectionHeads(){
+document.querySelectorAll("[data-toggle-section]").forEach(btn=>{
+btn.addEventListener("click",()=>{ const id=btn.getAttribute("data-toggle-section"); const el=document.getElementById(id); if(!el)return; setSectionOpen(el,el.classList.contains("collapsed")); });
+});
+}
+
+let currentWizardStep=0;
+const WIZARD_STEP_IDS=["material","settings","exam","result"];
+function setWizardStep(step,opts={}){
+const{scroll=true}=opts;
+currentWizardStep=Math.max(0,Math.min(step,WIZARD_STEP_IDS.length-1));
+WIZARD_STEP_IDS.forEach((id,i)=>{
+const btn=$("wStep"+i); if(btn){btn.classList.remove("active","done");if(i===currentWizardStep)btn.classList.add("active");else if(i<currentWizardStep)btn.classList.add("done");}
+setSectionOpen(document.getElementById(id),i===currentWizardStep);
+});
+if(scroll){const card=document.getElementById(WIZARD_STEP_IDS[currentWizardStep]);if(card)window.setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),60);}
 }
 function initWizard(){
-// stepper clicks
-document.querySelectorAll(".wizardStep").forEach(el => {
-const step = parseInt(el.dataset.step, 10);
-el.addEventListener("click", () => setWizardStep(step));
-el.addEventListener("keydown", (e) => {
-if(e.key === "Enter" || e.key === " "){ e.preventDefault(); setWizardStep(step); }
+document.querySelectorAll(".wStep[data-step]").forEach(btn=>{const step=parseInt(btn.dataset.step,10);btn.addEventListener("click",()=>setWizardStep(step));});
+onClick("wNext0",()=>{const mat=(pastedTextEl()?.value||"").trim();if(!mat){setStatus(T[LANG].needMat,"bad");return;}setWizardStep(1);});
+onClick("wBack1",()=>setWizardStep(0));
+onClick("wBack2",()=>setWizardStep(1));
+onClick("wNext2",async()=>{const g=$("gradeBtn");if(g&&!g.disabled)g.click();});
+onClick("wBack3",()=>setWizardStep(2));
+onClick("wRestart",()=>{clearAll();setWizardStep(0);});
+setWizardStep(0,{scroll:false});
+}
+
+const STANDARD_COURSES=["Matematik (grundskola)","Svenska (grundskola)","Svenska som andraspråk (grundskola)","Engelska (grundskola)","Biologi (grundskola)","Fysik (grundskola)","Kemi (grundskola)","Geografi (grundskola)","Historia (grundskola)","Religionskunskap (grundskola)","Samhällskunskap (grundskola)","Teknik (grundskola)","Idrott och hälsa (grundskola)","Hem- och konsumentkunskap (grundskola)","Bild (grundskola)","Musik (grundskola)","Slöjd (grundskola)","Moderna språk (grundskola)","Matematik 1a","Matematik 1b","Matematik 1c","Matematik 2a","Matematik 2b","Matematik 2c","Matematik 3b","Matematik 3c","Matematik 4","Matematik 5","Svenska 1","Svenska 2","Svenska 3","Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3","Engelska 5","Engelska 6","Engelska 7","Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2","Historia 1a1","Historia 1a2","Historia 1b","Historia 2","Religionskunskap 1","Religionskunskap 2","Geografi 1","Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2","Biologi 1","Biologi 2","Fysik 1a","Fysik 1","Fysik 2","Kemi 1","Kemi 2","Idrott och hälsa 1","Idrott och hälsa 2","Psykologi 1","Psykologi 2","Filosofi 1","Filosofi 2","Företagsekonomi 1","Företagsekonomi 2","Entreprenörskap","Entreprenörskap och företagande","Juridik 1","Juridik 2","Juridik 3","Privatjuridik","Internationell ekonomi","Marknadsföring","Redovisning","Programmering 1","Programmering 2","Webbutveckling 1","Webbutveckling 2","Dator- och nätverksteknik","Digitalt skapande 1"];
+function normCourse(s){return String(s||"").trim().replace(/\s+/g," ");}
+function getAllCourses(){ const custom=lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean),std=STANDARD_COURSES.map(normCourse).filter(Boolean),set=new Set([...std,...custom]); return Array.from(set).sort((a,b)=>a.localeCompare(b,"sv")); }
+function fillCourseDatalist(){ const dl=document.getElementById("courseDatalist");if(!dl)return;dl.innerHTML="";getAllCourses().forEach(c=>{const opt=document.createElement("option");opt.value=c;dl.appendChild(opt);}); }
+function getSelectedCourseFromPicker(){ const useCustom=!!document.getElementById("useCustomCourse")?.checked,custom=normCourse(document.getElementById("customCourse")?.value),search=normCourse(document.getElementById("courseSearch")?.value); return useCustom?custom:search; }
+function syncPickerToHiddenCourse(){ const v=getSelectedCourseFromPicker(),hidden=courseEl();if(hidden)hidden.value=v; }
+function initCourseLibrary(){
+fillCourseDatalist();
+const chk=document.getElementById("useCustomCourse"),custom=document.getElementById("customCourse"),search=document.getElementById("courseSearch"),status=document.getElementById("coursePickerStatus"),saveBtn=document.getElementById("saveCustomCourse");
+const syncEnable=()=>{ const on=!!chk?.checked;if(custom)custom.disabled=!on;if(search)search.disabled=on;if(status)status.textContent="";syncPickerToHiddenCourse(); };
+chk?.addEventListener("change",syncEnable);
+search?.addEventListener("input",()=>syncPickerToHiddenCourse());
+search?.addEventListener("change",()=>syncPickerToHiddenCourse());
+custom?.addEventListener("input",()=>syncPickerToHiddenCourse());
+custom?.addEventListener("change",()=>syncPickerToHiddenCourse());
+saveBtn?.addEventListener("click",()=>{
+const name=normCourse(custom?.value);
+if(!name){if(status)status.textContent=(LANG==="sv")?"Skriv ett namn först.":"Type a name first.";return;}
+const list=lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
+if(!list.includes(name))list.push(name);
+lsSet(LS_CUSTOM_COURSES,list);fillCourseDatalist();
+if(status)status.textContent=(LANG==="sv")?`Sparad: ${name}`:`Saved: ${name}`;
+syncPickerToHiddenCourse();
 });
-});
-// nav buttons
-onClick("wNext0", () => {
-const mat = (pastedTextEl()?.value || "").trim();
-if(!mat){
-setStatus(T[LANG].needMat, "bad");
-return;
+syncEnable();syncPickerToHiddenCourse();
 }
-setWizardStep(1);
-});
-onClick("wBack1", () => setWizardStep(0));
-onClick("wBack2", () => setWizardStep(1));
-onClick("wNext2", async () => {
-// trigger grade
-const gradeBtn = $("gradeBtn");
-if(gradeBtn && !gradeBtn.disabled) gradeBtn.click();
-});
-onClick("wBack3", () => setWizardStep(2));
-onClick("wRestart", () => {
-clearAll();
-setWizardStep(0);
-});
-// start at step 0 all collapsed except material
-setWizardStep(0, { scroll: false });
+
+function applyLang(){
+const t=T[LANG];
+const set=(id,val)=>{const el=$(id);if(el)el.textContent=val;};
+set("brandTag",t.brandTag);set("lockSub",t.lockSub);set("lockLabel",t.lockLabel);
+set("unlockBtn",t.unlock);set("toInfoBtn",t.toInfo);set("toImproveBtn",t.toImprove);
+set("m1",t.m1);set("m2",t.m2);set("m3",t.m3);set("m4",t.m4);
+set("mImprove",t.mImprove);set("mLang",t.mLang);set("mLogout",t.mLogout);set("langPill",LANG.toUpperCase());
+set("tStep1",t.step1);set("tStep1Sub",t.step1Sub);set("tPasteLabel",t.pasteLabel);
+const pt=$("pastedText");if(pt)pt.placeholder=t.pastePH;
+set("tOcrTitle",t.ocrTitle);set("ocrBtn",t.ocrBtn);set("tOcrHint",t.ocrHint);set("formatHint",t.tip);
+set("tStep2",t.step2);set("tStep2Sub",t.step2Sub);set("tLevel",t.level);set("tCourse",t.course);
+const c=$("course");if(c)c.placeholder=t.coursePH;
+set("tQType",t.qType);set("qtMix",t.qtMix);set("qtMc",t.qtMc);set("qtShort",t.qtShort);set("tNum",t.num);
+set("generateExamBtn",t.gen);set("gradeBtn",t.grade);set("clearBtn",t.clear);
+set("improveBtnInline",t.mImprove);set("debugTitle",t.debug);
+set("tStep3",t.step3);set("tStep4",t.step4);set("footerText",t.footer);
+set("wLabel0",t.wLabel0);set("wLabel1",t.wLabel1);set("wLabel2",t.wLabel2);set("wLabel3",t.wLabel3);
+set("wNext0",t.wNext0);set("wHint0",t.wHint0);set("wHint1",t.wHint1);
+set("wBack1",t.wBack);set("wBack2",t.wBack);set("wBack3",t.wBack);
+set("wNext2",t.wNext2);set("wRestart",t.wRestart);
+set("heroSubText",t.heroSub);set("howtoTitle",t.howtoTitle);set("howtoText",t.howtoText);
+const eb=$("examBody"),rb=$("resultBody"),em=$("examMeta"),rm=$("resultMeta");
+if(em&&eb&&!eb.children.length)em.textContent=t.noExam;
+if(rm&&rb&&!rb.children.length)rm.textContent=t.noGrade;
+const cs=document.getElementById("courseSearch"),cc=document.getElementById("customCourse"),sc=document.getElementById("saveCustomCourse");
+if(cs)cs.placeholder=(LANG==="sv")?"Sök kurs, t.ex. Matematik 4...":"Search course...";
+if(cc)cc.placeholder=(LANG==="sv")?"Skriv kurs/ämne exakt...":"Type subject/course...";
+if(sc)sc.textContent=(LANG==="sv")?"Spara i min lista":"Save to my list";
+const isDark=!document.body.classList.contains("light");
+const tglLabel=$("tglLabel"); if(tglLabel)tglLabel.textContent=isDark?t.lightLabel:t.darkLabel;
 }
-const spinWrap = () => $("spinWrap");
-const miniStateEl = () => $("miniState");
-const statusEl = () => $("status");
-const pastedTextEl = () => $("pastedText");
-const levelEl = () => $("level");
-const courseEl = () => $("course");
-const qTypeEl = () => $("qType");
-const numQuestionsEl = () => $("numQuestions");
-const examMetaEl = () => $("examMeta");
-const examBodyEl = () => $("examBody");
-const resultMetaEl = () => $("resultMeta");
-const resultBodyEl = () => $("resultBody");
-const imageInputEl = () => $("imageInput");
-const ocrStatusEl = () => $("ocrStatus");
-let currentExam = null;
-function setBusy(isBusy, label){
-const sw = spinWrap(), ms = miniStateEl();
-if(sw) sw.style.display = isBusy ? "inline-flex" : "none";
-if(ms) ms.textContent = label || (isBusy ? "…" : T[LANG].ready);
-const genBtn = $("generateExamBtn");
-const gradeBtn = $("gradeBtn");
-const clearBtn = $("clearBtn");
-const ocrBtn = $("ocrBtn");
-if(genBtn) genBtn.disabled = isBusy;
-if(gradeBtn) gradeBtn.disabled = isBusy || !currentExam;
-if(clearBtn) clearBtn.disabled = isBusy;
-if(ocrBtn) ocrBtn.disabled = isBusy;
-const signIn = $("signInBtn");
-const signUp = $("signUpBtn");
-const unlock = $("unlockBtn");
-if(signIn) signIn.disabled = isBusy;
-if(signUp) signUp.disabled = isBusy;
-if(unlock) unlock.disabled = isBusy;
+
+const spinWrap=()=>$("spinWrap"),miniStateEl=()=>$("miniState"),statusEl=()=>$("status");
+const pastedTextEl=()=>$("pastedText"),levelEl=()=>$("level"),courseEl=()=>$("course");
+const qTypeEl=()=>$("qType"),numQuestionsEl=()=>$("numQuestions");
+const examMetaEl=()=>$("examMeta"),examBodyEl=()=>$("examBody");
+const resultMetaEl=()=>$("resultMeta"),resultBodyEl=()=>$("resultBody");
+const imageInputEl=()=>$("imageInput"),ocrStatusEl=()=>$("ocrStatus");
+let currentExam=null;
+
+function setBusy(isBusy,label){
+const sw=spinWrap(),ms=miniStateEl();
+if(sw)sw.style.display=isBusy?"inline-flex":"none";
+if(ms&&label)ms.textContent=label;
+const dot=$("sDotMain");if(dot)dot.classList.toggle("ok",!isBusy);
+["generateExamBtn","clearBtn","ocrBtn","signInBtn","signUpBtn","unlockBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=isBusy;});
+const g=$("gradeBtn");if(g)g.disabled=isBusy||!currentExam;
 }
-function setStatus(txt, kind){
-const s = statusEl();
-if(!s) return;
-s.className = "status" + (kind ? (" " + kind) : "");
-s.textContent = txt || "";
-}
-function setOcrStatus(txt, kind){
-const s = ocrStatusEl();
-if(!s) return;
-s.className = "status" + (kind ? (" " + kind) : "");
-s.textContent = txt || "";
-}
-function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY) === "true"; }
-function showLock(){
-const s = $("loginScreen");
-if(!s) return;
-s.style.display = "flex";
-s.setAttribute("aria-hidden","false");
-document.documentElement.style.overflow = "hidden";
-document.body.style.overflow = "hidden";
-}
-function hideLock(){
-const s = $("loginScreen");
-if(!s) return;
-s.style.display = "none";
-s.setAttribute("aria-hidden","true");
-document.documentElement.style.overflow = "";
-document.body.style.overflow = "";
-}
-function setLockError(msg){
-const em = $("errorMsg");
-if(em) em.textContent = msg || "";
-}
-function unlockByCode(){
-const input = $("accessCode");
-const v = (input?.value || "").trim();
-if(v === ACCESS_CODE){
-localStorage.setItem(ACCESS_FLAG_KEY, "true");
-setLockError("");
-hideLock();
-runTrainModeIfRequested();
-} else {
-setLockError(T[LANG].wrongCode);
-}
-}
-async function logout(){
-localStorage.removeItem(ACCESS_FLAG_KEY);
-closeMenuAnimated();
-if(db){ try{ await db.auth.signOut(); } catch {} }
-showLock();
-await refreshQuotaUi();
-}
+function setStatus(txt,kind){ const s=statusEl();if(!s)return;s.className="stxt"+(kind?" "+kind:"");s.textContent=txt||""; }
+function setOcrStatus(txt,kind){ const s=ocrStatusEl();if(!s)return;s.className="stxt"+(kind?" "+kind:"");s.textContent=txt||""; }
+function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY)==="true"; }
+function showLock(){ const s=$("loginScreen");if(!s)return;s.style.display="flex";s.setAttribute("aria-hidden","false");document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden"; }
+function hideLock(){ const s=$("loginScreen");if(!s)return;s.style.display="none";s.setAttribute("aria-hidden","true");document.documentElement.style.overflow="";document.body.style.overflow=""; }
+function setLockError(msg){ const em=$("errorMsg");if(em)em.textContent=msg||""; }
+function unlockByCode(){ const v=($("accessCode")?.value||"").trim();if(v===ACCESS_CODE){localStorage.setItem(ACCESS_FLAG_KEY,"true");setLockError("");hideLock();runTrainModeIfRequested();}else setLockError(T[LANG].wrongCode); }
+async function logout(){ localStorage.removeItem(ACCESS_FLAG_KEY);closeMenuAnimated();if(db){try{await db.auth.signOut();}catch{}}showLock();await refreshQuotaUi(); }
 async function checkApprovalAndUnlock(session){
-if(!db) return false;
-const user = session?.user;
-if(!user?.id) return false;
-const { data: prof, error } = await db
-.from("profiles")
-.select("approved, role")
-.eq("id", user.id)
-.maybeSingle();
-if(error){
-setLockError(String(error.message || error));
-return false;
-}
-if(!prof){
-setLockError("Profil saknas i databasen (profiles).");
-showLock();
-return false;
-}
-if(!prof.approved){
-setLockError(T[LANG].pending);
-showLock();
-return false;
-}
-setLockError("");
-hideLock();
-return true;
+if(!db)return false; const user=session?.user; if(!user?.id)return false;
+const{data:prof,error}=await db.from("profiles").select("approved,role").eq("id",user.id).maybeSingle();
+if(error){setLockError(String(error.message||error));return false;}
+if(!prof){setLockError("Profil saknas i databasen (profiles).");showLock();return false;}
+if(!prof.approved){setLockError(T[LANG].pending);showLock();return false;}
+setLockError("");hideLock();return true;
 }
 async function signInEmail(){
 hideDebug();
-if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
-const email = ($("authEmail")?.value || "").trim();
-const password = $("authPass")?.value || "";
-if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
-setBusy(true, "…");
-try{
-const { data, error } = await db.auth.signInWithPassword({ email, password });
-if(error){ setLockError(error.message); return; }
-const ok = await checkApprovalAndUnlock(data.session);
-if(ok){
-await loadExamsFromAccountToLocal();
-await ensureUserProfileRow();
-runTrainModeIfRequested();
-}
-} finally {
-setBusy(false, T[LANG].ready);
-}
+if(!db){setLockError("Supabase SDK laddades inte eller keys är fel.");return;}
+const email=($("authEmail")?.value||"").trim(),password=$("authPass")?.value||"";
+if(!email||!password){setLockError("Fyll i e-post och lösenord.");return;}
+setBusy(true,"…");
+try{ const{data,error}=await db.auth.signInWithPassword({email,password}); if(error){setLockError(error.message);return;} const ok=await checkApprovalAndUnlock(data.session); if(ok){await loadExamsFromAccountToLocal();await ensureUserProfileRow();runTrainModeIfRequested();} }
+finally{setBusy(false,T[LANG].ready);}
 }
 async function signUpEmail(){
 hideDebug();
-if(!db){ setLockError("Supabase SDK laddades inte eller keys är fel."); return; }
-const email = ($("authEmail")?.value || "").trim();
-const password = $("authPass")?.value || "";
-if(!email || !password){ setLockError("Fyll i e-post och lösenord."); return; }
-setBusy(true, "…");
-try{
-const { data, error } = await db.auth.signUp({ email, password });
-if(error){ setLockError(error.message); return; }
-if(data?.session){
-const ok = await checkApprovalAndUnlock(data.session);
-if(ok){ await loadExamsFromAccountToLocal(); }
-} else {
-setLockError(T[LANG].pending);
-showLock();
-}
-} finally {
-setBusy(false, T[LANG].ready);
-}
+if(!db){setLockError("Supabase SDK laddades inte eller keys är fel.");return;}
+const email=($("authEmail")?.value||"").trim(),password=$("authPass")?.value||"";
+if(!email||!password){setLockError("Fyll i e-post och lösenord.");return;}
+setBusy(true,"…");
+try{ const{data,error}=await db.auth.signUp({email,password}); if(error){setLockError(error.message);return;} if(data?.session){const ok=await checkApprovalAndUnlock(data.session);if(ok){await loadExamsFromAccountToLocal();}}else{setLockError(T[LANG].pending);showLock();} }
+finally{setBusy(false,T[LANG].ready);}
 runTrainModeIfRequested();
 }
-function buildTrainingMaterialFromMistakes(mistakes, pickedIds){
-const src = Array.isArray(mistakes) ? mistakes : [];
-const idSet = (Array.isArray(pickedIds) && pickedIds.length)
-? new Set(pickedIds.map(x => String(x)))
-: null;
-const filtered = idSet ? src.filter(m => idSet.has(String(m.id))) : src;
-const recent = filtered.slice(-30).reverse();
-const course = (courseEl()?.value || "").trim();
-const headerSv =
-`TRÄNING PÅ DINA MISSTAG\n` +
-`${course ? `Kurs: ${course}\n` : ""}` +
-`Instruktion: Skapa prov som bara testar dessa svaga delar.\n\n`;
-const headerEn =
-`TRAINING FROM YOUR MISTAKES\n` +
-`${course ? `Course: ${course}\n` : ""}` +
-`Instruction: Generate exams that focus only on these weak areas.\n\n`;
-const blocks = recent.map((m, i) => {
-const q = String(m.question || "").trim();
-const fb = String(m.feedback || "").trim();
-const model = String(m.model_answer || "").trim();
-const tag = `${m.points}/${m.max_points}`;
-if(LANG === "sv"){
-return (
-`MISSTAG ${i+1} (${tag})\n` +
-`Fråga: ${q}\n` +
-`Varför poäng tappades: ${fb || "—"}\n` +
-`Modellsvar (full poäng): ${model || "—"}\n`
-);
-}
-return (
-`MISTAKE ${i+1} (${tag})\n` +
-`Question: ${q}\n` +
-`Why points were lost: ${fb || "—"}\n` +
-`Full-score model answer: ${model || "—"}\n`
-);
+function buildTrainingMaterialFromMistakes(mistakes,pickedIds){
+const src=Array.isArray(mistakes)?mistakes:[],idSet=(Array.isArray(pickedIds)&&pickedIds.length)?new Set(pickedIds.map(x=>String(x))):null;
+const filtered=idSet?src.filter(m=>idSet.has(String(m.id))):src,recent=filtered.slice(-30).reverse();
+const course=(courseEl()?.value||"").trim();
+const hSv=`TRÄNING PÅ DINA MISSTAG\n${course?`Kurs: ${course}\n`:""}Instruktion: Skapa prov som bara testar dessa svaga delar.\n\n`;
+const hEn=`TRAINING FROM YOUR MISTAKES\n${course?`Course: ${course}\n`:""}Instruction: Generate exams that focus only on these weak areas.\n\n`;
+const blocks=recent.map((m,i)=>{
+const q=String(m.question||"").trim(),fb=String(m.feedback||"").trim(),model=String(m.model_answer||"").trim(),tag=`${m.points}/${m.max_points}`;
+if(LANG==="sv")return`MISSTAG ${i+1} (${tag})\nFråga: ${q}\nVarför poäng tappades: ${fb||"—"}\nModellsvar (full poäng): ${model||"—"}\n`;
+return`MISTAKE ${i+1} (${tag})\nQuestion: ${q}\nWhy points were lost: ${fb||"—"}\nFull-score model answer: ${model||"—"}\n`;
 }).join("\n---\n\n");
-return (LANG === "sv" ? headerSv : headerEn) + blocks;
+return(LANG==="sv"?hSv:hEn)+blocks;
 }
 function runTrainModeIfRequested(){
-const hash = (window.location.hash || "").toLowerCase();
-if(hash !== "#train") return;
-const mistakes = lsGetArray(LS_MISTAKES);
-if(!mistakes.length){
-setStatus(LANG==="sv" ? "Inga misstag sparade ännu. Rätta ett prov först." : "No saved mistakes yet. Grade an exam first.", "warn");
-setWizardStep(3);
-document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});
-return;
-}
-const pick = lsGetObj(LS_TRAIN_PICK);
-const pickedIds = Array.isArray(pick?.ids) ? pick.ids : [];
-const mat = buildTrainingMaterialFromMistakes(mistakes, pickedIds);
-if(pastedTextEl()) pastedTextEl().value = mat;
-try{ localStorage.setItem(LS_MATERIAL, mat); } catch {}
-if(qTypeEl()) qTypeEl().value = "mix";
-if(numQuestionsEl()) numQuestionsEl().value = "12";
-setStatus(T[LANG].trainLoaded, "ok");
+const hash=(window.location.hash||"").toLowerCase();
+if(hash!=="#train")return;
+const mistakes=lsGetArray(LS_MISTAKES);
+if(!mistakes.length){setStatus(LANG==="sv"?"Inga misstag sparade ännu. Rätta ett prov först.":"No saved mistakes yet. Grade an exam first.","warn");setWizardStep(3);document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});return;}
+const pick=lsGetObj(LS_TRAIN_PICK),pickedIds=Array.isArray(pick?.ids)?pick.ids:[];
+const mat=buildTrainingMaterialFromMistakes(mistakes,pickedIds);
+if(pastedTextEl())pastedTextEl().value=mat;
+try{localStorage.setItem(LS_MATERIAL,mat);}catch{}
+if(qTypeEl())qTypeEl().value="mix";
+if(numQuestionsEl())numQuestionsEl().value="12";
+setStatus(T[LANG].trainLoaded,"ok");
 setWizardStep(0);
 document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
 }
-function readUiState(){
-const s = lsGetObj(LS_UI_OPEN) || {};
-return {
-material: !!s.material,
-settings: !!s.settings,
-exam: !!s.exam,
-result: !!s.result
-};
-}
-function writeUiState(next){
-lsSet(LS_UI_OPEN, next);
-}
-function setToggleLabel(cardId, isOpen){
-const t = T[LANG];
-const map = { material:"tg_material", settings:"tg_settings", exam:"tg_exam", result:"tg_result" };
-const el = $(map[cardId]);
-if(el) el.textContent = isOpen ? t.closeSection : t.openSection;
-}
-function setCardOpen(cardEl, open){
-if(!cardEl) return;
-const id = cardEl.id;
-if(open) cardEl.classList.add("open");
-else cardEl.classList.remove("open");
-setToggleLabel(id, open);
-const state = readUiState();
-if(id in state){
-state[id] = !!open;
-writeUiState(state);
-}
-}
-function openCardById(id, open=true){
-const el = document.getElementById(id);
-if(!el) return;
-setCardOpen(el, open);
-}
-function initCollapsibles(){
-["material","settings","exam","result"].forEach(id => {
-const el = document.getElementById(id);
-if(!el) return;
-el.classList.add("collapsible");
-setCardOpen(el, false);
-});
-document.querySelectorAll('button[data-toggle-card]').forEach(btn => {
-btn.addEventListener("click", () => {
-const sel = btn.getAttribute("data-toggle-card");
-const card = sel ? document.querySelector(sel) : null;
-if(!card) return;
-const open = !card.classList.contains("open");
-setCardOpen(card, open);
-});
-});
-}
-const STANDARD_COURSES = [
-"Matematik (grundskola)",
-"Svenska (grundskola)",
-"Svenska som andraspråk (grundskola)",
-"Engelska (grundskola)",
-"Biologi (grundskola)",
-"Fysik (grundskola)",
-"Kemi (grundskola)",
-"Geografi (grundskola)",
-"Historia (grundskola)",
-"Religionskunskap (grundskola)",
-"Samhällskunskap (grundskola)",
-"Teknik (grundskola)",
-"Idrott och hälsa (grundskola)",
-"Hem- och konsumentkunskap (grundskola)",
-"Bild (grundskola)",
-"Musik (grundskola)",
-"Slöjd (grundskola)",
-"Moderna språk (grundskola)",
-"Matematik 1a","Matematik 1b","Matematik 1c",
-"Matematik 2a","Matematik 2b","Matematik 2c",
-"Matematik 3b","Matematik 3c",
-"Matematik 4","Matematik 5",
-"Svenska 1","Svenska 2","Svenska 3",
-"Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3",
-"Engelska 5","Engelska 6","Engelska 7",
-"Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2",
-"Historia 1a1","Historia 1a2","Historia 1b","Historia 2",
-"Religionskunskap 1","Religionskunskap 2",
-"Geografi 1",
-"Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2",
-"Biologi 1","Biologi 2",
-"Fysik 1a","Fysik 1","Fysik 2",
-"Kemi 1","Kemi 2",
-"Idrott och hälsa 1","Idrott och hälsa 2",
-"Psykologi 1","Psykologi 2",
-"Filosofi 1","Filosofi 2",
-"Företagsekonomi 1","Företagsekonomi 2",
-"Entreprenörskap","Entreprenörskap och företagande",
-"Juridik 1","Juridik 2","Juridik 3",
-"Privatjuridik",
-"Internationell ekonomi",
-"Marknadsföring",
-"Redovisning",
-"Programmering 1","Programmering 2",
-"Webbutveckling 1","Webbutveckling 2",
-"Dator- och nätverksteknik",
-"Digitalt skapande 1"
-];
-function normCourse(s){
-return String(s||"").trim().replace(/\s+/g," ");
-}
-function getAllCourses(){
-const custom = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
-const std = STANDARD_COURSES.map(normCourse).filter(Boolean);
-const set = new Set([...std, ...custom]);
-return Array.from(set).sort((a,b)=>a.localeCompare(b, "sv"));
-}
-function fillCourseDatalist(){
-const dl = document.getElementById("courseDatalist");
-if(!dl) return;
-dl.innerHTML = "";
-getAllCourses().forEach(c => {
-const opt = document.createElement("option");
-opt.value = c;
-dl.appendChild(opt);
-});
-}
-function getSelectedCourseFromPicker(){
-const useCustom = !!document.getElementById("useCustomCourse")?.checked;
-const custom = normCourse(document.getElementById("customCourse")?.value);
-const search = normCourse(document.getElementById("courseSearch")?.value);
-return useCustom ? custom : search;
-}
-function syncPickerToHiddenCourse(){
-const v = getSelectedCourseFromPicker();
-const hidden = courseEl();
-if(hidden) hidden.value = v;
-}
-function initCourseLibrary(){
-fillCourseDatalist();
-const chk = document.getElementById("useCustomCourse");
-const custom = document.getElementById("customCourse");
-const search = document.getElementById("courseSearch");
-const status = document.getElementById("coursePickerStatus");
-const saveBtn = document.getElementById("saveCustomCourse");
-const syncEnable = () => {
-const on = !!chk?.checked;
-if(custom) custom.disabled = !on;
-if(search) search.disabled = on;
-if(status) status.textContent = "";
-syncPickerToHiddenCourse();
-};
-chk?.addEventListener("change", syncEnable);
-search?.addEventListener("input", () => syncPickerToHiddenCourse());
-search?.addEventListener("change", () => syncPickerToHiddenCourse());
-custom?.addEventListener("input", () => syncPickerToHiddenCourse());
-custom?.addEventListener("change", () => syncPickerToHiddenCourse());
-saveBtn?.addEventListener("click", () => {
-const name = normCourse(custom?.value);
-if(!name){
-if(status) status.textContent = (LANG==="sv") ? "Skriv ett namn först." : "Type a name first.";
-return;
-}
-const list = lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
-if(!list.includes(name)) list.push(name);
-lsSet(LS_CUSTOM_COURSES, list);
-fillCourseDatalist();
-if(status) status.textContent = (LANG==="sv") ? `Sparad: ${name}` : `Saved: ${name}`;
-syncPickerToHiddenCourse();
-});
-syncEnable();
-syncPickerToHiddenCourse();
-}
-function applyLang(){
-const t = T[LANG];
-const set = (id, val) => { const el = $(id); if(el) el.textContent = val; };
-set("brandTag", t.brandTag);
-set("lockSub", t.lockSub);
-set("lockLabel", t.lockLabel);
-set("unlockBtn", t.unlock);
-set("toInfoBtn", t.toInfo);
-set("toImproveBtn", t.toImprove);
-set("m1", t.m1); set("m2", t.m2); set("m3", t.m3); set("m4", t.m4);
-set("mImprove", t.mImprove);
-set("mLang", t.mLang);
-set("mLogout", t.mLogout);
-set("langPill", LANG.toUpperCase());
-set("tStep1", t.step1);
-set("tStep1Sub", t.step1Sub);
-set("tPasteLabel", t.pasteLabel);
-const pt = $("pastedText"); if(pt) pt.placeholder = t.pastePH;
-set("tOcrTitle", t.ocrTitle);
-set("ocrBtn", t.ocrBtn);
-set("tOcrHint", t.ocrHint);
-set("formatHint", t.tip);
-set("tStep2", t.step2);
-set("tStep2Sub", t.step2Sub);
-set("tLevel", t.level);
-set("tCourse", t.course);
-const c = $("course"); if(c) c.placeholder = t.coursePH;
-set("tQType", t.qType);
-set("qtMix", t.qtMix);
-set("qtMc", t.qtMc);
-set("qtShort", t.qtShort);
-set("tNum", t.num);
-set("generateExamBtn", t.gen);
-set("gradeBtn", t.grade);
-set("clearBtn", t.clear);
-set("improveBtnInline", t.mImprove);
-set("debugTitle", t.debug);
-set("tStep3", t.step3);
-set("tStep4", t.step4);
-set("footerText", t.footer);
-// wizard labels
-set("wLabel0", t.wLabel0);
-set("wLabel1", t.wLabel1);
-set("wLabel2", t.wLabel2);
-set("wLabel3", t.wLabel3);
-set("wNext0", t.wNext0);
-set("wHint0", t.wHint0);
-set("wHint1", t.wHint1);
-set("wBack1", t.wBack);
-set("wBack2", t.wBack);
-set("wBack3", t.wBack);
-set("wNext2", t.wNext2);
-set("wRestart", t.wRestart);
-["material","settings","exam","result"].forEach(id => {
-const el = document.getElementById(id);
-if(!el) return;
-setToggleLabel(id, el.classList.contains("open"));
-});
-const eb = examBodyEl(), rb = resultBodyEl();
-if(eb && !eb.children.length) set("examMeta", t.noExam);
-if(rb && !rb.children.length) set("resultMeta", t.noGrade);
-const cs = document.getElementById("courseSearch");
-const cc = document.getElementById("customCourse");
-const sc = document.getElementById("saveCustomCourse");
-if(cs){
-cs.placeholder = (LANG==="sv")
-? "Sök t.ex. Matematik 4, Engelska 6, Företagsekonomi 2..."
-: "Search e.g. Math, English, Business...";
-}
-if(cc){
-cc.placeholder = (LANG==="sv")
-? "Skriv kurs/ämne exakt som du vill ha det..."
-: "Type the subject/course exactly as you want...";
-}
-if(sc){
-sc.textContent = (LANG==="sv") ? "Spara i min lista" : "Save to my list";
-}
-}
-async function fileToDataUrl(file){
-return new Promise((resolve, reject) => {
-const fr = new FileReader();
-fr.onload = () => resolve(String(fr.result || ""));
-fr.onerror = () => reject(new Error("FileReader error"));
-fr.readAsDataURL(file);
-});
-}
+async function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(String(fr.result||"")); fr.onerror=()=>reject(new Error("FileReader error")); fr.readAsDataURL(file); }); }
+
 function renderExam(exam){
-currentExam = exam;
-const qs = Array.isArray(exam.questions) ? exam.questions : [];
-const t = T[LANG];
-const em = examMetaEl(), eb = examBodyEl(), rm = resultMetaEl(), rb = resultBodyEl();
-if(em) em.textContent = `${exam.title || (LANG==="sv"?"Mockprov":"Mock exam")} • ${LANG==="sv"?"Nivå":"Level"}: ${exam.level || "—"} • ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
-if(eb) eb.innerHTML = "";
-if(rm) rm.textContent = t.noGrade;
-if(rb) rb.innerHTML = "";
-qs.forEach((q, idx) => {
-const box = document.createElement("div");
-box.className = "qBox";
-const qid = String(q.id ?? (idx+1));
-const meta = document.createElement("div");
-meta.className = "qMeta";
-meta.textContent = `ID: ${qid} • ${LANG==="sv"?"Poäng":"Points"}: ${q.points ?? "—"} • ${LANG==="sv"?"Typ":"Type"}: ${q.type ?? ($("qType")?.value || "")}`;
-const text = document.createElement("div");
-text.className = "qText";
-text.textContent = q.question ?? "";
-box.appendChild(meta);
-box.appendChild(text);
-if((q.type === "mc") && Array.isArray(q.options) && q.options.length){
-const group = document.createElement("div");
-group.className = "mcGroup";
-group.dataset.qid = qid;
-const hidden = document.createElement("input");
-hidden.type = "hidden";
-hidden.className = "mcAnswer";
-hidden.dataset.qid = qid;
-hidden.value = "";
+currentExam=exam; const qs=Array.isArray(exam.questions)?exam.questions:[]; const t=T[LANG];
+const em=examMetaEl(),eb=examBodyEl(),rm=resultMetaEl(),rb=resultBodyEl();
+if(em)em.textContent=`${exam.title||(LANG==="sv"?"Mockprov":"Mock exam")} · ${LANG==="sv"?"Nivå":"Level"}: ${exam.level||"—"} · ${qs.length} ${LANG==="sv"?"frågor":"questions"}`;
+if(eb)eb.innerHTML=""; if(rm)rm.textContent=t.noGrade; if(rb)rb.innerHTML="";
+qs.forEach((q,idx)=>{
+const box=document.createElement("div"); box.className="qBox";
+const qid=String(q.id??(idx+1));
+const meta=document.createElement("div"); meta.className="qMeta";
+meta.textContent=`ID: ${qid} · ${LANG==="sv"?"Poäng":"Points"}: ${q.points??"—"} · ${LANG==="sv"?"Typ":"Type"}: ${q.type??($("qType")?.value||"")}`;
+const text=document.createElement("div"); text.className="qText"; text.textContent=q.question??"";
+box.appendChild(meta); box.appendChild(text);
+if((q.type==="mc")&&Array.isArray(q.options)&&q.options.length){
+const group=document.createElement("div"); group.className="mcGroup"; group.dataset.qid=qid;
+const hidden=document.createElement("input"); hidden.type="hidden"; hidden.className="mcAnswer"; hidden.dataset.qid=qid; hidden.value="";
 box.appendChild(hidden);
-q.options.forEach((opt, i) => {
-const letter = String.fromCharCode(65 + i);
-const btn = document.createElement("button");
-btn.type = "button";
-btn.className = "mcOpt";
-btn.dataset.letter = letter;
-btn.dataset.qid = qid;
-btn.innerHTML = `<span class="mcLetter">${letter}</span><span class="mcText">${escapeHtml(opt)}</span>`;
-btn.addEventListener("click", () => {
-group.querySelectorAll(".mcOpt").forEach(x => x.classList.remove("sel"));
-btn.classList.add("sel");
-hidden.value = letter;
-});
+q.options.forEach((opt,i)=>{
+const letter=String.fromCharCode(65+i),btn=document.createElement("button");
+btn.type="button";btn.className="mcOpt";btn.dataset.letter=letter;btn.dataset.qid=qid;
+btn.innerHTML=`<span class="mcLetter">${letter}</span><span>${escapeHtml(opt)}</span>`;
+btn.addEventListener("click",()=>{group.querySelectorAll(".mcOpt").forEach(x=>x.classList.remove("sel"));btn.classList.add("sel");hidden.value=letter;});
 group.appendChild(btn);
 });
-box.appendChild(group);
-eb?.appendChild(box);
-return;
+box.appendChild(group);eb?.appendChild(box);return;
 }
-const ans = document.createElement("textarea");
-ans.className = "answer";
-ans.placeholder = t.writeAnswer;
-ans.dataset.qid = qid;
-ans.style.marginTop = "10px";
-ans.style.minHeight = "110px";
-box.appendChild(ans);
-eb?.appendChild(box);
+const ans=document.createElement("textarea"); ans.className="answerTa"; ans.placeholder=t.writeAnswer; ans.dataset.qid=qid;
+box.appendChild(ans);eb?.appendChild(box);
 });
-const gradeBtn = $("gradeBtn");
-if(gradeBtn) gradeBtn.disabled = qs.length === 0;
+const g=$("gradeBtn");if(g)g.disabled=qs.length===0;
 }
 function renderResult(r){
-const t = T[LANG];
-const rm = resultMetaEl(), rb = resultBodyEl();
-if(rm) rm.textContent = `${LANG==="sv"?"Rättning":"Grading"}: ${r.total_points}/${r.max_points}`;
-const wrap = document.createElement("div");
-(r.per_question || []).forEach(item => {
-const d = document.createElement("div");
-d.className = "qBox";
-const model = String(item.model_answer || "").trim();
-d.innerHTML = `
-<div class="qMeta">ID: ${escapeHtml(item.id)} • ${item.points}/${item.max_points}</div>
-<div style="font-weight:850;line-height:1.45">${escapeHtml(item.feedback || "")}</div>
-<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-<div style="font-weight:1100;color:var(--mint);margin-bottom:6px;font-size:13px">${t.fullScore}</div>
-<div style="white-space:pre-wrap;font-weight:800;line-height:1.45">${escapeHtml(model)}</div>
-</div>
-`;
+const t=T[LANG],rm=resultMetaEl(),rb=resultBodyEl();
+if(rm)rm.textContent=`${LANG==="sv"?"Resultat":"Result"}: ${r.total_points}/${r.max_points}`;
+const wrap=document.createElement("div");
+(r.per_question||[]).forEach(item=>{
+const d=document.createElement("div"); d.className="resultItem";
+const model=String(item.model_answer||"").trim();
+d.innerHTML=`<div class="qMeta">ID: ${escapeHtml(item.id)} · ${item.points}/${item.max_points}</div><div class="resultFeedback">${escapeHtml(item.feedback||"")}</div><div class="resultModelLabel">${t.fullScore}</div><div class="resultModelText">${escapeHtml(model)}</div>`;
 wrap.appendChild(d);
 });
-if(rb){
-rb.innerHTML = "";
-rb.appendChild(wrap);
-}
+if(rb){rb.innerHTML="";rb.appendChild(wrap);}
 }
 function clearAll(){
-const t = T[LANG];
-if(pastedTextEl()) pastedTextEl().value = "";
-if(courseEl()) courseEl().value = "";
-if(levelEl()) levelEl().value = "C";
-if(qTypeEl()) qTypeEl().value = "mix";
-if(numQuestionsEl()) numQuestionsEl().value = "12";
-if(imageInputEl()) imageInputEl().value = "";
-setOcrStatus("");
-currentExam = null;
-const chk = document.getElementById("useCustomCourse");
-const cs = document.getElementById("courseSearch");
-const cc = document.getElementById("customCourse");
-const st = document.getElementById("coursePickerStatus");
-if(chk) chk.checked = false;
-if(cs) cs.value = "";
-if(cc) cc.value = "";
-if(st) st.textContent = "";
-try{
-const customEnabled = !!chk?.checked;
-if(cc) cc.disabled = !customEnabled;
-if(cs) cs.disabled = customEnabled;
-} catch {}
-if(courseEl()) courseEl().value = "";
-if(examMetaEl()) examMetaEl().textContent = t.noExam;
-if(examBodyEl()) examBodyEl().innerHTML = "";
-if(resultMetaEl()) resultMetaEl().textContent = t.noGrade;
-if(resultBodyEl()) resultBodyEl().innerHTML = "";
-const gradeBtn = $("gradeBtn");
-if(gradeBtn) gradeBtn.disabled = true;
-setStatus(t.cleared, "ok");
-hideDebug();
-window.scrollTo({ top: 0, behavior: "smooth" });
+const t=T[LANG];
+if(pastedTextEl())pastedTextEl().value="";
+if(courseEl())courseEl().value="";
+if(levelEl())levelEl().value="C";
+if(qTypeEl())qTypeEl().value="mix";
+if(numQuestionsEl())numQuestionsEl().value="12";
+if(imageInputEl())imageInputEl().value="";
+setOcrStatus("");currentExam=null;
+const chk=document.getElementById("useCustomCourse"),cs=document.getElementById("courseSearch"),cc=document.getElementById("customCourse"),st=document.getElementById("coursePickerStatus");
+if(chk)chk.checked=false;if(cs)cs.value="";if(cc)cc.value="";if(st)st.textContent="";
+try{if(cc)cc.disabled=true;if(cs)cs.disabled=false;}catch{}
+if(courseEl())courseEl().value="";
+if(examMetaEl())examMetaEl().textContent=t.noExam;
+if(examBodyEl())examBodyEl().innerHTML="";
+if(resultMetaEl())resultMetaEl().textContent=t.noGrade;
+if(resultBodyEl())resultBodyEl().innerHTML="";
+const g=$("gradeBtn");if(g)g.disabled=true;
+setStatus(t.cleared,"ok");hideDebug();
+window.scrollTo({top:0,behavior:"smooth"});
 }
-window.addEventListener("DOMContentLoaded", async () => {
+
+window.addEventListener("DOMContentLoaded",async()=>{
 try{
 initTheme();
-initCollapsibles();
+initSectionHeads();
 initWizard();
 initCourseLibrary();
 applyLang();
-initMouseGlow();
 initReveal();
 hidePageLoader();
 await refreshQuotaUi();
 setStatus("");
-onClick("menuBtn", (e) => {
-e.preventDefault(); e.stopPropagation();
-const m = $("menu");
-if(!m) return;
-if(m.classList.contains("is-open")) closeMenuAnimated();
-else openMenuAnimated();
-});
-document.addEventListener("click", (e) => {
-const m = $("menu");
-const mb = $("menuBtn");
-if(!m || !mb) return;
-if(!m.classList.contains("is-open")) return;
-if(m.contains(e.target) || mb.contains(e.target)) return;
-closeMenuAnimated();
-});
-const menuEl = $("menu");
+onClick("menuBtn",(e)=>{e.preventDefault();e.stopPropagation();const m=$("menu");if(!m)return;if(m.classList.contains("is-open"))closeMenuAnimated();else openMenuAnimated();});
+document.addEventListener("click",(e)=>{const m=$("menu"),mb=$("menuBtn");if(!m||!mb)return;if(!m.classList.contains("is-open"))return;if(m.contains(e.target)||mb.contains(e.target))return;closeMenuAnimated();});
+const menuEl=$("menu");
 if(menuEl){
-menuEl.addEventListener("click", (e) => {
-const a = e.target.closest("a[data-scroll]");
-if(!a) return;
-e.preventDefault();
-const sel = a.getAttribute("data-scroll");
-closeMenuAnimated();
-const stepMap = { "#material":0, "#settings":1, "#exam":2, "#result":3 };
-if(sel in stepMap){ setWizardStep(stepMap[sel]); return; }
-const el = document.querySelector(sel);
-if(el){
-if(el.classList.contains("collapsible")) setCardOpen(el, true);
-el.scrollIntoView({behavior:"smooth", block:"start"});
-}
+menuEl.addEventListener("click",(e)=>{
+const btn=e.target.closest("[data-scroll]"); if(!btn)return;
+e.preventDefault(); const sel=btn.getAttribute("data-scroll"); closeMenuAnimated();
+const stepMap={"#material":0,"#settings":1,"#exam":2,"#result":3};
+if(sel in stepMap){setWizardStep(stepMap[sel]);return;}
+const el=document.querySelector(sel); if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
 });
 }
-onKey((e) => { if(e.key === "Escape") closeMenuAnimated(); });
-onClick("langBtn", async () => {
-LANG = (LANG === "sv") ? "en" : "sv";
-localStorage.setItem("proviaai_lang", LANG);
-applyLang();
-await refreshQuotaUi();
-closeMenuAnimated();
-runTrainModeIfRequested();
+onKey((e)=>{if(e.key==="Escape")closeMenuAnimated();});
+onClick("langBtn",async()=>{LANG=(LANG==="sv")?"en":"sv";localStorage.setItem("proviaai_lang",LANG);applyLang();await refreshQuotaUi();closeMenuAnimated();runTrainModeIfRequested();});
+onClick("logoutTopBtn",async()=>{await logout();});
+onClick("unlockBtn",async()=>{unlockByCode();await refreshQuotaUi();});
+onClick("signInBtn",async()=>{await signInEmail();await refreshQuotaUi();});
+onClick("signUpBtn",async()=>{await signUpEmail();await refreshQuotaUi();});
+onKey((e)=>{
+if(e.key!=="Enter")return;
+const s=$("loginScreen"),visible=s&&s.style.display!=="none";if(!visible)return;
+const email=($("authEmail")?.value||"").trim(),pass=$("authPass")?.value||"";
+if(email&&pass)signInEmail();else unlockByCode();
 });
-onClick("logoutTopBtn", async () => { await logout(); });
-onClick("unlockBtn", async () => { unlockByCode(); await refreshQuotaUi(); });
-onClick("signInBtn", async () => { await signInEmail(); await refreshQuotaUi(); });
-onClick("signUpBtn", async () => { await signUpEmail(); await refreshQuotaUi(); });
-onKey((e) => {
-if(e.key !== "Enter") return;
-const s = $("loginScreen");
-const visible = s && s.style.display !== "none";
-if(!visible) return;
-const email = ($("authEmail")?.value || "").trim();
-const pass = $("authPass")?.value || "";
-if(email && pass) signInEmail();
-else unlockByCode();
-});
-onClick("ocrBtn", async () => {
-hideDebug();
-const t = T[LANG];
-const inp = imageInputEl();
-const file = inp?.files && inp.files[0];
-if(!file){ setOcrStatus(t.ocrNoFile, "bad"); return; }
-setBusy(true, t.ocrWorking);
-setOcrStatus(t.ocrWorking, "warn");
+onClick("ocrBtn",async()=>{
+hideDebug();const t=T[LANG];const inp=imageInputEl();const file=inp?.files&&inp.files[0];
+if(!file){setOcrStatus(t.ocrNoFile,"bad");return;}
+setBusy(true,t.ocrWorking);setOcrStatus(t.ocrWorking,"warn");
 try{
-const dataUrl = await fileToDataUrl(file);
-const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
-if(!res.ok || !res.data || !res.data.ok){
-setBusy(false, t.ready);
-setOcrStatus(`OCR error (HTTP ${res.status}).`, "bad");
-showDebug(res.raw);
-return;
-}
-const extracted = String(res.data.text || "").trim();
-if(extracted){
-const prefix = (LANG==="sv") ? "\n\n--- OCR (bild) ---\n" : "\n\n--- OCR (image) ---\n";
-const base = (pastedTextEl()?.value || "").trim();
-if(pastedTextEl()) pastedTextEl().value = (base ? base + prefix : "") + extracted + "\n";
-}
-setBusy(false, t.ready);
-setOcrStatus(t.ocrDone, "ok");
-}catch(e){
-setBusy(false, T[LANG].ready);
-setOcrStatus("OCR error.", "bad");
-reportErr(e);
-}
+const dataUrl=await fileToDataUrl(file);
+const res=await postJson("/api/ocr",{imageDataUrl:dataUrl,lang:LANG});
+if(!res.ok||!res.data||!res.data.ok){setBusy(false);setOcrStatus(`OCR error (HTTP ${res.status}).`,"bad");showDebug(res.raw);return;}
+const extracted=String(res.data.text||"").trim();
+if(extracted){const prefix=(LANG==="sv")?"\n\n--- OCR (bild) ---\n":"\n\n--- OCR (image) ---\n";const base=(pastedTextEl()?.value||"").trim();if(pastedTextEl())pastedTextEl().value=(base?base+prefix:"")+extracted+"\n";}
+setBusy(false);setOcrStatus(t.ocrDone,"ok");
+}catch(e){setBusy(false);setOcrStatus("OCR error.","bad");reportErr(e);}
 });
-onClick("generateExamBtn", async () => {
-hideDebug();
-setStatus("");
-const t = T[LANG];
-const pastedText = (pastedTextEl()?.value || "").trim();
-if(!pastedText){
-setStatus(t.needMat, "bad");
-setWizardStep(0);
-document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
-return;
-}
-const qType = qTypeEl()?.value || "mix";
-if(!["mix","mc","short"].includes(qType)){
-setStatus("Ogiltig frågetyp.", "bad");
-return;
-}
-const payload = {
-lang: LANG,
-level: levelEl()?.value || "C",
-course: (courseEl()?.value || "").trim(),
-qType,
-pastedText,
-numQuestions: Number(numQuestionsEl()?.value || 12)
-};
-setBusy(true, t.genWorking);
-setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`, "");
-const res = await postJson("/api/generate-exam", payload);
-if(res.status === 429 && res.data){
-await setQuotaFromServerMaybe(res.data);
-setBusy(false, t.ready);
-setStatus(res.data?.error || t.quotaHit, "bad");
-return;
-}
-if(!res.ok || !res.data || !res.data.ok){
-setBusy(false, t.ready);
-setStatus(`Error (HTTP ${res.status}).`, "bad");
-showDebug(res.raw);
-return;
-}
-await bumpQuotaFallbackOnSuccess();
-await refreshQuotaUi();
-try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-renderExam(res.data.exam);
-setBusy(false, t.ready);
-setStatus(t.genDone, "ok");
-setWizardStep(2);
+onClick("generateExamBtn",async()=>{
+hideDebug();setStatus("");const t=T[LANG];
+const pastedText=(pastedTextEl()?.value||"").trim();
+if(!pastedText){setStatus(t.needMat,"bad");setWizardStep(0);document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});return;}
+const qType=qTypeEl()?.value||"mix";
+if(!["mix","mc","short"].includes(qType)){setStatus("Ogiltig frågetyp.","bad");return;}
+const payload={lang:LANG,level:levelEl()?.value||"C",course:(courseEl()?.value||"").trim(),qType,pastedText,numQuestions:Number(numQuestionsEl()?.value||12)};
+setBusy(true,t.genWorking);setStatus(`${t.genWorking} (${payload.qType}, ${payload.numQuestions})`,"");
+const res=await postJson("/api/generate-exam",payload);
+if(res.status===429&&res.data){await setQuotaFromServerMaybe(res.data);setBusy(false);setStatus(res.data?.error||t.quotaHit,"bad");return;}
+if(!res.ok||!res.data||!res.data.ok){setBusy(false);setStatus(`Error (HTTP ${res.status}).`,"bad");showDebug(res.raw);return;}
+await bumpQuotaFallbackOnSuccess();await refreshQuotaUi();
+try{localStorage.setItem(LS_MATERIAL,pastedText);}catch{}
+renderExam(res.data.exam);setBusy(false);setStatus(t.genDone,"ok");setWizardStep(2);
 });
-onClick("gradeBtn", async () => {
-hideDebug();
-const t = T[LANG];
-if(!currentExam || !Array.isArray(currentExam.questions) || currentExam.questions.length === 0){
-setStatus(t.genFirst, "bad");
-return;
-}
-const answers = [];
-currentExam.questions.forEach((q, idx) => {
-const qid = String(q.id ?? (idx+1));
-if(q.type === "mc"){
-const hidden = document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);
-answers.push({ id: qid, answer: (hidden?.value || "").trim() });
-} else {
-const ta = document.querySelector(`textarea.answer[data-qid="${CSS.escape(qid)}"]`);
-answers.push({ id: qid, answer: (ta?.value || "").trim() });
-}
+onClick("gradeBtn",async()=>{
+hideDebug();const t=T[LANG];
+if(!currentExam||!Array.isArray(currentExam.questions)||currentExam.questions.length===0){setStatus(t.genFirst,"bad");return;}
+const answers=[];
+currentExam.questions.forEach((q,idx)=>{
+const qid=String(q.id??(idx+1));
+if(q.type==="mc"){const hidden=document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(hidden?.value||"").trim()});}
+else{const ta=document.querySelector(`textarea.answerTa[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(ta?.value||"").trim()});}
 });
-const pastedText = (pastedTextEl()?.value || "").trim();
-const payload = { lang: LANG, pastedText, questions: currentExam.questions, answers };
-setBusy(true, t.gradeWorking);
-setStatus(t.gradeWorking, "");
-const res = await postJson("/api/grade", payload);
-if(!res.ok || !res.data || !res.data.ok){
-setBusy(false, t.ready);
-setStatus(`Error (HTTP ${res.status}).`, "bad");
-showDebug(res.raw);
-return;
-}
-const result = res.data.result;
+const pastedText=(pastedTextEl()?.value||"").trim();
+const payload={lang:LANG,pastedText,questions:currentExam.questions,answers};
+setBusy(true,t.gradeWorking);setStatus(t.gradeWorking,"");
+const res=await postJson("/api/grade",payload);
+if(!res.ok||!res.data||!res.data.ok){setBusy(false);setStatus(`Error (HTTP ${res.status}).`,"bad");showDebug(res.raw);return;}
+const result=res.data.result;
 renderResult(result);
-await ensureUserProfileRow();
-await updateMastery(result);
-try{
-await saveExamToAccount({
-material: pastedText,
-course: (courseEl()?.value || "").trim(),
-level: levelEl()?.value || "C",
-qType: qTypeEl()?.value || "mix",
-exam: {
-title: currentExam.title || "",
-level: currentExam.level || (levelEl()?.value || "C"),
-questions: currentExam.questions || []
-},
-answers,
-result
+await ensureUserProfileRow();await updateMastery(result);
+try{await saveExamToAccount({material:pastedText,course:(courseEl()?.value||"").trim(),level:levelEl()?.value||"C",qType:qTypeEl()?.value||"mix",exam:{title:currentExam.title||"",level:currentExam.level||(levelEl()?.value||"C"),questions:currentExam.questions||[]},answers,result});}catch{}
+const ts=Date.now(),max=Number(result.max_points||0),total=Number(result.total_points||0),percent=max>0?Math.round((total/max)*100):0;
+const attempt={ts,course:(courseEl()?.value||"").trim(),level:levelEl()?.value||"C",qType:qTypeEl()?.value||"mix",numQuestions:Number(numQuestionsEl()?.value||12),total_points:total,max_points:max,percent};
+const history=lsGetArray(LS_HISTORY);history.push(attempt);while(history.length>60)history.shift();lsSet(LS_HISTORY,history);
+lsSet(LS_LAST,{ts,attempt,exam:{title:currentExam.title||"",level:currentExam.level||(levelEl()?.value||"C"),questions:currentExam.questions||[]},result});
+const mistakes=lsGetArray(LS_MISTAKES);
+const qById=new Map((currentExam.questions||[]).map(q=>[String(q.id??""),q]));
+const aById=new Map(answers.map(a=>[String(a.id),a.answer]));
+(result.per_question||[]).forEach(item=>{
+const got=Number(item.points||0),m=Number(item.max_points||0);
+if(m>0&&got<m){const q=qById.get(String(item.id))||{};mistakes.push({ts,course:attempt.course,level:attempt.level,qType:q.type||(qTypeEl()?.value||"mix"),id:String(item.id),question:String(q.question||""),user_answer:String(aById.get(String(item.id))||""),feedback:String(item.feedback||""),model_answer:String(item.model_answer||""),points:got,max_points:m});}
 });
-} catch {}
-const ts = Date.now();
-const max = Number(result.max_points || 0);
-const total = Number(result.total_points || 0);
-const percent = max > 0 ? Math.round((total / max) * 100) : 0;
-const attempt = {
-ts,
-course: (courseEl()?.value || "").trim(),
-level: levelEl()?.value || "C",
-qType: qTypeEl()?.value || "mix",
-numQuestions: Number(numQuestionsEl()?.value || 12),
-total_points: total,
-max_points: max,
-percent
-};
-const history = lsGetArray(LS_HISTORY);
-history.push(attempt);
-while(history.length > 60) history.shift();
-lsSet(LS_HISTORY, history);
-lsSet(LS_LAST, {
-ts,
-attempt,
-exam: {
-title: currentExam.title || "",
-level: currentExam.level || (levelEl()?.value || "C"),
-questions: currentExam.questions || []
-},
-result
+while(mistakes.length>200)mistakes.shift();lsSet(LS_MISTAKES,mistakes);
+try{localStorage.setItem(LS_MATERIAL,pastedText);}catch{}
+setBusy(false);setStatus(t.gradeDone,"ok");setWizardStep(3);
 });
-const mistakes = lsGetArray(LS_MISTAKES);
-const qById = new Map((currentExam.questions || []).map(q => [String(q.id ?? ""), q]));
-const aById = new Map(answers.map(a => [String(a.id), a.answer]));
-(result.per_question || []).forEach(item => {
-const got = Number(item.points || 0);
-const m = Number(item.max_points || 0);
-if(m > 0 && got < m){
-const q = qById.get(String(item.id)) || {};
-mistakes.push({
-ts,
-course: attempt.course,
-level: attempt.level,
-qType: q.type || (qTypeEl()?.value || "mix"),
-id: String(item.id),
-question: String(q.question || ""),
-user_answer: String(aById.get(String(item.id)) || ""),
-feedback: String(item.feedback || ""),
-model_answer: String(item.model_answer || ""),
-points: got,
-max_points: m
-});
-}
-});
-while(mistakes.length > 200) mistakes.shift();
-lsSet(LS_MISTAKES, mistakes);
-try{ localStorage.setItem(LS_MATERIAL, pastedText); } catch {}
-setBusy(false, t.ready);
-setStatus(t.gradeDone, "ok");
-setWizardStep(3);
-});
-onClick("clearBtn", clearAll);
-window.addEventListener("hashchange", () => {
-const lockVisible = $("loginScreen") && $("loginScreen").style.display !== "none";
-if(!lockVisible) runTrainModeIfRequested();
-});
+onClick("clearBtn",clearAll);
+window.addEventListener("hashchange",()=>{const lockVisible=$("loginScreen")&&$("loginScreen").style.display!=="none";if(!lockVisible)runTrainModeIfRequested();});
 if(db){
 try{
-const { data } = await db.auth.getSession();
-if(data?.session){
-const ok = await checkApprovalAndUnlock(data.session);
-if(ok){
-await loadExamsFromAccountToLocal();
-runTrainModeIfRequested();
-} else {
-showLock();
-}
-} else {
-if(isUnlocked()){
-hideLock();
-runTrainModeIfRequested();
-} else {
-showLock();
-}
-}
-}catch(e){
-setLockError(String(e?.message || e));
-if(isUnlocked()){
-hideLock();
-runTrainModeIfRequested();
-} else {
-showLock();
-}
-}
-} else {
-if(isUnlocked()){
-hideLock();
-runTrainModeIfRequested();
-} else {
-showLock();
-}
-}
+const{data}=await db.auth.getSession();
+if(data?.session){const ok=await checkApprovalAndUnlock(data.session);if(ok){await loadExamsFromAccountToLocal();runTrainModeIfRequested();}else showLock();}
+else{if(isUnlocked()){hideLock();runTrainModeIfRequested();}else showLock();}
+}catch(e){setLockError(String(e?.message||e));if(isUnlocked()){hideLock();runTrainModeIfRequested();}else showLock();}
+}else{if(isUnlocked()){hideLock();runTrainModeIfRequested();}else showLock();}
 await refreshQuotaUi();
-}catch(err){
-reportErr(err);
-}
+}catch(err){reportErr(err);}
 });
 </script>
 </body>
