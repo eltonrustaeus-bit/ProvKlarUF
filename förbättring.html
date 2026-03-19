@@ -1,1712 +1,1171 @@
-
 <!doctype html>
 <html lang="sv">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ProviaAi – Förbättring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
+    /* ── TOKENS DARK ── */
     :root{
-      --deep:#052A1E; --deep2:#041E16;
-      --mint:#2BE38C; --mint2:#16B876;
-      --bg:#F6FBF8; --muted:#556072; --border:rgba(5,42,30,.14);
-      --shadow:0 18px 55px rgba(5,42,30,.14);
-      --radius:18px; --max:1040px;
-      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      --danger:#8b1d1d; --ok:#0f7a5a; --warn:#946200;
+      --a:#1bff8c; --a2:#16d475; --a-dim:rgba(27,255,140,.10); --a-border:rgba(27,255,140,.20); --a-border2:rgba(27,255,140,.42);
+      --bg:#08100d; --s:#111a15; --s2:#162019; --s3:#1c2920; --glass:rgba(12,20,15,.78);
+      --t:#e8f5ee; --t2:#a8c4b4; --t3:#6b8f7c;
+      --l:rgba(27,255,140,.10); --l2:rgba(27,255,140,.22);
+      --ok:#16d475; --warn:#d4a016; --danger:#d44016;
+      --sh:0 2px 12px rgba(0,0,0,.5); --sh2:0 8px 32px rgba(0,0,0,.55); --sh3:0 20px 60px rgba(0,0,0,.65);
+      --r:5px; --r2:3px; --max:1060px;
+      --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono','SF Mono',monospace;
     }
-    *{box-sizing:border-box}
+    /* ── TOKENS LIGHT ── */
+    body.light{
+      --a:#0d9460; --a2:#0a7a4f; --a-dim:rgba(13,148,96,.08); --a-border:rgba(13,148,96,.18); --a-border2:rgba(13,148,96,.42);
+      --bg:#f3f8f5; --s:#ffffff; --s2:#f3f8f5; --s3:#e9f2ed; --glass:rgba(255,255,255,.88);
+      --t:#0c1e15; --t2:#3a6050; --t3:#7aaa92;
+      --l:rgba(13,148,96,.11); --l2:rgba(13,148,96,.26);
+      --ok:#0d7a50; --warn:#8a6600; --danger:#a33010;
+      --sh:0 1px 6px rgba(0,30,15,.07); --sh2:0 4px 20px rgba(0,30,15,.09); --sh3:0 12px 48px rgba(0,30,15,.11);
+    }
+
+    /* ── RESET ── */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
     body{
-      margin:0;font-family:var(--font);color:#071812;background:var(--bg);
+      font-family:var(--font);background:var(--bg);color:var(--t);
+      line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+      transition:background .28s ease,color .28s ease;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       background:
-        radial-gradient(900px 450px at 15% -10%, rgba(43,227,140,.18), transparent 60%),
-        radial-gradient(800px 420px at 95% 18%, rgba(43,227,140,.10), transparent 55%),
-        var(--bg);
+        radial-gradient(ellipse 70vw 50vh at 8% 0%, rgba(27,255,140,.065),transparent 65%),
+        radial-gradient(ellipse 55vw 35vh at 92% 15%, rgba(27,255,140,.045),transparent 65%);
+      transition:opacity .28s ease;
+    }
+    body.light::before{
+      background:
+        radial-gradient(ellipse 70vw 50vh at 8% 0%, rgba(13,148,96,.055),transparent 65%),
+        radial-gradient(ellipse 55vw 35vh at 92% 15%, rgba(13,148,96,.035),transparent 65%);
     }
     a{text-decoration:none;color:inherit}
+
+    /* ── HEADER ── */
     header{
-      position:sticky;top:0;z-index:3000;
-      background:rgba(255,255,255,.88);backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:900;height:56px;
+      background:var(--glass);backdrop-filter:blur(18px) saturate(160%);
+      -webkit-backdrop-filter:blur(18px) saturate(160%);
+      border-bottom:1px solid var(--l);
+      transition:background .28s ease,border-color .28s ease;
     }
-    .wrap{max-width:var(--max);margin:0 auto;padding:clamp(14px,3vw,22px)}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .brand{display:flex;align-items:center;gap:12px;min-width:0}
-    .brand img{height:52px;width:auto;display:block}
-    .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
-    .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+    .wrap{max-width:var(--max);margin:0 auto;padding:0 clamp(16px,4vw,36px);position:relative;z-index:1}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{height:34px;width:auto;display:block}
+    .brandText .bname{font-size:14px;font-weight:700;color:var(--t);letter-spacing:-.02em;line-height:1;transition:color .28s ease}
+    .brandText .btag{font-family:var(--mono);font-size:9.5px;color:var(--t3);margin-top:3px;letter-spacing:.05em;transition:color .28s ease}
+    .hActions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 
+    /* ── BUTTONS ── */
     .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:12px 16px;border-radius:14px;
-      font-weight:1000;font-size:14px;border:1px solid var(--border);
-      cursor:pointer;white-space:nowrap;
-      background:rgba(255,255,255,.92);color:var(--deep);
-      user-select:none;
+      display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+      border-radius:var(--r);font-family:var(--font);font-weight:600;font-size:13px;
+      border:1px solid var(--l);background:var(--s2);color:var(--t2);
+      cursor:pointer;white-space:nowrap;user-select:none;
+      transition:all .16s cubic-bezier(.22,.61,.36,1);position:relative;overflow:hidden;
     }
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .btnPrimary{
-      background:var(--mint2);color:#fff;border-color:rgba(22,184,118,.28);
-      box-shadow:0 14px 28px rgba(22,184,118,.22)
+    .btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.055),transparent 55%);opacity:0;transition:opacity .16s;pointer-events:none}
+    .btn:hover{border-color:var(--l2);color:var(--t);box-shadow:var(--sh);transform:translateY(-1px)}
+    .btn:hover::after{opacity:1}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+    .btn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+    .btnP{background:var(--a);color:#03120a;border-color:transparent;font-weight:700}
+    .btnP:hover{background:var(--a2);color:#03120a;box-shadow:0 4px 20px rgba(27,255,140,.22)}
+    body.light .btnP{color:#fff} body.light .btnP:hover{color:#fff}
+    .btnD{background:transparent;color:var(--danger);border-color:rgba(212,64,22,.2)}
+    .btnD:hover{background:rgba(212,64,22,.07);border-color:rgba(212,64,22,.38)}
+    .btnG{background:transparent;border-color:transparent;color:var(--t3);padding:7px 10px}
+    .btnG:hover{background:var(--s2);border-color:var(--l);color:var(--t)}
+
+    /* Theme toggle */
+    .themeTgl{
+      display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:var(--r);
+      border:1px solid var(--l);background:var(--s2);cursor:pointer;
+      font-family:var(--font);font-weight:600;font-size:12px;color:var(--t3);
+      transition:all .16s ease;user-select:none;
     }
-    .btnDanger{background:#fff;color:var(--danger);border-color:rgba(139,29,29,.18)}
-    .pill{
-      font-size:11px;font-weight:1000;color:var(--muted);
-      border:1px solid var(--border);
-      border-radius:999px;padding:4px 8px;background:#fff;
+    .themeTgl:hover{border-color:var(--l2);color:var(--t);box-shadow:var(--sh)}
+    .tIcon{font-size:13px;transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
+    .themeTgl:hover .tIcon{transform:rotate(18deg) scale(1.2)}
+
+    /* Pill */
+    .pill{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);border:1px solid var(--l);border-radius:var(--r2);padding:2px 6px;background:var(--s2);transition:all .28s ease}
+
+    /* ── MENU ── */
+    .menuWrap{position:relative;z-index:800}
+    .iconBtn{width:36px;height:36px;border-radius:var(--r);border:1px solid var(--l);background:var(--s2);cursor:pointer;display:grid;place-items:center;transition:all .16s ease}
+    .iconBtn:hover{border-color:var(--l2);box-shadow:var(--sh)}
+    .bars{display:flex;flex-direction:column;gap:4px;width:15px}
+    .bars span{display:block;height:1.5px;background:var(--t2);border-radius:1px;transition:all .18s ease}
+    .bars span:nth-child(2){width:65%}
+    .dropdown{
+      position:absolute;right:0;top:calc(100% + 8px);min-width:230px;
+      background:var(--s);border:1px solid var(--l);border-radius:var(--r);
+      box-shadow:var(--sh3);padding:5px;
+      display:none;opacity:0;transform:translateY(-5px) scale(.99);transform-origin:top right;z-index:900;
     }
-
-    .card{
-      background:rgba(255,255,255,.92);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:clamp(16px,3vw,22px);
-      margin:14px 0;
-      overflow:hidden;
-      position:relative;
+    .dropdown.is-open{display:block;opacity:1;transform:none;transition:opacity .18s ease,transform .18s cubic-bezier(.22,.61,.36,1)}
+    .dropdown.is-closing{display:block;opacity:0;transform:translateY(-4px);transition:opacity .14s ease,transform .14s ease}
+    .dropdown a,.dropdown button{
+      width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:8px 11px;border-radius:var(--r2);border:none;background:transparent;
+      cursor:pointer;font-family:var(--font);font-weight:500;color:var(--t2);font-size:13px;text-align:left;
+      transition:background .1s ease,color .1s ease;
     }
-    .card:before{
-      content:"";
-      position:absolute;inset:-70px -70px auto auto;
-      width:190px;height:190px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.16), transparent 60%);
-      pointer-events:none;
+    .dropdown a:hover,.dropdown button:hover{background:var(--a-dim);color:var(--t)}
+
+    /* ── MAIN ── */
+    main.wrap{padding-top:40px;padding-bottom:80px}
+
+    /* ── HERO ── */
+    .hero{padding-bottom:36px;border-bottom:1px solid var(--l);margin-bottom:28px}
+    .heroEye{
+      display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;
+      font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--a2);
+      letter-spacing:.08em;text-transform:uppercase;
     }
-
-    .title{margin:0 0 6px;font-weight:1100;color:var(--deep);letter-spacing:-.01em;font-size:18px}
-    .sub{margin:0;color:var(--muted);font-weight:780;font-size:12px;line-height:1.35}
-
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){ .grid2{grid-template-columns:1fr} }
-    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    @media (max-width:900px){ .grid3{grid-template-columns:1fr} }
-
-    .box{border:1px solid rgba(5,42,30,.12);border-radius:16px;padding:12px;background:#fff}
-    .boxTitle{font-weight:1100;color:var(--deep);font-size:13px;margin:0 0 6px}
-    .boxText{margin:0;color:#071812;font-weight:850;font-size:12px;line-height:1.45;white-space:pre-wrap}
-
-    .status{margin-top:10px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.35;word-break:break-word}
-    .status.ok{color:var(--ok)} .status.bad{color:var(--danger)} .status.warn{color:var(--warn)}
-
-    .mistake{border:1px solid rgba(5,42,30,.12);border-radius:16px;background:#fff;padding:12px}
-    .mistakeTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .mId{font-weight:1100;color:var(--deep);font-size:12px}
-    .mMeta{font-weight:900;color:var(--muted);font-size:12px}
-    .mQ{margin-top:8px;font-weight:950;color:#071812;line-height:1.45}
-    .mSmall{margin-top:8px;color:#071812;font-weight:850;font-size:12px;line-height:1.45;white-space:pre-wrap}
-    .divider{height:1px;background:rgba(5,42,30,.10);margin:10px 0}
-
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    select, input[type="text"]{
-      padding:10px 12px;border-radius:14px;border:1px solid var(--border);
-      font-family:inherit;font-size:14px;background:#fff;outline:none;
+    .heroEye::before{content:'';width:18px;height:1px;background:var(--a2);display:block}
+    .heroTitle{
+      font-size:clamp(26px,4.5vw,46px);font-weight:700;letter-spacing:-.035em;
+      line-height:1.07;color:var(--t);margin-bottom:12px;
     }
-    .chip{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid rgba(5,42,30,.12);background:#fff;border-radius:999px;
-      padding:8px 10px;font-weight:900;font-size:12px;color:var(--deep);
+    .heroTitle em{font-style:normal;color:var(--a)}
+    body.light .heroTitle em{color:var(--a)}
+    .heroSub{font-size:14px;color:var(--t2);max-width:460px;line-height:1.68;margin-bottom:22px}
+    .heroMeta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    .heroStatusWrap{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--t3)}
+    .sDot{width:6px;height:6px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .28s ease}
+    .sDot.ok{background:var(--ok);box-shadow:0 0 7px var(--ok)}
+    .sDot.warn{background:var(--warn)} .sDot.bad{background:var(--danger)}
+
+    /* ── HOW-TO ── */
+    .howTo{
+      display:flex;align-items:flex-start;gap:10px;padding:12px 14px;
+      border-left:2px solid var(--a);background:var(--a-dim);
+      border-radius:0 var(--r) var(--r) 0;
+      margin-bottom:28px;font-size:13px;color:var(--t2);line-height:1.5;
     }
-    .chk{width:18px;height:18px}
+    .howTo strong{color:var(--t);font-weight:600}
+
+    /* ── NAV RAIL ── */
+    .navRail{
+      display:flex;gap:2px;padding:3px;background:var(--s);
+      border:1px solid var(--l);border-radius:var(--r);
+      margin-bottom:24px;overflow-x:auto;
+    }
+    .navBtn{
+      flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
+      padding:10px 6px;border-radius:var(--r2);border:1px solid transparent;background:transparent;
+      cursor:pointer;font-family:var(--font);transition:all .15s ease;
+    }
+    .navBtn:hover{background:var(--s2);border-color:var(--l)}
+    .navBtn.active{background:var(--a-dim);border-color:var(--a-border)}
+    .navBtnIcon{font-size:15px;line-height:1}
+    .navBtnNum{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--a2);letter-spacing:.06em}
+    .navBtnLabel{font-size:11.5px;font-weight:600;color:var(--t2);transition:color .15s ease}
+    .navBtn:hover .navBtnLabel,.navBtn.active .navBtnLabel{color:var(--t)}
+    @media(max-width:520px){.navBtnLabel{display:none}}
+
+    /* ── SECTIONS ── */
+    .section{
+      border:1px solid var(--l);border-radius:var(--r);background:var(--s);
+      margin-bottom:8px;overflow:hidden;
+      transition:border-color .18s ease,background .28s ease;
+    }
+    .section:hover{border-color:var(--l2)}
+    .sHead{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:18px 22px;cursor:pointer;user-select:none;
+    }
+    .sHeadLeft{display:flex;align-items:center;gap:14px;min-width:0}
+    .sNum{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--a2);width:24px;text-align:center;flex-shrink:0}
+    .sInfo{min-width:0}
+    .sTitle{font-size:13.5px;font-weight:600;color:var(--t2);letter-spacing:-.01em;transition:color .15s ease}
+    .sDesc{font-size:11.5px;color:var(--t3);margin-top:1px;transition:color .28s ease}
+    .sHead:hover .sTitle{color:var(--t)}
+    .sChev{
+      width:26px;height:26px;display:grid;place-items:center;border-radius:var(--r2);
+      border:1px solid var(--l);background:var(--s2);flex-shrink:0;
+      transition:all .18s ease;
+    }
+    .sChev svg{transition:transform .2s cubic-bezier(.22,.61,.36,1)}
+    .collapsed .sChev svg{transform:rotate(-90deg)}
+    .section:hover .sChev{border-color:var(--l2)}
+    .sDivider{height:1px;background:var(--l);transform-origin:left;transition:transform .22s ease,opacity .22s ease}
+    .collapsed .sDivider{transform:scaleX(0);opacity:0}
+    .sBody{
+      padding:0 22px;max-height:4000px;opacity:1;overflow:hidden;
+      transition:max-height .28s cubic-bezier(.22,.61,.36,1),opacity .2s ease,padding .22s ease;
+    }
+    .collapsed .sBody{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
+    .sBodyInner{padding:18px 0}
+
+    /* ── FILTER ROW ── */
+    .filterRow{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      padding:10px 14px;background:var(--s2);border:1px solid var(--l);
+      border-radius:var(--r);margin-bottom:14px;
+    }
+    .fLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase}
+    select{
+      padding:6px 28px 6px 10px;border-radius:var(--r2);border:1px solid var(--l);
+      background:var(--s);color:var(--t2);font-family:var(--font);font-size:12.5px;font-weight:500;
+      cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b8f7c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 8px center;
+      transition:border-color .15s ease,color .28s ease,background .28s ease;
+    }
+    select:focus{border-color:var(--a-border2)}
+    select:hover{border-color:var(--l2)}
+
+    /* ── DATA GRID ── */
+    .dataGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+    .dataCard{
+      background:var(--s2);border:1px solid var(--l);border-radius:var(--r);
+      padding:14px;transition:all .16s ease;
+    }
+    .dataCard:hover{border-color:var(--l2);box-shadow:var(--sh)}
+    .dLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
+    .dValue{font-size:13px;font-weight:500;color:var(--t);line-height:1.45}
+
+    /* ── STATS ROW ── */
+    .statsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    @media(max-width:560px){.statsRow{grid-template-columns:1fr}}
+    .statBox{background:var(--s2);border:1px solid var(--l);border-radius:var(--r);padding:14px;transition:background .28s ease,border-color .28s ease}
+    .statLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
+    .statValue{font-size:13px;font-weight:500;color:var(--t);line-height:1.5}
+
+    /* ── COACH BOX ── */
+    .coachBox{background:var(--s2);border:1px solid var(--l);border-radius:var(--r);padding:18px;margin-bottom:10px;transition:background .28s ease}
+    .coachLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--a2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+    .coachText{font-size:13px;color:var(--t2);line-height:1.72;white-space:pre-wrap}
+
+    /* ── CHART ── */
+    .chartWrap{margin-top:14px;border:1px solid var(--l);border-radius:var(--r);background:var(--s2);padding:18px 18px 14px;transition:background .28s ease,border-color .28s ease}
+    .chartLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px}
+
+    /* ── MISTAKE GRID ── */
+    .mistakeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+    .mCard{background:var(--s2);border:1px solid var(--l);border-radius:var(--r);padding:15px;transition:all .16s ease}
+    .mCard:hover{border-color:var(--l2);box-shadow:var(--sh)}
+    .mHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:11px}
+    .mMeta{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.02em}
+    .mScore{
+      font-family:var(--mono);font-size:11px;font-weight:500;color:var(--warn);
+      padding:2px 8px;border:1px solid rgba(212,160,22,.2);border-radius:var(--r2);
+      background:rgba(212,160,22,.07);flex-shrink:0;
+    }
+    .mQ{font-size:13px;font-weight:500;color:var(--t);line-height:1.55;margin-bottom:11px}
+    .mDiv{height:1px;background:var(--l);margin:11px 0}
+    .mFL{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
+    .mFV{font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap;margin-bottom:9px}
+    .mActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;align-items:center}
+
+    .checkChip{
+      display:inline-flex;align-items:center;gap:6px;padding:5px 9px;
+      border-radius:var(--r2);border:1px solid var(--l);background:var(--s);
+      cursor:pointer;font-family:var(--font);font-weight:500;font-size:12px;color:var(--t2);
+      transition:all .13s ease;user-select:none;
+    }
+    .checkChip:hover{border-color:var(--l2);color:var(--t)}
+    .checkChip input{width:13px;height:13px;accent-color:var(--a);cursor:pointer}
+
     .tinyBtn{
-      padding:8px 10px;border-radius:12px;border:1px solid rgba(5,42,30,.12);
-      background:#fff;cursor:pointer;font-weight:950;font-size:12px;color:var(--deep);
-      display:inline-flex;align-items:center;gap:10px;
+      display:inline-flex;align-items:center;gap:5px;padding:5px 9px;
+      border-radius:var(--r2);border:1px solid var(--l);background:var(--s);
+      cursor:pointer;font-family:var(--font);font-weight:500;font-size:12px;color:var(--t2);
+      transition:all .13s ease;
     }
-    .tinyBtn:hover{border-color:rgba(43,227,140,.35)}
-    .tinyBtnPrimary{
-      background:rgba(22,184,118,.10);
-      border-color:rgba(22,184,118,.25);
-    }
+    .tinyBtn:hover{border-color:var(--l2);color:var(--t);box-shadow:var(--sh)}
+    .tinyBtnP{background:var(--a-dim);border-color:var(--a-border);color:var(--a2)}
+    .tinyBtnP:hover{background:rgba(27,255,140,.16);border-color:var(--a-border2);color:var(--t)}
 
-    .sectionHeader{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
-      margin-bottom:6px;
+    .tipsBox{
+      margin-top:9px;padding:13px;border:1px solid var(--a-border);border-left:2px solid var(--a);
+      border-radius:0 var(--r) var(--r) 0;background:var(--a-dim);
+      font-size:12px;color:var(--t2);line-height:1.65;white-space:pre-wrap;
+      animation:fadeUp .18s ease;
     }
-    .sectionHeaderLeft{min-width:0}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-    /* Collapsible */
-    .sectionBody{
-      margin-top:10px;
-      overflow:hidden;
-      max-height:3200px;
-      opacity:1;
-      transition:max-height .28s ease, opacity .22s ease;
-    }
-    .collapsed .sectionBody{
-      max-height:0;
-      opacity:0;
-      margin-top:0;
-    }
-
-    .toggleBtn{border-radius:14px;padding:8px 12px;}
-    .chev{
-      width:22px;height:22px;border-radius:10px;
-      display:grid;place-items:center;
-      background:rgba(5,42,30,.06);
-      font-weight:1100;
-      line-height:1;
-      transition:transform .22s ease;
-      user-select:none;
-    }
-    .collapsed .chev{ transform:rotate(-90deg); }
-
-    .quickNav{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .quickNav .tinyBtn{border-radius:999px}
-
-    footer{border-top:1px solid var(--border);padding:18px;text-align:center;color:var(--muted);font-size:12px;font-weight:750}
-
-    /* SMART TIPS */
-    .smartTipsBox{
-      margin-top:10px;
-      border:1px solid rgba(5,42,30,.12);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      white-space:pre-wrap;
-      font-weight:850;
-      font-size:12px;
-      line-height:1.45;
-    }
-    .smartTipsRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:10px;
-    }
-    .smartTipsBtn{
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid rgba(5,42,30,.12);
-      background:rgba(22,184,118,.10);
-      border-color:rgba(22,184,118,.25);
-      cursor:pointer;
-      font-weight:950;
-      font-size:12px;
-      color:var(--deep);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .smartTipsBtn[disabled]{opacity:.65;cursor:not-allowed}
-    .smartTipsPill{
-      font-size:11px;
-      font-weight:1000;
-      border:1px solid var(--border);
-      border-radius:999px;
-      padding:4px 8px;
-      background:#fff;
-      color:var(--muted);
-    }
-
-    /* TEACHER REPORT */
+    /* ── REPORT ── */
+    .reportActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
     .reportBox{
-      margin-top:10px;
-      border:1px solid rgba(5,42,30,.12);
-      background:#fff;
-      border-radius:14px;
-      padding:10px 12px;
-      white-space:pre-wrap;
-      font-weight:850;
-      font-size:12px;
-      line-height:1.45;
-      min-height:120px;
+      position:relative;background:var(--s2);border:1px solid var(--l);border-radius:var(--r);
+      padding:18px;min-height:130px;
+      font-size:13px;color:var(--t2);line-height:1.72;white-space:pre-wrap;
+      transition:background .28s ease;
     }
-    .reportRow{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top:10px;
+    .loadOv{
+      position:absolute;inset:0;border-radius:var(--r);
+      background:var(--glass);backdrop-filter:blur(5px);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+      opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:10;
     }
-    .reportBtn{
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid rgba(5,42,30,.12);
-      background:rgba(22,184,118,.10);
-      border-color:rgba(22,184,118,.25);
-      cursor:pointer;
-      font-weight:950;
-      font-size:12px;
-      color:var(--deep);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+    .loadOv.on{opacity:1;pointer-events:auto}
+    .spinner{width:22px;height:22px;border:2px solid var(--l2);border-top-color:var(--a);border-radius:50%;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loadSteps{display:flex;flex-direction:column;gap:4px;align-items:center}
+    .loadStep{font-family:var(--mono);font-size:11px;color:var(--t3);opacity:0;transform:translateY(3px);transition:all .22s ease}
+    .loadStep.on{opacity:1;transform:none;color:var(--t2)}
+
+    /* ── TRAIN ── */
+    .trainRow{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+      padding:14px;background:var(--s2);border:1px solid var(--l);border-radius:var(--r);
     }
-    .reportBtn[disabled]{opacity:.65;cursor:not-allowed}
+    .selPill{
+      margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:500;
+      color:var(--t3);padding:3px 9px;border:1px solid var(--l);border-radius:var(--r2);background:var(--s);
+    }
+
+    /* ── STATUS ── */
+    .statusText{font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:10px}
+    .statusText.ok{color:var(--ok)} .statusText.warn{color:var(--warn)} .statusText.bad{color:var(--danger)}
+
+    /* ── EMPTY STATE ── */
+    .emptyState{display:flex;flex-direction:column;align-items:center;padding:44px 24px;gap:9px;text-align:center;animation:fadeUp .25s ease}
+    .emptyIcon{font-size:34px;opacity:.8;margin-bottom:2px}
+    .emptyTitle{font-size:14px;font-weight:600;color:var(--t);letter-spacing:-.01em}
+    .emptyDesc{font-size:12.5px;color:var(--t3);max-width:280px;line-height:1.6}
+
+    /* ── REVEAL ── */
+    .reveal{opacity:0;transform:translateY(14px);transition:opacity .32s cubic-bezier(.22,.61,.36,1),transform .32s cubic-bezier(.22,.61,.36,1)}
+    .reveal.in{opacity:1;transform:none}
+
+    /* ── FOOTER ── */
+    footer{border-top:1px solid var(--l);padding:22px clamp(16px,4vw,36px);text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--t3);letter-spacing:.03em;transition:border-color .28s ease,color .28s ease}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:620px){
+      .heroTitle{font-size:24px}
+      .sHead{padding:14px}
+      .sBody{padding-left:14px;padding-right:14px}
+      .mistakeGrid,.dataGrid{grid-template-columns:1fr}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+      .reveal{opacity:1;transform:none}
+    }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="wrap topbar">
-      <a class="brand" href="index.html">
-        <img src="image/proviaai-logo.png" alt="ProviaAi logga">
-        <div>
-          <div class="name">ProviaAi</div>
-          <div class="tag" id="tagLine">Förbättring • Coach • Historik</div>
-        </div>
-      </a>
 
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <a class="btn" href="app.html" id="toAppBtn">Till appen</a>
-        <button class="btn" id="langBtn" type="button"><span id="langLabel">English</span><span class="pill" id="langPill">SV</span></button>
-        <button class="btn btnDanger" id="resetBtn" type="button">Rensa historik</button>
+  <!-- HEADER -->
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <a class="brand" href="index.html">
+          <img src="image/proviaai-logo.png" alt="ProviaAi">
+          <div class="brandText">
+            <div class="bname">ProviaAi</div>
+            <div class="btag" id="tagLine">FÖRBÄTTRING · COACH · HISTORIK</div>
+          </div>
+        </a>
+        <div class="hActions">
+          <a class="btn" href="app.html" id="toAppBtn">Till appen</a>
+          <button class="themeTgl" id="themeToggle" type="button">
+            <span class="tIcon" id="themeIcon">🌙</span>
+            <span id="themeLabel">Light</span>
+          </button>
+          <button class="btn btnG" id="langBtn" type="button">
+            <span id="langLabel">English</span>
+            <span class="pill" id="langPill">SV</span>
+          </button>
+          <button class="btn btnD" id="resetBtn" type="button">Rensa</button>
+          <div class="menuWrap">
+            <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny" aria-expanded="false">
+              <div class="bars"><span></span><span></span><span></span></div>
+            </button>
+            <div class="dropdown" id="menu">
+              <a href="index.html#how"><span>Hur det funkar</span><span class="pill">Steg</span></a>
+              <a href="index.html#features"><span>Funktioner</span><span class="pill">AI</span></a>
+              <a href="index.html#coach"><span>AI-coach</span><span class="pill">Coach</span></a>
+              <a href="index.html#who"><span>För vem</span><span class="pill">Skola</span></a>
+              <a href="index.html#faq"><span>FAQ</span><span class="pill">Svar</span></a>
+              <a href="pricing.html"><span>Priser</span><span class="pill">19/59</span></a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
+  <!-- MAIN -->
   <main class="wrap">
-    <section class="card">
-      <h1 class="title" id="pageTitle">Din förbättring</h1>
-      <p class="sub" id="pageSub">Bygger på prov du har rättat i appen.</p>
-      <div class="status" id="topStatus"></div>
 
-      <div class="quickNav" id="quickNav">
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#examListCard" id="navExams">Prov</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#coachCard" id="navCoach">Coach</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#reportCard" id="navReport">Rapport</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#readyCard" id="navReady">Träna</button>
-        <button class="tinyBtn tinyBtnPrimary" type="button" data-open="#mistakeCard" id="navMistakes">Felbank</button>
-      </div>
-    </section>
-
-    <section class="card collapsed" id="examListCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="examListTitle" style="font-size:16px">Prov (kategorier)</h2>
-          <p class="sub" id="examListSub">Filtrera per kurs och klicka ett prov för att visa relevanta misstag.</p>
+    <!-- HERO -->
+    <div class="hero reveal">
+      <div class="heroEye">Förbättring</div>
+      <h1 class="heroTitle" id="pageTitle">Din <em>progress</em><br>på ett ställe.</h1>
+      <p class="heroSub" id="pageSub">Bygger på prov du rättat i appen. Synka, analysera och träna det som faktiskt behöver förbättras.</p>
+      <div class="heroMeta">
+        <div class="heroStatusWrap">
+          <div class="sDot" id="statusDot"></div>
+          <span id="topStatusText">—</span>
         </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#examListCard" id="toggleExams">
-          <span class="tLabel" id="toggleExamsLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
       </div>
+    </div>
 
-      <div class="sectionBody">
-        <div class="row" style="margin-top:12px">
-          <label class="chip">
-            <span id="courseFilterLabel">Kurs</span>
+    <!-- HOW-TO -->
+    <div class="howTo reveal" id="howToBanner">
+      <div id="howToText"><strong>Så här:</strong> Synka dina prov → öppna en sektion → träna dina svagaste punkter direkt.</div>
+    </div>
+
+    <!-- NAV RAIL -->
+    <nav class="navRail reveal" id="quickNav">
+      <button class="navBtn" type="button" data-open="#examSection" id="navExams">
+        <span class="navBtnIcon">📋</span>
+        <span class="navBtnNum">01</span>
+        <span class="navBtnLabel" id="navExamsLabel">Prov</span>
+      </button>
+      <button class="navBtn" type="button" data-open="#coachSection" id="navCoach">
+        <span class="navBtnIcon">🤖</span>
+        <span class="navBtnNum">02</span>
+        <span class="navBtnLabel" id="navCoachLabel">Coach</span>
+      </button>
+      <button class="navBtn" type="button" data-open="#reportSection" id="navReport">
+        <span class="navBtnIcon">📄</span>
+        <span class="navBtnNum">03</span>
+        <span class="navBtnLabel" id="navReportLabel">Rapport</span>
+      </button>
+      <button class="navBtn" type="button" data-open="#trainSection" id="navReady">
+        <span class="navBtnIcon">🎯</span>
+        <span class="navBtnNum">04</span>
+        <span class="navBtnLabel" id="navReadyLabel">Träna</span>
+      </button>
+      <button class="navBtn" type="button" data-open="#mistakeSection" id="navMistakes">
+        <span class="navBtnIcon">❌</span>
+        <span class="navBtnNum">05</span>
+        <span class="navBtnLabel" id="navMistakesLabel">Felbank</span>
+      </button>
+    </nav>
+
+    <!-- SECTION 01 – PROV -->
+    <div class="section collapsed reveal" id="examSection">
+      <div class="sHead" data-toggle="#examSection">
+        <div class="sHeadLeft">
+          <span class="sNum">01</span>
+          <div class="sInfo">
+            <div class="sTitle" id="examListTitle">Prov</div>
+            <div class="sDesc" id="examListSub">Filtrera per kurs · klicka för att se felbank</div>
+          </div>
+        </div>
+        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="sDivider"></div>
+      <div class="sBody">
+        <div class="sBodyInner">
+          <div class="filterRow">
+            <span class="fLabel" id="courseFilterLabel">Kurs</span>
             <select id="courseFilter"></select>
-          </label>
-
-          <label class="chip">
-            <span id="showModeLabel">Visa</span>
+            <span class="fLabel" id="showModeLabel">Visa</span>
             <select id="showMode">
               <option value="mistakes" selected>Felbank</option>
               <option value="all">Alla prov</option>
             </select>
-          </label>
-
-          <button class="btn" id="syncBtn" type="button">Synka från konto</button>
-        </div>
-
-        <div class="status" id="examListStatus"></div>
-        <div class="grid2" id="examList" style="margin-top:12px"></div>
-      </div>
-    </section>
-
-    <section class="card collapsed" id="coachCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="coachTitle" style="font-size:16px">Coach (personlig sammanfattning)</h2>
-          <p class="sub" id="coachSub">Baserad på din historik och felbank.</p>
-        </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#coachCard" id="toggleCoach">
-          <span class="tLabel" id="toggleCoachLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div class="sectionBody">
-        <div class="box" style="margin-top:12px">
-          <div class="boxTitle" id="coachHeader">Rekommendation</div>
-          <p class="boxText" id="coachText">—</p>
-        </div>
-
-        <div class="grid3" style="margin-top:12px">
-          <div class="box">
-            <div class="boxTitle" id="lastTitle">Senaste resultat</div>
-            <p class="boxText" id="lastText">—</p>
+            <button class="btn tinyBtnP" id="syncBtn" type="button" style="margin-left:auto;padding:6px 12px">↻ <span id="syncBtnLabel">Synka</span></button>
           </div>
-          <div class="box">
-            <div class="boxTitle" id="trendTitle">Trend</div>
-            <p class="boxText" id="trendText">—</p>
+          <div class="statusText" id="examListStatus"></div>
+          <div class="dataGrid" id="examList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 02 – COACH -->
+    <div class="section collapsed reveal" id="coachSection">
+      <div class="sHead" data-toggle="#coachSection">
+        <div class="sHeadLeft">
+          <span class="sNum">02</span>
+          <div class="sInfo">
+            <div class="sTitle" id="coachTitle">Coach</div>
+            <div class="sDesc" id="coachSub">AI-analys baserad på din historik och felbank</div>
           </div>
-          <div class="box">
-            <div class="boxTitle" id="focusTitle">Fokus nu</div>
-            <p class="boxText" id="focusText">—</p>
+        </div>
+        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="sDivider"></div>
+      <div class="sBody">
+        <div class="sBodyInner">
+          <div class="coachBox">
+            <div class="coachLabel" id="coachHeader">Rekommendation</div>
+            <div class="coachText" id="coachText">—</div>
+          </div>
+          <div class="statsRow">
+            <div class="statBox"><div class="statLabel" id="lastTitle">Senaste</div><div class="statValue" id="lastText">—</div></div>
+            <div class="statBox"><div class="statLabel" id="trendTitle">Trend</div><div class="statValue" id="trendText">—</div></div>
+            <div class="statBox"><div class="statLabel" id="focusTitle">Fokus</div><div class="statValue" id="focusText">—</div></div>
+          </div>
+          <div class="chartWrap" id="chartWrap" style="display:none">
+            <div class="chartLabel" id="chartTitle">Resultatutveckling</div>
+            <canvas id="progressChart"></canvas>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="card collapsed" id="reportCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="reportTitle" style="font-size:16px">Lärarrapport</h2>
-          <p class="sub" id="reportSub">Kort rapport baserad på minst 3 genomförda prov.</p>
+    <!-- SECTION 03 – RAPPORT -->
+    <div class="section collapsed reveal" id="reportSection">
+      <div class="sHead" data-toggle="#reportSection">
+        <div class="sHeadLeft">
+          <span class="sNum">03</span>
+          <div class="sInfo">
+            <div class="sTitle" id="reportTitle">Lärarrapport</div>
+            <div class="sDesc" id="reportSub">Kräver minst 3 genomförda prov</div>
+          </div>
         </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#reportCard" id="toggleReport">
-          <span class="tLabel" id="toggleReportLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
+        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </div>
-
-      <div class="sectionBody">
-        <div class="status" id="reportStatus"></div>
-
-        <div class="reportRow">
-          <button class="reportBtn" id="genReportBtn" type="button">Skapa rapport</button>
-          <button class="reportBtn" id="copyReportBtn" type="button" disabled>Kopiera</button>
-          <span class="pill" id="reportPill" style="display:none">—</span>
-        </div>
-
-        <div class="reportBox" id="reportBox">—</div>
-      </div>
-    </section>
-
-    <section class="card collapsed" id="readyCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="readyTitle" style="font-size:16px">Träna dina misstag</h2>
-          <p class="sub" id="readySub">Markera i felbanken och träna bara det du behöver.</p>
-        </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#readyCard" id="toggleReady">
-          <span class="tLabel" id="toggleReadyLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
-      </div>
-
-      <div class="sectionBody">
-        <div class="row" style="margin-top:12px">
-          <button class="btn btnPrimary" id="trainSelectedBtn" type="button">Träna markerade misstag</button>
-          <button class="btn" id="clearSelectionBtn" type="button">Rensa markering</button>
-          <span class="pill" id="selCountPill">0 valda</span>
+      <div class="sDivider"></div>
+      <div class="sBody">
+        <div class="sBodyInner">
+          <div class="statusText" id="reportStatus"></div>
+          <div class="reportActions">
+            <button class="btn btnP" id="genReportBtn" type="button">Skapa rapport</button>
+            <button class="btn" id="copyReportBtn" type="button" disabled>Kopiera</button>
+            <span class="pill" id="reportPill" style="display:none">—</span>
+          </div>
+          <div style="position:relative">
+            <div class="loadOv" id="reportLoadingOverlay">
+              <div class="spinner"></div>
+              <div class="loadSteps">
+                <div class="loadStep" id="loadStep1">Analyserar historik…</div>
+                <div class="loadStep" id="loadStep2">Identifierar mönster…</div>
+                <div class="loadStep" id="loadStep3">Skriver rapport…</div>
+              </div>
+            </div>
+            <div class="reportBox" id="reportBox">—</div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="card collapsed" id="mistakeCard">
-      <div class="sectionHeader">
-        <div class="sectionHeaderLeft">
-          <h2 class="title" id="mistakesTitle" style="font-size:16px">Felbank</h2>
-          <p class="sub" id="mistakesSub">Frågor där du tappade poäng, med modellsvar.</p>
+    <!-- SECTION 04 – TRÄNA -->
+    <div class="section collapsed reveal" id="trainSection">
+      <div class="sHead" data-toggle="#trainSection">
+        <div class="sHeadLeft">
+          <span class="sNum">04</span>
+          <div class="sInfo">
+            <div class="sTitle" id="readyTitle">Träna misstag</div>
+            <div class="sDesc" id="readySub">Markera i felbanken, träna exakt det du behöver</div>
+          </div>
         </div>
-        <button class="tinyBtn toggleBtn" type="button" data-toggle="#mistakeCard" id="toggleMistakes">
-          <span class="tLabel" id="toggleMistakesLabel">Öppna</span><span class="chev" aria-hidden="true">▾</span>
-        </button>
+        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </div>
+      <div class="sDivider"></div>
+      <div class="sBody">
+        <div class="sBodyInner">
+          <div class="trainRow">
+            <button class="btn btnP" id="trainSelectedBtn" type="button">Träna markerade</button>
+            <button class="btn" id="clearSelectionBtn" type="button">Rensa val</button>
+            <span class="selPill" id="selCountPill">0 valda</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <div class="sectionBody">
-        <div class="status" id="mistakeStatus"></div>
-        <div class="grid2" id="mistakeList" style="margin-top:12px"></div>
+    <!-- SECTION 05 – FELBANK -->
+    <div class="section collapsed reveal" id="mistakeSection">
+      <div class="sHead" data-toggle="#mistakeSection">
+        <div class="sHeadLeft">
+          <span class="sNum">05</span>
+          <div class="sInfo">
+            <div class="sTitle" id="mistakesTitle">Felbank</div>
+            <div class="sDesc" id="mistakesSub">Frågor du tappat poäng på · med modellsvar</div>
+          </div>
+        </div>
+        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </div>
-    </section>
+      <div class="sDivider"></div>
+      <div class="sBody">
+        <div class="sBodyInner">
+          <div class="statusText" id="mistakeStatus"></div>
+          <div class="mistakeGrid" id="mistakeList"></div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
-    // ===== STORAGE KEYS =====
-    const LS_HISTORY = "proviaai_history";
-    const LS_MISTAKES = "proviaai_mistakes";
-    const LS_LAST = "proviaai_last_result";
-    const LS_MATERIAL = "proviaai_last_material";
-    const LS_CLEAR_TS = "proviaai_cleared_ts";
+    /* ── STORAGE KEYS ── */
+    const LS_HISTORY='proviaai_history',LS_MISTAKES='proviaai_mistakes',LS_LAST='proviaai_last_result',
+      LS_MATERIAL='proviaai_last_material',LS_CLEAR_TS='proviaai_cleared_ts',
+      LS_TRAIN_PICK='proviaai_train_pick',LS_UI_OPEN='proviaai_ui_open_improve',
+      LS_USER_NAME_A='proviaai_user_name',LS_USER_NAME_B='proviaai_name',
+      LS_SMART_TIPS_CACHE='proviaai_smart_tips_cache',LS_TEACHER_REPORT_CACHE='proviaai_teacher_report_cache',
+      LS_THEME='proviaai_theme';
 
-    // val/markering för träning
-    const LS_TRAIN_PICK = "proviaai_train_pick"; // { ids:[...], course:"..." }
-
-    // UI state för collapsible
-    const LS_UI_OPEN = "proviaai_ui_open_improve"; // { "#cardId": true/false, ... }
-
-    // användarnamn
-    const LS_USER_NAME_A = "proviaai_user_name";
-    const LS_USER_NAME_B = "proviaai_name";
-
-    // Smart tips cache
-    const LS_SMART_TIPS_CACHE = "proviaai_smart_tips_cache"; // { "<course>::<id>": "text", ... }
-
-    // Teacher report cache
-    const LS_TEACHER_REPORT_CACHE = "proviaai_teacher_report_cache"; // { "<course>": { ts:number, n:number, text:string } }
-
-    // ===== SUPABASE =====
-    const SUPABASE_URL = "https://mnmotdluigzeehdjbhbu.supabase.co".trim();
-    const SUPABASE_ANON_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRU1eRaXhl7AIY8").trim();
-
-    const SupabaseGlobal = (typeof window !== "undefined") ? window.supabase : null;
-    const db = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 40 && SupabaseGlobal?.createClient)
-      ? SupabaseGlobal.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-      : null;
-
-    async function getUserId(){
-      if(!db) return null;
-      const { data, error } = await db.auth.getUser();
-      if(error) return null;
-      return data?.user?.id || null;
+    /* ── THEME ── */
+    let THEME=localStorage.getItem(LS_THEME)||'dark';
+    function applyTheme(t){
+      THEME=t; document.body.classList.toggle('light',t==='light');
+      const icon=document.getElementById('themeIcon'),lbl=document.getElementById('themeLabel');
+      if(icon) icon.textContent=t==='light'?'☀️':'🌙';
+      if(lbl) lbl.textContent=t==='light'?'Dark':'Light';
+      localStorage.setItem(LS_THEME,t);
     }
+    applyTheme(THEME);
 
+    /* ── SUPABASE ── */
+    const SB_URL='https://mnmotdluigzeehdjbhbu.supabase.co'.trim();
+    const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRU1eRaXhl7AIY8'.trim();
+    const SBG=typeof window!=='undefined'?window.supabase:null;
+    const db=(SB_URL.startsWith('http')&&SB_KEY.length>40&&SBG?.createClient)?SBG.createClient(SB_URL,SB_KEY):null;
+
+    async function getUserId(){if(!db)return null;const{data,error}=await db.auth.getUser();if(error)return null;return data?.user?.id||null;}
     async function fetchUserExams(){
-      if(!db) return { ok:false, error:"Supabase not configured" };
-      const uid = await getUserId();
-      if(!uid) return { ok:false, error:"Not logged in" };
-
-      const { data, error } = await db
-        .from("user_exams")
-        .select("id, created_at, course, level, qtype, material, exam, answers, result")
-        .eq("user_id", uid)
-        .order("created_at", { ascending: true })
-        .limit(500);
-
-      if(error) return { ok:false, error: error.message || String(error) };
-      return { ok:true, rows: data || [] };
+      if(!db)return{ok:false,error:'Supabase not configured'};
+      const uid=await getUserId();if(!uid)return{ok:false,error:'Not logged in'};
+      const{data,error}=await db.from('user_exams').select('id,created_at,course,level,qtype,material,exam,answers,result').eq('user_id',uid).order('created_at',{ascending:true}).limit(500);
+      if(error)return{ok:false,error:error.message||String(error)};
+      return{ok:true,rows:data||[]};
     }
-
     async function deleteAllUserExamsFromAccount(){
-      if(!db) return { ok:false, error:"Supabase not configured" };
-      const uid = await getUserId();
-      if(!uid) return { ok:false, error:"Not logged in" };
-      const { error } = await db.from("user_exams").delete().eq("user_id", uid);
-      if(error) return { ok:false, error: error.message || String(error) };
-      return { ok:true };
+      if(!db)return{ok:false,error:'Supabase not configured'};
+      const uid=await getUserId();if(!uid)return{ok:false,error:'Not logged in'};
+      const{error}=await db.from('user_exams').delete().eq('user_id',uid);
+      if(error)return{ok:false,error:error.message||String(error)};
+      return{ok:true};
     }
 
-    function safeJsonParse(s, fallback){ try{ return JSON.parse(s); } catch { return fallback; } }
-    function lsGetArray(key){ const v = localStorage.getItem(key); const arr = safeJsonParse(v, []); return Array.isArray(arr) ? arr : []; }
-    function lsGetObj(key){ const v = localStorage.getItem(key); const obj = safeJsonParse(v, null); return (obj && typeof obj === "object") ? obj : null; }
-    function lsSet(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-    function lsGetNum(key, fallback=0){ const n = Number(localStorage.getItem(key)||fallback); return Number.isFinite(n) ? n : fallback; }
+    /* ── UTILS ── */
+    function sjp(s,fb){try{return JSON.parse(s);}catch{return fb;}}
+    function lsArr(k){const v=localStorage.getItem(k),a=sjp(v,[]);return Array.isArray(a)?a:[];}
+    function lsObj(k){const v=localStorage.getItem(k),o=sjp(v,null);return(o&&typeof o==='object')?o:null;}
+    function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+    function lsNum(k,fb=0){const n=Number(localStorage.getItem(k)||fb);return Number.isFinite(n)?n:fb;}
+    function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
+    const $=id=>document.getElementById(id);
 
-    // ===== I18N =====
-    let LANG = localStorage.getItem("proviaai_lang") || "sv";
-    const T = {
+    /* ── I18N ── */
+    let LANG=localStorage.getItem('proviaai_lang')||'sv';
+    const T={
       sv:{
-        tag:"Förbättring • Coach • Historik",
-        toApp:"Till appen",
-        reset:"Rensa historik",
-        title:"Din förbättring",
-        sub:"Bygger på prov du har rättat i appen.",
-        noData:"Ingen sparad provdata hittades. Gör ett prov i appen och tryck Rätta prov.",
-        coachTitle:"Coach (personlig sammanfattning)",
-        coachSub:"Baserad på din historik och felbank.",
-        coachHeader:"Rekommendation",
-        lastTitle:"Senaste resultat",
-        trendTitle:"Trend",
-        focusTitle:"Fokus nu",
-        readyTitle:"Träna dina misstag",
-        readySub:"Markera i felbanken och träna bara det du behöver.",
-        trainSelected:"Träna markerade misstag",
-        clearSel:"Rensa markering",
-        mistakesTitle:"Felbank",
-        mistakesSub:"Frågor där du tappade poäng, med modellsvar.",
-        mistakesEmpty:"Ingen felbank ännu (inga tappade poäng).",
-        footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
-        english:"English",
-        examListTitle:"Prov (kategorier)",
-        examListSub:"Filtrera per kurs och klicka ett prov för att visa relevanta misstag.",
-        course:"Kurs",
-        show:"Visa",
-        sync:"Synka från konto",
-        allCourses:"Alla kurser",
-        selected:"valda",
-        doneBtn:"Klar",
-        pick:"Välj",
-        showingAll:(n, c) => `Visar ${n} misstag${c ? " • " + c : ""}.`,
-        removedOne:"Markerad som klar och borttagen från felbanken.",
-        open:"Öppna",
-        close:"Stäng",
-        coachGenEmpty:"Din felbank är tom, så inget prov kan genereras från misstag just nu.",
-        coachGenOk:(n)=> `Skapade träningsval från ${n} misstag (öppnar träning).`,
-        smartTips:"Smart tips",
-        smartTipsLoading:"Hämtar tips…",
-        smartTipsError:"Kunde inte hämta tips.",
-        smartTipsShow:"Visa smart tips",
-        smartTipsHide:"Dölj smart tips",
-        smartTipsCached:"cache",
-        reportNav:"Rapport",
-        reportTitle:"Lärarrapport",
-        reportSub:"Kort rapport baserad på minst 3 genomförda prov.",
-        reportNeed3:(n)=> `Minst 3 prov krävs för att skapa lärarrapport. Du har ${n}.`,
-        reportReady:(n)=> `Redo att skapa rapport baserad på ${n} prov.`,
-        reportGenerating:"Skapar rapport…",
-        reportError:"Kunde inte skapa rapport.",
-        reportCreate:"Skapa rapport",
-        reportCopy:"Kopiera",
-        reportCopied:"Kopierad",
-        reportBasedOn:(n)=> `Baserad på ${n} prov`
+        tag:'FÖRBÄTTRING · COACH · HISTORIK',toApp:'Till appen',reset:'Rensa',sync:'Synka',
+        sub:'Bygger på prov du rättat i appen. Synka, analysera och träna det som faktiskt behöver förbättras.',
+        howTo:'<strong>Så här:</strong> Synka dina prov → öppna en sektion → träna dina svagaste punkter direkt.',
+        noData:'Ingen provdata hittades. Gör ett prov i appen och tryck Rätta prov.',
+        coachTitle:'Coach',coachSub:'AI-analys baserad på din historik och felbank',coachHeader:'Rekommendation',
+        lastTitle:'Senaste',trendTitle:'Trend',focusTitle:'Fokus',
+        readyTitle:'Träna misstag',readySub:'Markera i felbanken, träna exakt det du behöver',
+        trainSelected:'Träna markerade',clearSel:'Rensa val',
+        mistakesTitle:'Felbank',mistakesSub:'Frågor du tappat poäng på · med modellsvar',
+        mistakesEmpty:'Felbanken är tom!',mistakesEmptyDesc:'Inga tappade poäng just nu. Fortsätt träna.',
+        footer:'ProviaAi är studiestöd och ger ingen officiell betygssättning.',english:'English',
+        examListTitle:'Prov',examListSub:'Filtrera per kurs · klicka för att se felbank',
+        course:'Kurs',show:'Visa',allCourses:'Alla kurser',selected:'valda',doneBtn:'Klar ✓',pick:'Välj',
+        showingAll:(n,c)=>`${n} misstag${c?' · '+c:''}`,showingExams:(n,c)=>`${n} prov${c?' · '+c:''}`,
+        removedOne:'Borttagen från felbanken.',open:'Öppna',close:'Stäng',
+        smartTips:'Tips',smartTipsLoading:'Hämtar tips…',smartTipsError:'Kunde inte hämta tips.',smartTipsCached:'cache',
+        reportNav:'Rapport',reportTitle:'Lärarrapport',reportSub:'Kräver minst 3 genomförda prov',
+        reportNeed3:n=>`Minst 3 prov krävs. Du har ${n}.`,reportReady:n=>`Redo – ${n} prov`,
+        reportGenerating:'Skapar rapport…',reportError:'Kunde inte skapa rapport.',
+        reportCreate:'Skapa rapport',reportCopy:'Kopiera',reportCopied:'Kopierad ✓',reportBasedOn:n=>`${n} prov`,
+        chartTitle:'Resultatutveckling',
+        navExamsLabel:'Prov',navCoachLabel:'Coach',navReportLabel:'Rapport',navReadyLabel:'Träna',navMistakesLabel:'Felbank',
+        syncingLabel:'Synkar…',syncDone:'Synkat',
       },
       en:{
-        tag:"Improve • Coach • History",
-        toApp:"Go to app",
-        reset:"Clear history",
-        title:"Your improvement",
-        sub:"Built from exams you graded in the app.",
-        noData:"No saved exam data found. Create an exam in the app and click Grade.",
-        coachTitle:"Coach (personal summary)",
-        coachSub:"Based on your history and mistake library.",
-        coachHeader:"Recommendation",
-        lastTitle:"Latest result",
-        trendTitle:"Trend",
-        focusTitle:"Focus now",
-        readyTitle:"Train your mistakes",
-        readySub:"Select in the mistake library and train only what you need.",
-        trainSelected:"Train selected mistakes",
-        clearSel:"Clear selection",
-        mistakesTitle:"Mistake library",
-        mistakesSub:"Questions where you lost points, with model answers.",
-        mistakesEmpty:"No mistakes yet (no lost points).",
-        footer:"ProviaAi is study support and does not provide official grades.",
-        english:"Svenska",
-        examListTitle:"Exams (categories)",
-        examListSub:"Filter by course and click an exam to show relevant mistakes.",
-        course:"Course",
-        show:"Show",
-        sync:"Sync from account",
-        allCourses:"All courses",
-        selected:"selected",
-        doneBtn:"Done",
-        pick:"Pick",
-        showingAll:(n, c) => `Showing ${n} mistakes${c ? " • " + c : ""}.`,
-        removedOne:"Marked as done and removed from the mistake library.",
-        open:"Open",
-        close:"Close",
-        coachGenEmpty:"Your mistake library is empty, so no exam can be generated from mistakes right now.",
-        coachGenOk:(n)=> `Prepared training selection from ${n} mistakes (opening training).`,
-        smartTips:"Smart tips",
-        smartTipsLoading:"Fetching tips…",
-        smartTipsError:"Could not fetch tips.",
-        smartTipsShow:"Show smart tips",
-        smartTipsHide:"Hide smart tips",
-        smartTipsCached:"cache",
-        reportNav:"Report",
-        reportTitle:"Teacher report",
-        reportSub:"Short report based on at least 3 completed exams.",
-        reportNeed3:(n)=> `At least 3 exams are required to generate a teacher report. You have ${n}.`,
-        reportReady:(n)=> `Ready to generate a report based on ${n} exams.`,
-        reportGenerating:"Generating report…",
-        reportError:"Could not generate report.",
-        reportCreate:"Generate report",
-        reportCopy:"Copy",
-        reportCopied:"Copied",
-        reportBasedOn:(n)=> `Based on ${n} exams`
+        tag:'IMPROVE · COACH · HISTORY',toApp:'Go to app',reset:'Clear',sync:'Sync',
+        sub:'Built from exams you graded in the app. Sync, analyze and train what actually needs work.',
+        howTo:'<strong>How to:</strong> Sync your exams → open a section → train your weakest points directly.',
+        noData:'No exam data found. Create an exam in the app and click Grade.',
+        coachTitle:'Coach',coachSub:'AI analysis based on your history and mistake library',coachHeader:'Recommendation',
+        lastTitle:'Latest',trendTitle:'Trend',focusTitle:'Focus',
+        readyTitle:'Train mistakes',readySub:'Select in the library, train exactly what you need',
+        trainSelected:'Train selected',clearSel:'Clear',
+        mistakesTitle:'Mistakes',mistakesSub:'Questions where you lost points · with model answers',
+        mistakesEmpty:'Library is empty!',mistakesEmptyDesc:'No lost points right now. Keep training.',
+        footer:'ProviaAi is study support and does not provide official grades.',english:'Svenska',
+        examListTitle:'Exams',examListSub:'Filter by course · click to see mistakes',
+        course:'Course',show:'Show',allCourses:'All courses',selected:'selected',doneBtn:'Done ✓',pick:'Pick',
+        showingAll:(n,c)=>`${n} mistakes${c?' · '+c:''}`,showingExams:(n,c)=>`${n} exams${c?' · '+c:''}`,
+        removedOne:'Removed from library.',open:'Open',close:'Close',
+        smartTips:'Tips',smartTipsLoading:'Fetching tips…',smartTipsError:'Could not fetch tips.',smartTipsCached:'cache',
+        reportNav:'Report',reportTitle:'Teacher report',reportSub:'Requires at least 3 completed exams',
+        reportNeed3:n=>`At least 3 exams required. You have ${n}.`,reportReady:n=>`Ready – ${n} exams`,
+        reportGenerating:'Generating…',reportError:'Could not generate report.',
+        reportCreate:'Generate report',reportCopy:'Copy',reportCopied:'Copied ✓',reportBasedOn:n=>`${n} exams`,
+        chartTitle:'Progress over time',
+        navExamsLabel:'Exams',navCoachLabel:'Coach',navReportLabel:'Report',navReadyLabel:'Train',navMistakesLabel:'Mistakes',
+        syncingLabel:'Syncing…',syncDone:'Synced',
       }
     };
 
-    const $ = (id) => document.getElementById(id);
-
-    // ===== Collapsible helpers (persist + auto-open on nav) =====
-    function getUiOpenState(){ return lsGetObj(LS_UI_OPEN) || {}; }
-    function setUiOpenState(obj){ lsSet(LS_UI_OPEN, obj); }
-
-    function setCardOpen(sel, isOpen){
-      const card = document.querySelector(sel);
-      if(!card) return;
-      card.classList.toggle("collapsed", !isOpen);
-      const st = getUiOpenState();
-      st[sel] = !!isOpen;
-      setUiOpenState(st);
-      updateToggleLabels();
+    /* ── COLLAPSIBLE ── */
+    function uiState(){return lsObj(LS_UI_OPEN)||{};}
+    function saveUiState(o){lsSet(LS_UI_OPEN,o);}
+    function isOpen(sel){return!document.querySelector(sel)?.classList.contains('collapsed');}
+    function setOpen(sel,open){
+      const el=document.querySelector(sel);if(!el)return;
+      el.classList.toggle('collapsed',!open);
+      const st=uiState();st[sel]=!!open;saveUiState(st);
     }
-    function isCardOpen(sel){
-      const card = document.querySelector(sel);
-      if(!card) return false;
-      return !card.classList.contains("collapsed");
-    }
-    function toggleCard(sel){ setCardOpen(sel, !isCardOpen(sel)); }
-    function openSection(sel){
-      setCardOpen(sel, true);
-      const card = document.querySelector(sel);
-      card?.scrollIntoView({behavior:"smooth", block:"start"});
-    }
-
-    function updateToggleLabels(){
-      const t = T[LANG];
-      document.querySelectorAll("[data-toggle]").forEach(btn => {
-        const sel = btn.getAttribute("data-toggle");
-        if(!sel) return;
-        const open = isCardOpen(sel);
-        const labelEl = btn.querySelector(".tLabel");
-        if(labelEl) labelEl.textContent = open ? t.close : t.open;
+    function toggleSection(sel){setOpen(sel,!isOpen(sel));}
+    function openSection(sel){setOpen(sel,true);document.querySelector(sel)?.scrollIntoView({behavior:'smooth',block:'start'});}
+    function restoreUiState(){
+      const st=uiState();
+      ['#examSection','#coachSection','#reportSection','#trainSection','#mistakeSection'].forEach(sel=>{
+        if(typeof st[sel]==='boolean') document.querySelector(sel)?.classList.toggle('collapsed',!st[sel]);
       });
     }
 
-    function restoreUiOpenFromStorage(){
-      const st = getUiOpenState();
-      const cards = ["#examListCard","#coachCard","#reportCard","#readyCard","#mistakeCard"];
-      cards.forEach(sel => {
-        if(typeof st[sel] === "boolean"){
-          const card = document.querySelector(sel);
-          if(card) card.classList.toggle("collapsed", !st[sel]);
-        }
-      });
-      updateToggleLabels();
+    /* ── STATUS ── */
+    function setTopStatus(text,cls){
+      const dot=$('statusDot'),span=$('topStatusText');
+      if(span)span.textContent=text;
+      if(dot){dot.className='sDot';if(cls)dot.classList.add(cls);}
     }
 
-    // ===== USER NAME =====
-    let USER_NAME = "";
-    function normalizeName(s){
-      const v = String(s||"").trim();
-      if(!v) return "";
-      if(v.length > 40) return v.slice(0,40);
-      return v;
-    }
-    function getNameFromLocal(){
-      return normalizeName(localStorage.getItem(LS_USER_NAME_A) || localStorage.getItem(LS_USER_NAME_B) || "");
-    }
-    async function tryLoadNameFromAccount(){
-      if(!db) return "";
-      const { data, error } = await db.auth.getUser();
-      if(error) return "";
-      const u = data?.user || null;
-      if(!u) return "";
-      const meta = u.user_metadata || {};
-      const cand = normalizeName(meta.full_name || meta.name || meta.username || "");
-      return cand;
-    }
-
-    function applyLang(){
-      const t = T[LANG];
-      $("tagLine").textContent = t.tag;
-      $("toAppBtn").textContent = t.toApp;
-      $("resetBtn").textContent = t.reset;
-      $("pageTitle").textContent = t.title;
-      $("pageSub").textContent = t.sub;
-
-      $("coachTitle").textContent = t.coachTitle;
-      $("coachSub").textContent = t.coachSub;
-      $("coachHeader").textContent = t.coachHeader;
-
-      $("lastTitle").textContent = t.lastTitle;
-      $("trendTitle").textContent = t.trendTitle;
-      $("focusTitle").textContent = t.focusTitle;
-
-      $("reportTitle").textContent = t.reportTitle;
-      $("reportSub").textContent = t.reportSub;
-      $("genReportBtn").textContent = t.reportCreate;
-      $("copyReportBtn").textContent = t.reportCopy;
-
-      $("readyTitle").textContent = t.readyTitle;
-      $("readySub").textContent = t.readySub;
-
-      $("trainSelectedBtn").textContent = t.trainSelected;
-      $("clearSelectionBtn").textContent = t.clearSel;
-
-      $("mistakesTitle").textContent = t.mistakesTitle;
-      $("mistakesSub").textContent = t.mistakesSub;
-
-      $("footerText").textContent = t.footer;
-
-      $("langLabel").textContent = t.english;
-      $("langPill").textContent = LANG.toUpperCase();
-
-      $("examListTitle").textContent = t.examListTitle;
-      $("examListSub").textContent = t.examListSub;
-      $("courseFilterLabel").textContent = t.course;
-      $("showModeLabel").textContent = t.show;
-      $("syncBtn").textContent = t.sync;
-
-      $("navExams").textContent = (LANG==="sv") ? "Prov" : "Exams";
-      $("navCoach").textContent = "Coach";
-      $("navReport").textContent = t.reportNav;
-      $("navReady").textContent = (LANG==="sv") ? "Träna" : "Train";
-      $("navMistakes").textContent = (LANG==="sv") ? "Felbank" : "Mistakes";
-
-      updateToggleLabels();
-    }
-
-    $("langBtn").addEventListener("click", () => {
-      LANG = (LANG === "sv") ? "en" : "sv";
-      localStorage.setItem("proviaai_lang", LANG);
-      applyLang();
-      renderAll();
-    });
-
-    function computeTrend(history){
-      if(history.length < 2) return null;
-      const last = history.slice(-3);
-      const prev = history.slice(-6, -3);
-      const avg = arr => arr.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,arr.length);
-      const a1 = avg(last);
-      if(prev.length === 0) return {delta: a1 - (Number(history[0].percent)||0), base: "first"};
-      const a0 = avg(prev);
-      return {delta: a1 - a0, base: "prev3"};
-    }
-
-    // ===== ACCESS GATE (FIXAD) =====
-    function setTopStatus(text, cls){
-      const el = $("topStatus");
-      if(!el) return;
-      el.textContent = text;
-      el.className = "status" + (cls ? (" " + cls) : "");
-    }
-
-    function disablePageInteractions(){
-      const main = document.querySelector("main.wrap");
-      if(main){
-        main.style.pointerEvents = "none";
-        main.style.userSelect = "none";
-        main.style.filter = "grayscale(0.35)";
-        main.style.opacity = "0.7";
-      }
-      const resetBtn = $("resetBtn");
-      if(resetBtn) resetBtn.setAttribute("disabled","disabled");
-      const syncBtn = $("syncBtn");
-      if(syncBtn) syncBtn.setAttribute("disabled","disabled");
-    }
-
-    // VIKTIGT: om sidan tidigare låsts, måste vi kunna låsa upp igen
-    function enablePageInteractions(){
-      const main = document.querySelector("main.wrap");
-      if(main){
-        main.style.pointerEvents = "";
-        main.style.userSelect = "";
-        main.style.filter = "";
-        main.style.opacity = "";
-      }
-      const resetBtn = $("resetBtn");
-      if(resetBtn) resetBtn.removeAttribute("disabled");
-      const syncBtn = $("syncBtn");
-      if(syncBtn) syncBtn.removeAttribute("disabled");
-    }
-
-    async function mustHaveImproveAccess(){
-      if(!db) return { ok:false, reason:"no_db" };
-
-      const { data: sessData, error: sessErr } = await db.auth.getSession();
-      if(sessErr) return { ok:false, reason:"not_logged_in" };
-
-      const session = sessData?.session || null;
-      const uid = session?.user?.id || "";
-      if(!uid) return { ok:false, reason:"not_logged_in" };
-
+    /* ── ACCESS GATE ── */
+    function disablePage(){const m=document.querySelector('main.wrap');if(m){m.style.pointerEvents='none';m.style.opacity='0.55';}$('syncBtn')?.setAttribute('disabled','disabled');}
+    function enablePage(){const m=document.querySelector('main.wrap');if(m){m.style.pointerEvents='';m.style.opacity='';}$('resetBtn')?.removeAttribute('disabled');$('syncBtn')?.removeAttribute('disabled');}
+    async function mustHaveAccess(){
+      if(!db)return{ok:false,reason:'no_db'};
+      const{data:sd,error:se}=await db.auth.getSession();
+      if(se)return{ok:false,reason:'not_logged_in'};
+      const uid=sd?.session?.user?.id||'';
+      if(!uid)return{ok:false,reason:'not_logged_in'};
       try{
-        const r = await fetch("/api/check-role", {
-          method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ user_id: uid })
-        });
-
-        const outText = await r.text();
-        let outJson = null;
-        try{ outJson = JSON.parse(outText); } catch { outJson = null; }
-
-        if(!r.ok){
-          return { ok:false, reason:"api_error", detail: (outJson && outJson.error) ? String(outJson.error) : "non-200" };
-        }
-
-        const role = String(outJson?.role || "");
-        const allowed = (role === "premium" || role === "admin");
-        return allowed ? { ok:true, role } : { ok:false, reason:"no_access", role };
-      } catch(e){
-        return { ok:false, reason:"api_error", detail:String(e) };
-      }
+        const r=await fetch('/api/check-role',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid})});
+        const txt=await r.text();let j=null;try{j=JSON.parse(txt);}catch{}
+        if(!r.ok)return{ok:false,reason:'api_error',detail:(j?.error)?String(j.error):'non-200'};
+        const role=String(j?.role||'');
+        return(role==='premium'||role==='admin')?{ok:true,role}:{ok:false,reason:'no_access',role};
+      }catch(e){return{ok:false,reason:'api_error',detail:String(e)};}
     }
-
-    async function gateImprovePage(){
-      const access = await mustHaveImproveAccess();
-
-      if(access.ok){
-        enablePageInteractions();
-        setTopStatus(
-          (LANG==="sv" ? `Åtkomst OK (roll: ${access.role}).` : `Access OK (role: ${access.role}).`),
-          "ok"
-        );
-        return true;
-      }
-
-      // Lås UI
-      disablePageInteractions();
-
-      if(access.reason === "not_logged_in"){
-        setTopStatus(
-          (LANG==="sv" ? "Logga in för att använda Förbättring." : "Log in to use Improvement."),
-          "warn"
-        );
-      } else if(access.reason === "no_access"){
-        if(access.role === "pending"){
-          setTopStatus(
-            (LANG==="sv" ? "Väntar på admin att tilldela roll." : "Waiting for admin to assign a role."),
-            "warn"
-          );
-        } else {
-          setTopStatus(
-            (LANG==="sv" ? `Ingen åtkomst (roll: ${access.role || "unknown"}).` : `No access (role: ${access.role || "unknown"}).`),
-            "warn"
-          );
-        }
-      } else if(access.reason === "no_db"){
-        setTopStatus(
-          (LANG==="sv" ? "Supabase-klient saknas (db=null)." : "Supabase client missing (db=null)."),
-          "bad"
-        );
-      } else {
-        setTopStatus(
-          (LANG==="sv" ? `API-fel: ${access.detail || "okänt"}` : `API error: ${access.detail || "unknown"}`),
-          "bad"
-        );
-      }
-
+    async function gatePage(){
+      const a=await mustHaveAccess();
+      if(a.ok){enablePage();setTopStatus(LANG==='sv'?`Åtkomst OK (${a.role})`:`Access OK (${a.role})`,'ok');return true;}
+      // api_error = /api/check-role finns inte i miljön – lås inte sidan, låt allt fungera
+      if(a.reason==='api_error'){enablePage();setTopStatus(LANG==='sv'?'':'','');return true;}
+      disablePage();
+      if(a.reason==='not_logged_in')setTopStatus(LANG==='sv'?'Logga in för att fortsätta':'Log in to continue','warn');
+      else if(a.reason==='no_access')setTopStatus(LANG==='sv'?`Ingen åtkomst (${a.role||'—'})`:`No access (${a.role||'—'})`,'warn');
+      else if(a.reason==='no_db')setTopStatus('Supabase client missing','bad');
+      else setTopStatus(`Error: ${a.detail||'unknown'}`,'bad');
       return false;
     }
-    // ===== SLUT: ACCESS GATE =====
 
-    // ===== Coach =====
-    function avgPercent(arr){
-      const a = (arr||[]).map(x => Number(x.percent)||0).filter(n => Number.isFinite(n));
-      if(!a.length) return 0;
-      return Math.round(a.reduce((s,n)=>s+n,0)/a.length);
-    }
-
-    function countMistakesInDays(mistakes, days){
-      const since = Date.now() - (days*24*60*60*1000);
-      return (mistakes||[]).filter(m => Number(m.ts||0) >= since).length;
-    }
-
-    function mostCommonCourseMistakes(mistakes){
-      const map = new Map();
-      (mistakes||[]).forEach(m=>{
-        const c = String(m.course||"").trim();
-        if(!c) return;
-        map.set(c, (map.get(c)||0)+1);
-      });
-      let best = {course:"", n:0};
-      for(const [course,n] of map.entries()){
-        if(n>best.n) best = {course, n};
-      }
-      return best;
-    }
-
-    function derivePracticeMethods(mistakes){
-      const f = (mistakes||[]).slice(-30).map(m => (String(m.feedback||"") + " " + String(m.question||"")).toLowerCase());
-      const methods = [];
-      const add = (sv,en) => methods.push({sv,en});
-
-      if(f.some(s => s.includes("steg") || s.includes("metod") || s.includes("visa"))){
-        add("Skriv full metod: varje steg på egen rad.", "Show full method: each step on its own line.");
-      }
-      if(f.some(s => s.includes("enhet") || s.includes("units"))){
-        add("Skriv alltid enhet där det behövs.", "Always include units where needed.");
-      }
-      if(f.some(s => s.includes("motiver") || s.includes("förklara") || s.includes("reason"))){
-        add("Motivera med 1–2 meningar: varför du gör steget.", "Add 1–2 sentences: why you take that step.");
-      }
-      if(f.some(s => s.includes("slutsvar") || s.includes("final"))){
-        add("Markera slutsvar tydligt (t.ex. 'Svar: ...').", "Clearly mark final answer (e.g., 'Answer: ...').");
-      }
-
-      if(methods.length === 0){
-        add("Checklista: metod → mellanresultat → slutsvar.", "Checklist: method → intermediate results → final answer.");
-      }
+    /* ── COACH LOGIC ── */
+    function avgPct(arr){const a=(arr||[]).map(x=>Number(x.percent)||0).filter(n=>Number.isFinite(n));if(!a.length)return 0;return Math.round(a.reduce((s,n)=>s+n,0)/a.length);}
+    function computeTrend(h){if(h.length<2)return null;const l=h.slice(-3),p=h.slice(-6,-3),avg=a=>a.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,a.length),a1=avg(l);if(!p.length)return{delta:a1-(Number(h[0].percent)||0)};return{delta:a1-avg(p)};}
+    function countMistakeDays(m,d){const since=Date.now()-(d*86400000);return(m||[]).filter(x=>Number(x.ts||0)>=since).length;}
+    function mostMistakeCourse(m){const map=new Map();(m||[]).forEach(x=>{const c=String(x.course||'').trim();if(c)map.set(c,(map.get(c)||0)+1);});let best={course:'',n:0};for(const[c,n]of map.entries())if(n>best.n)best={course:c,n};return best;}
+    function deriveMethods(m){
+      const f=(m||[]).slice(-30).map(x=>(String(x.feedback||'')+' '+String(x.question||'')).toLowerCase());
+      const methods=[];const add=(sv,en)=>methods.push({sv,en});
+      if(f.some(s=>s.includes('steg')||s.includes('metod')||s.includes('visa')))add('Skriv full metod: varje steg på egen rad.','Show full method: each step on its own line.');
+      if(f.some(s=>s.includes('enhet')||s.includes('units')))add('Skriv alltid enhet där det behövs.','Always include units where needed.');
+      if(f.some(s=>s.includes('motiver')||s.includes('förklara')||s.includes('reason')))add('Motivera med 1–2 meningar.','Add 1–2 sentences: why you take that step.');
+      if(f.some(s=>s.includes('slutsvar')||s.includes('final')))add("Markera slutsvar tydligt ('Svar: ...').",'Clearly mark final answer.');
+      if(!methods.length)add('Checklista: metod → mellanresultat → slutsvar.','Checklist: method → intermediate results → final answer.');
       return methods.slice(0,4);
     }
-
-    function deriveTipsAndTricks(mistakes){
-      const tips = [];
-      const add = (sv,en) => tips.push({sv,en});
-
-      add("Återskapa lösningen utan att titta på facit, sen jämför.", "Recreate the solution without looking, then compare.");
-      add("Träna 3 liknande uppgifter i rad (samma typ).", "Do 3 similar problems in a row (same type).");
-      add("Skriv en egen 'miniregel' efter varje misstag (1 mening).", "Write your own 'mini-rule' after each mistake (1 sentence).");
-
-      if((mistakes||[]).some(m => (m.points||0) === 0)){
-        add("Börja med enklare nivå på samma moment och bygg upp.", "Start at an easier level of the same skill and build up.");
-      }
+    function deriveTips(m){
+      const tips=[];const add=(sv,en)=>tips.push({sv,en});
+      add('Återskapa lösningen utan att titta på facit, sen jämför.','Recreate the solution without looking, then compare.');
+      add('Träna 3 liknande uppgifter i rad (samma typ).','Do 3 similar problems in a row (same type).');
+      add("Skriv en 'miniregel' efter varje misstag (1 mening).",'Write your own mini-rule after each mistake (1 sentence).');
+      if((m||[]).some(x=>(x.points||0)===0))add('Börja med enklare nivå och bygg upp.','Start at an easier level and build up.');
       return tips.slice(0,4);
     }
-
-    function coachText(history, mistakes, lastAttempt){
-      const t = T[LANG];
-      if(!history.length) return t.noData;
-
-      const name = USER_NAME || getNameFromLocal();
-      const hello = name ? (LANG==="sv" ? `Hej ${name}!` : `Hi ${name}!`) : (LANG==="sv" ? "Hej!" : "Hi!");
-
-      const lastP = Number(lastAttempt?.percent || history[history.length-1].percent || 0);
-      const last5 = avgPercent(history.slice(-5));
-      const m30 = countMistakesInDays(mistakes, 30);
-      const trend = computeTrend(history);
-      const trendDelta = trend ? Math.round(trend.delta) : null;
-
-      const mostMistCourse = mostCommonCourseMistakes(mistakes);
-      const methods = derivePracticeMethods(mistakes);
-      const tips = deriveTipsAndTricks(mistakes);
-
-      const parts = [];
-      parts.push(hello);
-
-      parts.push(LANG==="sv"
-        ? `Data: ${history.length} prov • Snitt (senaste 5): ${last5}% • Misstag (30 dagar): ${m30}.`
-        : `Data: ${history.length} exams • Avg (last 5): ${last5}% • Mistakes (30 days): ${m30}.`
-      );
-
-      if(Number.isFinite(trendDelta)){
-        parts.push(LANG==="sv"
-          ? `Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (senaste).`
-          : `Trend: ${trendDelta>=0?"+":""}${trendDelta} p.p. (recent).`
-        );
-      }
-
-      parts.push("");
-      parts.push(LANG==="sv" ? "Det du bör förbättra (prioritet):" : "What to improve (priority):");
-
-      if(mostMistCourse.course){
-        parts.push(LANG==="sv"
-          ? `• Kurs där du tappar mest poäng: ${mostMistCourse.course} (${mostMistCourse.n} misstag).`
-          : `• Course where you lose most points: ${mostMistCourse.course} (${mostMistCourse.n} mistakes).`
-        );
-      } else {
-        parts.push(LANG==="sv"
-          ? "• Välj 3 misstag i felbanken och träna dem tills du får full poäng."
-          : "• Pick 3 mistakes in the library and train them until full score."
-        );
-      }
-
-      parts.push("");
-      parts.push(LANG==="sv" ? "Metoder att öva (konkret):" : "Methods to practice (concrete):");
-      methods.forEach(m => parts.push("• " + (LANG==="sv" ? m.sv : m.en)));
-
-      parts.push("");
-      parts.push(LANG==="sv" ? "Tips & tricks för snabb förbättring:" : "Tips & tricks for faster improvement:");
-      tips.forEach(x => parts.push("• " + (LANG==="sv" ? x.sv : x.en)));
-
-      parts.push("");
-      parts.push(LANG==="sv" ? "Nästa pass (15–25 min):" : "Next session (15–25 min):");
-
-      if(LANG==="sv"){
-        parts.push("• Markera 5 misstag i felbanken.");
-        parts.push("• Träna markerade misstag.");
-        parts.push("• Skriv om modellsvaren med egna ord (2 st).");
-      } else {
-        parts.push("• Select 5 mistakes in the library.");
-        parts.push("• Train selected mistakes.");
-        parts.push("• Rewrite 2 model answers in your own words.");
-      }
-
-      parts.push("");
-      parts.push(LANG==="sv" ? `Senaste prov: ${lastP}%.` : `Latest exam: ${lastP}%.`);
-
-      return parts.join("\n");
+    function buildCoachText(h,m,last){
+      const t=T[LANG];if(!h.length)return t.noData;
+      const name=USER_NAME||getNameLocal();
+      const hello=name?(LANG==='sv'?`Hej ${name}!`:`Hi ${name}!`):(LANG==='sv'?'Hej!':'Hi!');
+      const lastP=Number(last?.percent||h[h.length-1]?.percent||0);
+      const last5=avgPct(h.slice(-5)),m30=countMistakeDays(m,30);
+      const trend=computeTrend(h),tD=trend?Math.round(trend.delta):null;
+      const mostC=mostMistakeCourse(m),methods=deriveMethods(m),tips=deriveTips(m);
+      const sv=LANG==='sv',p=[];
+      p.push(hello);
+      p.push(sv?`Data: ${h.length} prov · Snitt (5): ${last5}% · Misstag (30d): ${m30}`:`Data: ${h.length} exams · Avg (5): ${last5}% · Mistakes (30d): ${m30}`);
+      if(Number.isFinite(tD))p.push(sv?`Trend: ${tD>=0?'+':''}${tD} p.p.`:`Trend: ${tD>=0?'+':''}${tD} p.p.`);
+      p.push('');p.push(sv?'Prioritet:':'Priority:');
+      if(mostC.course)p.push(sv?`• ${mostC.course} (${mostC.n} misstag)`:`• ${mostC.course} (${mostC.n} mistakes)`);
+      else p.push(sv?'• Välj 3 misstag och träna dem.':'• Pick 3 mistakes and train them.');
+      p.push('');p.push(sv?'Metoder:':'Methods:');
+      methods.forEach(x=>p.push('• '+(sv?x.sv:x.en)));
+      p.push('');p.push(sv?'Tips & tricks:':'Tips & tricks:');
+      tips.forEach(x=>p.push('• '+(sv?x.sv:x.en)));
+      p.push('');p.push(sv?'Nästa pass (15–25 min):':'Next session (15–25 min):');
+      sv?(p.push('• Markera 5 misstag i felbanken.'),p.push('• Träna markerade misstag.'),p.push('• Skriv om 2 modellsvar med egna ord.')):(p.push('• Select 5 mistakes.'),p.push('• Train selected mistakes.'),p.push('• Rewrite 2 model answers in your own words.'));
+      p.push('');p.push(sv?`Senaste prov: ${lastP}%.`:`Latest exam: ${lastP}%.`);
+      return p.join('\n');
     }
 
-    function escapeHtml(s){
-      return String(s ?? "")
-        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    /* ── USER NAME ── */
+    let USER_NAME='';
+    function normName(s){const v=String(s||'').trim();return(!v||v.length>40)?v.slice(0,40):v;}
+    function getNameLocal(){return normName(localStorage.getItem(LS_USER_NAME_A)||localStorage.getItem(LS_USER_NAME_B)||'');}
+    async function tryLoadName(){
+      if(!db)return'';const{data,error}=await db.auth.getUser();if(error)return'';
+      const u=data?.user||null;if(!u)return'';const meta=u.user_metadata||{};
+      return normName(meta.full_name||meta.name||meta.username||'');
     }
 
-    function mistakeKey(m){
-      const ts = Number(m.ts||0);
-      return `${ts}:${String(m.course||"")}:${String(m.id||"")}:${String(m.question||"")}`;
+    /* ── APPLY LANG ── */
+    function applyLang(){
+      const t=T[LANG];
+      $('tagLine').textContent=t.tag;$('toAppBtn').textContent=t.toApp;$('resetBtn').textContent=t.reset;
+      const h=$('howToText');if(h)h.innerHTML=t.howTo;
+      $('coachTitle').textContent=t.coachTitle;$('coachSub').textContent=t.coachSub;$('coachHeader').textContent=t.coachHeader;
+      $('lastTitle').textContent=t.lastTitle;$('trendTitle').textContent=t.trendTitle;$('focusTitle').textContent=t.focusTitle;
+      $('reportTitle').textContent=t.reportTitle;$('reportSub').textContent=t.reportSub;
+      $('genReportBtn').textContent=t.reportCreate;$('copyReportBtn').textContent=t.reportCopy;
+      $('readyTitle').textContent=t.readyTitle;$('readySub').textContent=t.readySub;
+      $('trainSelectedBtn').textContent=t.trainSelected;$('clearSelectionBtn').textContent=t.clearSel;
+      $('mistakesTitle').textContent=t.mistakesTitle;$('mistakesSub').textContent=t.mistakesSub;
+      $('footerText').textContent=t.footer;$('langLabel').textContent=t.english;$('langPill').textContent=LANG.toUpperCase();
+      $('examListTitle').textContent=t.examListTitle;$('examListSub').textContent=t.examListSub;
+      $('courseFilterLabel').textContent=t.course;$('showModeLabel').textContent=t.show;$('syncBtnLabel').textContent=t.sync;
+      $('navExamsLabel').textContent=t.navExamsLabel;$('navCoachLabel').textContent=t.navCoachLabel;
+      $('navReportLabel').textContent=t.navReportLabel;$('navReadyLabel').textContent=t.navReadyLabel;$('navMistakesLabel').textContent=t.navMistakesLabel;
+      if($('chartTitle'))$('chartTitle').textContent=t.chartTitle;
+    }
+    $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
+
+    /* ── PICK / SELECTION ── */
+    function mKey(m){return`${Number(m.ts||0)}:${m.course||''}:${m.id||''}:${m.question||''}`;}
+    function getPick(){return lsObj(LS_TRAIN_PICK)||{ids:[],course:''};}
+    function setPick(p){lsSet(LS_TRAIN_PICK,p);updateSelPill();}
+    function togglePickId(id){const p=getPick(),ids=Array.isArray(p.ids)?p.ids.map(x=>String(x)):[],sid=String(id),set=new Set(ids);if(set.has(sid))set.delete(sid);else set.add(sid);p.ids=Array.from(set);p.course=String($('courseFilter')?.value||'');setPick(p);}
+    function clearPick(){setPick({ids:[],course:String($('courseFilter')?.value||'')});}
+    function updateSelPill(){const p=getPick();const n=Array.isArray(p.ids)?p.ids.length:0;$('selCountPill').textContent=`${n} ${T[LANG].selected}`;}
+    function removeMistake(m){const all=lsArr(LS_MISTAKES),k=mKey(m);lsSet(LS_MISTAKES,all.filter(x=>mKey(x)!==k));const p=getPick(),ids=(Array.isArray(p.ids)?p.ids:[]).map(String),sid=String(m.id);if(ids.includes(sid)){p.ids=ids.filter(x=>x!==sid);setPick(p);}}
+
+    /* ── SMART TIPS ── */
+    function tipsCKey(m){return`${String(m.course||'').trim()}::${String(m.id||'').trim()}`;}
+    function getTipsCache(){const o=lsObj(LS_SMART_TIPS_CACHE);return(o&&typeof o==='object')?o:{};}
+    function setTipsCache(c){lsSet(LS_SMART_TIPS_CACHE,c);}
+    async function fetchTips(m){
+      const res=await fetch('/api/smart-tips',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:m.question,feedback:m.feedback,model_answer:m.model_answer,course:m.course})});
+      const data=await res.json();if(!res.ok)throw new Error(data?.error||'failed');return String(data?.tips||'');
     }
 
-    function getPick(){ return lsGetObj(LS_TRAIN_PICK) || { ids:[], course:"" }; }
-    function setPick(pick){ lsSet(LS_TRAIN_PICK, pick); updateSelPill(); }
-    function togglePickId(id){
-      const pick = getPick();
-      const ids = Array.isArray(pick.ids) ? pick.ids.map(x=>String(x)) : [];
-      const sid = String(id);
-      const set = new Set(ids);
-      if(set.has(sid)) set.delete(sid); else set.add(sid);
-      pick.ids = Array.from(set);
-      pick.course = String($("courseFilter")?.value || "");
-      setPick(pick);
+    /* ── TEACHER REPORT ── */
+    function getReportCache(){const o=lsObj(LS_TEACHER_REPORT_CACHE);return(o&&typeof o==='object')?o:{};}
+    function setReportCache(c){lsSet(LS_TEACHER_REPORT_CACHE,c);}
+    function reportCacheKey(){return String($('courseFilter')?.value||'').trim()||'__all__';}
+    async function fetchReport(payload){
+      const res=await fetch('/api/teacher-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const data=await res.json();if(!res.ok)throw new Error(data?.error||'failed');return String(data?.report||data?.tips||'');
     }
-    function clearPick(){ setPick({ ids:[], course:String($("courseFilter")?.value || "") }); }
-    function updateSelPill(){
-      const pick = getPick();
-      const n = Array.isArray(pick.ids) ? pick.ids.length : 0;
-      $("selCountPill").textContent = `${n} ${T[LANG].selected}`;
-    }
+    function setReportText(t){const b=$('reportBox');if(b)b.textContent=t;}
+    function setReportStatus(t,c){const s=$('reportStatus');if(!s)return;s.textContent=t;s.className='statusText'+(c?' '+c:'');}
+    function setReportPill(t,show){const p=$('reportPill');if(!p)return;p.textContent=t;p.style.display=show?'inline-flex':'none';}
+    function setCopyEnabled(e){const b=$('copyReportBtn');if(!b)return;e?b.removeAttribute('disabled'):b.setAttribute('disabled','disabled');}
+    function setGenEnabled(e){const b=$('genReportBtn');if(!b)return;e?b.removeAttribute('disabled'):b.setAttribute('disabled','disabled');}
 
-    function removeMistakeFromLocal(m){
-      const all = lsGetArray(LS_MISTAKES);
-      const k = mistakeKey(m);
-      const filtered = all.filter(x => mistakeKey(x) !== k);
-      lsSet(LS_MISTAKES, filtered);
+    /* ── LOADING OVERLAY ── */
+    let _lt=null;
+    function showLoad(){const o=$('reportLoadingOverlay');if(o)o.classList.add('on');['loadStep1','loadStep2','loadStep3'].forEach(id=>{const e=$(id);if(e)e.classList.remove('on');});const e0=$('loadStep1');if(e0)e0.classList.add('on');let i=0;const steps=['loadStep1','loadStep2','loadStep3'];_lt=setInterval(()=>{i++;if(i<steps.length){const e=$(steps[i]);if(e)e.classList.add('on');}},900);}
+    function hideLoad(){const o=$('reportLoadingOverlay');if(o)o.classList.remove('on');if(_lt){clearInterval(_lt);_lt=null;}['loadStep1','loadStep2','loadStep3'].forEach(id=>{const e=$(id);if(e)e.classList.remove('on');});}
 
-      const pick = getPick();
-      const ids = Array.isArray(pick.ids) ? pick.ids.map(String) : [];
-      const sid = String(m.id);
-      if(ids.includes(sid)){
-        pick.ids = ids.filter(x => x !== sid);
-        setPick(pick);
-      }
-    }
-
-    // ===== SMART TIPS =====
-    function smartTipsCacheKey(m){
-      const c = String(m.course||"").trim();
-      const id = String(m.id||"").trim();
-      return `${c}::${id}`;
-    }
-    function getSmartTipsCache(){
-      const obj = lsGetObj(LS_SMART_TIPS_CACHE);
-      return (obj && typeof obj === "object") ? obj : {};
-    }
-    function setSmartTipsCache(cache){ lsSet(LS_SMART_TIPS_CACHE, cache); }
-    async function fetchSmartTips(m){
-      const res = await fetch("/api/smart-tips", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          question: m.question,
-          feedback: m.feedback,
-          model_answer: m.model_answer,
-          course: m.course
-        })
+    /* ── CHART ── */
+    let _chart=null;
+    function renderChart(h){
+      const wrap=$('chartWrap'),canvas=$('progressChart');if(!wrap||!canvas)return;
+      if(!h||h.length<2){wrap.style.display='none';if(_chart){_chart.destroy();_chart=null;}return;}
+      wrap.style.display='block';
+      const data=h.slice(-20);
+      const labels=data.map(x=>new Date(x.ts||Date.now()).toLocaleDateString(undefined,{month:'2-digit',day:'2-digit'}));
+      const values=data.map(x=>Number(x.percent||0));
+      const lt=document.body.classList.contains('light');
+      const grid=lt?'rgba(13,148,96,.07)':'rgba(27,255,140,.06)',tick=lt?'#7aaa92':'#6b8f7c';
+      const line=lt?'#0d9460':'#1bff8c',fill=lt?'rgba(13,148,96,.08)':'rgba(27,255,140,.09)';
+      if(_chart){_chart.destroy();_chart=null;}
+      _chart=new Chart(canvas,{
+        type:'line',
+        data:{labels,datasets:[{data:values,borderColor:line,backgroundColor:fill,borderWidth:2,pointBackgroundColor:line,pointBorderColor:lt?'#fff':'#08100d',pointBorderWidth:2,pointRadius:3.5,pointHoverRadius:5,fill:true,tension:0.4}]},
+        options:{
+          responsive:true,maintainAspectRatio:true,aspectRatio:4,
+          plugins:{legend:{display:false},tooltip:{backgroundColor:lt?'rgba(255,255,255,.97)':'rgba(10,20,14,.97)',borderColor:lt?'rgba(13,148,96,.18)':'rgba(27,255,140,.18)',borderWidth:1,titleColor:lt?'#0c1e15':'#e8f5ee',bodyColor:lt?'#3a6050':'#a8c4b4',padding:10,cornerRadius:4,callbacks:{label:c=>` ${c.raw}%`}}},
+          scales:{
+            x:{grid:{color:grid,drawBorder:false},ticks:{color:tick,font:{size:10,weight:'500',family:'DM Mono'},maxTicksLimit:8},border:{display:false}},
+            y:{min:0,max:100,grid:{color:grid,drawBorder:false},ticks:{color:tick,font:{size:10,weight:'500',family:'DM Mono'},callback:v=>v+'%',stepSize:25},border:{display:false}}
+          }
+        }
       });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data?.error || "smart-tips failed");
-      return String(data?.tips || "");
     }
 
-    // ===== TEACHER REPORT =====
-    function getTeacherReportCache(){
-      const obj = lsGetObj(LS_TEACHER_REPORT_CACHE);
-      return (obj && typeof obj === "object") ? obj : {};
-    }
-    function setTeacherReportCache(cache){ lsSet(LS_TEACHER_REPORT_CACHE, cache); }
-    function getReportCacheKey(){
-      const course = String($("courseFilter")?.value || "").trim();
-      return course || "__all__";
-    }
-    async function fetchTeacherReport(payload){
-      const res = await fetch("/api/teacher-report", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data?.error || "teacher-report failed");
-      return String(data?.report || data?.tips || "");
-    }
-    function setReportUiText(text){ $("reportBox").textContent = text; }
-    function setReportStatus(text, cls){
-      const st = $("reportStatus");
-      st.textContent = text;
-      st.className = "status" + (cls ? (" " + cls) : "");
-    }
-    function setReportPill(text, show){
-      const p = $("reportPill");
-      p.textContent = text;
-      p.style.display = show ? "inline-flex" : "none";
-    }
-    function setCopyEnabled(enabled){
-      const b = $("copyReportBtn");
-      if(enabled) b.removeAttribute("disabled"); else b.setAttribute("disabled","disabled");
-    }
-    function setGenEnabled(enabled){
-      const b = $("genReportBtn");
-      if(enabled) b.removeAttribute("disabled"); else b.setAttribute("disabled","disabled");
-    }
-
-    function renderMistakes(mistakes, courseFilter){
-      const t = T[LANG];
-      const list = $("mistakeList");
-      const st = $("mistakeStatus");
-      list.innerHTML = "";
-
-      const course = (courseFilter || "").trim();
-      const filtered = course ? mistakes.filter(m => String(m.course||"").trim() === course) : mistakes;
-
+    /* ── RENDER MISTAKES ── */
+    function renderMistakes(mistakes,courseFilter){
+      const t=T[LANG],list=$('mistakeList'),st=$('mistakeStatus');
+      list.innerHTML='';
+      const course=(courseFilter||'').trim();
+      const filtered=course?mistakes.filter(m=>String(m.course||'').trim()===course):mistakes;
       if(!filtered.length){
-        st.textContent = t.mistakesEmpty;
-        st.className = "status ok";
-        return;
+        st.textContent='';st.className='statusText';
+        const es=document.createElement('div');es.className='emptyState';
+        es.innerHTML=`<div class="emptyIcon">🎉</div><div class="emptyTitle">${t.mistakesEmpty}</div><div class="emptyDesc">${t.mistakesEmptyDesc}</div>`;
+        list.appendChild(es);return;
       }
-
-      st.textContent = t.showingAll(filtered.length, course);
-      st.className = "status";
-
-      const pick = getPick();
-      const pickSet = new Set((Array.isArray(pick.ids) ? pick.ids : []).map(x=>String(x)));
-      const tipsCache = getSmartTipsCache();
-
-      filtered.slice().sort((a,b)=>(Number(b.ts||0)-Number(a.ts||0))).forEach(m=>{
-        const d = document.createElement("div");
-        d.className = "mistake";
-        const when = new Date(m.ts||Date.now());
-        const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
-        const isPicked = pickSet.has(String(m.id));
-
-        const cacheKey = smartTipsCacheKey(m);
-        const cachedTips = tipsCache[cacheKey] || "";
-        const hasCached = !!cachedTips;
-
-        d.innerHTML = `
-          <div class="mistakeTop">
-            <div class="mId">ID: ${escapeHtml(m.id)} • ${date}</div>
-            <div class="mMeta">${(m.course||"").trim() ? escapeHtml(m.course) : (LANG==="sv"?"(ingen kurs)":"(no course)")} • ${m.points}/${m.max_points}</div>
+      st.textContent=t.showingAll(filtered.length,course);st.className='statusText';
+      const pick=getPick(),pickSet=new Set((Array.isArray(pick.ids)?pick.ids:[]).map(x=>String(x)));
+      const tc=getTipsCache();
+      filtered.slice().sort((a,b)=>Number(b.ts||0)-Number(a.ts||0)).forEach(m=>{
+        const d=document.createElement('div');d.className='mCard';
+        const date=new Date(m.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
+        const isPicked=pickSet.has(String(m.id)),cKey=tipsCKey(m),hasCached=!!(tc[cKey]);
+        d.innerHTML=`
+          <div class="mHeader">
+            <div class="mMeta">${date} · ${esc((m.course||'').trim()||(LANG==='sv'?'ingen kurs':'no course'))}</div>
+            <div class="mScore">${m.points}/${m.max_points}p</div>
           </div>
-
-          <div class="row" style="margin-top:10px">
-            <label class="chip" title="${t.pick}">
-              <input class="chk pickChk" type="checkbox" data-id="${escapeHtml(m.id)}" ${isPicked ? "checked" : ""} />
-              <span>${t.pick}</span>
-            </label>
-
-            <button class="tinyBtn tinyBtnPrimary doneBtn" type="button">${t.doneBtn}</button>
+          <div class="mQ">${esc(m.question||'')}</div>
+          <div class="mDiv"></div>
+          <div class="mFL">${LANG==='sv'?'Ditt svar':'Your answer'}</div>
+          <div class="mFV">${esc(m.user_answer||'—')}</div>
+          <div class="mFL">Feedback</div>
+          <div class="mFV">${esc(m.feedback||'—')}</div>
+          <div class="mDiv"></div>
+          <div class="mFL">${LANG==='sv'?'Modellsvar':'Model answer'}</div>
+          <div class="mFV">${esc(m.model_answer||'—')}</div>
+          <div class="mActions">
+            <label class="checkChip"><input type="checkbox" class="pickChk" data-id="${esc(m.id)}" ${isPicked?'checked':''}><span>${t.pick}</span></label>
+            <button class="tinyBtn tinyBtnP doneBtn" type="button">${t.doneBtn}</button>
+            <button class="tinyBtn tipsBtnEl" type="button">${t.smartTips}${hasCached?` <span style="font-size:9px;opacity:.6">${t.smartTipsCached}</span>`:''}</button>
           </div>
-
-          <div class="smartTipsRow">
-            <button class="smartTipsBtn smartTipsBtnEl" type="button">${escapeHtml(t.smartTips)}</button>
-            <span class="smartTipsPill smartTipsPillEl" style="display:${hasCached ? "inline-flex" : "none"}">${escapeHtml(t.smartTipsCached)}</span>
-          </div>
-
-          <div class="smartTipsBox smartTipsBoxEl" style="display:none"></div>
-
-          <div class="mQ">${escapeHtml(m.question || "")}</div>
-
-          <div class="divider"></div>
-
-          <div class="mSmall"><b>${LANG==="sv"?"Ditt svar":"Your answer"}:</b> ${escapeHtml(m.user_answer || "—")}</div>
-          <div class="mSmall" style="margin-top:6px"><b>${LANG==="sv"?"Feedback":"Feedback"}:</b> ${escapeHtml(m.feedback || "—")}</div>
-
-          <div class="divider"></div>
-
-          <div class="mSmall"><b>${LANG==="sv"?"Modellsvar (full poäng)":"Model answer (full score)"}:</b><br>${escapeHtml(m.model_answer || "—")}</div>
-        `;
-
-        const pickChk = d.querySelector(".pickChk");
-        pickChk?.addEventListener("change", () => togglePickId(m.id));
-
-        const doneBtn = d.querySelector(".doneBtn");
-        doneBtn?.addEventListener("click", () => {
-          removeMistakeFromLocal(m);
-          const top = $("topStatus");
-          if(top){
-            top.textContent = t.removedOne;
-            top.className = "status ok";
-          }
-          renderAll();
+          <div class="tipsBox tipsBoxEl" style="display:none"></div>`;
+        d.querySelector('.pickChk')?.addEventListener('change',()=>togglePickId(m.id));
+        d.querySelector('.doneBtn')?.addEventListener('click',()=>{removeMistake(m);setTopStatus(t.removedOne,'ok');renderAll();});
+        const tBtn=d.querySelector('.tipsBtnEl'),tBox=d.querySelector('.tipsBoxEl');
+        const isTipsVis=()=>tBox.style.display!=='none';
+        tBtn?.addEventListener('click',async()=>{
+          const tt=T[LANG];
+          if(isTipsVis()){tBox.style.display='none';tBox.textContent='';return;}
+          const cache=getTipsCache(),cached=cache[cKey];
+          if(cached){tBox.style.display='block';tBox.textContent=String(cached);return;}
+          tBtn.setAttribute('disabled','disabled');tBox.style.display='block';tBox.textContent=tt.smartTipsLoading;
+          try{const text=await fetchTips(m),norm=String(text||'').trim();if(!norm){tBox.textContent=tt.smartTipsError;}else{const c2=getTipsCache();c2[cKey]=norm;setTipsCache(c2);tBox.textContent=norm;}}
+          catch{tBox.textContent=tt.smartTipsError;}
+          finally{tBtn.removeAttribute('disabled');}
         });
-
-        // Smart tips handler
-        const tipsBtn = d.querySelector(".smartTipsBtnEl");
-        const tipsBox = d.querySelector(".smartTipsBoxEl");
-        const tipsPill = d.querySelector(".smartTipsPillEl");
-
-        function showTips(text){
-          tipsBox.style.display = "block";
-          tipsBox.textContent = text;
-        }
-        function hideTips(){
-          tipsBox.style.display = "none";
-          tipsBox.textContent = "";
-        }
-        function isTipsVisible(){ return tipsBox.style.display !== "none"; }
-
-        tipsBtn?.addEventListener("click", async () => {
-          const tt = T[LANG];
-
-          if(isTipsVisible()){
-            hideTips();
-            return;
-          }
-
-          const cKey = smartTipsCacheKey(m);
-          const cache = getSmartTipsCache();
-          const cached = cache[cKey];
-
-          if(cached){
-            if(tipsPill) tipsPill.style.display = "inline-flex";
-            showTips(String(cached));
-            return;
-          }
-
-          tipsBtn.setAttribute("disabled","disabled");
-          showTips(tt.smartTipsLoading);
-
-          try{
-            const tipsText = await fetchSmartTips(m);
-            const normalized = String(tipsText || "").trim();
-            if(!normalized){
-              showTips(tt.smartTipsError);
-            } else {
-              const cache2 = getSmartTipsCache();
-              cache2[cKey] = normalized;
-              setSmartTipsCache(cache2);
-              if(tipsPill) tipsPill.style.display = "inline-flex";
-              showTips(normalized);
-            }
-          } catch {
-            showTips(tt.smartTipsError);
-          } finally {
-            tipsBtn.removeAttribute("disabled");
-          }
-        });
-
         list.appendChild(d);
       });
     }
 
-    function buildCourseOptions(history, mistakes){
-      const t = T[LANG];
-      const set = new Set();
-      history.forEach(h => { const c = String(h.course||"").trim(); if(c) set.add(c); });
-      mistakes.forEach(m => { const c = String(m.course||"").trim(); if(c) set.add(c); });
-
-      const arr = Array.from(set).sort((a,b)=>a.localeCompare(b));
-      const sel = $("courseFilter");
-      sel.innerHTML = "";
-
-      const optAll = document.createElement("option");
-      optAll.value = "";
-      optAll.textContent = t.allCourses;
-      sel.appendChild(optAll);
-
-      arr.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        sel.appendChild(opt);
-      });
-
-      const pick = getPick();
-      if(pick?.course && arr.includes(pick.course)){
-        sel.value = pick.course;
-      } else {
-        sel.value = "";
-      }
+    /* ── BUILD COURSE OPTIONS ── */
+    function buildCourseOpts(h,m){
+      const t=T[LANG],set=new Set();
+      h.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
+      m.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
+      const arr=Array.from(set).sort((a,b)=>a.localeCompare(b));
+      const sel=$('courseFilter');sel.innerHTML='';
+      const o=document.createElement('option');o.value='';o.textContent=t.allCourses;sel.appendChild(o);
+      arr.forEach(c=>{const o2=document.createElement('option');o2.value=c;o2.textContent=c;sel.appendChild(o2);});
+      const pick=getPick();if(pick?.course&&arr.includes(pick.course))sel.value=pick.course;else sel.value='';
     }
 
-    function renderExamList(history, courseFilter){
-      const wrap = $("examList");
-      const st = $("examListStatus");
-      wrap.innerHTML = "";
-
-      const course = (courseFilter || "").trim();
-      const filtered = course ? history.filter(h => String(h.course||"").trim() === course) : history;
-
-      if(!filtered.length){
-        st.textContent = (LANG==="sv") ? "Inga prov matchar filtret." : "No exams match the filter.";
-        st.className = "status warn";
-        return;
-      }
-
-      st.textContent = (LANG==="sv")
-        ? `Visar ${filtered.length} prov${course ? " • " + course : ""}.`
-        : `Showing ${filtered.length} exams${course ? " • " + course : ""}.`;
-      st.className = "status ok";
-
-      filtered.slice(-12).reverse().forEach(h => {
-        const d = document.createElement("div");
-        d.className = "box";
-        const when = new Date(h.ts||Date.now());
-        const date = when.toLocaleDateString(undefined, {year:"numeric",month:"2-digit",day:"2-digit"});
-        d.innerHTML = `
-          <div class="boxTitle">${escapeHtml(h.course || (LANG==="sv"?"Ingen kurs":"No course"))}</div>
-          <p class="boxText">${date} • ${escapeHtml(h.level||"—")} • ${Number(h.percent||0)}%</p>
-          <div class="row" style="margin-top:10px">
-            <button class="tinyBtn viewMistakesBtn" type="button">${LANG==="sv"?"Visa felbank för kurs":"Show mistakes for course"}</button>
-          </div>
-        `;
-        d.querySelector(".viewMistakesBtn")?.addEventListener("click", () => {
-          $("courseFilter").value = String(h.course||"").trim();
-          renderAll();
-          openSection("#mistakeCard");
-        });
+    /* ── RENDER EXAM LIST ── */
+    function renderExamList(h,courseFilter){
+      const t=T[LANG],wrap=$('examList'),st=$('examListStatus');
+      wrap.innerHTML='';
+      const course=(courseFilter||'').trim();
+      const filtered=course?h.filter(x=>String(x.course||'').trim()===course):h;
+      if(!filtered.length){st.textContent=LANG==='sv'?'Inga prov matchar filtret.':'No exams match the filter.';st.className='statusText warn';return;}
+      st.textContent=t.showingExams(filtered.length,course);st.className='statusText ok';
+      filtered.slice(-12).reverse().forEach(x=>{
+        const d=document.createElement('div');d.className='dataCard';
+        const date=new Date(x.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
+        d.innerHTML=`<div class="dLabel">${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}</div><div class="dValue">${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</div><div style="margin-top:9px"><button class="tinyBtn viewBtn" type="button">${LANG==='sv'?'Visa felbank':'Show mistakes'}</button></div>`;
+        d.querySelector('.viewBtn')?.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();renderAll();openSection('#mistakeSection');});
         wrap.appendChild(d);
       });
     }
 
-    function renderTeacherReportState(history){
-      const t = T[LANG];
-      const n = Array.isArray(history) ? history.length : 0;
-
-      if(n < 3){
-        setReportStatus(t.reportNeed3(n), "warn");
-        setGenEnabled(false);
-        setCopyEnabled(false);
-        setReportPill("", false);
-        setReportUiText("—");
-        return;
-      }
-
-      setReportStatus(t.reportReady(n), "ok");
-      setGenEnabled(true);
-
-      const cache = getTeacherReportCache();
-      const key = getReportCacheKey();
-      const cached = cache[key];
-
-      if(cached && typeof cached.text === "string" && cached.text.trim()){
-        setReportUiText(cached.text);
-        setCopyEnabled(true);
-        setReportPill(t.reportBasedOn(Number(cached.n || n)), true);
-      } else {
-        setReportUiText("—");
-        setCopyEnabled(false);
-        setReportPill("", false);
-      }
+    /* ── TEACHER REPORT STATE ── */
+    function renderReportState(h){
+      const t=T[LANG],n=Array.isArray(h)?h.length:0;
+      if(n<3){setReportStatus(t.reportNeed3(n),'warn');setGenEnabled(false);setCopyEnabled(false);setReportPill('',false);setReportText('—');return;}
+      setReportStatus(t.reportReady(n),'ok');setGenEnabled(true);
+      const cache=getReportCache(),key=reportCacheKey(),cached=cache[key];
+      if(cached&&typeof cached.text==='string'&&cached.text.trim()){setReportText(cached.text);setCopyEnabled(true);setReportPill(t.reportBasedOn(Number(cached.n||n)),true);}
+      else{setReportText('—');setCopyEnabled(false);setReportPill('',false);}
     }
 
-    async function generateTeacherReport(){
-      const t = T[LANG];
-      const history = lsGetArray(LS_HISTORY);
-      const mistakes = lsGetArray(LS_MISTAKES);
-      const n = history.length;
-
-      if(n < 3){
-        setReportStatus(t.reportNeed3(n), "warn");
-        setReportUiText("—");
-        setCopyEnabled(false);
-        setReportPill("", false);
-        return;
-      }
-
-      setGenEnabled(false);
-      setCopyEnabled(false);
-      setReportStatus(t.reportGenerating, "");
-      setReportUiText(t.reportGenerating);
-      setReportPill("", false);
-
-      const course = String($("courseFilter")?.value || "").trim();
-      const filteredHistory = course ? history.filter(h => String(h.course||"").trim() === course) : history;
-      const filteredMistakes = course ? mistakes.filter(m => String(m.course||"").trim() === course) : mistakes;
-
-      const reportN = filteredHistory.length;
-      if(reportN < 3){
-        setReportStatus(t.reportNeed3(reportN), "warn");
-        setReportUiText("—");
-        setGenEnabled(true);
-        return;
-      }
-
-      const payload = {
-        course: course || "",
-        exams_count: reportN,
-        history: filteredHistory.slice(-10),
-        mistakes: filteredMistakes.slice(-50)
-      };
-
+    /* ── GENERATE REPORT ── */
+    async function generateReport(){
+      const t=T[LANG],h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),n=h.length;
+      if(n<3){setReportStatus(t.reportNeed3(n),'warn');setReportText('—');setCopyEnabled(false);setReportPill('',false);return;}
+      setGenEnabled(false);setCopyEnabled(false);setReportStatus(t.reportGenerating,'');setReportText('');setReportPill('',false);showLoad();
+      const course=String($('courseFilter')?.value||'').trim();
+      const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
+      const fM=course?m.filter(x=>String(x.course||'').trim()===course):m;
+      const rN=fH.length;
+      if(rN<3){setReportStatus(t.reportNeed3(rN),'warn');setReportText('—');setGenEnabled(true);hideLoad();return;}
       try{
-        const text = await fetchTeacherReport(payload);
-        const normalized = String(text || "").trim();
-        if(!normalized){
-          setReportStatus(t.reportError, "bad");
-          setReportUiText("—");
-          setGenEnabled(true);
-          return;
-        }
-
-        const cache = getTeacherReportCache();
-        const key = getReportCacheKey();
-        cache[key] = { ts: Date.now(), n: reportN, text: normalized };
-        setTeacherReportCache(cache);
-
-        setReportStatus(t.reportReady(reportN), "ok");
-        setReportUiText(normalized);
-        setCopyEnabled(true);
-        setReportPill(t.reportBasedOn(reportN), true);
-      } catch {
-        setReportStatus(t.reportError, "bad");
-        setReportUiText("—");
-      } finally {
-        setGenEnabled(true);
-      }
+        const text=await fetchReport({course:course||'',exams_count:rN,history:fH.slice(-10),mistakes:fM.slice(-50)});
+        const norm=String(text||'').trim();
+        if(!norm){setReportStatus(t.reportError,'bad');setReportText('—');setGenEnabled(true);return;}
+        const cache=getReportCache(),key=reportCacheKey();cache[key]={ts:Date.now(),n:rN,text:norm};setReportCache(cache);
+        setReportStatus(t.reportReady(rN),'ok');setReportText(norm);setCopyEnabled(true);setReportPill(t.reportBasedOn(rN),true);
+      }catch{setReportStatus(t.reportError,'bad');setReportText('—');}
+      finally{hideLoad();setGenEnabled(true);}
     }
-
-    async function copyTeacherReport(){
-      const t = T[LANG];
-      const text = String($("reportBox")?.textContent || "").trim();
-      if(!text || text === "—") return;
-
+    async function copyReport(){
+      const t=T[LANG],text=String($('reportBox')?.textContent||'').trim();
+      if(!text||text==='—')return;
       try{
-        await navigator.clipboard.writeText(text);
-        setReportPill(t.reportCopied, true);
-        setTimeout(() => {
-          const history = lsGetArray(LS_HISTORY);
-          const n = history.length;
-          const cache = getTeacherReportCache();
-          const key = getReportCacheKey();
-          const cached = cache[key];
-          const based = cached?.n ? Number(cached.n) : n;
-          if(based >= 3) setReportPill(t.reportBasedOn(based), true);
-          else setReportPill("", false);
-        }, 1200);
-      } catch {}
+        await navigator.clipboard.writeText(text);setReportPill(t.reportCopied,true);
+        setTimeout(()=>{const cache=getReportCache(),key=reportCacheKey(),cached=cache[key],based=cached?.n?Number(cached.n):lsArr(LS_HISTORY).length;if(based>=3)setReportPill(t.reportBasedOn(based),true);else setReportPill('',false);},1400);
+      }catch{}
     }
 
+    /* ── RENDER ALL ── */
     function renderAll(){
-      const t = T[LANG];
-      applyLang();
-
-      const history = lsGetArray(LS_HISTORY);
-      const mistakes = lsGetArray(LS_MISTAKES);
-      const last = lsGetObj(LS_LAST);
-
-      buildCourseOptions(history, mistakes);
-
-      const course = String($("courseFilter")?.value || "").trim();
-      const topStatus = $("topStatus");
-
-      if(history.length === 0){
-        topStatus.textContent = t.noData;
-        topStatus.className = "status warn";
-        $("coachText").textContent = t.noData;
-        $("lastText").textContent = "—";
-        $("trendText").textContent = "—";
-        $("focusText").textContent = "—";
-        renderMistakes([], course);
-        renderExamList([], course);
-        updateSelPill();
-        renderTeacherReportState([]);
-        return;
+      const t=T[LANG];applyLang();
+      const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),last=lsObj(LS_LAST);
+      buildCourseOpts(h,m);
+      const course=String($('courseFilter')?.value||'').trim();
+      if(!h.length){
+        setTopStatus(t.noData,'warn');
+        $('coachText').textContent=t.noData;$('lastText').textContent='—';$('trendText').textContent='—';$('focusText').textContent='—';
+        renderMistakes([],course);renderExamList([],course);renderChart([]);updateSelPill();renderReportState([]);return;
       }
-
-      topStatus.textContent = LANG==="sv" ? `Hittade ${history.length} sparade prov.` : `Found ${history.length} saved exams.`;
-      topStatus.className = "status ok";
-
-      const lastAttempt = (last && last.attempt) ? last.attempt : history[history.length-1];
-      const trend = computeTrend(history);
-
-      $("coachText").textContent = coachText(history, mistakes, lastAttempt);
-
-      const lastP = Number(lastAttempt?.percent || 0);
-      const lastCourse = (lastAttempt?.course || "").trim();
-      $("lastText").textContent = LANG==="sv"
-        ? `${lastP}% • Nivå: ${lastAttempt?.level || "—"} • ${lastCourse || "Ingen kurs"}`
-        : `${lastP}% • Level: ${lastAttempt?.level || "—"} • ${lastCourse || "No course"}`;
-
-      if(trend){
-        const sign = trend.delta >= 0 ? "+" : "";
-        const delta = Math.round(trend.delta);
-        $("trendText").textContent = (LANG==="sv")
-          ? `${sign}${delta} procentenheter (senaste)`
-          : `${sign}${delta} percentage points (recent)`;
-      } else {
-        $("trendText").textContent = "—";
-      }
-
-      const mostMist = mostCommonCourseMistakes(mistakes);
-      $("focusText").textContent = mostMist.course
-        ? (LANG==="sv" ? `${mostMist.course} (${mostMist.n} misstag)` : `${mostMist.course} (${mostMist.n} mistakes)`)
-        : (LANG==="sv" ? "Markera 5 misstag och träna dem." : "Select 5 mistakes and train them.");
-
-      renderExamList(history, course);
-      renderMistakes(mistakes, course);
-
-      updateSelPill();
-      updateToggleLabels();
-
-      const filteredHistory = course ? history.filter(h => String(h.course||"").trim() === course) : history;
-      renderTeacherReportState(filteredHistory);
+      setTopStatus(LANG==='sv'?`${h.length} prov synkade`:`${h.length} exams synced`,'ok');
+      const lastA=(last&&last.attempt)?last.attempt:h[h.length-1],trend=computeTrend(h);
+      $('coachText').textContent=buildCoachText(h,m,lastA);
+      const lastP=Number(lastA?.percent||0),lastC=(lastA?.course||'').trim();
+      $('lastText').textContent=LANG==='sv'?`${lastP}% · ${lastA?.level||'—'} · ${lastC||'Ingen kurs'}`:`${lastP}% · ${lastA?.level||'—'} · ${lastC||'No course'}`;
+      if(trend){const sign=trend.delta>=0?'+':'',delta=Math.round(trend.delta);$('trendText').textContent=`${sign}${delta} ${LANG==='sv'?'p.p.':'p.p.'}`;}else $('trendText').textContent='—';
+      const mc=mostMistakeCourse(m);
+      $('focusText').textContent=mc.course?`${mc.course} (${mc.n})`:(LANG==='sv'?'Markera 5 misstag':'Select 5 mistakes');
+      renderExamList(h,course);renderMistakes(m,course);renderChart(h);updateSelPill();
+      const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
+      renderReportState(fH);
     }
 
-    // ===== SYNC (konto -> localStorage) =====
-    function mergeMistakesFromExamRows(rows){
-      const out = [];
-      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-
-      (rows || []).forEach(r => {
-        const createdTs = Date.parse(r.created_at) || 0;
-        if(createdTs <= clearTs) return;
-
-        const exam = r.exam || null;
-        const result = r.result || null;
-        const answers = r.answers || null;
-
-        const qById = new Map(((exam && exam.questions) ? exam.questions : []).map(q => [String(q.id), q]));
-        const aById = new Map((Array.isArray(answers) ? answers : []).map(a => [String(a.id), String(a.answer || "")]));
-
-        const per = (result && Array.isArray(result.per_question)) ? result.per_question : [];
-        per.forEach(item => {
-          const got = Number(item.points || 0);
-          const mx = Number(item.max_points || 0);
-          if(mx > 0 && got < mx){
-            const qid = String(item.id);
-            const q = qById.get(qid) || {};
-            out.push({
-              ts: createdTs || Date.now(),
-              course: r.course || "",
-              level: r.level || "C",
-              qType: q.type || (r.qtype || "mix"),
-              id: qid,
-              question: String(q.question || ""),
-              user_answer: String(aById.get(qid) || ""),
-              feedback: String(item.feedback || ""),
-              model_answer: String(item.model_answer || ""),
-              points: got,
-              max_points: mx
-            });
-          }
+    /* ── SYNC ── */
+    function mergeMistakes(rows){
+      const out=[];
+      (rows||[]).forEach(r=>{
+        const cTs=Date.parse(r.created_at)||0;
+        const exam=r.exam||null,result=r.result||null,answers=r.answers||null;
+        const qById=new Map(((exam&&exam.questions)?exam.questions:[]).map(q=>[String(q.id),q]));
+        const aById=new Map((Array.isArray(answers)?answers:[]).map(a=>[String(a.id),String(a.answer||'')]));
+        const per=(result&&Array.isArray(result.per_question))?result.per_question:[];
+        per.forEach(item=>{
+          const got=Number(item.points||0),mx=Number(item.max_points||0);
+          if(mx>0&&got<mx){const qid=String(item.id),q=qById.get(qid)||{};
+            out.push({ts:cTs||Date.now(),course:r.course||'',level:r.level||'C',qType:q.type||(r.qtype||'mix'),id:qid,question:String(q.question||''),user_answer:String(aById.get(qid)||''),feedback:String(item.feedback||''),model_answer:String(item.model_answer||''),points:got,max_points:mx});}
         });
       });
-
-      while(out.length > 200) out.shift();
-      return out;
+      while(out.length>200)out.shift();return out;
     }
-
     async function syncFromAccount(){
-      const st = $("examListStatus");
-      if(!db){
-        if(st){ st.textContent = (LANG==="sv" ? "Supabase ej konfigurerad här." : "Supabase not configured here."); st.className="status warn"; }
-        return;
-      }
-
-      if(st){ st.textContent = (LANG==="sv" ? "Synkar..." : "Syncing..."); st.className="status"; }
-
-      const r = await fetchUserExams();
-      if(!r.ok){
-        if(st){ st.textContent = String(r.error || "Sync error"); st.className="status bad"; }
-        return;
-      }
-
-      const rows = r.rows || [];
-      const clearTs = lsGetNum(LS_CLEAR_TS, 0);
-      const filtered = rows.filter(x => (Date.parse(x.created_at)||0) > clearTs);
-
-      const history = filtered.map((row) => ({
-        ts: Date.parse(row.created_at) || Date.now(),
-        course: row.course || "",
-        level: row.level || "C",
-        qType: row.qtype || "mix",
-        total_points: row.result?.total_points ?? 0,
-        max_points: row.result?.max_points ?? 0,
-        percent: (row.result?.max_points > 0) ? Math.round((row.result.total_points / row.result.max_points) * 100) : 0
-      }));
-
-      lsSet(LS_HISTORY, history);
-
-      const last = filtered.length ? filtered[filtered.length-1] : null;
-      if(last){
-        lsSet(LS_LAST, {
-          ts: Date.parse(last.created_at) || Date.now(),
-          attempt: history[history.length-1],
-          exam: last.exam,
-          result: last.result
-        });
-        if(typeof last.material === "string") localStorage.setItem(LS_MATERIAL, last.material);
-      } else {
-        localStorage.removeItem(LS_LAST);
-      }
-
-      const mistakes = mergeMistakesFromExamRows(filtered);
-      lsSet(LS_MISTAKES, mistakes);
-
-      if(st){ st.textContent = (LANG==="sv" ? "Synk klar." : "Sync done."); st.className="status ok"; }
+      const st=$('examListStatus'),syncBtn=$('syncBtn');
+      if(!db){if(st){st.textContent=LANG==='sv'?'Supabase ej konfigurerad.':'Supabase not configured.';st.className='statusText warn';}return;}
+      if(st){st.textContent=T[LANG].syncingLabel;st.className='statusText';}
+      if(syncBtn)syncBtn.setAttribute('disabled','disabled');
+      const r=await fetchUserExams();
+      if(!r.ok){if(st){st.textContent=String(r.error||'Sync error');st.className='statusText bad';}if(syncBtn)syncBtn.removeAttribute('disabled');return;}
+      const rows=r.rows||[];
+      const h=rows.map(row=>({ts:Date.parse(row.created_at)||Date.now(),course:row.course||'',level:row.level||'C',qType:row.qtype||'mix',total_points:row.result?.total_points??0,max_points:row.result?.max_points??0,percent:(row.result?.max_points>0)?Math.round((row.result.total_points/row.result.max_points)*100):0}));
+      lsSet(LS_HISTORY,h);
+      const last2=rows.length?rows[rows.length-1]:null;
+      if(last2){lsSet(LS_LAST,{ts:Date.parse(last2.created_at)||Date.now(),attempt:h[h.length-1],exam:last2.exam,result:last2.result});if(typeof last2.material==='string')localStorage.setItem(LS_MATERIAL,last2.material);}
+      else localStorage.removeItem(LS_LAST);
+      lsSet(LS_MISTAKES,mergeMistakes(rows));
+      if(st){st.textContent=T[LANG].syncDone;st.className='statusText ok';}
+      if(syncBtn)syncBtn.removeAttribute('disabled');
       renderAll();
     }
 
-    // ===== EVENTS =====
-    $("courseFilter").addEventListener("change", () => renderAll());
-    $("showMode").addEventListener("change", () => {
-      const mode = String($("showMode").value || "mistakes");
-      if(mode === "all") openSection("#examListCard");
-      else openSection("#mistakeCard");
-    });
+    /* ── EVENTS ── */
+    $('courseFilter').addEventListener('change',()=>renderAll());
+    $('showMode').addEventListener('change',()=>{openSection($('showMode').value==='all'?'#examSection':'#mistakeSection');});
+    $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();openSection('#examSection');});
+    $('trainSelectedBtn').addEventListener('click',()=>{const p=getPick();if(!p.ids?.length)lsSet(LS_TRAIN_PICK,{ids:[],course:String($('courseFilter')?.value||'')});window.location.href='app.html#train';});
+    $('clearSelectionBtn').addEventListener('click',()=>{clearPick();renderAll();});
+    $('genReportBtn').addEventListener('click',async()=>await generateReport());
+    $('copyReportBtn').addEventListener('click',async()=>await copyReport());
+    $('resetBtn').addEventListener('click',async()=>{
+      $('resetBtn').setAttribute('disabled','disabled');
+      setTopStatus(LANG==='sv'?'Rensar…':'Clearing…','');
 
-    $("syncBtn").addEventListener("click", async () => {
-      await syncFromAccount();
-      openSection("#examListCard");
-    });
-
-    $("trainSelectedBtn").addEventListener("click", () => {
-      const pick = getPick();
-      const ids = Array.isArray(pick.ids) ? pick.ids : [];
-      if(ids.length === 0){
-        lsSet(LS_TRAIN_PICK, { ids:[], course:String($("courseFilter")?.value || "") });
-      }
-      window.location.href = "app.html#train";
-    });
-
-    $("clearSelectionBtn").addEventListener("click", () => {
-      clearPick();
-      renderAll();
-    });
-
-    $("genReportBtn").addEventListener("click", async () => {
-      await generateTeacherReport();
-    });
-
-    $("copyReportBtn").addEventListener("click", async () => {
-      await copyTeacherReport();
-    });
-
-    $("resetBtn").addEventListener("click", async () => {
-      localStorage.setItem(LS_CLEAR_TS, String(Date.now()));
-
-      localStorage.removeItem(LS_HISTORY);
-      localStorage.removeItem(LS_MISTAKES);
-      localStorage.removeItem(LS_LAST);
-      localStorage.removeItem(LS_TRAIN_PICK);
-      localStorage.removeItem(LS_SMART_TIPS_CACHE);
-      localStorage.removeItem(LS_TEACHER_REPORT_CACHE);
-
-      renderAll();
-
-      const topStatus = $("topStatus");
+      // 1. Radera från Supabase först
       if(db){
         try{
-          const r = await deleteAllUserExamsFromAccount();
-          if(topStatus){
-            topStatus.textContent = r.ok ? (LANG==="sv" ? "Historik rensad (lokalt + konto)." : "History cleared (local + account).") : (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
-            topStatus.className = "status ok";
-          }
-        } catch {
-          if(topStatus){
-            topStatus.textContent = (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
-            topStatus.className = "status ok";
-          }
-        }
-      } else {
-        if(topStatus){
-          topStatus.textContent = (LANG==="sv" ? "Historik rensad (lokalt)." : "History cleared (local).");
-          topStatus.className = "status ok";
-        }
+          const r=await deleteAllUserExamsFromAccount();
+          if(!r.ok) console.warn('Supabase delete failed:',r.error);
+        }catch(e){ console.warn('Supabase delete error:',e); }
       }
+
+      // 2. Rensa localStorage (UTAN att sätta LS_CLEAR_TS)
+      [LS_HISTORY,LS_MISTAKES,LS_LAST,LS_TRAIN_PICK,LS_SMART_TIPS_CACHE,LS_TEACHER_REPORT_CACHE,LS_CLEAR_TS].forEach(k=>localStorage.removeItem(k));
+
+      renderAll();
+      setTopStatus(LANG==='sv'?'Historik rensad (lokalt + konto).':'History cleared (local + account).','ok');
+      $('resetBtn').removeAttribute('disabled');
     });
 
+    /* ── BIND TOGGLES ── */
     function bindToggles(){
-      document.querySelectorAll("[data-toggle]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const sel = btn.getAttribute("data-toggle");
-          if(!sel) return;
-          toggleCard(sel);
-        });
+      document.querySelectorAll('.sHead[data-toggle]').forEach(head=>{
+        head.addEventListener('click',()=>{const sel=head.getAttribute('data-toggle');if(sel)toggleSection(sel);});
       });
-
-      document.querySelectorAll("#quickNav [data-open]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const sel = btn.getAttribute("data-open");
-          if(!sel) return;
-          openSection(sel);
-        });
+      document.querySelectorAll('#quickNav [data-open]').forEach(btn=>{
+        btn.addEventListener('click',()=>{const sel=btn.getAttribute('data-open');if(sel)openSection(sel);});
       });
     }
 
-    // ===== INIT =====
-    (async () => {
-      applyLang();
-      bindToggles();
-      restoreUiOpenFromStorage();
+    /* ── MENU ── */
+    function bindMenu(){
+      const menuBtn=$('menuBtn'),menu=$('menu');if(!menuBtn||!menu)return;
+      function openMenu(){menu.classList.remove('is-closing');menu.classList.add('is-open');menuBtn.setAttribute('aria-expanded','true');}
+      function closeMenu(){if(!menu.classList.contains('is-open'))return;menu.classList.remove('is-open');menu.classList.add('is-closing');menuBtn.setAttribute('aria-expanded','false');setTimeout(()=>menu.classList.remove('is-closing'),160);}
+      menuBtn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('is-open')?closeMenu():openMenu();});
+      document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!menuBtn.contains(e.target))closeMenu();});
+      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+    }
 
-      const ok = await gateImprovePage();
-      if(!ok) return;
+    /* ── REVEAL ── */
+    function initReveal(){
+      const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const els=Array.from(document.querySelectorAll('.reveal'));
+      if(reduce){els.forEach(el=>el.classList.add('in'));return;}
+      const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:0.07,rootMargin:'0px 0px -3% 0px'});
+      els.forEach((el,i)=>{el.style.transitionDelay=`${Math.min(i*40,160)}ms`;io.observe(el);});
+    }
 
+    /* ── THEME TOGGLE ── */
+    document.addEventListener('DOMContentLoaded',()=>{
+      $('themeToggle')?.addEventListener('click',()=>{
+        applyTheme(THEME==='dark'?'light':'dark');
+        const h=lsArr(LS_HISTORY);if(h.length>=2)renderChart(h);
+      });
+    });
+
+    /* ── INIT ── */
+    (async()=>{
+      applyLang();bindToggles();bindMenu();initReveal();restoreUiState();
       renderAll();
-
-      // Auto-sync + namn
-      (async () => {
-        USER_NAME = getNameFromLocal();
-
-        if(!USER_NAME){
-          const n = await tryLoadNameFromAccount();
-          if(n){
-            USER_NAME = n;
-            try{ localStorage.setItem(LS_USER_NAME_A, USER_NAME); } catch {}
-          }
-        }
-
-        if(db){
-          const uid = await getUserId();
-          if(uid){
-            await syncFromAccount();
-          }
-        }
-
+      (async()=>{
+        USER_NAME=getNameLocal();
+        if(!USER_NAME){const n=await tryLoadName();if(n){USER_NAME=n;try{localStorage.setItem(LS_USER_NAME_A,USER_NAME);}catch{}}}
+        if(db){const uid=await getUserId();if(uid)await syncFromAccount();}
         renderAll();
       })();
     })();
