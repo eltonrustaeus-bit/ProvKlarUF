@@ -803,7 +803,6 @@ const LS_HISTORY = "proviaai_history";
 const LS_MISTAKES = "proviaai_mistakes";
 const LS_LAST = "proviaai_last_result";
 const LS_MATERIAL = "proviaai_last_material";
-const LS_CLEAR_TS = "proviaai_cleared_ts";
 const LS_TRAIN_PICK = "proviaai_train_pick";
 const LS_QUOTA_FALLBACK_PREFIX = "proviaai_quota_fallback_";
 const LS_UI_OPEN = "proviaai_ui_open";
@@ -978,9 +977,9 @@ const leftText=(left===Infinity)?"∞":String(left);
 ms.textContent=(LANG==="sv")?`PROV IDAG: ${count}/${limitText} · KVAR: ${leftText}`:`EXAMS TODAY: ${count}/${limitText} · LEFT: ${leftText}`;
 }
 function mergeMistakesFromExamRows(rows){
-const out=[],clearTs=lsGetNum(LS_CLEAR_TS,0);
+const out=[];
 (rows||[]).forEach(r=>{
-const createdTs=Date.parse(r.created_at)||0; if(createdTs<=clearTs)return;
+const createdTs=Date.parse(r.created_at)||0;
 const exam=r.exam||null,result=r.result||null,answers=r.answers||null;
 const qById=new Map(((exam&&exam.questions)?exam.questions:[]).map(q=>[String(q.id),q]));
 const aById=new Map((Array.isArray(answers)?answers:[]).map(a=>[String(a.id),String(a.answer||"")]));
@@ -997,8 +996,7 @@ async function loadExamsFromAccountToLocal(){
 if(!db)return; const uid=await getUserId(); if(!uid)return;
 const{data,error}=await db.from("user_exams").select("id,created_at,course,level,qtype,material,exam,answers,result").eq("user_id",uid).order("created_at",{ascending:true}).limit(500);
 if(error)return;
-const clearTs=lsGetNum(LS_CLEAR_TS,0);
-const filtered=(data||[]).filter(r=>(Date.parse(r.created_at)||0)>clearTs);
+const filtered=data||[];
 const history=filtered.map(r=>({ts:Date.parse(r.created_at)||Date.now(),course:r.course||"",level:r.level||"C",qType:r.qtype||"mix",total_points:r.result?.total_points??0,max_points:r.result?.max_points??0,percent:(r.result?.max_points>0)?Math.round((r.result.total_points/r.result.max_points)*100):0}));
 lsSet(LS_HISTORY,history);
 const last=filtered&&filtered.length?filtered[filtered.length-1]:null;
