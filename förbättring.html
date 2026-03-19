@@ -640,11 +640,21 @@
       return{ok:true,rows:data||[]};
     }
     async function deleteAllUserExamsFromAccount(){
-      if(!db)return{ok:false,error:'Supabase not configured'};
-      const uid=await getUserId();if(!uid)return{ok:false,error:'Not logged in'};
-      const{error}=await db.from('user_exams').delete().eq('user_id',uid);
-      if(error)return{ok:false,error:error.message||String(error)};
-      return{ok:true};
+      if(!db) return{ok:false,error:'Supabase not configured'};
+      const uid=await getUserId();
+      if(!uid) return{ok:false,error:'Not logged in'};
+      try{
+        const r=await fetch('/api/delete-exams',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({user_id:uid})
+        });
+        const data=await r.json();
+        if(!r.ok) return{ok:false,error:data?.error||'delete failed'};
+        return{ok:true};
+      }catch(e){
+        return{ok:false,error:String(e)};
+      }
     }
 
     /* ── UTILS ── */
