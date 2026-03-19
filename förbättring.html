@@ -1057,9 +1057,9 @@
 
     /* ── SYNC ── */
     function mergeMistakes(rows){
-      const out=[],clearTs=lsNum(LS_CLEAR_TS,0);
+      const out=[];
       (rows||[]).forEach(r=>{
-        const cTs=Date.parse(r.created_at)||0;if(cTs<=clearTs)return;
+        const cTs=Date.parse(r.created_at)||0;
         const exam=r.exam||null,result=r.result||null,answers=r.answers||null;
         const qById=new Map(((exam&&exam.questions)?exam.questions:[]).map(q=>[String(q.id),q]));
         const aById=new Map((Array.isArray(answers)?answers:[]).map(a=>[String(a.id),String(a.answer||'')]));
@@ -1079,14 +1079,13 @@
       if(syncBtn)syncBtn.setAttribute('disabled','disabled');
       const r=await fetchUserExams();
       if(!r.ok){if(st){st.textContent=String(r.error||'Sync error');st.className='statusText bad';}if(syncBtn)syncBtn.removeAttribute('disabled');return;}
-      const rows=r.rows||[],clearTs=lsNum(LS_CLEAR_TS,0);
-      const filtered=rows.filter(x=>(Date.parse(x.created_at)||0)>clearTs);
-      const h=filtered.map(row=>({ts:Date.parse(row.created_at)||Date.now(),course:row.course||'',level:row.level||'C',qType:row.qtype||'mix',total_points:row.result?.total_points??0,max_points:row.result?.max_points??0,percent:(row.result?.max_points>0)?Math.round((row.result.total_points/row.result.max_points)*100):0}));
+      const rows=r.rows||[];
+      const h=rows.map(row=>({ts:Date.parse(row.created_at)||Date.now(),course:row.course||'',level:row.level||'C',qType:row.qtype||'mix',total_points:row.result?.total_points??0,max_points:row.result?.max_points??0,percent:(row.result?.max_points>0)?Math.round((row.result.total_points/row.result.max_points)*100):0}));
       lsSet(LS_HISTORY,h);
-      const last2=filtered.length?filtered[filtered.length-1]:null;
+      const last2=rows.length?rows[rows.length-1]:null;
       if(last2){lsSet(LS_LAST,{ts:Date.parse(last2.created_at)||Date.now(),attempt:h[h.length-1],exam:last2.exam,result:last2.result});if(typeof last2.material==='string')localStorage.setItem(LS_MATERIAL,last2.material);}
       else localStorage.removeItem(LS_LAST);
-      lsSet(LS_MISTAKES,mergeMistakes(filtered));
+      lsSet(LS_MISTAKES,mergeMistakes(rows));
       if(st){st.textContent=T[LANG].syncDone;st.className='statusText ok';}
       if(syncBtn)syncBtn.removeAttribute('disabled');
       renderAll();
@@ -1101,11 +1100,23 @@
     $('genReportBtn').addEventListener('click',async()=>await generateReport());
     $('copyReportBtn').addEventListener('click',async()=>await copyReport());
     $('resetBtn').addEventListener('click',async()=>{
-      localStorage.setItem(LS_CLEAR_TS,String(Date.now()));
-      [LS_HISTORY,LS_MISTAKES,LS_LAST,LS_TRAIN_PICK,LS_SMART_TIPS_CACHE,LS_TEACHER_REPORT_CACHE].forEach(k=>localStorage.removeItem(k));
+      $('resetBtn').setAttribute('disabled','disabled');
+      setTopStatus(LANG==='sv'?'Rensar…':'Clearing…','');
+
+      // 1. Radera från Supabase först
+      if(db){
+        try{
+          const r=await deleteAllUserExamsFromAccount();
+          if(!r.ok) console.warn('Supabase delete failed:',r.error);
+        }catch(e){ console.warn('Supabase delete error:',e); }
+      }
+
+      // 2. Rensa localStorage (UTAN att sätta LS_CLEAR_TS)
+      [LS_HISTORY,LS_MISTAKES,LS_LAST,LS_TRAIN_PICK,LS_SMART_TIPS_CACHE,LS_TEACHER_REPORT_CACHE,LS_CLEAR_TS].forEach(k=>localStorage.removeItem(k));
+
       renderAll();
-      if(db){try{const r=await deleteAllUserExamsFromAccount();setTopStatus(r.ok?(LANG==='sv'?'Historik rensad (lokalt + konto)':'History cleared (local + account)'):(LANG==='sv'?'Historik rensad (lokalt)':'History cleared (local)'),'ok');}catch{setTopStatus(LANG==='sv'?'Historik rensad (lokalt)':'History cleared (local)','ok');}}
-      else setTopStatus(LANG==='sv'?'Historik rensad (lokalt)':'History cleared (local)','ok');
+      setTopStatus(LANG==='sv'?'Historik rensad (lokalt + konto).':'History cleared (local + account).','ok');
+      $('resetBtn').removeAttribute('disabled');
     });
 
     /* ── BIND TOGGLES ── */
