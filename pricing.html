@@ -83,8 +83,9 @@
   .pageSub{font-size:14px;color:var(--t2);max-width:50ch;line-height:1.7}
 
   /* PLAN GRID */
-  .planGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
-  @media(max-width:720px){.planGrid{grid-template-columns:1fr}}
+  .planGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+  @media(max-width:900px){.planGrid{grid-template-columns:1fr 1fr}}
+  @media(max-width:580px){.planGrid{grid-template-columns:1fr}}
 
   /* PLAN CARD */
   .planCard{
@@ -254,11 +255,41 @@
   <!-- PLAN CARDS -->
   <div class="planGrid">
 
-    <!-- BASIC -->
+    <!-- GRATIS -->
     <div class="planCard rev d1">
+      <span class="planBadge muted">Gratis</span>
+      <div class="planName">Gratis</div>
+      <div class="planDesc">Prova ProviaAi utan kostnad.</div>
+      <div class="planPriceRow">
+        <span class="planAmt">0</span>
+        <span class="planCurr">kr</span>
+        <span class="planPer">för alltid</span>
+      </div>
+      <div class="planNote">2 prov per vecka · inget kort krävs</div>
+
+      <div class="planDivider"></div>
+      <div class="planInclLabel">Ingår i Gratis</div>
+
+      <ul class="featureList">
+        <li>2 mockprov per vecka</li>
+        <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
+        <li>Besvara provet direkt i appen</li>
+        <li>Resultat och poängöversikt</li>
+        <li class="dim">Historik och utveckling</li>
+        <li class="dim">AI-coach och felbank</li>
+        <li class="dim">Träning från misstag</li>
+        <li class="dim">Lärarrapport</li>
+      </ul>
+
+      <div class="planNote2">Perfekt för att testa flödet. Uppgradera till Basic för obegränsad träning.</div>
+      <a class="planCta outline" href="app.html">Starta gratis</a>
+    </div>
+
+    <!-- BASIC -->
+    <div class="planCard rev d2">
       <span class="planBadge muted">Basic</span>
       <div class="planName">Basic</div>
-      <div class="planDesc">För stabil och enkel provträning.</div>
+      <div class="planDesc">För stabil och regelbunden provträning.</div>
       <div class="planPriceRow">
         <span class="planAmt">19</span>
         <span class="planCurr">kr</span>
@@ -270,7 +301,7 @@
       <div class="planInclLabel">Ingår i Basic</div>
 
       <ul class="featureList">
-        <li>Skapa mockprov från ditt material</li>
+        <li>Upp till 30 mockprov per månad</li>
         <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
         <li>Besvara provet direkt i appen</li>
         <li>Resultat och poängöversikt</li>
@@ -285,7 +316,7 @@
     </div>
 
     <!-- PREMIUM -->
-    <div class="planCard featured rev d2">
+    <div class="planCard featured rev d3">
       <span class="planBadge">⭑ Premium — Rekommenderas</span>
       <div class="planName">Premium</div>
       <div class="planDesc">Maxa resultaten med personlig AI-coach.</div>
@@ -323,22 +354,23 @@
       <thead>
         <tr>
           <th>Funktion</th>
+          <th>Gratis</th>
           <th>Basic</th>
           <th>Premium</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Mockprov från material</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>E / C / A-nivå</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Flervals + kortsvar</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Resultat &amp; poängöversikt</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Historik</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>OCR från bild</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>AI-coach &amp; personlig plan</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Felbank med modellsvar</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Träning från misstag</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Lärarrapport</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Synk mellan enheter</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Mockprov</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">2/vecka</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">30/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
+        <tr><td>E / C / A-nivå</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Flervals + kortsvar</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Resultat &amp; poängöversikt</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Historik</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>OCR från bild</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>AI-coach &amp; personlig plan</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Felbank med modellsvar</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Träning från misstag</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Lärarrapport</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Synk mellan enheter</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
       </tbody>
     </table>
   </div>
