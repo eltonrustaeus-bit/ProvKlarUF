@@ -627,7 +627,7 @@
 
     /* ── SUPABASE ── */
     const SB_URL='https://mnmotdluigzeehdjbhbu.supabase.co'.trim();
-    const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXrXr1eRU1eRU1eRaXhl7AIY8'.trim();
+    const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ubW90ZGx1aWd6ZWVoZGpiaGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzcwODQsImV4cCI6MjA4NTkxMzA4NH0.pEV4zBWqxnrPVyvrenPVArXxvXr1eRU1eRaXhl7AIY8'.trim();
     const SBG=typeof window!=='undefined'?window.supabase:null;
     const db=(SB_URL.startsWith('http')&&SB_KEY.length>40&&SBG?.createClient)?SBG.createClient(SB_URL,SB_KEY):null;
 
