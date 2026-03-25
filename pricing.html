@@ -1,421 +1,424 @@
 <!doctype html>
 <html lang="sv">
 <head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1" />
- <title>ProviaAi – Priser & Medlemskap</title>
- <meta name="description" content="Jämför Basic (19 kr/mån) och Premium (59 kr/mån) för ProviaAi." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProviaAi – Priser & Medlemskap</title>
+  <meta name="description" content="Jämför Basic (19 kr/mån) och Premium (59 kr/mån) för ProviaAi." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+  :root{
+    --a:#1bff8c;--a2:#16d475;--a-dim:rgba(27,255,140,.07);
+    --bg:#08100d;--s:#0f1a13;--s2:#142018;--s3:#1a2820;
+    --t:#e8f5ee;--t2:#9dbfad;--t3:#5e856e;
+    --l:rgba(27,255,140,.09);--l2:rgba(27,255,140,.20);--l3:rgba(27,255,140,.32);
+    --sh:0 8px 32px rgba(0,0,0,.5);--sh2:0 20px 56px rgba(0,0,0,.6);--sh3:0 32px 80px rgba(0,0,0,.7);
+    --r:6px;--r2:4px;--max:1080px;
+    --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);background:var(--bg);color:var(--t);line-height:1.6;min-height:100vh}
+  a{text-decoration:none;color:inherit}
+  ::-webkit-scrollbar{width:5px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--l2);border-radius:3px}
 
- <style>
- :root{
- --deep:#e7fff4; --deep2:#b7d6ca;
- --mint:#2BE38C; --mint2:#16B876;
- --bg:#040807; --surface:#08120f; --surface2:#0d1915;
- --muted:#9db5ab; --border:rgba(117,166,145,.24);
- --shadow:0 24px 65px rgba(0,0,0,.45);
- --radius:18px; --max:1100px; --font:system-ui,-apple-system,Segoe UI,Roboto,Arial;
- }
- *{box-sizing:border-box}
- html{scroll-behavior:smooth}
- body{
- margin:0;font-family:var(--font);color:var(--deep);background:var(--bg);
- background:
- radial-gradient(900px 460px at 8% -10%, rgba(43,227,140,.20), transparent 64%),
- radial-gradient(740px 420px at 94% 12%, rgba(22,184,118,.15), transparent 60%),
- linear-gradient(140deg, #040807 0%, #060d0b 42%, #040907 100%);
- line-height:1.6;
- position:relative;
- }
- /* Premium bakgrund: subtil noise + aurora glows */
- body::before,
- body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1}
- body::before{
- opacity:.18;
- background-image:
- radial-gradient(circle at 20% 30%, rgba(255,255,255,.05) .5px, transparent .8px),
- radial-gradient(circle at 80% 70%, rgba(255,255,255,.035) .5px, transparent .8px);
- background-size:3px 3px, 4px 4px;
- mix-blend-mode:screen;
- }
- body::after{
- background:
- radial-gradient(460px 220px at 12% 20%, rgba(43,227,140,.13), transparent 65%),
- radial-gradient(430px 210px at 86% 18%, rgba(43,227,140,.09), transparent 68%);
- filter:blur(10px);
- opacity:.9;
- }
- a{text-decoration:none;color:inherit}
+  /* LOADER */
+  .loader{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;background:var(--bg);transition:opacity .3s ease,visibility .3s ease}
+  .loader.out{opacity:0;visibility:hidden;pointer-events:none}
+  .lOrb{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--l2);position:relative}
+  .lOrb::before{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid transparent;border-top-color:var(--a);border-right-color:rgba(27,255,140,.25);animation:spin .85s linear infinite}
+  .lTxt{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.14em;text-transform:uppercase;margin-top:12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
- header{
- position:sticky;top:0;z-index:3000;
- background:rgba(6,13,11,.76);backdrop-filter:saturate(140%) blur(12px);
- border-bottom:1px solid var(--border);
- }
- .wrap{max-width:var(--max);margin:0 auto;padding:clamp(18px,3.2vw,30px)}
- .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
- .brand{display:flex;align-items:center;gap:12px;min-width:0}
- .brand img{height:52px;width:auto;display:block}
- .brand .name{font-weight:1100;color:var(--deep);font-size:18px;line-height:1.05}
- .brand .tag{margin-top:3px;color:var(--muted);font-weight:850;font-size:12px;line-height:1.1}
+  /* HEADER */
+  header{height:54px;position:sticky;top:0;z-index:3000;background:rgba(8,16,13,.85);backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid var(--l);display:flex;align-items:center}
+  .hWrap{max-width:var(--max);width:100%;margin:0 auto;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand img{height:28px;width:auto;display:block}
+  .bName{font-weight:700;font-size:14.5px;color:var(--t);letter-spacing:-.02em;line-height:1}
+  .bTag{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;line-height:1}
+  .hR{display:flex;align-items:center;gap:6px}
+  .aiStatus{display:inline-flex;align-items:center;gap:6px;padding:0 10px;height:30px;font-family:var(--mono);font-size:10.5px;color:var(--t3);border:1px solid var(--l);border-radius:var(--r);background:transparent}
+  .aiDot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:pulse 2s ease infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(27,255,140,.4)}50%{box-shadow:0 0 0 7px rgba(27,255,140,0)}}
 
- .btn{
- display:inline-flex;align-items:center;justify-content:center;
- padding:12px 16px;border-radius:14px;
- font-weight:900;font-size:14px;border:1px solid var(--border);
- cursor:pointer;white-space:nowrap;
- background:rgba(10,22,18,.82);color:var(--deep);
- transition:transform .18s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
- transform:translateZ(0);
- }
- /* Microinteraction: buttons hover/active/focus-visible */
- .btn:hover{
- transform:translateY(-2px);
- box-shadow:0 12px 28px rgba(8,22,16,.55), 0 0 0 1px rgba(43,227,140,.22) inset;
- border-color:rgba(43,227,140,.42);
- background:rgba(12,28,22,.9);
- }
- .btn:active{transform:translateY(0) scale(.98);box-shadow:0 7px 18px rgba(8,22,16,.35)}
- .btn:focus-visible,
- .iconBtn:focus-visible,
- .dropdown a:focus-visible{
- outline:none;
- box-shadow:0 0 0 2px rgba(4,8,7,.95), 0 0 0 4px rgba(43,227,140,.62);
- border-color:rgba(43,227,140,.75);
- }
- .btnPrimary{
- background:linear-gradient(180deg, #1cc27d, #129b63);color:#f4fff9;border-color:rgba(22,184,118,.56);
- box-shadow:0 16px 34px rgba(22,184,118,.28), 0 0 0 1px rgba(255,255,255,.08) inset
- }
- .btnPrimary:hover{box-shadow:0 20px 40px rgba(22,184,118,.30), 0 0 0 1px rgba(255,255,255,.12) inset}
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 15px;height:34px;font-family:var(--font);font-weight:600;font-size:13px;border:1px solid var(--l);border-radius:var(--r);background:var(--s2);color:var(--t);cursor:pointer;white-space:nowrap;position:relative;overflow:hidden;transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s ease,border-color .15s ease}
+  .btn::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(27,255,140,.07),transparent 60%);opacity:0;transition:opacity .15s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:var(--sh);border-color:var(--l2)}
+  .btn:hover::after{opacity:1}
+  .btn:active{transform:translateY(0) scale(.98)}
+  .btn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+  .btnP{background:var(--a);color:#061009;border-color:var(--a);font-weight:700}
+  .btnP:hover{background:var(--a2);border-color:var(--a2)}
+  .btnG{background:transparent;border-color:var(--l)}
+  .btnG:hover{background:var(--a-dim);border-color:var(--l2)}
 
- /* Header menu (som index.html) */
- .headerActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
- .aiStatus{
- display:inline-flex;align-items:center;gap:8px;
- border:1px solid var(--border);
- background:rgba(10,22,18,.82);
- border-radius:999px;
- padding:8px 10px;
- font-weight:900;
- font-size:12px;
- color:var(--deep);
- }
- .aiDot{
- width:9px;height:9px;border-radius:999px;
- background:rgba(22,184,118,.95);
- box-shadow:0 0 0 0 rgba(22,184,118,.45);
- animation:aiPulse 1.9s ease-in-out infinite;
- }
- .menuWrap{position:relative;z-index:4000}
- .iconBtn{
- width:44px;height:44px;border-radius:14px;border:1px solid var(--border);
- background:rgba(10,22,18,.82);cursor:pointer;display:grid;place-items:center;
- transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease;
- }
- .iconBtn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(8,22,16,.4);border-color:rgba(43,227,140,.42)}
- .iconBtn:active{transform:translateY(0) scale(.985)}
- .bars{width:18px;height:12px;display:grid;gap:3px}
- .bars span{display:block;height:2px;background:#D9FDEB;border-radius:2px;opacity:.95}
- .dropdown{
- position:absolute;right:0;top:54px;min-width:265px;
- background:rgba(6,14,11,.97);
- border:1px solid rgba(102,255,191,.2);
- border-radius:16px;
- box-shadow:0 22px 60px rgba(0,0,0,.45);
- padding:8px;
- display:none;
- opacity:0;
- transform:translateY(-6px) scale(.985);
- z-index:5000;
- }
- .dropdown.is-open{display:block;opacity:1;transform:translateY(0) scale(1);transition:opacity .18s ease, transform .18s ease}
- .dropdown.is-closing{display:block;opacity:0;transform:translateY(-4px) scale(.99);transition:opacity .14s ease, transform .14s ease}
- .dropdown a{
- width:100%;
- display:flex;align-items:center;justify-content:space-between;
- gap:10px;
- padding:10px 12px;
- border-radius:12px;
- border:1px solid transparent;
- background:transparent;
- cursor:pointer;
- font-weight:900;
- color:#e6fff1;
- font-size:13px;
- text-align:left;
- transition:background-color .16s ease, border-color .16s ease, transform .16s ease;
- }
- .dropdown a:hover{background:rgba(43,227,140,.12);border-color:rgba(43,227,140,.25);transform:translateX(1px)}
- @keyframes aiPulse{
- 0%{box-shadow:0 0 0 0 rgba(22,184,118,.45)}
- 65%{box-shadow:0 0 0 9px rgba(22,184,118,0)}
- 100%{box-shadow:0 0 0 0 rgba(22,184,118,0)}
- }
+  /* MENU */
+  .mWrap{position:relative;z-index:4000}
+  .mBtn{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--l);border-radius:var(--r);background:transparent;color:var(--t3);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+  .mBtn:hover{border-color:var(--l2);background:var(--a-dim);color:var(--t)}
+  .mBtn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+  .bars{display:grid;gap:3px;width:15px}
+  .bars span{display:block;height:1.5px;background:currentColor;border-radius:1px}
+  .drop{position:absolute;right:0;top:calc(100% + 7px);min-width:224px;background:var(--s);border:1px solid var(--l);border-radius:var(--r);box-shadow:var(--sh3);padding:5px;display:none;opacity:0;transform:translateY(-5px) scale(.99);z-index:5000}
+  .drop.on{display:block;opacity:1;transform:none;transition:opacity .15s cubic-bezier(.22,.61,.36,1),transform .15s cubic-bezier(.22,.61,.36,1)}
+  .drop.off{display:block;opacity:0;transform:translateY(-4px);transition:opacity .11s,transform .11s}
+  .ddi{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border-radius:var(--r2);border:1px solid transparent;background:transparent;cursor:pointer;font-family:var(--font);font-weight:500;font-size:13px;color:var(--t2);text-align:left;transition:background .11s,border-color .11s,color .11s}
+  .ddi:hover{background:var(--a-dim);border-color:var(--l);color:var(--t)}
+  .dpill{font-family:var(--mono);font-size:10px;color:var(--t3);border:1px solid var(--l);border-radius:var(--r2);padding:2px 6px}
 
- .card{
- background:linear-gradient(180deg, rgba(9,19,15,.92), rgba(7,14,12,.92));
- border:1px solid var(--border);
- border-radius:var(--radius);
- box-shadow:var(--shadow);
- padding:clamp(22px,3.5vw,30px);
- margin:clamp(16px,3vw,24px) 0;
- overflow:hidden;
- position:relative;
- transition:transform .22s ease, box-shadow .25s ease, border-color .25s ease;
- }
- .card:before{
- content:"";
- position:absolute;inset:-70px -70px auto auto;
- width:190px;height:190px;border-radius:999px;
- background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.14), transparent 64%);
- pointer-events:none;
- }
- /* Microinteraction: cards hover lift + glow */
- .card:hover{
- transform:translateY(-3px);
- box-shadow:0 28px 70px rgba(0,0,0,.55), 0 0 0 1px rgba(43,227,140,.18) inset;
- border-color:rgba(43,227,140,.32);
- }
+  /* LAYOUT */
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
 
- .hTitle{margin:0;color:var(--deep);font-weight:1100;letter-spacing:-.024em;font-size:clamp(32px,4.8vw,52px);line-height:1.08}
- .hSub{margin:14px 0 0;color:var(--muted);font-weight:720;line-height:1.65;font-size:clamp(15px,1.4vw,18px);max-width:65ch}
- .sectionTitle{margin:0 0 8px;font-weight:1000;letter-spacing:-.01em;color:var(--deep);font-size:clamp(20px,2.2vw,27px)}
- .sectionSub{margin:0;color:var(--muted);font-weight:700;font-size:clamp(13px,1.2vw,15px);line-height:1.55}
+  /* PAGE HERO */
+  .pageHero{padding:40px 0 32px;border-bottom:1px solid var(--l);margin-bottom:28px}
+  .eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;font-weight:500;color:var(--a);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+  .eyebrow::before{content:"";width:14px;height:1.5px;background:var(--a);border-radius:1px;flex-shrink:0}
+  .pageTitle{font-weight:700;font-size:clamp(26px,3vw,40px);letter-spacing:-.04em;line-height:1.08;color:var(--t);margin-bottom:10px}
+  .pageSub{font-size:14px;color:var(--t2);max-width:50ch;line-height:1.7}
 
- .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
- @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
+  /* PLAN GRID */
+  .planGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+  @media(max-width:720px){.planGrid{grid-template-columns:1fr}}
 
- .plan{
- border:1px solid var(--border);
- border-radius:18px;
- background:linear-gradient(180deg, rgba(13,24,20,.90), rgba(9,17,14,.88));
- padding:18px;
- position:relative;
- overflow:hidden;
- transition:transform .2s ease, box-shadow .22s ease, border-color .2s ease;
- }
- .plan:before{
- content:"";
- position:absolute;inset:-70px -70px auto auto;
- width:170px;height:170px;border-radius:999px;
- background:radial-gradient(circle at 30% 30%, rgba(43,227,140,.12), transparent 62%);
- pointer-events:none;
- }
- .plan:hover{
- transform:translateY(-3px);
- border-color:rgba(43,227,140,.38);
- box-shadow:0 24px 44px rgba(0,0,0,.45), 0 0 0 1px rgba(43,227,140,.12) inset;
- }
- .planTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
- .planName{margin:0;font-weight:1000;color:var(--deep);font-size:17px}
- .planPrice{display:flex;align-items:baseline;gap:6px;font-weight:1000;color:var(--deep)}
- .planPrice .num{font-size:30px;letter-spacing:-.02em}
- .planPrice .per{font-size:12px;color:var(--muted);font-weight:800}
- .pill{
- font-size:11px;font-weight:900;color:var(--muted);
- border:1px solid var(--border);
- border-radius:999px;padding:4px 8px;background:rgba(11,21,18,.88);
- }
- .list{margin:12px 0 0;padding:0 0 0 18px;color:#d8efe5;font-weight:700;line-height:1.7}
- .hr{height:1px;background:rgba(123,168,149,.25);margin:14px 0}
+  /* PLAN CARD */
+  .planCard{
+    background:var(--s);border:1px solid var(--l);
+    border-radius:var(--r);padding:22px;
+    position:relative;overflow:hidden;
+    transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
+    display:flex;flex-direction:column;gap:0;
+  }
+  .planCard:hover{border-color:var(--l2);transform:translateY(-3px);box-shadow:var(--sh2)}
+  /* glow top-right */
+  .planCard::before{content:"";position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(27,255,140,.09),transparent 65%);pointer-events:none}
 
- .note{
- margin-top:12px;
- border:1px solid var(--border);
- border-radius:16px;
- background:rgba(8,17,14,.88);
- padding:12px;
- color:var(--muted);
- font-weight:700;
- font-size:12px;
- line-height:1.55;
- }
+  /* premium card highlight */
+  .planCard.featured{border-color:var(--l2)}
+  .planCard.featured::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(27,255,140,.05), transparent 65%);
+    pointer-events:none;
+  }
 
- footer{border-top:1px solid var(--border);padding:20px;text-align:center;color:var(--muted);font-size:12px;font-weight:700}
+  .planBadge{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:var(--mono);font-size:9px;font-weight:500;
+    color:var(--a);letter-spacing:.1em;text-transform:uppercase;
+    border:1px solid var(--l2);border-radius:var(--r2);padding:2px 8px;
+    background:rgba(27,255,140,.06);
+    margin-bottom:14px;align-self:flex-start;
+  }
+  .planBadge.muted{color:var(--t3);border-color:var(--l);background:transparent}
 
- /* Menu dropdown animation hook (fade + slide utan funktionalitetsändring) */
- .menuDropdown{
- opacity:0;transform:translateY(-6px);pointer-events:none;
- transition:opacity .16s ease, transform .16s ease;
- }
- .menuDropdown.is-open{opacity:1;transform:translateY(0);pointer-events:auto}
+  .planName{font-weight:700;font-size:18px;color:var(--t);letter-spacing:-.02em;margin-bottom:4px}
+  .planDesc{font-size:12.5px;color:var(--t2);line-height:1.5;margin-bottom:16px}
 
- /* Scroll reveal: mjukare timing + blur */
- .reveal{
- opacity:0;
- transform:translateY(16px) scale(.995);
- filter:blur(6px);
- transition:opacity .62s cubic-bezier(.2,.7,.2,1), transform .62s cubic-bezier(.2,.7,.2,1), filter .62s cubic-bezier(.2,.7,.2,1);
- }
- .reveal.is-visible{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
- .reveal-delay-1{transition-delay:.07s}
- .reveal-delay-2{transition-delay:.14s}
+  .planPriceRow{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+  .planAmt{font-weight:700;font-size:36px;color:var(--t);letter-spacing:-.04em;line-height:1}
+  .planCurr{font-family:var(--mono);font-size:13px;color:var(--t3);margin-bottom:2px}
+  .planPer{font-family:var(--mono);font-size:11px;color:var(--t3)}
+  .planNote{font-family:var(--mono);font-size:10px;color:var(--t3);margin-bottom:20px}
 
- /* prefers-reduced-motion: tona ner/stäng av animationer */
- @media (prefers-reduced-motion: reduce){
- html{scroll-behavior:auto}
- *, *::before, *::after{animation:none !important;transition:none !important}
- .reveal{opacity:1;transform:none;filter:none}
- .dropdown,.dropdown.is-open,.dropdown.is-closing{opacity:1;transform:none}
- }
- </style>
+  .planDivider{height:1px;background:var(--l);margin:16px 0}
+
+  .planInclLabel{font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+
+  .featureList{list-style:none;display:grid;gap:7px;margin-bottom:22px;flex:1}
+  .featureList li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--t2);line-height:1.55}
+  .featureList li::before{content:"✓";font-family:var(--mono);font-size:11px;color:var(--a);flex-shrink:0;margin-top:2px;font-weight:500}
+  .featureList li.dim{color:var(--t3)}
+  .featureList li.dim::before{content:"—";color:var(--t3)}
+
+  .planNote2{
+    font-size:12px;color:var(--t3);line-height:1.5;
+    border-left:2px solid var(--l);padding-left:10px;
+    margin-bottom:18px;font-family:var(--mono);
+  }
+
+  .planCta{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    width:100%;height:40px;
+    font-family:var(--font);font-weight:700;font-size:13.5px;
+    border-radius:var(--r);cursor:pointer;
+    border:1px solid var(--a);background:var(--a);color:#061009;
+    position:relative;overflow:hidden;
+    transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s ease,background .15s ease;
+    margin-top:auto;
+  }
+  .planCta::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent 55%);opacity:0;transition:opacity .15s ease}
+  .planCta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(27,255,140,.28);background:var(--a2)}
+  .planCta:hover::after{opacity:1}
+  .planCta:active{transform:scale(.98)}
+  .planCta.outline{background:transparent;color:var(--t);border-color:var(--l)}
+  .planCta.outline:hover{background:var(--a-dim);border-color:var(--l2);box-shadow:var(--sh)}
+
+  /* COMPARE TABLE */
+  .compareWrap{margin-bottom:28px}
+  .compareLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+  .compareTable{width:100%;border-collapse:collapse}
+  .compareTable th{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:8px 12px;border-bottom:1px solid var(--l)}
+  .compareTable th:not(:first-child){text-align:center}
+  .compareTable td{font-size:13px;color:var(--t2);padding:9px 12px;border-bottom:1px solid var(--l)}
+  .compareTable td:not(:first-child){text-align:center;font-family:var(--mono);font-size:12px}
+  .compareTable tr:last-child td{border-bottom:none}
+  .compareTable tr:hover td{background:var(--a-dim)}
+  .chk{color:var(--a);font-size:13px}
+  .dash{color:var(--t3)}
+
+  /* FAQ mini */
+  .faqGrid{display:grid;gap:7px;margin-bottom:28px}
+  .faqItem{background:var(--s);border:1px solid var(--l);border-radius:var(--r);overflow:hidden;transition:border-color .15s}
+  .faqItem:hover{border-color:var(--l2)}
+  .faqQ{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer;user-select:none;transition:background .14s}
+  .faqQ:hover{background:var(--a-dim)}
+  .faqQTxt{font-weight:600;font-size:13.5px;color:var(--t)}
+  .faqChev{width:14px;height:14px;color:var(--t3);flex-shrink:0;transition:transform .2s cubic-bezier(.22,.61,.36,1),color .14s}
+  .faqItem:not(.faqCol) .faqChev{transform:rotate(90deg);color:var(--a)}
+  .faqDiv{height:1px;background:var(--l);transform:scaleX(0);transform-origin:left;transition:transform .2s cubic-bezier(.22,.61,.36,1)}
+  .faqItem:not(.faqCol) .faqDiv{transform:scaleX(1)}
+  .faqA{max-height:400px;opacity:1;padding:14px 16px;font-size:13px;color:var(--t2);line-height:1.65;transition:max-height .28s cubic-bezier(.22,.61,.36,1),opacity .2s ease,padding .2s ease;overflow:hidden}
+  .faqItem.faqCol .faqA{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--l);padding:18px 22px;text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--t3);letter-spacing:.04em}
+
+  /* REVEAL */
+  .rev{opacity:0;transform:translateY(14px);transition:opacity .28s ease,transform .28s cubic-bezier(.22,.61,.36,1)}
+  .rev.in{opacity:1;transform:none}
+  .rev.d1{transition-delay:.07s}
+  .rev.d2{transition-delay:.14s}
+  .rev.d3{transition-delay:.21s}
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    .rev{opacity:1;transform:none}
+  }
+  </style>
 </head>
-
 <body>
- <header>
- <div class="wrap topbar">
- <a class="brand" href="index.html">
- <img src="image/proviaai-logo.png" alt="ProviaAi logga">
- <div>
- <div class="name">ProviaAi</div>
- <div class="tag">Priser • Medlemskap</div>
- </div>
- </a>
 
- <div class="headerActions">
- <span class="aiStatus" aria-label="AI-status"><span class="aiDot" aria-hidden="true"></span><span>AI aktiv</span></span>
- <div class="menuWrap">
- <button class="iconBtn" id="menuBtn" type="button" aria-label="Meny" aria-expanded="false" aria-controls="menu">
- <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
- </button>
- <div class="dropdown" id="menu">
- <a href="index.html"><span>Till startsidan</span><span class="pill">Hem</span></a>
- <a href="app.html"><span>Starta ProviaAi</span><span class="pill">App</span></a>
- <a href="pricing.html"><span>Priser</span><span class="pill">19/59</span></a>
- <a href="förbättring.html"><span>Förbättring</span><span class="pill">AI</span></a>
- </div>
- </div>
- </div>
- </div>
- </header>
+<!-- LOADER -->
+<div id="ldr" class="loader" aria-hidden="true">
+  <div style="display:grid;place-items:center">
+    <div class="lOrb"></div>
+    <div class="lTxt">ProviaAI</div>
+  </div>
+</div>
 
- <main class="wrap">
- <section class="card reveal">
- <h1 class="hTitle">Priser & medlemskap</h1>
- <p class="hSub">Välj nivån som passar din provträning. Du kan alltid uppgradera senare.</p>
+<!-- HEADER -->
+<header>
+  <div class="hWrap">
+    <a class="brand" href="index.html">
+      <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+      <div>
+        <div class="bName">ProviaAi</div>
+        <div class="bTag">Priser · Medlemskap</div>
+      </div>
+    </a>
+    <div class="hR">
+      <span class="aiStatus" aria-label="AI-status">
+        <span class="aiDot" aria-hidden="true"></span>
+        <span>AI aktiv</span>
+      </span>
+      <div class="mWrap">
+        <button class="mBtn" id="mBtn" type="button" aria-label="Meny" aria-expanded="false">
+          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+        </button>
+        <div class="drop" id="drop">
+          <a class="ddi" href="index.html"><span>Startsidan</span><span class="dpill">Hem</span></a>
+          <a class="ddi" href="app.html"><span>Starta ProviaAi</span><span class="dpill">App</span></a>
+          <a class="ddi" href="pricing.html"><span>Priser</span><span class="dpill">19/59</span></a>
+          <a class="ddi" href="förbättring.html"><span>Förbättring</span><span class="dpill">Coach</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
- <div class="grid2" aria-label="Prisplaner">
- <div class="plan reveal reveal-delay-1" aria-label="Basic">
- <div class="planTop">
- <div>
- <p class="planName">Basic</p>
- <span class="pill">För stabil provträning</span>
- </div>
- <div class="planPrice">
- <span class="num">19</span>
- <span class="per">kr/mån</span>
- </div>
- </div>
+<main>
+<div class="wrap">
 
- <div class="hr"></div>
+  <!-- PAGE HERO -->
+  <div class="pageHero rev">
+    <div class="eyebrow">Priser &amp; Medlemskap</div>
+    <h1 class="pageTitle">Enkel prissättning.<br>Ingen bindningstid.</h1>
+    <p class="pageSub">Välj nivån som passar din provträning. Uppgradera eller avsluta när du vill.</p>
+  </div>
 
- <p class="sectionSub">Det här ingår i Basic:</p>
- <ul class="list">
- <li>Skapa realistiska mockprov från ditt material</li>
- <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
- <li>Gör prov direkt i appen</li>
- <li>Se resultat och poängöversikt</li>
- <li>Spara historik så du kan följa din utveckling över tid</li>
- </ul>
+  <!-- PLAN CARDS -->
+  <div class="planGrid">
 
- <div class="note">Basic är för dig som vill ha en enkel, snabb och tydlig provrutin – utan avancerade AI-funktioner.</div>
- </div>
+    <!-- BASIC -->
+    <div class="planCard rev d1">
+      <span class="planBadge muted">Basic</span>
+      <div class="planName">Basic</div>
+      <div class="planDesc">För stabil och enkel provträning.</div>
+      <div class="planPriceRow">
+        <span class="planAmt">19</span>
+        <span class="planCurr">kr</span>
+        <span class="planPer">/ månad</span>
+      </div>
+      <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
- <div class="plan reveal reveal-delay-2" aria-label="Premium">
- <div class="planTop">
- <div>
- <p class="planName">Premium</p>
- <span class="pill">Maxa resultat med AI</span>
- </div>
- <div class="planPrice">
- <span class="num">59</span>
- <span class="per">kr/mån</span>
- </div>
- </div>
+      <div class="planDivider"></div>
+      <div class="planInclLabel">Ingår i Basic</div>
 
- <div class="hr"></div>
+      <ul class="featureList">
+        <li>Skapa mockprov från ditt material</li>
+        <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
+        <li>Besvara provet direkt i appen</li>
+        <li>Resultat och poängöversikt</li>
+        <li>Historik — följ din utveckling över tid</li>
+        <li class="dim">AI-coach och felbank</li>
+        <li class="dim">Träning från misstag</li>
+        <li class="dim">Lärarrapport</li>
+      </ul>
 
- <p class="sectionSub">Det här ingår i Premium (allt i Basic +):</p>
- <ul class="list">
- <li>Förbättringssidan: översikt som samlar din utveckling på ett ställe</li>
- <li>AI-coach: personlig sammanfattning av vad som ger mest effekt att träna nu</li>
- <li>Smart tips: konkreta förbättringar kopplat till exakt vad du gjorde fel</li>
- <li>Lärarrapport: tydlig text som sammanfattar prestation och fokusområden</li>
- <li>Träning från misstag: bygg prov som fokuserar på dina svagheter</li>
- </ul>
+      <div class="planNote2">Basic är för dig som vill ha en snabb och tydlig provrutin utan avancerade AI-funktioner.</div>
+      <a class="planCta outline" href="app.html">Kom igång med Basic</a>
+    </div>
 
- <div class="note">Premium är för dig som vill förbättras snabbare: mindre gissning, mer riktad träning och tydlig nästa åtgärd efter varje prov.</div>
- </div>
- </div>
- </section>
+    <!-- PREMIUM -->
+    <div class="planCard featured rev d2">
+      <span class="planBadge">⭑ Premium — Rekommenderas</span>
+      <div class="planName">Premium</div>
+      <div class="planDesc">Maxa resultaten med personlig AI-coach.</div>
+      <div class="planPriceRow">
+        <span class="planAmt">59</span>
+        <span class="planCurr">kr</span>
+        <span class="planPer">/ månad</span>
+      </div>
+      <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
- </main>
+      <div class="planDivider"></div>
+      <div class="planInclLabel">Allt i Basic, plus</div>
 
- <footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+      <ul class="featureList">
+        <li>Förbättringssida — din progress samlad på ett ställe</li>
+        <li>AI-coach: vad ger mest effekt att träna just nu</li>
+        <li>Smart feedback kopplat till exakt vad du missade</li>
+        <li>Felbank med modellsvar för varje misstag</li>
+        <li>Träningsläge: prov som fokuserar på dina svagheter</li>
+        <li>Lärarrapport: sammanfattning av prestation och fokus</li>
+        <li>Synk mellan enheter via konto</li>
+        <li>Prioriterad support</li>
+      </ul>
 
- <script>
- // Scroll reveal förbättring: mjuk in-animation med blur som försvinner
- (function(){
- const reveals = document.querySelectorAll('.reveal');
- if (!reveals.length) return;
- const io = new IntersectionObserver((entries)=>{
- entries.forEach((entry)=>{
- if(entry.isIntersecting){
- entry.target.classList.add('is-visible');
- io.unobserve(entry.target);
- }
- });
- }, { threshold: 0.16, rootMargin: '0px 0px -6% 0px' });
- reveals.forEach((el)=>io.observe(el));
- })();
+      <div class="planNote2">Premium är för dig som vill förbättras snabbare — mindre gissning, mer riktad träning.</div>
+      <a class="planCta" href="app.html">Kom igång med Premium</a>
+    </div>
 
- // Meny i hörnet: samma stil/funktion som index med AI aktiv + toggle
- (function(){
- const menuBtn = document.getElementById("menuBtn");
- const menu = document.getElementById("menu");
- if(!menuBtn || !menu) return;
- const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
- let closeTimer;
+  </div>
 
- function openMenu(){
- clearTimeout(closeTimer);
- menu.classList.remove("is-closing");
- menu.style.display = "block";
- requestAnimationFrame(() => menu.classList.add("is-open"));
- menuBtn.setAttribute("aria-expanded", "true");
- }
- function closeMenu(){
- menuBtn.setAttribute("aria-expanded", "false");
- if(reducedMotion){
- menu.classList.remove("is-open", "is-closing");
- menu.style.display = "none";
- return;
- }
- menu.classList.remove("is-open");
- menu.classList.add("is-closing");
- clearTimeout(closeTimer);
- closeTimer = setTimeout(() => {
- menu.classList.remove("is-closing");
- menu.style.display = "none";
- }, 150);
- }
+  <!-- COMPARE TABLE -->
+  <div class="compareWrap rev">
+    <div class="compareLabel">Jämför planer</div>
+    <table class="compareTable" aria-label="Funktionsjämförelse">
+      <thead>
+        <tr>
+          <th>Funktion</th>
+          <th>Basic</th>
+          <th>Premium</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mockprov från material</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>E / C / A-nivå</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Flervals + kortsvar</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Resultat &amp; poängöversikt</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Historik</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>OCR från bild</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>AI-coach &amp; personlig plan</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Felbank med modellsvar</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Träning från misstag</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Lärarrapport</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Synk mellan enheter</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+      </tbody>
+    </table>
+  </div>
 
- menuBtn.addEventListener("click", (e) => {
- e.preventDefault();
- e.stopPropagation();
- menu.classList.contains("is-open") ? closeMenu() : openMenu();
- });
+  <!-- FAQ -->
+  <div class="faqGrid rev">
 
- document.addEventListener("click", (e) => {
- if(!menu.classList.contains("is-open")) return;
- if(menu.contains(e.target) || menuBtn.contains(e.target)) return;
- closeMenu();
- });
+    <div class="faqItem" id="fq1">
+      <div class="faqQ" data-faq="fq1">
+        <span class="faqQTxt">Kan jag testa gratis innan jag väljer plan?</span>
+        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      </div>
+      <div class="faqDiv"></div>
+      <div class="faqA">Ja. Du kan skapa konto och prova appen utan att ange kortuppgifter. Gratisläget ger dig ett begränsat antal prov per dag så att du kan testa flödet innan du väljer plan.</div>
+    </div>
 
- document.addEventListener("keydown", (e) => {
- if(e.key === "Escape" && menu.classList.contains("is-open")) closeMenu();
- });
- })();
- </script>
+    <div class="faqItem faqCol" id="fq2">
+      <div class="faqQ" data-faq="fq2">
+        <span class="faqQTxt">Hur avbokar jag mitt medlemskap?</span>
+        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      </div>
+      <div class="faqDiv"></div>
+      <div class="faqA">Du kan avsluta när som helst via kontoinställningarna. Det finns ingen bindningstid och du debiteras inte för nästa period efter avslut.</div>
+    </div>
+
+    <div class="faqItem faqCol" id="fq3">
+      <div class="faqQ" data-faq="fq3">
+        <span class="faqQTxt">Vad händer med mina prov och historik om jag nedgraderar?</span>
+        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      </div>
+      <div class="faqDiv"></div>
+      <div class="faqA">Din historik och dina sparade prov finns kvar. Premium-funktioner (AI-coach, felbank, träningsläge) pausas men aktiveras igen om du uppgraderar tillbaka.</div>
+    </div>
+
+    <div class="faqItem faqCol" id="fq4">
+      <div class="faqQ" data-faq="fq4">
+        <span class="faqQTxt">Finns det en plan för hela klassen eller skolan?</span>
+        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      </div>
+      <div class="faqDiv"></div>
+      <div class="faqA">Vi arbetar på ett skolpaket med centraliserad administration och klassöversikt. Hör av dig till oss via appen för mer info om nuvarande möjligheter.</div>
+    </div>
+
+  </div>
+
+</div>
+</main>
+
+<footer>ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+
+<script>
+/* LOADER */
+window.addEventListener("load", () => setTimeout(() => document.getElementById("ldr").classList.add("out"), 160));
+
+/* MENU */
+const mBtn = document.getElementById("mBtn");
+const drop = document.getElementById("drop");
+let ct;
+function openDrop(){ clearTimeout(ct); drop.classList.remove("off"); drop.style.display="block"; requestAnimationFrame(()=>drop.classList.add("on")); mBtn.setAttribute("aria-expanded","true"); }
+function closeDrop(){ mBtn.setAttribute("aria-expanded","false"); drop.classList.remove("on"); drop.classList.add("off"); clearTimeout(ct); ct=setTimeout(()=>{drop.classList.remove("off");drop.style.display="none";},120); }
+mBtn.addEventListener("click", e=>{e.stopPropagation(); drop.classList.contains("on")?closeDrop():openDrop();});
+document.addEventListener("click", e=>{if(!drop.classList.contains("on"))return; if(!drop.contains(e.target)&&e.target!==mBtn)closeDrop();});
+document.addEventListener("keydown", e=>{if(e.key==="Escape")closeDrop();});
+
+/* FAQ TOGGLE */
+document.querySelectorAll("[data-faq]").forEach(btn => {
+  const id  = btn.getAttribute("data-faq");
+  const item = document.getElementById(id);
+  btn.addEventListener("click", () => item && item.classList.toggle("faqCol"));
+});
+
+/* SCROLL REVEAL */
+(function(){
+  const els = [...document.querySelectorAll(".rev")];
+  if(!("IntersectionObserver" in window)){els.forEach(e=>e.classList.add("in"));return;}
+  const io = new IntersectionObserver(entries=>{
+    entries.forEach(en=>{if(en.isIntersecting){en.target.classList.add("in");io.unobserve(en.target);}});
+  },{threshold:.08,rootMargin:"0px 0px -4% 0px"});
+  els.forEach(el=>io.observe(el));
+})();
+</script>
 </body>
 </html>
