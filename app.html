@@ -839,9 +839,11 @@ const LS_ROLE = "proviaai_role";
 // Basic:  30 prov per månad (kalendermånad)
 // Premium: obegränsat
 const ROLE_LIMITS = {
-  gratis:  { period: "week",  limit: 2  },
-  basic:   { period: "month", limit: 30 },
+  gratis:  { period: "week",  limit: 2        },
+  basic:   { period: "month", limit: 30       },
   premium: { period: "month", limit: Infinity },
+  admin:   { period: "month", limit: Infinity },
+  user:    { period: "month", limit: Infinity },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -998,7 +1000,7 @@ async function refreshQuotaUi() {
 
   // Uppdatera roll-pill i menyn
   if (rp) {
-    const roleLabel = { gratis: "Gratis", basic: "Basic", premium: "Premium" };
+    const roleLabel = { gratis: "Gratis", basic: "Basic", premium: "Premium", admin: "Admin", user: "Premium" };
     rp.textContent = roleLabel[currentRole] || currentRole;
   }
 
