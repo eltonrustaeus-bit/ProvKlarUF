@@ -261,6 +261,42 @@
     color:var(--a);flex-shrink:0;margin-top:4px;letter-spacing:.04em;
   }
 
+  /* PRICING CTA */
+  .pricingCta{
+    background:var(--s);border:1px solid var(--l2);
+    border-radius:var(--r);overflow:hidden;
+    position:relative;
+  }
+  .pricingCta::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 70% 100% at 100% 50%, rgba(27,255,140,.06), transparent 65%);
+    pointer-events:none;
+  }
+  .pricingInner{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:24px;padding:22px 24px;flex-wrap:wrap;
+  }
+  .pricingLeft{flex:1;min-width:0}
+  .pricingEye{
+    font-family:var(--mono);font-size:10px;font-weight:500;
+    color:var(--a);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;
+  }
+  .pricingTitle{
+    font-weight:700;font-size:17px;color:var(--t);
+    letter-spacing:-.025em;line-height:1.2;margin-bottom:16px;
+  }
+  .pricingPlans{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+  .plan{display:flex;flex-direction:column;gap:2px;padding:0 18px}
+  .plan:first-child{padding-left:0}
+  .planName{font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--t3);letter-spacing:.08em;text-transform:uppercase}
+  .planPrice{font-weight:700;font-size:16px;color:var(--t);letter-spacing:-.02em;line-height:1}
+  .planPer{font-size:11px;font-weight:400;color:var(--t3);letter-spacing:0}
+  .planDesc{font-family:var(--mono);font-size:9.5px;color:var(--t2);margin-top:1px}
+  .planDivider{width:1px;height:36px;background:var(--l);flex-shrink:0;margin:0 4px}
+  .pricingRight{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+  .pricingBtn{height:38px;padding:0 20px;font-size:13.5px}
+  .pricingNote{font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.04em}
+
   /* FOOTER */
   footer{
     border-top:1px solid var(--l);padding:18px 22px;text-align:center;
@@ -332,6 +368,7 @@
       <div class="hActions">
         <a class="btn btnP" href="app.html">Starta gratis</a>
         <a class="btn btnG" href="#how" data-s="#how">Hur det funkar</a>
+        <a class="btn btnG" href="pricing.html">Priser &amp; medlemskap</a>
       </div>
       <div class="hBadges">
         <span class="badge">E / C / A-nivå</span>
@@ -463,6 +500,39 @@
           <li>Appen kräver åtkomstkod eller konto via Supabase-inloggning.</li>
           <li>ProviaAi är studiestöd och ger ingen officiell betygssättning.</li>
         </ul>
+      </div>
+    </div>
+
+    <!-- PRICING CTA -->
+    <div class="pricingCta rev">
+      <div class="pricingInner">
+        <div class="pricingLeft">
+          <div class="pricingEye">Priser &amp; medlemskap</div>
+          <div class="pricingTitle">Enkel prissättning.<br>Ingen bindningstid.</div>
+          <div class="pricingPlans">
+            <div class="plan">
+              <span class="planName">Gratis</span>
+              <span class="planPrice">0 kr</span>
+              <span class="planDesc">3 prov / dag</span>
+            </div>
+            <div class="planDivider"></div>
+            <div class="plan">
+              <span class="planName">Pro</span>
+              <span class="planPrice">19 kr<span class="planPer">/mån</span></span>
+              <span class="planDesc">Obegränsat + felbank</span>
+            </div>
+            <div class="planDivider"></div>
+            <div class="plan">
+              <span class="planName">Skola</span>
+              <span class="planPrice">59 kr<span class="planPer">/mån</span></span>
+              <span class="planDesc">Hela klassen + admin</span>
+            </div>
+          </div>
+        </div>
+        <div class="pricingRight">
+          <a class="btn btnP pricingBtn" href="pricing.html">Se alla planer →</a>
+          <p class="pricingNote">Ingen kortuppgift krävs för att starta.</p>
+        </div>
       </div>
     </div>
 
