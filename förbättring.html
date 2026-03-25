@@ -747,8 +747,18 @@
     }
 
     /* ── ACCESS GATE ── */
-    function disablePage(){const m=document.querySelector('main.wrap');if(m){m.style.pointerEvents='none';m.style.opacity='0.55';}$('syncBtn')?.setAttribute('disabled','disabled');}
-    function enablePage(){const m=document.querySelector('main.wrap');if(m){m.style.pointerEvents='';m.style.opacity='';}$('resetBtn')?.removeAttribute('disabled');$('syncBtn')?.removeAttribute('disabled');}
+    function disablePage(){
+      const m=document.querySelector('main.wrap');
+      if(m){m.style.pointerEvents='none';m.style.opacity='0.55';}
+      $('syncBtn')?.setAttribute('disabled','disabled');
+      // resetBtn låses ALDRIG – användaren ska alltid kunna rensa sin data
+    }
+    function enablePage(){
+      const m=document.querySelector('main.wrap');
+      if(m){m.style.pointerEvents='';m.style.opacity='';}
+      $('resetBtn')?.removeAttribute('disabled');
+      $('syncBtn')?.removeAttribute('disabled');
+    }
     async function mustHaveAccess(){
       if(!db)return{ok:false,reason:'no_db'};
       const{data:sd,error:se}=await db.auth.getSession();
@@ -766,13 +776,12 @@
     async function gatePage(){
       const a=await mustHaveAccess();
       if(a.ok){enablePage();setTopStatus(LANG==='sv'?`Åtkomst OK (${a.role})`:`Access OK (${a.role})`,'ok');return true;}
-      // api_error = /api/check-role finns inte i miljön – lås inte sidan, låt allt fungera
-      if(a.reason==='api_error'){enablePage();setTopStatus(LANG==='sv'?'':'','');return true;}
+      // api_error: fetch kraschade helt (nätverksfel) – lås sidan, visa fel
       disablePage();
       if(a.reason==='not_logged_in')setTopStatus(LANG==='sv'?'Logga in för att fortsätta':'Log in to continue','warn');
-      else if(a.reason==='no_access')setTopStatus(LANG==='sv'?`Ingen åtkomst (${a.role||'—'})`:`No access (${a.role||'—'})`,'warn');
+      else if(a.reason==='no_access')setTopStatus(LANG==='sv'?`Ingen åtkomst – uppgradera till Premium`:`No access – upgrade to Premium`,'warn');
       else if(a.reason==='no_db')setTopStatus('Supabase client missing','bad');
-      else setTopStatus(`Error: ${a.detail||'unknown'}`,'bad');
+      else setTopStatus(LANG==='sv'?`Fel: ${a.detail||'okänt'}`:`Error: ${a.detail||'unknown'}`,'bad');
       return false;
     }
 
@@ -1172,6 +1181,8 @@
     (async()=>{
       applyLang();bindToggles();bindMenu();initReveal();restoreUiState();
       renderAll();
+      const ok=await gatePage();
+      if(!ok) return;
       (async()=>{
         USER_NAME=getNameLocal();
         if(!USER_NAME){const n=await tryLoadName();if(n){USER_NAME=n;try{localStorage.setItem(LS_USER_NAME_A,USER_NAME);}catch{}}}
