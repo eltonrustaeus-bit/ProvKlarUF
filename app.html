@@ -519,6 +519,111 @@ cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;margin-bo
 details summary.codeToggle::before{content:"▸ "}
 details[open] summary.codeToggle::before{content:"▾ "}
 
+/* GRADING OVERLAY — fullscreen loading animation */
+.gradingOverlay{
+position:fixed;inset:0;z-index:8000;
+display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+background:rgba(8,16,13,.92);backdrop-filter:blur(12px);
+}
+.gradingOverlay.show{display:flex}
+.gradingOrb{
+width:72px;height:72px;border-radius:50%;position:relative;
+}
+.gradingOrb::before{
+content:"";position:absolute;inset:-4px;border-radius:50%;
+border:2px solid transparent;
+border-top-color:var(--a);border-right-color:rgba(27,255,140,.3);
+animation:spin .8s linear infinite;
+}
+.gradingOrb::after{
+content:"";position:absolute;inset:8px;border-radius:50%;
+border:1.5px solid transparent;
+border-top-color:rgba(27,255,140,.5);
+animation:spin 1.4s linear infinite reverse;
+}
+.gradingLabel{
+font-family:'DM Mono',monospace;font-size:13px;font-weight:500;
+color:var(--t2);letter-spacing:.1em;text-transform:uppercase;
+animation:gradingPulse 1.4s ease-in-out infinite;
+}
+.gradingDots::after{
+content:"";animation:dots 1.4s steps(4,end) infinite;
+}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}100%{content:""}}
+@keyframes gradingPulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* FLOATING GRADE BUTTON — sticky vid botten av exam-steget */
+.floatingGradeBar{
+position:sticky;bottom:16px;z-index:100;
+display:none;
+margin:16px 0 0;
+}
+.floatingGradeBar.show{display:block}
+.floatingGradeInner{
+display:flex;align-items:center;justify-content:space-between;gap:12px;
+background:rgba(8,16,13,.92);backdrop-filter:blur(14px);
+border:1px solid var(--l2);border-radius:var(--r);
+padding:12px 16px;
+box-shadow:0 8px 32px rgba(0,0,0,.6);
+}
+.floatingGradeHint{
+font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);
+}
+.floatingGradeHint strong{color:var(--a)}
+.floatingGradeBtn{
+display:inline-flex;align-items:center;gap:8px;
+padding:0 20px;height:40px;
+font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;
+border:none;border-radius:var(--r);
+background:var(--a);color:#061009;
+cursor:pointer;white-space:nowrap;position:relative;overflow:hidden;
+transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s ease,background .15s ease;
+}
+.floatingGradeBtn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(27,255,140,.35);background:var(--a2)}
+.floatingGradeBtn:active{transform:scale(.98)}
+
+/* IMPROVEMENT BANNER — visas efter rättning */
+.improveBanner{
+display:none;
+align-items:center;justify-content:space-between;gap:14px;
+border:1px solid var(--l2);border-radius:var(--r);
+background:rgba(27,255,140,.06);
+padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;
+animation:bannerSlideIn .3s cubic-bezier(.22,.61,.36,1);
+}
+.improveBanner.show{display:flex}
+@keyframes bannerSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.improveBannerLeft{display:flex;flex-direction:column;gap:3px}
+.improveBannerTitle{
+font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:var(--t);
+}
+.improveBannerSub{
+font-family:'DM Mono',monospace;font-size:11px;color:var(--t2);
+}
+.improveBannerBtn{
+display:inline-flex;align-items:center;gap:7px;
+padding:0 16px;height:36px;
+font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;
+border-radius:var(--r);border:1px solid var(--a);
+background:var(--a);color:#061009;
+cursor:pointer;white-space:nowrap;
+transition:transform .15s ease,background .15s ease;
+}
+.improveBannerBtn:hover{transform:translateY(-1px);background:var(--a2)}
+
+/* FÖRBÄTTRING SHORTCUT i header — synlig länk bredvid tema-knappen */
+.improveShortcut{
+display:inline-flex;align-items:center;gap:6px;
+padding:0 12px;height:34px;
+font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+color:var(--a);border:1px solid var(--l2);border-radius:var(--r);
+background:rgba(27,255,140,.06);
+transition:background .15s ease,border-color .15s ease,transform .15s ease;
+white-space:nowrap;
+}
+.improveShortcut:hover{background:rgba(27,255,140,.12);border-color:var(--l3);transform:translateY(-1px)}
+@media(max-width:500px){.improveShortcut span{display:none}}
+
 /* SCROLL REVEAL */
 .reveal{opacity:0;transform:translateY(14px);transition:opacity .28s ease,transform .28s cubic-bezier(.22,.61,.36,1)}
 .reveal.in{opacity:1;transform:translateY(0)}
@@ -544,6 +649,12 @@ transition:border-color .28s ease,color .28s ease;
 <div class="loaderOrb"></div>
 <div class="loaderText">ProviaAI</div>
 </div>
+</div>
+
+<!-- GRADING OVERLAY -->
+<div class="gradingOverlay" id="gradingOverlay" aria-live="polite" aria-label="Rättar prov">
+<div class="gradingOrb"></div>
+<div class="gradingLabel">Rättar<span class="gradingDots"></span></div>
 </div>
 
 <div id="loginScreen" class="loginOverlay" aria-hidden="false">
@@ -600,6 +711,10 @@ transition:border-color .28s ease,color .28s ease;
 </div>
 </a>
 <div class="hRight">
+<a class="improveShortcut" href="förbättring.html" aria-label="Gå till förbättring">
+<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="2 12 6 7 10 10 14 4"/></svg>
+<span>Förbättring</span>
+</a>
 <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
 <span class="tglIcon" id="tglIcon">🌙</span>
 <span id="tglLabel">Light</span>
@@ -641,6 +756,15 @@ transition:border-color .28s ease,color .28s ease;
 <div class="quotaBanner" id="quotaBanner">
 <div class="quotaBannerTxt" id="quotaBannerTxt"></div>
 <a class="quotaBannerLink" href="pricing.html">Uppgradera →</a>
+</div>
+
+<!-- FÖRBÄTTRING BANNER — visas efter rättning -->
+<div class="improveBanner" id="improveBanner">
+<div class="improveBannerLeft">
+<div class="improveBannerTitle">Rättning klar! 🎯</div>
+<div class="improveBannerSub" id="improveBannerSub">Se din feedback och felbank på förbättringssidan.</div>
+</div>
+<a class="improveBannerBtn" href="förbättring.html">Gå till Förbättring →</a>
 </div>
 
 <div class="howto reveal" id="howtoBox">
@@ -787,6 +911,18 @@ transition:border-color .28s ease,color .28s ease;
 <div class="sDivider"></div>
 <div class="sBody">
 <div id="examBody"></div>
+
+<!-- FLYTANDE RÄTTA-BAR — sticky längst ned i provet -->
+<div class="floatingGradeBar" id="floatingGradeBar">
+<div class="floatingGradeInner">
+<div class="floatingGradeHint" id="floatingGradeHint">Svara på frågorna ovan och tryck rätta.</div>
+<button class="floatingGradeBtn" type="button" id="floatingGradeBtn">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2 9 6 13 14 3"/></svg>
+Rätta prov
+</button>
+</div>
+</div>
+
 <div class="sNav">
 <button class="btn btnG" type="button" id="wBack2">← Tillbaka</button>
 <button class="btn btnP" type="button" id="wNext2">Rätta prov →</button>
@@ -1265,6 +1401,13 @@ function setBusy(isBusy,label){
   ["generateExamBtn","clearBtn","ocrBtn","signInBtn","signUpBtn","unlockBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=isBusy;});
   const g=$("gradeBtn");if(g)g.disabled=isBusy||!currentExam;
 }
+
+function showGradingOverlay(){
+  const o=$("gradingOverlay");if(o)o.classList.add("show");
+}
+function hideGradingOverlay(){
+  const o=$("gradingOverlay");if(o)o.classList.remove("show");
+}
 function setStatus(txt,kind){ const s=statusEl();if(!s)return;s.className="stxt"+(kind?" "+kind:"");s.textContent=txt||""; }
 function setOcrStatus(txt,kind){ const s=ocrStatusEl();if(!s)return;s.className="stxt"+(kind?" "+kind:"");s.textContent=txt||""; }
 function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY)==="true"; }
@@ -1399,6 +1542,8 @@ function renderExam(exam){
     box.appendChild(ans);eb?.appendChild(box);
   });
   const g=$("gradeBtn");if(g)g.disabled=qs.length===0;
+  // Visa flytande rätta-bar
+  const fb=$("floatingGradeBar");if(fb&&qs.length>0)fb.classList.add("show");
 }
 
 function renderResult(r){
@@ -1412,6 +1557,18 @@ function renderResult(r){
     wrap.appendChild(d);
   });
   if(rb){rb.innerHTML="";rb.appendChild(wrap);}
+
+  // Visa förbättring-bannern med resultatinfo
+  const banner=$("improveBanner"),sub=$("improveBannerSub");
+  if(banner){
+    const pct=r.max_points>0?Math.round((r.total_points/r.max_points)*100):0;
+    if(sub)sub.textContent=LANG==="sv"
+      ?`Du fick ${r.total_points}/${r.max_points} poäng (${pct}%). Se detaljerad feedback och felbank.`
+      :`You scored ${r.total_points}/${r.max_points} (${pct}%). View detailed feedback and mistake bank.`;
+    banner.classList.add("show");
+    // Scrolla bannern i sikte
+    setTimeout(()=>banner.scrollIntoView({behavior:"smooth",block:"nearest"}),200);
+  }
 }
 
 function clearAll(){
@@ -1432,6 +1589,8 @@ function clearAll(){
   if(resultMetaEl())resultMetaEl().textContent=t.noGrade;
   if(resultBodyEl())resultBodyEl().innerHTML="";
   const g=$("gradeBtn");if(g)g.disabled=true;
+  const fb=$("floatingGradeBar");if(fb)fb.classList.remove("show");
+  const ib=$("improveBanner");if(ib)ib.classList.remove("show");
   setStatus(t.cleared,"ok");hideDebug();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -1516,6 +1675,15 @@ try{
 
     try{localStorage.setItem(LS_MATERIAL,pastedText);}catch{}
     renderExam(res.data.exam);setBusy(false);setStatus(t.genDone,"ok");setWizardStep(2);
+
+    // Uppdatera floating bar hint med antal frågor
+    const fh=$("floatingGradeHint");
+    if(fh){
+      const qCount=res.data.exam?.questions?.length||0;
+      fh.innerHTML=LANG==="sv"
+        ?`Besvara alla <strong>${qCount} frågor</strong> och tryck rätta.`
+        :`Answer all <strong>${qCount} questions</strong> then grade.`;
+    }
   });
 
   onClick("gradeBtn",async()=>{
@@ -1530,7 +1698,9 @@ try{
     const pastedText=(pastedTextEl()?.value||"").trim();
     const payload={lang:LANG,pastedText,questions:currentExam.questions,answers};
     setBusy(true,t.gradeWorking);setStatus(t.gradeWorking,"");
+    showGradingOverlay();
     const res=await postJson("/api/grade",payload);
+    hideGradingOverlay();
     if(!res.ok||!res.data||!res.data.ok){setBusy(false);setStatus(`Error (HTTP ${res.status}).`,"bad");showDebug(res.raw);return;}
     const result=res.data.result;
     renderResult(result);
@@ -1553,6 +1723,10 @@ try{
   });
 
   onClick("clearBtn",clearAll);
+
+  // Floating grade-knapp kör samma som gradeBtn
+  onClick("floatingGradeBtn",()=>{const g=$("gradeBtn");if(g&&!g.disabled)g.click();});
+
   window.addEventListener("hashchange",()=>{const lockVisible=$("loginScreen")&&$("loginScreen").style.display!=="none";if(!lockVisible)runTrainModeIfRequested();});
 
   if(db){
