@@ -1,0 +1,135 @@
+/* ExGen design tokens — Phase 2 foundation.
+   Centralized so Phase 4+ pages consume these instead of hardcoding hex
+   values per-page. Nothing in the live app links this file yet; that
+   happens page-by-page starting Phase 4. See docs/design-system/
+   exgen-preview.html for a rendered reference of every token below.
+
+   Contrast notes (WCAG 2.2 AA, verified — see docs/design-system/exgen-preview.html
+   review trail, not just asserted):
+   - --exgen-text and --exgen-text-secondary both pass 4.5:1 on
+     --exgen-bg and --exgen-bg-secondary for normal-size text (measured
+     4.98–15.65:1 across all four combinations).
+   - --exgen-teal, --exgen-mint, and the gradient's midpoint all FAIL
+     AA at every size on white (2.39, 1.80, 2.20:1 — even the 3:1 large-text
+     floor). Never use teal/mint/gradient as a text color (including
+     gradient background-clip:text) and never place white text on top of
+     the gradient. Any text that must sit on the gradient uses
+     --exgen-navy or --exgen-text instead (verified 6.5–9.7:1 against
+     every gradient stop). Reserve teal/mint/gradient for fills, icons,
+     borders, and progress indicators only.
+   - Raw semantic colors (--exgen-success/warning/error/info) are tuned
+     for swatches/icons, not text — they fail or barely clear AA as text
+     on white (2.2–5.3:1). Use the paired *-text tokens below for any
+     label/badge copy.
+*/
+
+:root {
+  /* ── Color ── */
+  --exgen-teal: #00B7D9;
+  --exgen-mint: #76D76A;
+  --exgen-navy: #0E1B2A;
+
+  --exgen-text: #1B2430;
+  --exgen-text-secondary: #667085;
+
+  --exgen-bg: #FFFFFF;
+  --exgen-bg-secondary: #F8FAFC;
+  --exgen-border: #E4E7EC;
+
+  --exgen-success: #34C759;
+  --exgen-warning: #F4B740;
+  --exgen-error: #EF4444;
+  --exgen-info: #0EA5E9;
+
+  /* Darker pairs for text/labels on a light background — the raw
+     semantic colors above fail AA as text (see contrast notes). */
+  --exgen-success-text: #166534;
+  --exgen-warning-text: #92620A;
+  --exgen-error-text: #B91C1C;
+  --exgen-info-text: #0369A1;
+
+  /* Reserve for logo, primary CTA, active progress, and one hero
+     highlight per page — not for general card/section backgrounds. */
+  --exgen-gradient: linear-gradient(110deg, #00B7D9 0%, #28C3B5 48%, #76D76A 100%);
+
+  /* ── Typography ── */
+  --exgen-font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --exgen-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --exgen-text-xs: 12px;
+  --exgen-text-sm: 14px;
+  --exgen-text-base: 15.5px;
+  --exgen-text-lg: 18px;
+  --exgen-text-xl: 22px;
+  --exgen-text-2xl: 28px;
+  --exgen-text-3xl: 36px;
+
+  --exgen-weight-regular: 400;
+  --exgen-weight-medium: 500;
+  --exgen-weight-semibold: 600;
+  --exgen-weight-bold: 700;
+
+  --exgen-leading-tight: 1.25;
+  --exgen-leading-normal: 1.5;
+  --exgen-leading-relaxed: 1.65;
+
+  --exgen-tracking-tight: -0.02em;   /* headings */
+  --exgen-tracking-normal: 0;
+  --exgen-tracking-wide: 0.06em;     /* mono labels / eyebrows */
+
+  /* ── Spacing (4px base scale) ── */
+  --exgen-space-1: 4px;
+  --exgen-space-2: 8px;
+  --exgen-space-3: 12px;
+  --exgen-space-4: 16px;
+  --exgen-space-6: 24px;
+  --exgen-space-8: 32px;
+  --exgen-space-12: 48px;
+  --exgen-space-16: 64px;
+
+  /* ── Radius ── */
+  --exgen-radius-sm: 8px;    /* inputs, small controls */
+  --exgen-radius-md: 12px;   /* buttons */
+  --exgen-radius-lg: 20px;   /* cards */
+  --exgen-radius-pill: 999px; /* badges, status pills */
+
+  /* ── Border ── */
+  --exgen-border-width: 1px;
+
+  /* ── Shadow (restrained — most UI stays flat, per brand direction) ── */
+  --exgen-shadow-sm: 0 1px 2px rgba(14, 27, 42, 0.06);
+  --exgen-shadow-md: 0 4px 16px rgba(14, 27, 42, 0.08);
+
+  /* ── Focus ── */
+  --exgen-focus-ring: 2px solid var(--exgen-teal);
+  --exgen-focus-offset: 2px;
+
+  /* ── Motion ── */
+  --exgen-motion-fast: 150ms;
+  --exgen-motion-normal: 250ms;
+  --exgen-motion-slow: 300ms;
+  --exgen-motion-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --exgen-navy: #0E1B2A;
+    --exgen-text: #F1F5F9;
+    --exgen-text-secondary: #9AA6B2;
+
+    --exgen-bg: #0E1B2A;
+    --exgen-bg-secondary: #152436;
+    --exgen-border: #233549;
+
+    --exgen-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+    --exgen-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --exgen-motion-fast: 0ms;
+    --exgen-motion-normal: 0ms;
+    --exgen-motion-slow: 0ms;
+  }
+}

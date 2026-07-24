@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ExGen Design Tokens — Preview</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="stylesheet" href="../../exgen-tokens.css" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: var(--exgen-space-12) var(--exgen-space-6);
+    background: var(--exgen-bg); color: var(--exgen-text);
+    font-family: var(--exgen-font);
+    max-width: 920px; margin-inline: auto;
+  }
+  h1 { font-size: var(--exgen-text-3xl); font-weight: var(--exgen-weight-bold); letter-spacing: var(--exgen-tracking-tight); margin: 0 0 var(--exgen-space-2); color: var(--exgen-text); }
+  .grad-bar { display: inline-block; width: 40px; height: 4px; border-radius: var(--exgen-radius-pill); background: var(--exgen-gradient); margin-bottom: var(--exgen-space-3); }
+  .sub { color: var(--exgen-text-secondary); font-size: var(--exgen-text-base); margin: 0 0 var(--exgen-space-16); }
+  section { margin-bottom: var(--exgen-space-16); }
+  h2 {
+    font-family: var(--exgen-font-mono); font-size: var(--exgen-text-xs); font-weight: var(--exgen-weight-semibold);
+    letter-spacing: var(--exgen-tracking-wide); text-transform: uppercase; color: var(--exgen-text-secondary);
+    margin: 0 0 var(--exgen-space-4); padding-bottom: var(--exgen-space-2); border-bottom: var(--exgen-border-width) solid var(--exgen-border);
+  }
+
+  /* Colors */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--exgen-space-3); }
+  .swatch { border-radius: var(--exgen-radius-sm); overflow: hidden; border: var(--exgen-border-width) solid var(--exgen-border); }
+  .swatch-fill { height: 64px; }
+  .swatch-label { padding: var(--exgen-space-2) var(--exgen-space-3); font-family: var(--exgen-font-mono); font-size: 11px; background: var(--exgen-bg-secondary); }
+
+  /* Type scale */
+  .type-row { display: flex; align-items: baseline; gap: var(--exgen-space-4); padding: var(--exgen-space-3) 0; border-bottom: var(--exgen-border-width) solid var(--exgen-border); }
+  .type-row:last-child { border-bottom: none; }
+  .type-label { width: 90px; flex-shrink: 0; font-family: var(--exgen-font-mono); font-size: 11px; color: var(--exgen-text-secondary); }
+
+  /* Buttons */
+  .row { display: flex; gap: var(--exgen-space-3); flex-wrap: wrap; align-items: center; }
+  .btn {
+    font-family: var(--exgen-font); font-size: var(--exgen-text-sm); font-weight: var(--exgen-weight-semibold);
+    border-radius: var(--exgen-radius-md); padding: 10px 20px; cursor: pointer;
+    transition: background var(--exgen-motion-fast) var(--exgen-motion-ease), border-color var(--exgen-motion-fast) var(--exgen-motion-ease);
+  }
+  .btn-primary { background: var(--exgen-gradient); color: var(--exgen-navy); border: none; }
+  .btn-primary:hover { filter: brightness(0.96); }
+  .btn-secondary { background: var(--exgen-bg); color: var(--exgen-text); border: var(--exgen-border-width) solid var(--exgen-border); }
+  .btn-secondary:hover { border-color: var(--exgen-teal); background: var(--exgen-bg-secondary); }
+  .btn:focus-visible { outline: var(--exgen-focus-ring); outline-offset: var(--exgen-focus-offset); }
+
+  /* Card */
+  .card { background: var(--exgen-bg); border: var(--exgen-border-width) solid var(--exgen-border); border-radius: var(--exgen-radius-lg); box-shadow: var(--exgen-shadow-sm); padding: var(--exgen-space-6); max-width: 360px; }
+  .card h3 { margin: 0 0 var(--exgen-space-2); font-size: var(--exgen-text-lg); font-weight: var(--exgen-weight-bold); }
+  .card p { margin: 0; color: var(--exgen-text-secondary); font-size: var(--exgen-text-sm); line-height: var(--exgen-leading-relaxed); }
+
+  /* Input */
+  .field { max-width: 320px; }
+  label { display: block; font-size: var(--exgen-text-sm); font-weight: var(--exgen-weight-medium); margin-bottom: var(--exgen-space-2); }
+  input {
+    width: 100%; font-family: var(--exgen-font); font-size: var(--exgen-text-base);
+    padding: 10px 14px; border-radius: var(--exgen-radius-sm); border: var(--exgen-border-width) solid var(--exgen-border);
+    background: var(--exgen-bg);
+  }
+  input:focus-visible { outline: var(--exgen-focus-ring); outline-offset: var(--exgen-focus-offset); border-color: var(--exgen-teal); }
+  .error-text { color: var(--exgen-error); font-size: var(--exgen-text-xs); margin-top: var(--exgen-space-1); }
+
+  /* Semantic badges */
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: var(--exgen-text-xs); font-weight: var(--exgen-weight-semibold); padding: 4px 10px; border-radius: var(--exgen-radius-pill); }
+  .badge-success { background: color-mix(in srgb, var(--exgen-success) 12%, transparent); color: var(--exgen-success-text); }
+  .badge-warning { background: color-mix(in srgb, var(--exgen-warning) 16%, transparent); color: var(--exgen-warning-text); }
+  .badge-error { background: color-mix(in srgb, var(--exgen-error) 12%, transparent); color: var(--exgen-error-text); }
+  .badge-info { background: color-mix(in srgb, var(--exgen-info) 12%, transparent); color: var(--exgen-info-text); }
+</style>
+</head>
+<body>
+
+<span class="grad-bar" aria-hidden="true"></span>
+<h1>ExGen Design Tokens</h1>
+<p class="sub">Phase 2 reference — not part of the live app. Every value here comes from <code>exgen-tokens.css</code>.</p>
+
+<section>
+  <h2>Color</h2>
+  <div class="swatches">
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-teal)"></div><div class="swatch-label">teal</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-mint)"></div><div class="swatch-label">mint</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-navy)"></div><div class="swatch-label">navy</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-gradient)"></div><div class="swatch-label">gradient</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-success)"></div><div class="swatch-label">success</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-warning)"></div><div class="swatch-label">warning</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-error)"></div><div class="swatch-label">error</div></div>
+    <div class="swatch"><div class="swatch-fill" style="background:var(--exgen-info)"></div><div class="swatch-label">info</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Typography</h2>
+  <div class="type-row"><span class="type-label">3xl / bold</span><span style="font-size:var(--exgen-text-3xl);font-weight:var(--exgen-weight-bold);letter-spacing:var(--exgen-tracking-tight)">Plugga smartare med ExGen</span></div>
+  <div class="type-row"><span class="type-label">2xl / bold</span><span style="font-size:var(--exgen-text-2xl);font-weight:var(--exgen-weight-bold);letter-spacing:var(--exgen-tracking-tight)">Skapa prov från ditt material</span></div>
+  <div class="type-row"><span class="type-label">xl / semibold</span><span style="font-size:var(--exgen-text-xl);font-weight:var(--exgen-weight-semibold)">Din utveckling denna vecka</span></div>
+  <div class="type-row"><span class="type-label">base / regular</span><span style="font-size:var(--exgen-text-base);line-height:var(--exgen-leading-relaxed)">Brödtext i basstorlek med bekväm radhöjd för längre svenska texter.</span></div>
+  <div class="type-row"><span class="type-label">sm / secondary</span><span style="font-size:var(--exgen-text-sm);color:var(--exgen-text-secondary)">Sekundär text — beskrivningar, hjälptext, metadata.</span></div>
+  <div class="type-row"><span class="type-label">mono / label</span><span style="font-family:var(--exgen-font-mono);font-size:var(--exgen-text-xs);letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;color:var(--exgen-text-secondary)">Eyebrow Label</span></div>
+</section>
+
+<section>
+  <h2>Buttons</h2>
+  <div class="row">
+    <button class="btn btn-primary">Kom igång</button>
+    <button class="btn btn-secondary">Läs mer</button>
+  </div>
+</section>
+
+<section>
+  <h2>Card</h2>
+  <div class="card">
+    <h3>Mockprov: Privatjuridik <span style="font-weight:400;color:var(--exgen-text-secondary)">(exempel)</span></h3>
+    <p>Exempeldata för att visa kortkomponenten — inte verklig elevstatistik.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Input</h2>
+  <div class="field">
+    <label for="ex">E-postadress</label>
+    <input id="ex" type="email" placeholder="namn@exempel.se" />
+    <div class="error-text">Ange en giltig e-postadress.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Semantic badges</h2>
+  <div class="row">
+    <span class="badge badge-success">Godkänd</span>
+    <span class="badge badge-warning">Nära gränsen</span>
+    <span class="badge badge-error">Underkänd</span>
+    <span class="badge badge-info">Ny funktion</span>
+  </div>
+</section>
+
+</body>
+</html>
