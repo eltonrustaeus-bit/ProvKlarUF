@@ -26,6 +26,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <noscript><style>.wi{transform:none!important}.heroCtas{opacity:1!important}.rev,.reveal{opacity:1!important;transform:none!important}</style></noscript>
@@ -678,23 +680,23 @@
 </div>
 
 <!-- HEADER -->
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<header class="xg-header">
+  <div class="xg-header-wrap">
+    <a class="xg-brand" href="index.html">
+      <span class="xg-mark" aria-hidden="true">Ex</span>
       <div>
-        <div class="bName">ProviaAi</div>
-        <div class="bTag">Körkortsteorin · AI</div>
+        <div class="xg-brand-name">ExGen</div>
+        <div class="xg-brand-tag">Körkortsteorin · AI</div>
       </div>
     </a>
     <div class="hR">
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink active" href="index.html">Hem</a>
-        <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink" href="förbättring.html">Förbättring</a>
-        <a class="hNavLink" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link active" href="index.html" aria-current="page">Hem</a>
+        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link" href="pricing.html">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla till mörkt tema">
         <span class="tglIcon" id="tglIcon" aria-hidden="true">☀️</span>
@@ -1014,26 +1016,25 @@
   </div><!-- /wrap -->
 </main>
 
-<footer>
+<footer class="xg-footer">
   <div style="display:flex;align-items:center;justify-content:center;margin-bottom:12px">
     <a href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive"
        style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;
-              border:1px solid rgba(27,255,140,.18);border-radius:20px;padding:4px 11px;
-              background:rgba(27,255,140,.04)">
+              border:1px solid var(--exgen-border,#E4E7EC);border-radius:20px;padding:4px 11px">
       <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="14" height="14"
            style="border-radius:3px;opacity:.85" alt="UngDrive">
-      <span style="font:500 10px 'DM Mono',monospace;color:#6b8f7c;letter-spacing:.05em">Backed by UngDrive</span>
+      <span style="font:500 10px 'DM Mono',monospace;letter-spacing:.05em">Backed by UngDrive</span>
     </a>
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap">
-    <span>© <span id="yr"></span> ProviaAi</span>
-    <span style="color:var(--l2)">·</span>
-    <a href="pricing.html" class="fLink">Priser</a>
-    <span style="color:var(--l2)">·</span>
-    <a href="app.html" class="fLink">Mockprov</a>
-    <span style="color:var(--l2)">·</span>
-    <a href="integritetspolicy.html" class="fLink">Integritetspolicy</a>
-    <span style="color:var(--l2)">·</span>
+    <span>© <span id="yr"></span> ExGen</span>
+    <span>·</span>
+    <a href="pricing.html">Priser</a>
+    <span>·</span>
+    <a href="app.html">Mockprov</a>
+    <span>·</span>
+    <a href="integritetspolicy.html">Integritetspolicy</a>
+    <span>·</span>
     <span>Studiestöd — ingen officiell betygssättning</span>
   </div>
 </footer>
