@@ -277,7 +277,7 @@
       try { localStorage.setItem(gkey, '1'); } catch (_) {}
 
       var timerDone = false;
-      var nudgeText = '💬 Har du frågor om Provia?';
+      var nudgeText = '💬 Har du frågor om ExGen?';
 
       function showLandingNudge() {
         if (_open || timerDone) return;
@@ -294,7 +294,7 @@
           if (msgs) {
             var first = msgs.querySelector('.per-msg.teacher');
             if (first && !msgs.querySelector('.per-msg.user')) {
-              first.textContent = 'Vad undrar du om Provia? Priser, vad som ingår, varför vi slår ChatGPT — fråga på.';
+              first.textContent = 'Vad undrar du om ExGen? Priser, vad som ingår, varför vi slår ChatGPT — fråga på.';
             }
           }
         };
@@ -530,7 +530,7 @@
 
       try {
         var pageCtx = getPageContext();
-        var pageTopic = (pageCtx && pageCtx.page) ? pageCtx.page : 'Provia';
+        var pageTopic = (pageCtx && pageCtx.page) ? pageCtx.page : 'ExGen';
         var isLandingMode = !token; // 2 free questions for any unauthenticated user, any page
 
         // Landing quota gate
@@ -784,7 +784,7 @@
         '<div id="perPanel">' +
           '<div class="per-hdr">' +
             '<div class="per-av"><span class="per-av-txt">PER</span><span class="per-av-bars"><span></span><span></span><span></span></span></div>' +
-            '<div><div class="per-nm">EX1.0</div><div class="per-rl">PROVIAS AI</div></div>' +
+            '<div><div class="per-nm">EX1.0</div><div class="per-rl">EXGENS AI</div></div>' +
             '<div class="per-hdr-btns">' +
               '<button class="per-clr" id="perQuizBtn" title="Quiz – EX1.0 frågar dig"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/></svg></button>' +
               '<button class="per-clr" id="perReadyBtn" title="Din körkortsredo-score"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>' +
@@ -1042,7 +1042,7 @@
       /* Landing pages: first-visit intro or recurring nudge */
       if (isLanding()) {
         var firstMsg = document.querySelector('#perMessages .per-msg.teacher');
-        if (firstMsg) firstMsg.textContent = 'Vad undrar du om Provia?';
+        if (firstMsg) firstMsg.textContent = 'Vad undrar du om ExGen?';
         if (isFirstVisit()) {
           markVisited();
           setTimeout(function() {
@@ -1054,10 +1054,10 @@
                 if (introDiv) {
                   introDiv.className = 'per-msg teacher';
                   introDiv.innerHTML = '';
-                  var introText = 'Hallå! Jag är EX1.0. Jag svarar på allt om Provia — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
+                  var introText = 'Hallå! Jag är EX1.0. Jag svarar på allt om ExGen — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
                   typewriterMsg(introDiv, introText, 14);
                   setTimeout(function() {
-                    addQuickReplies(['Vad är Provia?', 'Varför inte ChatGPT?', 'Vad kostar det?']);
+                    addQuickReplies(['Vad är ExGen?', 'Varför inte ChatGPT?', 'Vad kostar det?']);
                   }, 2600);
                 }
               }
@@ -1223,7 +1223,7 @@
       '<span class="ckIcon" aria-hidden="true">🍪</span>' +
       '<div class="ckBody">' +
       '<div class="ckTitle">Vi använder cookies</div>' +
-      '<p class="ckText">ProviaAi sparar din inloggning, progress och inställningar lokalt på din enhet. ' +
+      '<p class="ckText">ExGen sparar din inloggning, progress och inställningar lokalt på din enhet. ' +
       'Vi använder inga spårningscookies eller annonsverktyg. ' +
       '<a href="/integritetspolicy.html">Läs mer</a></p>' +
       '<div class="ckBtns">' +
@@ -1375,7 +1375,7 @@
       el.innerHTML = '<div id="pvCard">'
         + '<div class="pv-hd">'
           + '<button class="pv-cl" id="pvCl" aria-label="Stäng">✕</button>'
-          + '<img class="pv-lg" src="image/proviaai-logo.png" alt="ProviaAi">'
+          + '<img class="pv-lg" src="image/proviaai-logo.png" alt="ExGen">'
           + '<div class="pv-ti" id="pvTi">Välkommen!</div>'
           + '<div class="pv-sb" id="pvSb">GRATIS ATT STARTA · INGET KORT KRÄVS</div>'
         + '</div>'
