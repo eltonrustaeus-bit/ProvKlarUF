@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="exgen-tokens.css" />
+<link rel="stylesheet" href="exgen-shell.css" />
 <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <style>
@@ -553,23 +555,23 @@ white-space:nowrap;
 </div>
 </div>
 
-<header>
-<div class="hWrap">
-<a class="brand" href="index.html">
-<img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<header class="xg-header">
+<div class="xg-header-wrap">
+<a class="xg-brand" href="index.html">
+<span class="xg-mark" aria-hidden="true">Ex</span>
 <div>
-<div class="brandName" id="brandName">ProviaAi</div>
-<div class="brandTag" id="brandTag">Mockprov · Rättning · Modellsvar</div>
+<div class="xg-brand-name" id="brandName">ExGen</div>
+<div class="xg-brand-tag" id="brandTag">Mockprov · Rättning · Modellsvar</div>
 </div>
 </a>
 <div class="hRight">
-<nav class="hNav" aria-label="Huvudnavigation">
-  <a class="hNavLink" href="index.html">Hem</a>
-  <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-  <a class="hNavLink active" href="app.html">Mockprov</a>
-  <a class="hNavLink" href="förbättring.html">Förbättring</a>
-  <a class="hNavLink" href="pricing.html">Priser</a>
-  <a class="hNavLink" href="konto.html">Konto</a>
+<nav class="xg-nav" aria-label="Huvudnavigation">
+  <a class="xg-nav-link" href="index.html">Hem</a>
+  <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+  <a class="xg-nav-link active" href="app.html" aria-current="page">Mockprov</a>
+  <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+  <a class="xg-nav-link" href="pricing.html">Priser</a>
+  <a class="xg-nav-link" href="konto.html">Konto</a>
 </nav>
 <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
 <span class="tglIcon" id="tglIcon">🌙</span>
@@ -817,7 +819,7 @@ Rätta prov
 </div>
 
 </main>
-<footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html" class="fLink">Integritetspolicy</a></footer>
+<footer class="xg-footer" id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html">Integritetspolicy</a></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>

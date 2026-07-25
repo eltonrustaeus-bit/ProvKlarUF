@@ -1,0 +1,118 @@
+/* ExGen shared shell — Phase 4. Header/nav/footer styles for the pages
+   Phase 1 gates (app, konto, korkortet, förbättring, larare). Deliberately
+   namespaced "xg-" and kept in its own file so pages NOT behind the
+   maintenance gate (index, pricing, live-demo, admin) never load this and
+   never change — style.css and its .hWrap/.hNav/.brand rules are untouched,
+   still serving those pages exactly as before.
+
+   Requires exgen-tokens.css loaded first (uses --exgen-* custom properties;
+   critical structural properties below carry a fallback value in case that
+   load ever fails, so the header degrades instead of disappearing).
+
+   No new logo image asset exists yet — the mark below is CSS-only
+   (gradient square + wordmark), a placeholder until a real asset lands.
+
+   Only components actually used by the 5 pages are here — no speculative
+   container/skeleton/notice/account-menu styles for things nothing
+   consumes yet. Add those when a later phase actually needs them.
+*/
+
+/* These pages toggle dark/light via a `.light` class on <html> (default,
+   no class = dark), completely independent of exgen-tokens.css's own
+   prefers-color-scheme-based dark mode (which exists for the standalone
+   Phase 2 preview page, a different consumer with no .light mechanism).
+   Re-map the same tokens onto the existing toggle here so the new header
+   always matches whatever theme the rest of the page is already in. */
+html:not(.light) {
+  --exgen-navy: #0E1B2A;
+  --exgen-text: #F1F5F9;
+  --exgen-text-secondary: #9AA6B2;
+  --exgen-bg: #0E1B2A;
+  --exgen-bg-secondary: #152436;
+  --exgen-border: #233549;
+}
+/* Explicit re-assertion, not just the absence of the rule above — without
+   this, a dark OS preference still wins via exgen-tokens.css's own
+   prefers-color-scheme block (a plain :root rule, unconditional on .light)
+   even when the user explicitly chose the light toggle on this page. */
+html.light {
+  --exgen-navy: #0E1B2A;
+  --exgen-text: #1B2430;
+  --exgen-text-secondary: #667085;
+  --exgen-bg: #FFFFFF;
+  --exgen-bg-secondary: #F8FAFC;
+  --exgen-border: #E4E7EC;
+}
+
+.xg-header {
+  position: sticky; top: 0; z-index: 500;
+  background: var(--exgen-bg, #FFFFFF);
+  border-bottom: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+}
+.xg-header-wrap {
+  max-width: 1080px; margin-inline: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--exgen-space-4, 16px);
+  padding: 12px var(--exgen-space-6, 24px);
+}
+@media (max-width: 640px) { .xg-header-wrap { padding: 10px var(--exgen-space-4, 16px); } }
+
+.xg-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.xg-brand:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); border-radius: 4px; }
+.xg-mark {
+  width: 32px; height: 32px; border-radius: var(--exgen-radius-sm, 8px);
+  background: var(--exgen-gradient, linear-gradient(110deg, #00B7D9, #76D76A)); flex-shrink: 0;
+  display: grid; place-items: center;
+  font: 700 13px var(--exgen-font, sans-serif); color: var(--exgen-navy, #0E1B2A); letter-spacing: -0.02em;
+}
+.xg-brand-name {
+  font: 700 16px var(--exgen-font, sans-serif); color: var(--exgen-text, #1B2430); letter-spacing: -0.02em;
+}
+.xg-brand-tag {
+  font: 400 11px var(--exgen-font-mono, monospace); color: var(--exgen-text-secondary, #667085);
+  letter-spacing: 0.02em;
+}
+@media (max-width: 640px) { .xg-brand-tag { display: none; } }
+
+.xg-nav { display: flex; align-items: center; gap: 2px; }
+@media (max-width: 860px) { .xg-nav { display: none; } }
+.xg-nav-link {
+  position: relative;
+  font: 500 14px var(--exgen-font, sans-serif); color: var(--exgen-text-secondary, #667085);
+  text-decoration: none; padding: 8px 12px; border-radius: var(--exgen-radius-sm, 8px);
+  transition: background var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease),
+              color var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-nav-link:hover { color: var(--exgen-text, #1B2430); background: var(--exgen-bg-secondary, #F8FAFC); }
+/* Active state: navy text + teal underline, not teal text — teal measures
+   2.39:1 on white (see exgen-tokens.css contrast notes), fails AA as text
+   at any size. */
+.xg-nav-link.active { color: var(--exgen-text, #1B2430); font-weight: 600; }
+.xg-nav-link.active::after {
+  content: ""; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px;
+  border-radius: 1px; background: var(--exgen-gradient, #00B7D9);
+}
+.xg-nav-link:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
+
+/* ── Page heading (used by larare.html's lighter-touch treatment) ── */
+.xg-eyebrow {
+  font: 600 11px var(--exgen-font-mono, monospace); color: var(--exgen-text-secondary, #667085);
+  letter-spacing: var(--exgen-tracking-wide, 0.06em); text-transform: uppercase;
+  margin-bottom: var(--exgen-space-2, 8px);
+}
+.xg-h1 {
+  font: 700 clamp(22px, 4vw, 30px) var(--exgen-font, sans-serif); color: var(--exgen-text, #1B2430);
+  letter-spacing: var(--exgen-tracking-tight, -0.02em); margin: 0 0 6px;
+}
+.xg-sub { font-size: var(--exgen-text-sm, 14px); color: var(--exgen-text-secondary, #667085); line-height: var(--exgen-leading-relaxed, 1.65); }
+
+/* ── Footer ── */
+.xg-footer {
+  border-top: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+  padding: var(--exgen-space-6, 24px) var(--exgen-space-6, 24px);
+  text-align: center;
+  font-size: var(--exgen-text-xs, 12px); color: var(--exgen-text-secondary, #667085);
+}
+.xg-footer a { color: var(--exgen-text-secondary, #667085); text-decoration: underline; text-underline-offset: 2px; }
+.xg-footer a:hover { color: var(--exgen-text, #1B2430); }
+.xg-footer a:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }

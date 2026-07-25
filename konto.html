@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
@@ -138,22 +140,22 @@
 </div>
 
 <!-- HEADER -->
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<header class="xg-header">
+  <div class="xg-header-wrap">
+    <a class="xg-brand" href="index.html">
+      <span class="xg-mark" aria-hidden="true">Ex</span>
       <div>
-        <div class="bName">ProviaAi</div>
-        <div class="bTag">Körkortsteorin · AI</div>
+        <div class="xg-brand-name">ExGen</div>
+        <div class="xg-brand-tag">Körkortsteorin · AI</div>
       </div>
     </a>
-    <nav class="hNav" aria-label="Huvudnavigation">
-      <a class="hNavLink" href="index.html">Hem</a>
-      <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-      <a class="hNavLink" href="app.html">Mockprov</a>
-      <a class="hNavLink" href="förbättring.html">Förbättring</a>
-      <a class="hNavLink" href="pricing.html">Priser</a>
-      <a class="hNavLink active" href="konto.html">Konto</a>
+    <nav class="xg-nav" aria-label="Huvudnavigation">
+      <a class="xg-nav-link" href="index.html">Hem</a>
+      <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+      <a class="xg-nav-link" href="app.html">Mockprov</a>
+      <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+      <a class="xg-nav-link" href="pricing.html">Priser</a>
+      <a class="xg-nav-link active" href="konto.html" aria-current="page">Konto</a>
     </nav>
     <div class="hR">
       <span class="aiDot" aria-label="AI-status">
@@ -383,12 +385,12 @@
 </div>
 </main>
 
-<footer>
+<footer class="xg-footer">
   <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap">
     <span>© <span id="yr"></span> ProviaAi</span>
-    <span style="color:var(--l2)">·</span>
-    <a href="pricing.html" class="fLink">Priser</a>
-    <span style="color:var(--l2)">·</span>
+    <span>·</span>
+    <a href="pricing.html">Priser</a>
+    <span>·</span>
     <span>Studiestöd — ingen officiell betygssättning</span>
   </div>
 </footer>

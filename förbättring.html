@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
 
   <style>
@@ -370,22 +372,22 @@
 </div>
 
   <!-- HEADER -->
-  <header>
-    <div class="hWrap">
-      <a class="brand" href="index.html">
-        <img src="image/proviaai-logo.png" alt="ProviaAi">
+  <header class="xg-header">
+    <div class="xg-header-wrap">
+      <a class="xg-brand" href="index.html">
+        <span class="xg-mark" aria-hidden="true">Ex</span>
         <div>
-          <div class="bName">ProviaAi</div>
-          <div class="bTag" id="tagLine">Förbättring</div>
+          <div class="xg-brand-name">ExGen</div>
+          <div class="xg-brand-tag" id="tagLine">Förbättring</div>
         </div>
       </a>
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink" href="index.html">Hem</a>
-        <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink active" href="förbättring.html">Förbättring</a>
-        <a class="hNavLink" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link" href="index.html">Hem</a>
+        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link active" href="förbättring.html" aria-current="page">Förbättring</a>
+        <a class="xg-nav-link" href="pricing.html">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <div class="hRight">
         <button class="themeTgl" id="themeToggle" type="button" aria-label="Växla tema">
@@ -611,7 +613,7 @@
 
   </main>
 
-  <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer class="xg-footer" id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
