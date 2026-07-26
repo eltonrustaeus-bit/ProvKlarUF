@@ -154,6 +154,21 @@ body.light header { background: rgba(243,248,245,.92); }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand img { height: 30px; width: auto; display: block; }
 
+/* ExGen brand mark — CSS-only gradient badge, same recipe as exgen-shell.css's
+   .xg-mark, extended here (style.css loads on every page) so every remaining
+   spot that used the old raster proviaai-logo.png (splash screen, login
+   overlays, admin/legal-page headers) shows the actual ExGen gradient instead
+   of the pre-rebrand icon. Size via inline style="--em:NNpx"; content is
+   always the literal text "Ex". Decorative — pair with aria-hidden="true"
+   wherever adjacent visible text already names the brand. */
+.exgenMark {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: var(--em, 30px); height: var(--em, 30px); border-radius: 26%;
+  background: linear-gradient(110deg, #00B7D9 0%, #28C3B5 48%, #76D76A 100%);
+  color: #0E1B2A; font: 700 calc(var(--em, 30px) * .44) / 1 'DM Sans', sans-serif;
+  letter-spacing: -.03em;
+}
+
 /* supports: .bName/.bTag (index/pricing) and .brandName/.brandTag (app/korkortet) */
 .bName, .brandName {
   font-weight: 700; font-size: 15px; color: var(--t);

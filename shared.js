@@ -1398,7 +1398,6 @@
         '.pv-hd{padding:30px 26px 18px;text-align:center;position:relative}',
         '.pv-cl{position:absolute;top:14px;right:14px;width:30px;height:30px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:none;cursor:pointer;font-size:15px;color:var(--t3,#5a7a6a);display:grid;place-items:center;transition:border-color .15s,color .15s,background .15s;line-height:1}',
         '.pv-cl:hover{border-color:rgba(255,255,255,.28);color:var(--t,#e8f5ee);background:rgba(255,255,255,.04)}',
-        '.pv-lg{height:34px;width:auto;display:block;margin:0 auto 16px;filter:drop-shadow(0 4px 14px rgba(27,255,140,.35))}',
         '.pv-ti{font-family:"DM Sans",sans-serif;font-weight:700;font-size:23px;color:var(--t,#e8f5ee);letter-spacing:-.035em;margin-bottom:7px;line-height:1.1}',
         '.pv-sb{font-family:"DM Mono",monospace;font-size:10px;color:var(--a,#1bff8c);letter-spacing:.14em;min-height:14px;font-weight:500}',
         '.pv-bd{padding:6px 26px 26px}',
@@ -1448,7 +1447,7 @@
       el.innerHTML = '<div id="pvCard">'
         + '<div class="pv-hd">'
           + '<button class="pv-cl" id="pvCl" aria-label="Stäng">✕</button>'
-          + '<img class="pv-lg" src="image/proviaai-logo.png" alt="ExGen">'
+          + '<span class="exgenMark" style="--em:34px;margin-bottom:16px" aria-hidden="true">Ex</span>'
           + '<div class="pv-ti" id="pvTi">Välkommen!</div>'
           + '<div class="pv-sb" id="pvSb">GRATIS ATT STARTA · INGET KORT KRÄVS</div>'
         + '</div>'

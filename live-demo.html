@@ -510,7 +510,7 @@
     @keyframes blink{50%{opacity:0}}
     @keyframes hexspin{to{transform:rotate(360deg)}}
     @keyframes scan{0%{left:-100%}100%{left:100%}}
-    @keyframes logoF{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 20px rgba(27,255,140,.4))}50%{transform:translateY(-9px);filter:drop-shadow(0 0 34px rgba(27,255,140,.65))}}
+    @keyframes logoF{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 20px rgba(0,183,217,.4))}50%{transform:translateY(-9px);filter:drop-shadow(0 0 34px rgba(0,183,217,.65))}}
 
     /* MOBILE */
     .tShort{display:none}
@@ -559,7 +559,7 @@
 <!-- HEADER -->
 <div id="hdr">
   <a id="hdrLogo" href="index.html">
-    <img src="image/proviaai-logo.png" width="28" height="28" alt="ExGen">
+    <span class="exgenMark" style="--em:28px" aria-hidden="true">Ex</span>
     <span>ExGen</span>
   </a>
   <div id="modeTabs">
@@ -607,7 +607,7 @@
 <div id="mode1" class="ms act">
 
   <div id="m1intro" style="text-align:center;display:none">
-    <img id="m1logo" src="image/proviaai-logo.png" width="72" height="72" alt="ExGen">
+    <span id="m1logo" class="exgenMark" style="--em:72px" aria-hidden="true">Ex</span>
     <div id="m1htitle" style="font:700 32px/1.2 var(--f);color:var(--t);margin:0 0 10px">ExGen</div>
     <div class="pill" id="m1hpill">📚 AI-prov på ditt eget material</div>
     <div style="font:400 15px var(--f);color:var(--t2);margin-top:10px">Klistra in material → AI genererar → Träna smart</div>
@@ -709,8 +709,7 @@
 <div id="mode2" class="ms">
 
   <div id="m2intro" style="display:none;text-align:center">
-    <img src="image/proviaai-logo.png" width="60" height="60" alt="ExGen"
-         style="margin-bottom:16px;animation:logoF 4.5s ease-in-out infinite">
+    <span class="exgenMark" style="--em:60px;margin-bottom:16px;animation:logoF 4.5s ease-in-out infinite" aria-hidden="true">Ex</span>
     <div class="pill" style="margin-bottom:14px">🚗 368 frågor · 16 kategorier</div>
     <div style="font:700 30px/1.2 var(--f);color:var(--t);margin-bottom:8px">Körkortsteorin</div>
     <div style="font:400 14px var(--f);color:var(--t2)">Exakt som Transportstyrelsens teoriprov</div>
