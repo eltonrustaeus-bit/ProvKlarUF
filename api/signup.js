@@ -1,5 +1,5 @@
 ﻿import { createClient } from "@supabase/supabase-js";
-import { BRAND_NAME } from "./_site.js";
+import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
 
 function escapeHtml(str) {
   return String(str)
@@ -56,7 +56,7 @@ function buildWelcomeHtml(email) {
 
         <!-- Primary CTA -->
         <tr><td style="padding:0 32px 36px">
-          <a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
+          <a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
         </td></tr>
 
         <!-- Pricing section -->
@@ -128,7 +128,7 @@ function buildWelcomeHtml(email) {
           </table>
           <!-- Upgrade CTA -->
           <div style="margin-top:18px;text-align:center">
-            <a href="https://proviaai.se/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
+            <a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
           </div>
         </td></tr>
 
