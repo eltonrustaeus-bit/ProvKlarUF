@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,7 +9,7 @@ const supabase = createClient(
 
 const PLAN_ROLES = { basic: "basic", premium: "premium" };
 const PLAN_NAMES = { basic: "Basic", premium: "Premium" };
-const RESEND_FROM = "ProviaAI <noreply@proviaai.se>";
+const RESEND_FROM = `${BRAND_NAME} <noreply@proviaai.se>`;
 const ADMIN_EMAIL = "elton.rustaeus@gmail.com";
 
 // ── Stripe signature ──
@@ -58,7 +59,7 @@ function wrap(content) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#08100d;padding:32px 16px"><tr><td align="center">
 <table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
 <tr><td style="background:#0a130d;padding:20px 28px;border-bottom:1px solid rgba(27,255,140,.12)">
-<span style="font-size:18px;font-weight:700;color:#1bff8c">ProviaAI</span></td></tr>
+<span style="font-size:18px;font-weight:700;color:#1bff8c">${BRAND_NAME}</span></td></tr>
 <tr><td style="padding:28px 28px 32px">${content}</td></tr>
 <tr><td style="padding:14px 28px;border-top:1px solid rgba(27,255,140,.08)">
 <p style="margin:0;font-size:12px;color:#5a7a6a">Frågor? Svara på det här mejlet.</p></td></tr>
@@ -74,7 +75,7 @@ function tpl_paymentConfirmed(email, planName, amountStr) {
   <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(amountStr)} kr</td></tr>
   <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(email)}</td></tr>
 </table>
-<a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ProviaAI →</a>`);
+<a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ${BRAND_NAME} →</a>`);
 }
 
 function tpl_renewalConfirmed(email, planName, amountStr) {
@@ -86,7 +87,7 @@ function tpl_renewalConfirmed(email, planName, amountStr) {
   <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(amountStr)} kr</td></tr>
   <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(email)}</td></tr>
 </table>
-<a href="https://proviaai.se/konto.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Hantera prenumeration</a>`);
+<a href="${SITE_ORIGIN}/konto.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Hantera prenumeration</a>`);
 }
 
 function tpl_paymentFailed(email, planName) {
@@ -94,7 +95,7 @@ function tpl_paymentFailed(email, planName) {
 <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#ff8484">Betalning misslyckades</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Vi kunde inte debitera ditt kort för din <strong style="color:#e8f5ee">${esc(planName)}</strong>-prenumeration.</p>
 <p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Uppdatera din betalningsmetod för att behålla tillgången. Stripe försöker igen automatiskt — om det misslyckas upprepade gånger avslutas prenumerationen.</p>
-<a href="https://proviaai.se/konto.html" style="display:inline-block;background:#ff8484;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Uppdatera betalningssätt →</a>`);
+<a href="${SITE_ORIGIN}/konto.html" style="display:inline-block;background:#ff8484;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Uppdatera betalningssätt →</a>`);
 }
 
 function tpl_subscriptionCancelled(planName) {
@@ -102,12 +103,12 @@ function tpl_subscriptionCancelled(planName) {
 <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#e8f5ee">Prenumeration avslutad</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Din <strong style="color:#e8f5ee">${esc(planName)}</strong>-prenumeration är avslutad. Du har nu tillgång till gratisplanen.</p>
 <p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Du kan uppgradera igen när som helst.</p>
-<a href="https://proviaai.se/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Se planer</a>`);
+<a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Se planer</a>`);
 }
 
 function tpl_adminNotice(label, email, planName, amountStr) {
   return `<div style="font-family:sans-serif;max-width:480px">
-<h2 style="color:#1bff8c;margin:0 0 16px">${esc(label)} — ProviaAI</h2>
+<h2 style="color:#1bff8c;margin:0 0 16px">${esc(label)} — ${BRAND_NAME}</h2>
 <table style="width:100%;border-collapse:collapse">
 <tr><td style="padding:6px 0;color:#666">Email</td><td><b>${esc(email)}</b></td></tr>
 <tr><td style="padding:6px 0;color:#666">Plan</td><td><b>${esc(planName)}</b></td></tr>
