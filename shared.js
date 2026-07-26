@@ -785,13 +785,18 @@
         '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
         '@media(max-width:480px){#perPanel{max-height:70dvh}}',
-        /* Re-sync exgen tokens with the page's own .light toggle (default
-           dark, no class) — same fix as exgen-shell.css Phase 4, without it
+        /* Re-sync exgen tokens with the page's own light/dark toggle (default
+           dark) — same intent as exgen-shell.css's Phase 4 fix, without it
            an OS-level dark preference can leak through exgen-tokens.css's
-           unconditional prefers-color-scheme block even when the page is
-           explicitly set to light, or vice versa. */
-        'html:not(.light) #perWidget{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549}',
-        'html.light #perWidget{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC}'
+           unconditional prefers-color-scheme block. Scoped by a JS-managed
+           class (see syncPerTheme below), not an html.light/:not(.light)
+           selector: the toggle button on most pages (app/index/korkortet/
+           förbättring/pricing) flips document.body.classList, not <html> —
+           only the initial page-load script sets the class on <html>, so a
+           pure-CSS selector keyed off <html> goes stale the moment the user
+           clicks the toggle without a reload. */
+        '#perWidget.per-theme-dark{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549}',
+        '#perWidget.per-theme-light{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC}'
       ].join('');
       document.head.appendChild(style);
 
@@ -822,6 +827,26 @@
         '</div>' +
         '<button id="perBubble" title="Chatta med P.E.R">P·E·R</button>';
       document.body.appendChild(widget);
+
+      // Pages disagree on which element carries the '.light' class: the
+      // initial page-load script sets it on <html>, but most in-page toggle
+      // buttons flip it on <body> instead (see comment above the
+      // per-theme-dark/light CSS rules). Rather than guess a selector,
+      // watch both elements and mirror whichever currently says 'light'.
+      (function () {
+        var isLight = function () {
+          return document.documentElement.classList.contains('light') || document.body.classList.contains('light');
+        };
+        var sync = function () {
+          var light = isLight();
+          widget.classList.toggle('per-theme-light', light);
+          widget.classList.toggle('per-theme-dark', !light);
+        };
+        sync();
+        var mo = new MutationObserver(sync);
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      })();
 
       document.getElementById('perBubble').onclick = toggle;
 
