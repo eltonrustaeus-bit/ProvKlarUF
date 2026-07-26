@@ -5,16 +5,16 @@
   <script src="/js/intro-splash.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-<title>Körkortsteorin – ProviaAi</title>
-<meta name="description" content="Träna körkortsteorin med AI från ProviaAi. Öva på alla kategorier, simulera riktiga teoriprovet och få AI-förklaring på varje svar. En del av ProviaAi – AI-driven studieapp för elever och studenter." />
-<meta property="og:title" content="Körkortsteorin – ProviaAi" />
-<meta property="og:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ProviaAi, AI-driven studieapp." />
+<title>Körkortsteorin – ExGen</title>
+<meta name="description" content="Träna körkortsteorin med AI från ExGen. Öva på alla kategorier, simulera riktiga teoriprovet och få AI-förklaring på varje svar. En del av ExGen – AI-driven studieapp för elever och studenter." />
+<meta property="og:title" content="Körkortsteorin – ExGen" />
+<meta property="og:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ExGen, AI-driven studieapp." />
 <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.png" />
 <meta property="og:url" content="https://proviaai.se/korkortet" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Körkortsteorin – ProviaAi" />
-<meta name="twitter:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ProviaAi, AI-driven studieapp." />
+<meta name="twitter:title" content="Körkortsteorin – ExGen" />
+<meta name="twitter:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ExGen, AI-driven studieapp." />
 <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.png" />
 <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
 <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
@@ -705,9 +705,9 @@ body.light .adminSaveBtn{color:#fff}
 <div id="loginScreen" class="loginOverlay" style="display:none">
   <div class="loginCard">
     <div class="loginTop">
-      <img src="image/proviaai-logo.png" alt="ProviaAi">
+      <img src="image/proviaai-logo.png" alt="ExGen">
       <div>
-        <div class="loginTitle">ProviaAi – Körkortsteorin</div>
+        <div class="loginTitle">ExGen – Körkortsteorin</div>
         <div class="loginSub">Logga in eller skapa konto</div>
       </div>
     </div>
@@ -778,7 +778,7 @@ body.light .adminSaveBtn{color:#fff}
 </header>
 
 <div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
-  <span>⚡ ProviaAi är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
+  <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
   <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
@@ -1397,7 +1397,7 @@ body.light .adminSaveBtn{color:#fff}
   <button onclick="adminHideUndoToast()" style="color:var(--t3);background:none;border:none;cursor:pointer;font-size:13px;padding:0;line-height:1">✕</button>
 </div>
 
-<footer class="xg-footer">ProviaAi är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html">Integritetspolicy</a></footer>
+<footer class="xg-footer">ExGen är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html">Integritetspolicy</a></footer>
 
 <!-- REPORT MODAL -->
 <div id="rModal" class="rModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="rModalTitle">
@@ -2423,7 +2423,7 @@ function renderStage(stage) {
       <div class="aiTeacherWrap" id="aiTeacherWrap">
         <div class="aiTeacherHeader">
           <div class="aiAvatar">👩‍🏫</div>
-          <div><div class="aiName">P.E.R — Provias Egna AI-Resource</div><div class="aiRole">Tillgänglig via chatten nere till höger</div></div>
+          <div><div class="aiName">P.E.R — ExGens Egna AI-Resource</div><div class="aiRole">Tillgänglig via chatten nere till höger</div></div>
         </div>
         <div class="aiMessages" id="aiMessages">
           <div class="aiMsg teacher">Hej! Jag är P.E.R. Du har just läst teorin om <strong>${esc(cat)}</strong>. Har du frågor? Använd chatbubblan 👩‍🏫 nere till höger!</div>
