@@ -30,30 +30,45 @@
 }
 
 /* Anti-FOUC: applied in <head> before body renders */
-html.light { background: #f6fbf8; color: #091810; }
-html.light body { background: #f6fbf8; color: #091810; }
+html.light { background: #ffffff; color: #1B2430; }
+html.light body { background: #ffffff; color: #1B2430; }
 
-body.light {
-  --a: #07a863;
-  --a2: #068c52;
-  --a-dim: rgba(7,168,99,.08);
-  --a-glow: rgba(7,168,99,.18);
-  --bg: #f6fbf8;
+/* ExGen light tokens — the site's default theme (Phase 10a). Values match
+   exgen-tokens.css's own verified-AA set (one source of truth) with one
+   deliberate exception: --a/--a2 are NOT the raw --exgen-teal (#00B7D9,
+   which measures 2.39:1 on white and fails AA) because --a is used as a
+   `color:` value directly in ~20 rules in this file alone, and far more
+   across inline page styles — a token this widely used as text has to be
+   AA-safe itself, not just usable as a fill. #00768F/#00647A are darker
+   points on the same teal hue that clear 4.5:1 (5.27/6.77:1). Full-strength
+   --exgen-teal/--exgen-gradient stay available (via exgen-tokens.css,
+   loaded alongside this file) for fills/borders/hero moments — see Phase
+   10c for applying those more deliberately to primary CTAs.
+   Matched selectors on both html.light and body.light: some pages
+   (konto.html, larare.html) only ever add .light to <html>, never <body>,
+   so a body-only selector left their component colors permanently dark
+   even when the page background itself correctly went light. */
+html.light, body.light {
+  --a: #00768F;
+  --a2: #00647A;
+  --a-dim: rgba(0,118,143,.08);
+  --a-glow: rgba(0,118,143,.18);
+  --bg: #ffffff;
   --s: #ffffff;
-  --s2: #eef8f2;
-  --s3: #e4f3ea;
-  --t: #091810;
-  --t2: #2c4d3a;
-  --t3: #4a7560;
-  --l: rgba(7,168,99,.12);
-  --l2: rgba(7,168,99,.26);
-  --l3: rgba(7,168,99,.40);
-  --sh: 0 2px 12px rgba(0,0,0,.07);
-  --sh2: 0 6px 24px rgba(0,0,0,.10);
-  --sh3: 0 12px 40px rgba(0,0,0,.13);
-  --danger: #c0392b;
-  --warn: #946c00;
-  --ok: #07a863;
+  --s2: #f8fafc;
+  --s3: #f1f4f8;
+  --t: #1B2430;
+  --t2: #667085;
+  --t3: #667085;
+  --l: rgba(0,183,217,.10);
+  --l2: rgba(0,183,217,.20);
+  --l3: rgba(0,183,217,.32);
+  --sh: 0 2px 12px rgba(14,27,42,.06);
+  --sh2: 0 6px 24px rgba(14,27,42,.08);
+  --sh3: 0 12px 40px rgba(14,27,42,.12);
+  --danger: #B91C1C;
+  --warn: #92620A;
+  --ok: #166534;
 }
 
 /* ── RESET ── */

@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="exgen-tokens.css" />
 <link rel="stylesheet" href="exgen-shell.css" />
-<script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+<script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <script src="korkortet-srs.js" defer></script>
 <style>
@@ -2743,7 +2743,7 @@ $("themeBtn").onclick = () => {
   const n = document.body.classList.contains("light") ? "dark" : "light";
   localStorage.setItem(LS_THEME, n); applyTheme(n);
 };
-applyTheme(localStorage.getItem(LS_THEME) || "dark");
+applyTheme(localStorage.getItem(LS_THEME) || "light");
 
 // ── MENU ──
 (function() {

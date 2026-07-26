@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 
   <style>
     /* ── TOKENS DARK ── */
@@ -630,7 +630,7 @@
       LS_THEME='proviaai_theme';
 
     /* ── THEME ── */
-    let THEME=localStorage.getItem(LS_THEME)||'dark';
+    let THEME=localStorage.getItem(LS_THEME)||'light';
     function applyTheme(t){
       THEME=t; document.body.classList.toggle('light',t==='light');
       const icon=document.getElementById('themeIcon'),lbl=document.getElementById('themeLabel');
