@@ -5,7 +5,7 @@
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-  <title>ProviaAi – Förbättring</title>
+  <title>ExGen – Förbättring</title>
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
 
   <style>
@@ -339,9 +341,9 @@
 <div id="loginScreen" class="loginOverlay" style="display:none">
   <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
     <div class="loginTop">
-      <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+      <img src="image/proviaai-logo.png" alt="ExGen logga">
       <div>
-        <div class="loginTitle">ProviaAi – Förbättring</div>
+        <div class="loginTitle">ExGen – Förbättring</div>
         <div class="loginSub">Logga in för att se din progress</div>
       </div>
     </div>
@@ -370,22 +372,22 @@
 </div>
 
   <!-- HEADER -->
-  <header>
-    <div class="hWrap">
-      <a class="brand" href="index.html">
-        <img src="image/proviaai-logo.png" alt="ProviaAi">
+  <header class="xg-header">
+    <div class="xg-header-wrap">
+      <a class="xg-brand" href="index.html">
+        <span class="xg-mark" aria-hidden="true">Ex</span>
         <div>
-          <div class="bName">ProviaAi</div>
-          <div class="bTag" id="tagLine">Förbättring</div>
+          <div class="xg-brand-name">ExGen</div>
+          <div class="xg-brand-tag" id="tagLine">Förbättring</div>
         </div>
       </a>
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink" href="index.html">Hem</a>
-        <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink active" href="förbättring.html">Förbättring</a>
-        <a class="hNavLink" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link" href="index.html">Hem</a>
+        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link active" href="förbättring.html" aria-current="page">Förbättring</a>
+        <a class="xg-nav-link" href="pricing.html">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <div class="hRight">
         <button class="themeTgl" id="themeToggle" type="button" aria-label="Växla tema">
@@ -479,9 +481,9 @@
         <div class="sBodyInner">
           <div class="filterRow">
             <span class="fLabel" id="courseFilterLabel">Kurs</span>
-            <select id="courseFilter"></select>
+            <select id="courseFilter" aria-labelledby="courseFilterLabel"></select>
             <span class="fLabel" id="showModeLabel">Visa</span>
-            <select id="showMode">
+            <select id="showMode" aria-labelledby="showModeLabel">
               <option value="mistakes" selected>Felbank</option>
               <option value="all">Alla prov</option>
             </select>
@@ -509,10 +511,10 @@
       <div class="sBody">
         <div class="sBodyInner">
           <div class="coachBox">
-            <div class="coachLabel" id="coachHeader">EX1.0 · Rekommendation</div>
+            <div class="coachLabel" id="coachHeader">P.E.R · Rekommendation</div>
             <div class="coachText" id="coachText">—</div>
             <div style="margin-top:12px">
-              <button class="btn tinyBtnP" id="perCoachBtn" type="button" style="display:none">Hämta EX1.0-analys</button>
+              <button class="btn tinyBtnP" id="perCoachBtn" type="button" style="display:none">Hämta P.E.R-analys</button>
             </div>
           </div>
           <div class="statsRow">
@@ -611,7 +613,7 @@
 
   </main>
 
-  <footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning.</footer>
+  <footer class="xg-footer" id="footerText">ExGen är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -695,12 +697,12 @@
         trainSelected:'Träna markerade',clearSel:'Rensa val',
         mistakesTitle:'Felbank',mistakesSub:'Frågor du tappat poäng på · med modellsvar',
         mistakesEmpty:'Felbanken är tom!',mistakesEmptyDesc:'Inga tappade poäng just nu. Fortsätt träna.',
-        footer:'ProviaAi är studiestöd och ger ingen officiell betygssättning.',english:'English',
+        footer:'ExGen är studiestöd och ger ingen officiell betygssättning.',english:'English',
         examListTitle:'Prov',examListSub:'Filtrera per kurs · klicka för att se felbank',
         course:'Kurs',show:'Visa',allCourses:'Alla kurser',selected:'valda',doneBtn:'Klar ✓',pick:'Välj',
         showingAll:(n,c)=>`${n} misstag${c?' · '+c:''}`,showingExams:(n,c)=>`${n} prov${c?' · '+c:''}`,
         removedOne:'Borttagen från felbanken.',open:'Öppna',close:'Stäng',
-        smartTips:'EX1.0-tips',smartTipsLoading:'EX1.0 analyserar…',smartTipsError:'Kunde inte hämta tips — försök igen.',smartTipsCached:'cache',
+        smartTips:'P.E.R-tips',smartTipsLoading:'P.E.R analyserar…',smartTipsError:'Kunde inte hämta tips — försök igen.',smartTipsCached:'cache',
         reportNav:'Rapport',reportTitle:'Lärarrapport',reportSub:'Kräver minst 3 genomförda prov',
         reportNeed3:n=>`Minst 3 prov krävs. Du har ${n}.`,reportReady:n=>`Redo – ${n} prov`,
         reportGenerating:'Skapar rapport…',reportError:'Kunde inte skapa rapport.',
@@ -720,12 +722,12 @@
         trainSelected:'Train selected',clearSel:'Clear',
         mistakesTitle:'Mistakes',mistakesSub:'Questions where you lost points · with model answers',
         mistakesEmpty:'Library is empty!',mistakesEmptyDesc:'No lost points right now. Keep training.',
-        footer:'ProviaAi is study support and does not provide official grades.',english:'Svenska',
+        footer:'ExGen is study support and does not provide official grades.',english:'Svenska',
         examListTitle:'Exams',examListSub:'Filter by course · click to see mistakes',
         course:'Course',show:'Show',allCourses:'All courses',selected:'selected',doneBtn:'Done ✓',pick:'Pick',
         showingAll:(n,c)=>`${n} mistakes${c?' · '+c:''}`,showingExams:(n,c)=>`${n} exams${c?' · '+c:''}`,
         removedOne:'Removed from library.',open:'Open',close:'Close',
-        smartTips:'EX1.0 tips',smartTipsLoading:'EX1.0 analysing…',smartTipsError:'Could not fetch tips — try again.',smartTipsCached:'cache',
+        smartTips:'P.E.R tips',smartTipsLoading:'P.E.R analysing…',smartTipsError:'Could not fetch tips — try again.',smartTipsCached:'cache',
         reportNav:'Report',reportTitle:'Teacher report',reportSub:'Requires at least 3 completed exams',
         reportNeed3:n=>`At least 3 exams required. You have ${n}.`,reportReady:n=>`Ready – ${n} exams`,
         reportGenerating:'Generating…',reportError:'Could not generate report.',
@@ -1002,8 +1004,8 @@
         return;
       }
       $('coachText').textContent=LANG==='sv'
-        ?'EX1.0 är redo att analysera din progress. Klicka för att hämta personlig coaching.'
-        :'EX1.0 is ready to analyse your progress. Click to get personal coaching.';
+        ?'P.E.R är redo att analysera din progress. Klicka för att hämta personlig coaching.'
+        :'P.E.R is ready to analyse your progress. Click to get personal coaching.';
       if(btn)btn.style.display='inline-flex';
     }
 
@@ -1222,7 +1224,7 @@
       setTopStatus(LANG==='sv'?`${h.length} prov synkade`:`${h.length} exams synced`,'ok');
       const lastA=(last&&last.attempt)?last.attempt:h[h.length-1],trend=computeTrend(h);
 
-      // Inject EX1.0 context so the floating widget understands improvement page state
+      // Inject P.E.R context so the floating widget understands improvement page state
       if (window.setPerContext) {
         const avg5=avgPct(h.slice(-5));
         const mc2=mostMistakeCourse(m);
@@ -1287,7 +1289,7 @@
     /* ── EVENTS ── */
     $('perCoachBtn')?.addEventListener('click',async()=>{
       const btn=$('perCoachBtn');
-      if(btn){btn.disabled=true;btn.textContent=LANG==='sv'?'EX1.0 analyserar…':'EX1.0 analysing…';}
+      if(btn){btn.disabled=true;btn.textContent=LANG==='sv'?'P.E.R analyserar…':'P.E.R analysing…';}
       const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES);
       try{
         const text=await fetchPERCoach(h,m);
@@ -1296,10 +1298,10 @@
           setCoachCache({ts:Date.now(),text});
           if(btn)btn.style.display='none';
         }else{
-          if(btn){btn.disabled=false;btn.textContent='Hämta EX1.0-analys';}
+          if(btn){btn.disabled=false;btn.textContent='Hämta P.E.R-analys';}
         }
       }catch{
-        if(btn){btn.disabled=false;btn.textContent='Hämta EX1.0-analys';}
+        if(btn){btn.disabled=false;btn.textContent='Hämta P.E.R-analys';}
       }
     });
     $('courseFilter').addEventListener('change',()=>renderAll());

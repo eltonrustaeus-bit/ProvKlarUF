@@ -1,6 +1,6 @@
 (function () {
   /* ══════════════════════════════════════
-     PROVIAAI × UNGDRIVE — INTRO SPLASH
+     EXGEN × UNGDRIVE — INTRO SPLASH
      Logo alltid synlig, 4.5s premium reveal
   ══════════════════════════════════════ */
 
@@ -205,10 +205,10 @@
       '<div id="piContent">' +
         '<div id="piLogoWrap">' +
           '<div id="piLogoGlow"></div>' +
-          '<img src="/image/proviaai-logo.png" width="92" height="92" alt="ProviaAi"' +
+          '<img src="/image/proviaai-logo.png" width="92" height="92" alt="ExGen"' +
                ' onerror="this.style.display=\'none\'">' +
         '</div>' +
-        '<div id="piName">ProviaAi</div>' +
+        '<div id="piName">ExGen</div>' +
         '<div id="piTagline">AI-tränare för körkortsteorin och egna prov</div>' +
         '<div id="piDivider"></div>' +
         '<div id="piPartner">' +

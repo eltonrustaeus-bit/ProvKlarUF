@@ -5,16 +5,16 @@
   <script src="/js/intro-splash.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-<title>Körkortsteorin – ProviaAi</title>
-<meta name="description" content="Träna körkortsteorin med AI från ProviaAi. Öva på alla kategorier, simulera riktiga teoriprovet och få AI-förklaring på varje svar. En del av ProviaAi – AI-driven studieapp för elever och studenter." />
-<meta property="og:title" content="Körkortsteorin – ProviaAi" />
-<meta property="og:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ProviaAi, AI-driven studieapp." />
+<title>Körkortsteorin – ExGen</title>
+<meta name="description" content="Träna körkortsteorin med AI från ExGen. Öva på alla kategorier, simulera riktiga teoriprovet och få AI-förklaring på varje svar. En del av ExGen – AI-driven studieapp för elever och studenter." />
+<meta property="og:title" content="Körkortsteorin – ExGen" />
+<meta property="og:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ExGen, AI-driven studieapp." />
 <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.png" />
 <meta property="og:url" content="https://proviaai.se/korkortet" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Körkortsteorin – ProviaAi" />
-<meta name="twitter:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ProviaAi, AI-driven studieapp." />
+<meta name="twitter:title" content="Körkortsteorin – ExGen" />
+<meta name="twitter:description" content="Öva körkortsteorin med AI-förklaring. Alla kategorier, simulerat teoriprov – del av ExGen, AI-driven studieapp." />
 <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.png" />
 <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
 <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
@@ -24,6 +24,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="exgen-tokens.css" />
+<link rel="stylesheet" href="exgen-shell.css" />
 <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <script src="korkortet-srs.js" defer></script>
@@ -457,7 +459,7 @@ body.light .aiSendBtn{color:#fff}
 .timerBadge.bad{color:var(--danger);border-color:rgba(255,107,107,.4);animation:timerPulse 1s ease-in-out infinite}
 @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.55}}
 /* Focus lock: hide all nav/controls during teoriprov */
-body.teori-lock .hNav{visibility:hidden;pointer-events:none}
+body.teori-lock .xg-nav{visibility:hidden;pointer-events:none}
 body.teori-lock .menuWrap{visibility:hidden;pointer-events:none}
 body.teori-lock .themeTgl{visibility:hidden;pointer-events:none}
 body.teori-lock #teoriView{display:none!important}
@@ -703,9 +705,9 @@ body.light .adminSaveBtn{color:#fff}
 <div id="loginScreen" class="loginOverlay" style="display:none">
   <div class="loginCard">
     <div class="loginTop">
-      <img src="image/proviaai-logo.png" alt="ProviaAi">
+      <img src="image/proviaai-logo.png" alt="ExGen">
       <div>
-        <div class="loginTitle">ProviaAi – Körkortsteorin</div>
+        <div class="loginTitle">ExGen – Körkortsteorin</div>
         <div class="loginSub">Logga in eller skapa konto</div>
       </div>
     </div>
@@ -734,23 +736,23 @@ body.light .adminSaveBtn{color:#fff}
 </div>
 
 <!-- HEADER -->
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <img src="image/proviaai-logo.png" alt="ProviaAi">
+<header class="xg-header">
+  <div class="xg-header-wrap">
+    <a class="xg-brand" href="index.html">
+      <span class="xg-mark" aria-hidden="true">Ex</span>
       <div>
-        <div class="brandName">ProviaAi</div>
-        <div class="brandTag">Körkortsteorin</div>
+        <div class="xg-brand-name">ExGen</div>
+        <div class="xg-brand-tag">Körkortsteorin</div>
       </div>
     </a>
     <div class="hRight">
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink" href="index.html">Hem</a>
-        <a class="hNavLink active" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink" href="förbättring.html">Förbättring</a>
-        <a class="hNavLink" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link" href="index.html">Hem</a>
+        <a class="xg-nav-link active" href="korkortet.html" aria-current="page">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link" href="pricing.html">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <button class="btn btnDanger" id="abortBtn" style="display:none;font-size:12px;height:34px;padding:0 12px">Avbryt prov</button>
       <button class="themeTgl" id="themeBtn" aria-label="Växla tema">
@@ -776,7 +778,7 @@ body.light .adminSaveBtn{color:#fff}
 </header>
 
 <div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
-  <span>⚡ ProviaAi är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
+  <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
   <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
@@ -848,7 +850,7 @@ body.light .adminSaveBtn{color:#fff}
         </div>
         <div class="kkUpPlan">
           <div><div class="kkUpPlanName">Premium</div><div class="kkUpPlanTag">Obegränsat</div></div>
-          <div class="kkUpPlanRight"><div class="kkUpPlanPrice">79 kr/mån</div><div class="kkUpPlanLimit">∞ teoriprov · EX1.0 obegränsat</div></div>
+          <div class="kkUpPlanRight"><div class="kkUpPlanPrice">79 kr/mån</div><div class="kkUpPlanLimit">∞ teoriprov · P.E.R obegränsat</div></div>
         </div>
       </div>
       <div class="kkUpActions">
@@ -1051,7 +1053,7 @@ body.light .adminSaveBtn{color:#fff}
           <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 3 11 8 6 13"/></svg>
         </button>
         <div class="nextAiRow">
-          <button class="askPerBtn" type="button" onclick="document.getElementById('perBubble')?.click()">✦ Fråga EX1.0 om denna fråga</button>
+          <button class="askPerBtn" type="button" onclick="document.getElementById('perBubble')?.click()">✦ Fråga P.E.R om denna fråga</button>
         </div>
         <button class="reportQuestionBtn" id="reportQuestionBtn" type="button">⚑ Rapportera fel i frågan</button>
       </div>
@@ -1395,7 +1397,7 @@ body.light .adminSaveBtn{color:#fff}
   <button onclick="adminHideUndoToast()" style="color:var(--t3);background:none;border:none;cursor:pointer;font-size:13px;padding:0;line-height:1">✕</button>
 </div>
 
-<footer>ProviaAi är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html" class="fLink">Integritetspolicy</a></footer>
+<footer class="xg-footer">ExGen är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html">Integritetspolicy</a></footer>
 
 <!-- REPORT MODAL -->
 <div id="rModal" class="rModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="rModalTitle">
@@ -2421,10 +2423,10 @@ function renderStage(stage) {
       <div class="aiTeacherWrap" id="aiTeacherWrap">
         <div class="aiTeacherHeader">
           <div class="aiAvatar">👩‍🏫</div>
-          <div><div class="aiName">EX1.0 — Provias Egna AI-Resource</div><div class="aiRole">Tillgänglig via chatten nere till höger</div></div>
+          <div><div class="aiName">P.E.R — ExGens Egna AI-Resource</div><div class="aiRole">Tillgänglig via chatten nere till höger</div></div>
         </div>
         <div class="aiMessages" id="aiMessages">
-          <div class="aiMsg teacher">Hej! Jag är EX1.0. Du har just läst teorin om <strong>${esc(cat)}</strong>. Har du frågor? Använd chatbubblan 👩‍🏫 nere till höger!</div>
+          <div class="aiMsg teacher">Hej! Jag är P.E.R. Du har just läst teorin om <strong>${esc(cat)}</strong>. Har du frågor? Använd chatbubblan 👩‍🏫 nere till höger!</div>
         </div>
       </div>
       <div class="startArea" style="margin-top:16px">
@@ -2930,7 +2932,7 @@ function renderQ(i) {
   // Text
   $("qText").textContent = q.question;
 
-  // Inject current question + exam state into EX1.0 context
+  // Inject current question + exam state into P.E.R context
   if (window.setPerContext) {
     window.setPerContext({
       page: 'körkortsteorin',
@@ -3361,7 +3363,7 @@ async function showResults() {
     if(uid) await db.from("driving_results").insert({user_id:uid,category:activeCourse||selCat,num_questions:total,num_correct:right,percent:pct,passed});
   } catch(e) { console.warn("Sparfel:",e) }
 
-  // Notify EX1.0 widget — gentle redo-score nudge (non-blocking)
+  // Notify P.E.R widget — gentle redo-score nudge (non-blocking)
   if (window.PER && window.PER.notifyExamDone) {
     const weakCatNames = weakCats.map(([c]) => c);
     window.PER.notifyExamDone(pct, weakCatNames);

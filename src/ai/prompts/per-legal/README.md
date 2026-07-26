@@ -1,6 +1,6 @@
 # per-legal
 
-P.E.R/EX1.0 juridikläge (uppdragets §27.2). Retrieval krävs för juridiska faktasvar, regler, definitioner, jämförelse med elevsvar.
+P.E.R juridikläge (uppdragets §27.2). Retrieval krävs för juridiska faktasvar, regler, definitioner, jämförelse med elevsvar.
 
 Bygg på `api/_per-context.js`s `BLOCKED_CONTEXT_REGEX`-saneringsmönster (ADR-referens: samma mönster som redan finns för `pageContext`, och som saknades i `_per-memory.js` tills det fixades i uppföljnings-PR #2 — se `docs/codex_review.md`). **Kopiera det beprövade mönstret, uppfinn inget nytt.**
 

@@ -1,4 +1,4 @@
-﻿// api/_per-memory.js - EX1.0 long-term memory helpers
+﻿// api/_per-memory.js - P.E.R long-term memory helpers
 // Stores a compact learning profile, not raw personal data.
 
 const REFRESH_DAYS    = 1;
@@ -294,7 +294,7 @@ export async function maybeRefreshLongMemory(supabase, userId, recentMessages, c
 
     const histText   = (Array.isArray(recentMessages) ? recentMessages : [])
       .slice(-30)
-      .map(m => `${m.role === "user" ? "Elev" : "EX1.0"}: ${cleanMemoryText(m.content, 160)}`)
+      .map(m => `${m.role === "user" ? "Elev" : "P.E.R"}: ${cleanMemoryText(m.content, 160)}`)
       .join("\n")
       .slice(0, MAX_HIST_CHARS);
     const signalText = cleanMemoryText(learningSignals, 700);
@@ -310,7 +310,7 @@ export async function maybeRefreshLongMemory(supabase, userId, recentMessages, c
       : "";
     const examSection = teoriprovSection + mockSection + felBankSection;
 
-    const summaryPrompt = `Analysera EX1.0-konversationshistoriken och lärsignalerna nedan. Extrahera en elevprofil på svenska (max 130 ord).
+    const summaryPrompt = `Analysera P.E.R-konversationshistoriken och lärsignalerna nedan. Extrahera en elevprofil på svenska (max 130 ord).
 Skriv som strukturerade rader, inte löptext. Ta med bara sådant som syns i underlaget.
 
 Dataminimering:
@@ -397,6 +397,6 @@ ${histText || "Ingen chathistorik tillgänglig."}`;
       { onConflict: "user_id" }
     );
   } catch {
-    // Best-effort; never block the main EX1.0 request.
+    // Best-effort; never block the main P.E.R request.
   }
 }

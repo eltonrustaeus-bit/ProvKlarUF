@@ -1,4 +1,5 @@
 ﻿import { createClient } from "@supabase/supabase-js";
+import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
 
 function escapeHtml(str) {
   return String(str)
@@ -20,13 +21,13 @@ function buildWelcomeHtml(email) {
 
         <!-- Header -->
         <tr><td style="background:#0a130d;padding:28px 32px;border-bottom:1px solid rgba(27,255,140,.12)">
-          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">ProviaAI</span>
+          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">${BRAND_NAME}</span>
         </td></tr>
 
         <!-- Hero -->
         <tr><td style="padding:36px 32px 24px">
           <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:#e8f5ee;line-height:1.25">Ditt konto är redo. Nu kör vi.</h1>
-          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">ProviaAI anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
+          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">${BRAND_NAME} anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
         </td></tr>
 
         <!-- Steps -->
@@ -55,7 +56,7 @@ function buildWelcomeHtml(email) {
 
         <!-- Primary CTA -->
         <tr><td style="padding:0 32px 36px">
-          <a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
+          <a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
         </td></tr>
 
         <!-- Pricing section -->
@@ -77,7 +78,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      10 kursfrågor/dag &nbsp;·&nbsp; 2 AI-mockprov/vecka &nbsp;·&nbsp; 5 EX1.0/vecka
+                      10 kursfrågor/dag &nbsp;·&nbsp; 2 AI-mockprov/vecka &nbsp;·&nbsp; 5 P.E.R/vecka
                     </td>
                   </tr>
                 </table>
@@ -97,7 +98,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      30 teoriprov/mån &nbsp;·&nbsp; 30 AI-mockprov/mån &nbsp;·&nbsp; Obegränsad körkortsträning &nbsp;·&nbsp; EX1.0 5/dag
+                      30 teoriprov/mån &nbsp;·&nbsp; 30 AI-mockprov/mån &nbsp;·&nbsp; Obegränsad körkortsträning &nbsp;·&nbsp; P.E.R 5/dag
                     </td>
                   </tr>
                 </table>
@@ -118,7 +119,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      Obegränsat allt &nbsp;·&nbsp; Förbättringscoach &nbsp;·&nbsp; EX1.0 obegränsat
+                      Obegränsat allt &nbsp;·&nbsp; Förbättringscoach &nbsp;·&nbsp; P.E.R obegränsat
                     </td>
                   </tr>
                 </table>
@@ -127,7 +128,7 @@ function buildWelcomeHtml(email) {
           </table>
           <!-- Upgrade CTA -->
           <div style="margin-top:18px;text-align:center">
-            <a href="https://proviaai.se/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
+            <a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
           </div>
         </td></tr>
 
@@ -186,9 +187,9 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "ProviaAI <noreply@proviaai.se>",
+        from: `${BRAND_NAME} <noreply@proviaai.se>`,
         to: "elton.rustaeus@gmail.com",
-        subject: `Ny användare på ProviaAI — ${escapeHtml(email)}`,
+        subject: `Ny användare på ${BRAND_NAME} — ${escapeHtml(email)}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px">
             <h2 style="color:#1bff8c;margin:0 0 16px">Ny registrering</h2>
@@ -210,9 +211,9 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "ProviaAI <noreply@proviaai.se>",
+        from: `${BRAND_NAME} <noreply@proviaai.se>`,
         to: email,
-        subject: `Välkommen till ProviaAI!`,
+        subject: `Välkommen till ${BRAND_NAME}!`,
         html: buildWelcomeHtml(email)
       })
     });

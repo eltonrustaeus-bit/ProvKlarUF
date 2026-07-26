@@ -1,5 +1,6 @@
 import { requireAuth } from "./_auth.js";
 import { createClient } from "@supabase/supabase-js";
+import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -13,8 +14,8 @@ const PRICE_IDS = {
 };
 const SWISH_AMOUNTS = { basic: 2900, premium: 7900 };
 const SWISH_NAMES = {
-  basic: "ProviaAi Basic – 30 dagar",
-  premium: "ProviaAi Premium – 30 dagar",
+  basic: `${BRAND_NAME} Basic – 30 dagar`,
+  premium: `${BRAND_NAME} Premium – 30 dagar`,
 };
 
 function stripeBody(params) {
@@ -90,7 +91,7 @@ export default async function handler(req, res) {
       );
     }
 
-    const origin = "https://proviaai.se";
+    const origin = SITE_ORIGIN;
     let sessionParams;
 
     if (isSwish) {

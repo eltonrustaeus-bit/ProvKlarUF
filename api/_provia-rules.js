@@ -137,24 +137,24 @@ export function getDrivingQuestionCount() {
 
 export function buildPlanFacts() {
   return [
-    `Gratis: 0 kr, mockprov ${formatLimit(PLAN_RULES.gratis.mockExam)}, körkortsteorin ${formatLimit(PLAN_RULES.gratis.kkPractice)} kursfrågor (ingen teoriprov), EX1.0 ${formatLimit(PLAN_RULES.gratis.perChat)}.`,
-    `Basic: 29 kr/månad, mockprov ${formatLimit(PLAN_RULES.basic.mockExam)}, körkortstest ${formatLimit(PLAN_RULES.basic.drivingTest)} teoriprov + obegränsade kursfrågor, EX1.0 ${formatLimit(PLAN_RULES.basic.perChat)}.`,
-    "Premium: 79 kr/månad, obegränsade mockprov, obegränsade körkortstest, obegränsad EX1.0 och premiumfunktioner.",
+    `Gratis: 0 kr, mockprov ${formatLimit(PLAN_RULES.gratis.mockExam)}, körkortsteorin ${formatLimit(PLAN_RULES.gratis.kkPractice)} kursfrågor (ingen teoriprov), P.E.R ${formatLimit(PLAN_RULES.gratis.perChat)}.`,
+    `Basic: 29 kr/månad, mockprov ${formatLimit(PLAN_RULES.basic.mockExam)}, körkortstest ${formatLimit(PLAN_RULES.basic.drivingTest)} teoriprov + obegränsade kursfrågor, P.E.R ${formatLimit(PLAN_RULES.basic.perChat)}.`,
+    "Premium: 79 kr/månad, obegränsade mockprov, obegränsade körkortstest, obegränsad P.E.R och premiumfunktioner.",
   ].join("\n");
 }
 
 export function buildPublicProviaKnowledge() {
   const questionCount = getDrivingQuestionCount();
-  return `## PROVIA - FAKTA EX1.0 FÅR CITERA
+  return `## EXGEN - FAKTA P.E.R FÅR CITERA
 
-Vad är ProviaAI?
-ProviaAI (proviaai.se) är en AI-driven studieapp för elever och studenter. Provia stödjer både skolarbete/skolämnen och körkortsteori. Elever kan använda eget material eller OCR för att skapa AI-genererade mockprov, få rättning, feedback, modellsvar, förbättringssida med AI-coach, felbank, lärarrapport och EX1.0. Körkortsteorin är en egen del med ${questionCount} verifierade frågor.
+Vad är ExGen?
+ExGen (proviaai.se) är en AI-driven studieapp för elever och studenter. ExGen stödjer både skolarbete/skolämnen och körkortsteori. Elever kan använda eget material eller OCR för att skapa AI-genererade mockprov, få rättning, feedback, modellsvar, förbättringssida med AI-coach, felbank, lärarrapport och P.E.R. Körkortsteorin är en egen del med ${questionCount} verifierade frågor.
 
 Sidor:
 - Startsida: översikt, demo och launcher.
 - Mockprov/skolarbete: eget skolmaterial eller OCR -> AI genererar prov -> rättning med feedback och modellsvar.
 - Körkortsteorin: ${questionCount} frågor, kategorier, adaptivt lärande, SRS/repetition och simulerat teoriprov (teoriprov kräver Basic eller Premium).
-- Förbättring: historik, felbank, EX1.0-tips, lärarrapport, träningsläge och personlig studieplan.
+- Förbättring: historik, felbank, P.E.R-tips, lärarrapport, träningsläge och personlig studieplan.
 - Mitt konto: plan, uppgradering, Stripe-portal, avsluta abonnemang och logga ut.
 - Priser: jämför Gratis, Basic och Premium.
 

@@ -1,5 +1,5 @@
 ﻿// api/_provia-kb.js
-// Public Provia knowledge for EX1.0. Facts come from central product rules.
+// Public Provia knowledge for P.E.R. Facts come from central product rules.
 import { buildPublicProviaKnowledge } from "./_provia-rules.js";
 
 export const PROVIA_KB = buildPublicProviaKnowledge();

@@ -1,5 +1,5 @@
 "use strict";
-// SM-2 Spaced Repetition System for ProviaAI körkortsteorin
+// SM-2 Spaced Repetition System for ExGen körkortsteorin
 // localStorage key: proviaai_srs2
 
 const SRS_KEY = "proviaai_srs2";

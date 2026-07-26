@@ -1,4 +1,4 @@
-﻿/* Provia Shared — page transitions + welcome animation + EX1.0 widget */
+﻿/* Provia Shared — page transitions + welcome animation + P.E.R widget */
 (function () {
   'use strict';
 
@@ -86,7 +86,7 @@
     } catch (_) {}
   });
 
-  /* ── EX1.0 FLOATING WIDGET ── */
+  /* ── P.E.R FLOATING WIDGET ── */
   var PER_HIST_KEY = 'proviaai_per_history';
   var PER_MAX_HIST = 30;
   var PER_CORNER_KEY = 'proviaai_per_corner';
@@ -133,7 +133,7 @@
     }
   }
 
-  /* Pages call this to inject richer context into the EX1.0 widget */
+  /* Pages call this to inject richer context into the P.E.R widget */
   window.setPerContext = function(ctx) {
     window._perPageContext = ctx || null;
     if (ctx && window.PER && window.PER._resetNudge) window.PER._resetNudge();
@@ -277,7 +277,7 @@
       try { localStorage.setItem(gkey, '1'); } catch (_) {}
 
       var timerDone = false;
-      var nudgeText = '💬 Har du frågor om Provia?';
+      var nudgeText = '💬 Har du frågor om ExGen?';
 
       function showLandingNudge() {
         if (_open || timerDone) return;
@@ -294,7 +294,7 @@
           if (msgs) {
             var first = msgs.querySelector('.per-msg.teacher');
             if (first && !msgs.querySelector('.per-msg.user')) {
-              first.textContent = 'Vad undrar du om Provia? Priser, vad som ingår, varför vi slår ChatGPT — fråga på.';
+              first.textContent = 'Vad undrar du om ExGen? Priser, vad som ingår, varför vi slår ChatGPT — fråga på.';
             }
           }
         };
@@ -523,14 +523,14 @@
       if (sendBtn) sendBtn.disabled = true;
 
       addMsg(q, 'user');
-      var typing = addMsg('EX1.0 skriver…', 'teacher typing');
+      var typing = addMsg('P.E.R skriver…', 'teacher typing');
 
       var hist = perGetHist();
       var token = await getToken();
 
       try {
         var pageCtx = getPageContext();
-        var pageTopic = (pageCtx && pageCtx.page) ? pageCtx.page : 'Provia';
+        var pageTopic = (pageCtx && pageCtx.page) ? pageCtx.page : 'ExGen';
         var isLandingMode = !token; // 2 free questions for any unauthenticated user, any page
 
         // Landing quota gate
@@ -619,7 +619,7 @@
           if (typing) {
             if (r.status === 401) {
               typing.className = 'per-msg teacher';
-              typing.textContent = 'Logga in för att chatta med EX1.0.';
+              typing.textContent = 'Logga in för att chatta med P.E.R.';
             } else if (!r.ok) {
               typing.className = 'per-msg teacher';
               typing.textContent = data.error || 'Fel — försök igen.';
@@ -704,34 +704,53 @@
 
       var style = document.createElement('style');
       style.textContent = [
+        /* Phase 7: ExGen token palette (teal/mint gradient, navy). Teal/mint
+           are fills+borders only, never text (fail AA on light or dark bg —
+           see exgen-tokens.css contrast notes). Any text sitting on a solid
+           gradient/teal fill uses navy, which stays readable on those fills
+           regardless of page theme. Free-floating accent text uses
+           --per-accent-text instead of raw teal: exgen-tokens.css's own
+           --exgen-info-text (#0369A1) is only AA-safe on a LIGHT bg (5.67:1
+           on --exgen-bg-secondary) — it drops to 2.65:1 on the dark-mode
+           --exgen-bg-secondary, since exgen-tokens.css never redefines the
+           semantic *-text tokens in its prefers-color-scheme dark block.
+           --per-accent-text (defined per theme class below) picks
+           --exgen-info-text in light mode and the brighter raw
+           --exgen-info (#0EA5E9, 6.27:1+ on dark backgrounds) in dark mode.
+           Every var() carries a literal fallback for pages that don't load
+           exgen-tokens.css (integritetspolicy.html, provia-hp.html), and the
+           .per-theme-light/.per-theme-dark rules further down (paired with
+           a JS observer near document.body.appendChild(widget)) re-sync the
+           tokens with whichever element the page's own dark/light toggle
+           actually updates. */
         '#perWidget{position:fixed;bottom:22px;right:22px;z-index:9999;font-family:"DM Sans",sans-serif}',
-        '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--a,#1bff8c);border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:#08100d;box-shadow:0 4px 20px rgba(27,255,140,.4);transition:transform .15s,box-shadow .15s,color .15s}',
-        '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(27,255,140,.5)}',
-        '#perBubble.per-open{background:var(--s2,#162019);border:1px solid var(--l2,rgba(255,255,255,.15));color:var(--a,#1bff8c)}',
-        '#perPanel{display:none;position:absolute;bottom:64px;right:0;width:320px;background:var(--s,#111a15);border:1px solid var(--l2,rgba(255,255,255,.15));border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.6);overflow:hidden;flex-direction:column}',
+        '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-navy,#0E1B2A);box-shadow:0 4px 16px rgba(14,27,42,.28);transition:transform .15s,box-shadow .15s,color .15s}',
+        '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,183,217,.35)}',
+        '#perBubble.per-open{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--per-accent-text,#0369A1)}',
+        '#perPanel{display:none;position:absolute;bottom:64px;right:0;width:320px;background:var(--exgen-bg,#FFFFFF);border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-lg,20px);box-shadow:0 16px 48px rgba(14,27,42,.28);overflow:hidden;flex-direction:column}',
         '#perPanel.per-open{display:flex;animation:perUp .2s ease}',
         '@keyframes perUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}',
-        '.per-hdr{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--l,rgba(255,255,255,.08));background:var(--s2,#162019)}',
-        '.per-av{width:32px;height:32px;border-radius:50%;background:rgba(27,255,140,.12);border:1px solid rgba(27,255,140,.25);display:grid;place-items:center;flex-shrink:0;transition:background .2s,border-color .2s;overflow:hidden}',
-        '.per-nm{font-weight:700;font-size:13px;color:var(--t,#e8f5ee)}',
-        '.per-rl{font-size:10px;color:var(--t3,#5a7a6a);font-family:"DM Mono",monospace}',
-        '.per-clr{background:none;border:none;color:var(--t3,#5a7a6a);cursor:pointer;padding:5px;border-radius:6px;display:flex;align-items:center;justify-content:center;line-height:0;transition:color .15s,background .15s}',
-        '.per-clr:hover{color:var(--t,#e8f5ee);background:rgba(255,255,255,.07)}',
+        '.per-hdr{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--exgen-border,#E4E7EC);background:var(--exgen-bg-secondary,#F8FAFC)}',
+        '.per-av{width:32px;height:32px;border-radius:50%;background:rgba(0,183,217,.12);border:1px solid rgba(0,183,217,.28);display:grid;place-items:center;flex-shrink:0;transition:background .2s,border-color .2s;overflow:hidden}',
+        '.per-nm{font-weight:700;font-size:13px;color:var(--exgen-text,#1B2430)}',
+        '.per-rl{font-size:10px;color:var(--exgen-text-secondary,#667085);font-family:"DM Mono",monospace}',
+        '.per-clr{background:none;border:none;color:var(--exgen-text-secondary,#667085);cursor:pointer;padding:5px;border-radius:var(--exgen-radius-sm,8px);display:flex;align-items:center;justify-content:center;line-height:0;transition:color .15s,background .15s}',
+        '.per-clr:hover{color:var(--exgen-text,#1B2430);background:rgba(0,183,217,.1)}',
         '#perMessages{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;min-height:100px}',
         '.per-msg{font-size:13px;line-height:1.65;padding:9px 12px;border-radius:8px;max-width:90%;word-break:break-word}',
-        '.per-msg.teacher{background:rgba(27,255,140,.07);border:1px solid rgba(27,255,140,.15);color:var(--t2,#a8c4b4);border-radius:8px 8px 8px 3px}',
-        '.per-msg.user{background:var(--s2,#162019);border:1px solid var(--l,rgba(255,255,255,.08));color:var(--t,#e8f5ee);border-radius:8px 8px 3px 8px;margin-left:auto}',
-        '.per-msg.typing{color:var(--t3,#5a7a6a);font-style:italic}',
-        '.per-inp-row{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--l,rgba(255,255,255,.08))}',
-        '#perInput{flex:1;background:var(--s2,#162019);border:1px solid var(--l,rgba(255,255,255,.08));border-radius:6px;padding:8px 10px;font-size:13px;color:var(--t,#e8f5ee);font-family:inherit;outline:none}',
-        '#perInput:focus{border-color:var(--l2,rgba(255,255,255,.25))}',
-        '#perSendBtn{background:var(--a,#1bff8c);color:#08100d;border:none;border-radius:6px;padding:0 12px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap}',
-        '#perSendBtn:hover{background:var(--a2,#00e67a)}',
+        '.per-msg.teacher{background:rgba(0,183,217,.07);border:1px solid rgba(0,183,217,.18);color:var(--exgen-text,#1B2430);border-radius:8px 8px 8px 3px}',
+        '.per-msg.user{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--exgen-text,#1B2430);border-radius:8px 8px 3px 8px;margin-left:auto}',
+        '.per-msg.typing{color:var(--exgen-text-secondary,#667085);font-style:italic}',
+        '.per-inp-row{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--exgen-border,#E4E7EC)}',
+        '#perInput{flex:1;background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-sm,8px);padding:8px 10px;font-size:13px;color:var(--exgen-text,#1B2430);font-family:inherit;outline:none}',
+        '#perInput:focus{border-color:var(--exgen-teal,#00B7D9)}',
+        '#perSendBtn{background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));color:var(--exgen-navy,#0E1B2A);border:none;border-radius:var(--exgen-radius-sm,8px);padding:0 12px;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap}',
+        '#perSendBtn:hover{filter:brightness(1.06)}',
         '#perSendBtn:disabled{opacity:.4;cursor:not-allowed}',
-        '@keyframes perPulse{0%,100%{box-shadow:0 4px 20px rgba(27,255,140,.4)}50%{box-shadow:0 4px 32px rgba(27,255,140,.85),0 0 0 7px rgba(27,255,140,.12)}}',
+        '@keyframes perPulse{0%,100%{box-shadow:0 4px 16px rgba(0,183,217,.35)}50%{box-shadow:0 4px 28px rgba(0,183,217,.7),0 0 0 7px rgba(0,183,217,.12)}}',
         '#perBubble.per-nudge{animation:perPulse 1.1s ease-in-out 2}',
-        '#perNudge{position:absolute;bottom:64px;right:0;background:var(--s,#111a15);border:1px solid rgba(27,255,140,.3);border-radius:10px;padding:9px 14px;font-size:12.5px;font-family:"DM Sans",sans-serif;color:var(--t,#e8f5ee);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.55);cursor:pointer;animation:perUp .22s ease;z-index:1;user-select:none}',
-        '#perNudge:hover{border-color:rgba(27,255,140,.55);background:var(--s2,#162019)}',
+        '#perNudge{position:absolute;bottom:64px;right:0;background:var(--exgen-bg,#FFFFFF);border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-md,12px);padding:9px 14px;font-size:12.5px;font-family:"DM Sans",sans-serif;color:var(--exgen-text,#1B2430);white-space:nowrap;box-shadow:0 8px 24px rgba(14,27,42,.24);cursor:pointer;animation:perUp .22s ease;z-index:1;user-select:none}',
+        '#perNudge:hover{border-color:rgba(0,183,217,.4);background:var(--exgen-bg-secondary,#F8FAFC)}',
         '#perNudge.per-hide{opacity:0;transform:translateY(6px);transition:opacity .3s ease,transform .3s ease;pointer-events:none}',
         '#perWidget.per-minimized{transform:scale(.001);opacity:0;pointer-events:none;transition:transform .15s ease,opacity .15s ease}',
         '@media(max-width:480px){#perPanel{width:calc(100vw - 32px);right:0;left:auto;max-width:340px}}',
@@ -740,41 +759,54 @@
         '@media(max-width:480px){#perWidget.per-left{left:16px!important}}',
         '#perWidget.per-left #perPanel{right:auto;left:0}',
         '@media(max-width:480px){#perWidget.per-left #perPanel{right:auto!important;left:0!important}}',
-        '#perMicBtn{background:none;border:1px solid var(--l,rgba(255,255,255,.08));border-radius:6px;padding:0 9px;cursor:pointer;font-size:14px;color:var(--t2,#a8c4b4);transition:border-color .2s,color .2s;flex-shrink:0}',
-        '#perMicBtn:hover{border-color:var(--l2,rgba(255,255,255,.25))}',
-        '#perMicBtn.listening{border-color:var(--a,#1bff8c);color:var(--a,#1bff8c);animation:perPulse .9s ease-in-out infinite}',
+        '#perMicBtn{background:none;border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-sm,8px);padding:0 9px;cursor:pointer;font-size:14px;color:var(--exgen-text-secondary,#667085);transition:border-color .2s,color .2s;flex-shrink:0}',
+        '#perMicBtn:hover{border-color:var(--exgen-teal,#00B7D9)}',
+        '#perMicBtn.listening{border-color:var(--exgen-teal,#00B7D9);color:var(--per-accent-text,#0369A1);animation:perPulse .9s ease-in-out infinite}',
         '.per-hdr-btns{display:flex;gap:4px;margin-left:auto}',
         '.per-dots{display:inline-flex;align-items:center;gap:3px;padding:2px 0}',
-        '.per-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--a,#1bff8c);opacity:.7;animation:perBounce 1.1s ease-in-out infinite}',
+        '.per-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--exgen-teal,#00B7D9);opacity:.7;animation:perBounce 1.1s ease-in-out infinite}',
         '.per-dots span:nth-child(2){animation-delay:.18s}',
         '.per-dots span:nth-child(3){animation-delay:.36s}',
         '@keyframes perBounce{0%,60%,100%{transform:translateY(0);opacity:.7}30%{transform:translateY(-5px);opacity:1}}',
         '.per-ul{margin:4px 0 4px 14px;padding:0;list-style:disc}',
         '.per-ul li{margin:2px 0}',
-        '.per-msg.teacher:hover{border-color:rgba(27,255,140,.3)}',
-        '#perLandingBar{display:none;justify-content:space-between;align-items:center;padding:6px 14px;background:rgba(27,255,140,.04);border-bottom:1px solid rgba(27,255,140,.1);font-size:11px;font-family:var(--mono);color:var(--t3,#5a7a6a)}',
+        '.per-msg.teacher:hover{border-color:rgba(0,183,217,.32)}',
+        '#perLandingBar{display:none;justify-content:space-between;align-items:center;padding:6px 14px;background:rgba(0,183,217,.05);border-bottom:1px solid rgba(0,183,217,.14);font-size:11px;font-family:var(--exgen-font-mono,ui-monospace,monospace);color:var(--exgen-text-secondary,#667085)}',
         '#perLandingBar.visible{display:flex}',
-        '#perLandingBar a{color:var(--a,#1bff8c);text-decoration:none;font-weight:600;flex-shrink:0;margin-left:8px}',
+        '#perLandingBar a{color:var(--per-accent-text,#0369A1);text-decoration:none;font-weight:600;flex-shrink:0;margin-left:8px}',
         '#perLandingBar a:hover{text-decoration:underline}',
-        '.per-answer-cta{display:block;margin-top:10px;padding:9px 14px;background:var(--a,#1bff8c);color:#08100d;border-radius:6px;font-size:12.5px;font-weight:700;text-decoration:none;text-align:center}',
-        '.per-answer-cta:hover{opacity:.88}',
-        '.per-av-txt{font-size:9px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--a,#1bff8c);user-select:none}',
+        '.per-answer-cta{display:block;margin-top:10px;padding:9px 14px;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));color:var(--exgen-navy,#0E1B2A);border-radius:var(--exgen-radius-sm,8px);font-size:12.5px;font-weight:700;text-decoration:none;text-align:center}',
+        '.per-answer-cta:hover{filter:brightness(1.06)}',
+        '.per-av-txt{font-size:9px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-text,#1B2430);user-select:none}',
         '.per-av-bars{display:none;align-items:flex-end;gap:2px;height:16px}',
-        '.per-av-bars span{display:inline-block;width:3px;border-radius:3px;background:var(--a,#1bff8c)}',
+        '.per-av-bars span{display:inline-block;width:3px;border-radius:3px;background:var(--exgen-teal,#00B7D9)}',
         '.per-av-bars span:nth-child(1){height:5px;animation:perListen .9s ease-in-out infinite}',
         '.per-av-bars span:nth-child(2){height:11px;animation:perListen .9s ease-in-out .15s infinite}',
         '.per-av-bars span:nth-child(3){height:7px;animation:perListen .9s ease-in-out .3s infinite}',
         '@keyframes perListen{0%,100%{transform:scaleY(1);opacity:.8}50%{transform:scaleY(1.7);opacity:1}}',
-        '.per-av.per-listening{background:rgba(27,255,140,.22);border-color:rgba(27,255,140,.55)}',
+        '.per-av.per-listening{background:rgba(0,183,217,.22);border-color:rgba(0,183,217,.5)}',
         '.per-av.per-listening .per-av-txt{display:none}',
         '.per-av.per-listening .per-av-bars{display:flex}',
         '.per-chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 2px}',
-        '.per-chip{background:none;border:1px solid rgba(27,255,140,.3);border-radius:20px;color:var(--a,#1bff8c);font-size:11.5px;font-family:"DM Sans",sans-serif;padding:5px 11px;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}',
-        '.per-chip:hover{background:rgba(27,255,140,.08);border-color:rgba(27,255,140,.6)}',
-        '.per-nav-cta{display:inline-flex;align-items:center;margin-top:10px;padding:8px 14px;background:none;border:1px solid rgba(27,255,140,.35);color:var(--a,#1bff8c);border-radius:6px;font-size:12px;font-family:"DM Sans",sans-serif;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}',
-        '.per-nav-cta:hover{background:rgba(27,255,140,.08);border-color:rgba(27,255,140,.7)}',
+        '.per-chip{background:none;border:1px solid rgba(0,183,217,.32);border-radius:var(--exgen-radius-pill,999px);color:var(--exgen-text,#1B2430);font-size:11.5px;font-family:"DM Sans",sans-serif;padding:5px 11px;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}',
+        '.per-chip:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.6)}',
+        '.per-nav-cta{display:inline-flex;align-items:center;margin-top:10px;padding:8px 14px;background:none;border:1px solid rgba(0,183,217,.38);color:var(--exgen-text,#1B2430);border-radius:var(--exgen-radius-sm,8px);font-size:12px;font-family:"DM Sans",sans-serif;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}',
+        '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
-        '@media(max-width:480px){#perPanel{max-height:70dvh}}'
+        '@media(max-width:480px){#perPanel{max-height:70dvh}}',
+        /* Re-sync exgen tokens with the page's own light/dark toggle (default
+           dark) — same intent as exgen-shell.css's Phase 4 fix, without it
+           an OS-level dark preference can leak through exgen-tokens.css's
+           unconditional prefers-color-scheme block. Scoped by a JS-managed
+           class (the MutationObserver near document.body.appendChild(widget)
+           below), not an html.light/:not(.light) selector: the toggle
+           button on most pages (app/index/korkortet/
+           förbättring/pricing) flips document.body.classList, not <html> —
+           only the initial page-load script sets the class on <html>, so a
+           pure-CSS selector keyed off <html> goes stale the moment the user
+           clicks the toggle without a reload. */
+        '#perWidget.per-theme-dark{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549;--per-accent-text:var(--exgen-info,#0EA5E9)}',
+        '#perWidget.per-theme-light{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC;--per-accent-text:var(--exgen-info-text,#0369A1)}'
       ].join('');
       document.head.appendChild(style);
 
@@ -784,9 +816,9 @@
         '<div id="perPanel">' +
           '<div class="per-hdr">' +
             '<div class="per-av"><span class="per-av-txt">PER</span><span class="per-av-bars"><span></span><span></span><span></span></span></div>' +
-            '<div><div class="per-nm">EX1.0</div><div class="per-rl">PROVIAS AI</div></div>' +
+            '<div><div class="per-nm">P.E.R</div><div class="per-rl">EXGENS AI</div></div>' +
             '<div class="per-hdr-btns">' +
-              '<button class="per-clr" id="perQuizBtn" title="Quiz – EX1.0 frågar dig"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/></svg></button>' +
+              '<button class="per-clr" id="perQuizBtn" title="Quiz – P.E.R frågar dig"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/></svg></button>' +
               '<button class="per-clr" id="perReadyBtn" title="Din körkortsredo-score"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>' +
               '<button class="per-clr" id="perCornerBtn" title="Flytta widget"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>' +
               '<button class="per-clr" id="perSizeBtn" title="Ändra storlek"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>' +
@@ -798,13 +830,54 @@
             '<div class="per-msg teacher">Vad kan jag hjälpa dig med?</div>' +
           '</div>' +
           '<div class="per-inp-row">' +
-            '<input id="perInput" type="text" placeholder="Fråga EX1.0…" autocomplete="off" />' +
-            '<button id="perMicBtn" title="Tala med EX1.0">🎤</button>' +
+            '<input id="perInput" type="text" placeholder="Fråga P.E.R…" autocomplete="off" />' +
+            '<button id="perMicBtn" title="Tala med P.E.R">🎤</button>' +
             '<button id="perSendBtn">Skicka</button>' +
           '</div>' +
         '</div>' +
-        '<button id="perBubble" title="Chatta med EX1.0">P·E·R</button>';
+        '<button id="perBubble" title="Chatta med P.E.R">P·E·R</button>';
       document.body.appendChild(widget);
+
+      // Pages disagree on which element carries the '.light' class: the
+      // initial page-load script sets it on <html>, but most in-page toggle
+      // buttons flip it on <body> instead (see comment above the
+      // per-theme-dark/light CSS rules). Rather than guess a selector,
+      // watch both elements and mirror whichever currently says 'light'.
+      (function () {
+        // Whichever element's class attribute actually changes first is the
+        // one this page's toggle button uses — trust only that one from
+        // then on. A plain OR of both elements breaks the moment a page's
+        // toggle only ever touches <body>: <html> keeps its stale initial
+        // 'light' class forever, so OR can never see the switch to dark.
+        var liveSource = null; // 'html' | 'body' | null (before first toggle)
+        var isLight = function () {
+          if (liveSource === 'body') return document.body.classList.contains('light');
+          if (liveSource === 'html') return document.documentElement.classList.contains('light');
+          return document.documentElement.classList.contains('light') || document.body.classList.contains('light');
+        };
+        var sync = function () {
+          var light = isLight();
+          widget.classList.toggle('per-theme-light', light);
+          widget.classList.toggle('per-theme-dark', !light);
+        };
+        sync();
+        // Only re-pin liveSource when the 'light' class itself actually
+        // flipped — other unrelated class churn on body/html (e.g. the
+        // transient 'pg-leaving' class added during page-navigation clicks
+        // elsewhere in this file) must not hijack which element we trust.
+        var lastHtmlLight = document.documentElement.classList.contains('light');
+        var lastBodyLight = document.body.classList.contains('light');
+        var mo = new MutationObserver(function () {
+          var h = document.documentElement.classList.contains('light');
+          var b = document.body.classList.contains('light');
+          if (h !== lastHtmlLight) liveSource = 'html';
+          else if (b !== lastBodyLight) liveSource = 'body';
+          lastHtmlLight = h; lastBodyLight = b;
+          sync();
+        });
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      })();
 
       document.getElementById('perBubble').onclick = toggle;
 
@@ -944,7 +1017,7 @@
           _micListening = active;
           if (micBtn) micBtn.classList.toggle('listening', active);
           if (perAvEl) perAvEl.classList.toggle('per-listening', active);
-          if (perInpEl) perInpEl.placeholder = active ? 'Lyssnar…' : 'Fråga EX1.0…';
+          if (perInpEl) perInpEl.placeholder = active ? 'Lyssnar…' : 'Fråga P.E.R…';
         }
 
         function createRecognition() {
@@ -1042,7 +1115,7 @@
       /* Landing pages: first-visit intro or recurring nudge */
       if (isLanding()) {
         var firstMsg = document.querySelector('#perMessages .per-msg.teacher');
-        if (firstMsg) firstMsg.textContent = 'Vad undrar du om Provia?';
+        if (firstMsg) firstMsg.textContent = 'Vad undrar du om ExGen?';
         if (isFirstVisit()) {
           markVisited();
           setTimeout(function() {
@@ -1054,10 +1127,10 @@
                 if (introDiv) {
                   introDiv.className = 'per-msg teacher';
                   introDiv.innerHTML = '';
-                  var introText = 'Hallå! Jag är EX1.0. Jag svarar på allt om Provia — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
+                  var introText = 'Hallå! Jag är P.E.R. Jag svarar på allt om ExGen — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
                   typewriterMsg(introDiv, introText, 14);
                   setTimeout(function() {
-                    addQuickReplies(['Vad är Provia?', 'Varför inte ChatGPT?', 'Vad kostar det?']);
+                    addQuickReplies(['Vad är ExGen?', 'Varför inte ChatGPT?', 'Vad kostar det?']);
                   }, 2600);
                 }
               }
@@ -1223,7 +1296,7 @@
       '<span class="ckIcon" aria-hidden="true">🍪</span>' +
       '<div class="ckBody">' +
       '<div class="ckTitle">Vi använder cookies</div>' +
-      '<p class="ckText">ProviaAi sparar din inloggning, progress och inställningar lokalt på din enhet. ' +
+      '<p class="ckText">ExGen sparar din inloggning, progress och inställningar lokalt på din enhet. ' +
       'Vi använder inga spårningscookies eller annonsverktyg. ' +
       '<a href="/integritetspolicy.html">Läs mer</a></p>' +
       '<div class="ckBtns">' +
@@ -1375,7 +1448,7 @@
       el.innerHTML = '<div id="pvCard">'
         + '<div class="pv-hd">'
           + '<button class="pv-cl" id="pvCl" aria-label="Stäng">✕</button>'
-          + '<img class="pv-lg" src="image/proviaai-logo.png" alt="ProviaAi">'
+          + '<img class="pv-lg" src="image/proviaai-logo.png" alt="ExGen">'
           + '<div class="pv-ti" id="pvTi">Välkommen!</div>'
           + '<div class="pv-sb" id="pvSb">GRATIS ATT STARTA · INGET KORT KRÄVS</div>'
         + '</div>'

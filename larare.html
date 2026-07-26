@@ -5,7 +5,7 @@
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-  <title>ProviaAi – Lärare</title>
+  <title>ExGen – Lärare</title>
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
@@ -122,7 +124,7 @@
   .spark.lg{width:100%;height:auto}
   .spark.empty{color:var(--t3);font-family:var(--mono);font-size:11px}
 
-  /* EX1.0 insight */
+  /* P.E.R insight */
   .insightBox{border:1px solid rgba(27,255,140,.25);border-radius:8px;background:rgba(27,255,140,.04);padding:16px 18px;margin-bottom:16px}
   .insightHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
   .insightTitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--a);font-weight:500}
@@ -170,14 +172,14 @@
 <body>
   <div class="wrap">
     <nav class="topNav">
-      <div class="brand">Provia<b>Ai</b> · Lärare</div>
+      <div class="xg-brand-name">ExGen · Lärare</div>
       <a class="btn ghost" href="/app.html">← Appen</a>
     </nav>
 
     <header class="pageHero">
-      <div class="kontoEye">Lärarpanel · För skolor & gymnasiet</div>
-      <h1>Lärar-dashboard</h1>
-      <p class="pageSub">Skapa klasser, dela klasskoden med dina elever och följ deras framsteg i skolarbetet — mockprov på egna ämnen, svaga begrepp och aktivitet.</p>
+      <div class="xg-eyebrow">Lärarpanel · För skolor & gymnasiet</div>
+      <h1 class="xg-h1">Lärar-dashboard</h1>
+      <p class="xg-sub">Skapa klasser, dela klasskoden med dina elever och följ deras framsteg i skolarbetet — mockprov på egna ämnen, svaga begrepp och aktivitet.</p>
       <div class="whoLabel" id="whoLabel">Laddar…</div>
     </header>
 
@@ -220,7 +222,7 @@
               <div class="kCardLabel">Klass</div>
               <div class="kCardTitle" id="studentsHead">Elever</div>
             </div>
-            <button class="btn ghost per" id="insightBtn">✦ EX1.0 klass-insikt</button>
+            <button class="btn ghost per" id="insightBtn">✦ P.E.R klass-insikt</button>
           </div>
         </div>
         <div class="kCardBody">
@@ -505,7 +507,7 @@ async function openStudent(sid){
 }
 function closeDrilldown(){ document.getElementById('ddOverlay').classList.remove('open'); }
 
-/* ── EX1.0 CLASS INSIGHT (cached 24h per class) ── */
+/* ── P.E.R CLASS INSIGHT (cached 24h per class) ── */
 const INSIGHT_TTL = 24*60*60*1000;
 const INSIGHT_HEADINGS = ['Klassläge:','Elever som behöver stöd:','Svagaste begrepp/områden i klassen:','Rekommenderad träning (nästa 1–2 veckor):'];
 function insightKey(id){ return 'proviaai_teacher_insight_'+id; }
@@ -519,7 +521,7 @@ function renderInsight(text,ts){
   const box=document.getElementById('insightBox'); box.style.display='';
   box.innerHTML=`
     <div class="insightHead">
-      <span class="insightTitle">✦ EX1.0 · Klassinsikt</span>
+      <span class="insightTitle">✦ P.E.R · Klassinsikt</span>
       <span class="insightMeta">${fmtDate(ts)} · <button class="linkBtn" id="refreshInsight">Uppdatera</button></span>
     </div>
     <div class="insightBody">${fmtInsight(text)}</div>`;
@@ -531,7 +533,7 @@ async function loadInsight(force){
     const raw=localStorage.getItem(insightKey(id));
     if(raw){ try{ const c=JSON.parse(raw); if(Date.now()-c.ts<INSIGHT_TTL){ renderInsight(c.insight,c.ts); return; } }catch(_){} }
   }
-  box.style.display=''; box.innerHTML='<div class="insightLoading">EX1.0 analyserar klassen…</div>';
+  box.style.display=''; box.innerHTML='<div class="insightLoading">P.E.R analyserar klassen…</div>';
   try{
     const r=await api('teacher_class_insight',{ classId:id });
     localStorage.setItem(insightKey(id),JSON.stringify({ insight:r.insight, ts:Date.now() }));
@@ -582,7 +584,7 @@ document.getElementById('studentsBody').addEventListener('keydown',e=>{
   if(row){ e.preventDefault(); openStudent(row.getAttribute('data-sid')); }
 });
 
-// EX1.0 insight button + delegated refresh link
+// P.E.R insight button + delegated refresh link
 document.getElementById('insightBtn').addEventListener('click',()=>loadInsight(false));
 document.getElementById('insightBox').addEventListener('click',e=>{
   if(e.target.id==='refreshInsight') loadInsight(true);

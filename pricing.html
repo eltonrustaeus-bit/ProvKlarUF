@@ -5,8 +5,8 @@
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-  <title>Priser & Planer – ProviaAi</title>
-  <meta name="description" content="Välj rätt plan för dig. ProviaAi erbjuder gratis- och betalda planer med AI-genererade prov på eget material, körkortsteorin, AI-förklaringar och personlig studiecoach." />
+  <title>Priser & Planer – ExGen</title>
+  <meta name="description" content="Välj rätt plan för dig. ExGen erbjuder gratis- och betalda planer med AI-genererade prov på eget material, körkortsteorin, AI-förklaringar och personlig studiecoach." />
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
@@ -15,6 +15,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
   <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
@@ -156,28 +158,28 @@
 <div id="ldr" class="loader" aria-hidden="true">
   <div style="display:grid;place-items:center">
     <div class="lOrb"></div>
-    <div class="lTxt">ProviaAI</div>
+    <div class="lTxt">ExGen</div>
   </div>
 </div>
 
 <!-- HEADER -->
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<header class="xg-header">
+  <div class="xg-header-wrap">
+    <a class="xg-brand" href="index.html">
+      <span class="xg-mark" aria-hidden="true">Ex</span>
       <div>
-        <div class="bName">ProviaAi</div>
-        <div class="bTag">Priser · Medlemskap</div>
+        <div class="xg-brand-name">ExGen</div>
+        <div class="xg-brand-tag">Priser · Medlemskap</div>
       </div>
     </a>
     <div class="hR">
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink" href="index.html">Hem</a>
-        <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink" href="förbättring.html">Förbättring</a>
-        <a class="hNavLink active" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link" href="index.html">Hem</a>
+        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link active" href="pricing.html" aria-current="page">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
         <span class="tglIcon" id="tglIcon">☀️</span>
@@ -201,7 +203,7 @@
 </header>
 
 <div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
-  <span>⚡ ProviaAi är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
+  <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
   <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
@@ -223,7 +225,7 @@
     <div class="planCard rev d1">
       <span class="planBadge muted">Gratis</span>
       <div class="planName">Gratis</div>
-      <div class="planDesc">Prova ProviaAi utan kostnad.</div>
+      <div class="planDesc">Prova ExGen utan kostnad.</div>
       <div class="planPriceRow">
         <span class="planAmt">0</span>
         <span class="planCurr">kr</span>
@@ -240,7 +242,7 @@
         <li>Repetitionsläge (SRS) — alltid gratis</li>
         <li>2 AI-mockprov per vecka</li>
         <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
-        <li>EX1.0 AI-assistent — 5 frågor / vecka</li>
+        <li>P.E.R AI-assistent — 5 frågor / vecka</li>
         <li class="dim">Teoriprov — kräver Basic</li>
       </ul>
 
@@ -270,10 +272,10 @@
         <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
         <li>Historik — följ din utveckling över tid</li>
         <li>Bokmärken, XP &amp; statistik per kategori</li>
-        <li>EX1.0 AI-assistent — 5 frågor / dag</li>
+        <li>P.E.R AI-assistent — 5 frågor / dag</li>
       </ul>
 
-      <div class="planNote2">Basic ger dig teoriprov, obegränsad körkortsträning och daglig EX1.0-hjälp. Uppgradera till Premium för AI-coaching och felbank.</div>
+      <div class="planNote2">Basic ger dig teoriprov, obegränsad körkortsträning och daglig P.E.R-hjälp. Uppgradera till Premium för AI-coaching och felbank.</div>
       <button class="planCta outline" id="btn-basic" onclick="startCheckout('basic')">Kom igång med Basic</button>
     </div>
 
@@ -296,13 +298,13 @@
         <li>Körkortsteorin — obegränsad träning</li>
         <li>Adaptivt lärande — fokuserar dina svagheter automatiskt</li>
         <li>Obegränsade AI-mockprov</li>
-        <li>EX1.0 AI-assistent — obegränsat (ser din skärm)</li>
-        <li>EX1.0 Coach: personlig studieplan från dina misstag</li>
+        <li>P.E.R AI-assistent — obegränsat (ser din skärm)</li>
+        <li>P.E.R Coach: personlig studieplan från dina misstag</li>
         <li>Felbank + träningsläge för svagheter</li>
         <li>Lärarrapport &amp; historik</li>
       </ul>
 
-      <div class="planNote2">Premium ger dig EX1.0 utan gräns — din personliga AI-Resource som ser exakt vad du jobbar med och hjälper dig klara provet snabbare.</div>
+      <div class="planNote2">Premium ger dig P.E.R utan gräns — din personliga AI-Resource som ser exakt vad du jobbar med och hjälper dig klara provet snabbare.</div>
       <button class="planCta" id="btn-premium" onclick="startCheckout('premium')">Kom igång med Premium</button>
     </div>
 
@@ -342,10 +344,10 @@
         <tr><td>Resultat &amp; poängöversikt</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Historik</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>OCR från bild</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>EX1.0 AI-assistent (chatt)</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">5/vecka</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">5/dag</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
-        <tr><td>EX1.0 ser aktuell fråga/prov</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>P.E.R AI-assistent (chatt)</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">5/vecka</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">5/dag</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
+        <tr><td>P.E.R ser aktuell fråga/prov</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>AI-coach &amp; personlig plan</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Felbank med EX1.0-tips</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr><td>Felbank med P.E.R-tips</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Träning från misstag</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Lärarrapport</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Synk mellan enheter</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
@@ -411,16 +413,16 @@
 </main>
 
 
-<footer>
+<footer class="xg-footer">
   <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap">
-    <span>© 2025 ProviaAi</span>
-    <span style="color:var(--l2)">·</span>
-    <a href="index.html" class="fLink">Hem</a>
-    <span style="color:var(--l2)">·</span>
-    <a href="app.html" class="fLink">Mockprov</a>
-    <span style="color:var(--l2)">·</span>
-    <a href="korkortet.html" class="fLink">Körkortsteorin</a>
-    <span style="color:var(--l2)">·</span>
+    <span>© 2025 ExGen</span>
+    <span>·</span>
+    <a href="index.html">Hem</a>
+    <span>·</span>
+    <a href="app.html">Mockprov</a>
+    <span>·</span>
+    <a href="korkortet.html">Körkortsteorin</a>
+    <span>·</span>
     <span>Studiestöd — ingen officiell betygssättning</span>
   </div>
 </footer>

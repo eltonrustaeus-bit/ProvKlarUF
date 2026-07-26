@@ -5,7 +5,7 @@
   <script src="/js/intro-splash.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
-<title>ProviaAi – App</title>
+<title>ExGen – App</title>
 <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
 <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
 <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
@@ -14,6 +14,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="exgen-tokens.css" />
+<link rel="stylesheet" href="exgen-shell.css" />
 <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <style>
@@ -507,7 +509,7 @@ white-space:nowrap;
 <div id="pageLoader" class="pageLoader" aria-hidden="true">
 <div style="display:grid;place-items:center">
 <div class="loaderOrb"></div>
-<div class="loaderText">ProviaAI</div>
+<div class="loaderText">ExGen</div>
 </div>
 </div>
 
@@ -520,9 +522,9 @@ white-space:nowrap;
 <div id="loginScreen" class="loginOverlay" aria-hidden="false">
 <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
 <div class="loginTop">
-<img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<img src="image/proviaai-logo.png" alt="ExGen logga">
 <div>
-<div class="loginTitle" id="lockTitle">ProviaAi</div>
+<div class="loginTitle" id="lockTitle">ExGen</div>
 <div class="loginSub" id="lockSub">Logga in eller skapa konto</div>
 </div>
 </div>
@@ -553,23 +555,23 @@ white-space:nowrap;
 </div>
 </div>
 
-<header>
-<div class="hWrap">
-<a class="brand" href="index.html">
-<img src="image/proviaai-logo.png" alt="ProviaAi logga">
+<header class="xg-header">
+<div class="xg-header-wrap">
+<a class="xg-brand" href="index.html">
+<span class="xg-mark" aria-hidden="true">Ex</span>
 <div>
-<div class="brandName" id="brandName">ProviaAi</div>
-<div class="brandTag" id="brandTag">Mockprov · Rättning · Modellsvar</div>
+<div class="xg-brand-name" id="brandName">ExGen</div>
+<div class="xg-brand-tag" id="brandTag">Mockprov · Rättning · Modellsvar</div>
 </div>
 </a>
 <div class="hRight">
-<nav class="hNav" aria-label="Huvudnavigation">
-  <a class="hNavLink" href="index.html">Hem</a>
-  <a class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-  <a class="hNavLink active" href="app.html">Mockprov</a>
-  <a class="hNavLink" href="förbättring.html">Förbättring</a>
-  <a class="hNavLink" href="pricing.html">Priser</a>
-  <a class="hNavLink" href="konto.html">Konto</a>
+<nav class="xg-nav" aria-label="Huvudnavigation">
+  <a class="xg-nav-link" href="index.html">Hem</a>
+  <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+  <a class="xg-nav-link active" href="app.html" aria-current="page">Mockprov</a>
+  <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+  <a class="xg-nav-link" href="pricing.html">Priser</a>
+  <a class="xg-nav-link" href="konto.html">Konto</a>
 </nav>
 <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
 <span class="tglIcon" id="tglIcon">🌙</span>
@@ -599,7 +601,7 @@ white-space:nowrap;
 </header>
 
 <div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
-  <span>⚡ ProviaAi är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
+  <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
   <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
@@ -609,7 +611,7 @@ white-space:nowrap;
 <div class="hero reveal">
 <div class="eyebrow">Provgenererare</div>
 <h1 class="heroTitle">Skapa <em>mockprov</em> på sekunder</h1>
-<p class="heroSub" id="heroSubText">Klistra in ditt studiematerial, välj nivå och antal frågor — ProviaAi genererar ett komplett prov med automatisk rättning och modellsvar.</p>
+<p class="heroSub" id="heroSubText">Klistra in ditt studiematerial, välj nivå och antal frågor — ExGen genererar ett komplett prov med automatisk rättning och modellsvar.</p>
 <div class="statusRow">
 <div class="sDot ok" id="sDotMain"></div>
 <span class="statusLabel" id="miniState">PROV: —</span>
@@ -817,7 +819,7 @@ Rätta prov
 </div>
 
 </main>
-<footer id="footerText">ProviaAi är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html" class="fLink">Integritetspolicy</a></footer>
+<footer class="xg-footer" id="footerText">ExGen är studiestöd och ger ingen officiell betygssättning. · <a href="integritetspolicy.html">Integritetspolicy</a></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -891,7 +893,7 @@ sv:{
   ocrWorking:"OCR pågår…",ocrDone:"OCR klart. Texten lades in i materialet.",
   writeAnswer:"Skriv ditt svar här…",fullScore:"Modellsvar (full poäng)",
   genFirst:"Skapa mockprov först.",cleared:"Allt rensat. Börja om.",
-  footer:"ProviaAi är studiestöd och ger ingen officiell betygssättning.",
+  footer:"ExGen är studiestöd och ger ingen officiell betygssättning.",
   trainLoaded:"Träningsläge: materialet är byggt av dina valda misstag. Skapa ett nytt mockprov.",
   quotaHitWeek:"Du har använt dina 2 gratis prov den här veckan. Uppgradera till Basic för 30 prov/månad.",
   quotaHitMonth:"Du har nått månadsgränsen. Uppgradera till Premium för obegränsat.",
@@ -900,7 +902,7 @@ sv:{
   wNext0:"Nästa: Inställningar →",wHint0:"Klistra in ditt studiematerial ovan",
   wHint1:'Redo? Tryck "Skapa mockprov" — du får frågorna direkt',
   wBack:"← Tillbaka",wNext2:"Rätta prov →",wRestart:"Nytt prov →",
-  heroSub:"Klistra in ditt studiematerial, välj nivå och antal frågor — ProviaAi genererar ett komplett prov med automatisk rättning och modellsvar.",
+  heroSub:"Klistra in ditt studiematerial, välj nivå och antal frågor — ExGen genererar ett komplett prov med automatisk rättning och modellsvar.",
   howtoTitle:"Hur det fungerar",
   howtoText:"Följ stegen nedan i ordning: Lägg in material → Välj inställningar → Besvara provet → Se rättning. Du kan hoppa mellan steg via navigeringen.",
   lightLabel:"Light",darkLabel:"Dark"
@@ -931,7 +933,7 @@ en:{
   ocrWorking:"Running OCR…",ocrDone:"OCR done. Text was added to the material.",
   writeAnswer:"Write your answer here…",fullScore:"Full-score model answer",
   genFirst:"Generate an exam first.",cleared:"Cleared. Start again.",
-  footer:"ProviaAi is study support and does not provide official grades.",
+  footer:"ExGen is study support and does not provide official grades.",
   trainLoaded:"Training mode: material built from your selected mistakes. Generate a new mock exam.",
   quotaHitWeek:"You've used your 2 free exams this week. Upgrade to Basic for 30/month.",
   quotaHitMonth:"You've reached the monthly limit. Upgrade to Premium for unlimited.",
@@ -940,7 +942,7 @@ en:{
   wNext0:"Next: Settings →",wHint0:"Paste your study material above",
   wHint1:'Ready? Press "Generate mock exam" — you get the questions right away',
   wBack:"← Back",wNext2:"Grade exam →",wRestart:"New exam →",
-  heroSub:"Paste your study material, choose level and number of questions — ProviaAi generates a complete exam with automatic grading and model answers.",
+  heroSub:"Paste your study material, choose level and number of questions — ExGen generates a complete exam with automatic grading and model answers.",
   howtoTitle:"How it works",
   howtoText:"Follow the steps in order: Add material → Choose settings → Answer the exam → See grading. You can jump between steps at any time.",
   lightLabel:"Light",darkLabel:"Dark"
@@ -1544,7 +1546,7 @@ function renderExam(exam){
   });
   const g=$("gradeBtn");if(g)g.disabled=qs.length===0;
   staggerIn(Array.from(eb.querySelectorAll(".qBox")),50);
-  // Inject exam questions into EX1.0 context so PER can see "fråga 3" etc.
+  // Inject exam questions into P.E.R context so PER can see "fråga 3" etc.
   if (window.setPerContext) {
     window.setPerContext({
       page: 'prov',
@@ -1597,7 +1599,7 @@ function renderResult(r){
     d.innerHTML=`<div class="qMeta">${qLabel} · ${item.points}/${item.max_points}</div><div class="resultFeedback">${escapeHtml(item.feedback||"")}</div><div class="resultModelLabel">${t.fullScore}</div><div class="resultModelText">${escapeHtml(model)}</div>`;
     if(Number(item.points||0)<Number(item.max_points||0)){
       const ask=document.createElement("button");
-      ask.type="button"; ask.className="askPerBtnApp"; ask.textContent="✦ Fråga EX1.0";
+      ask.type="button"; ask.className="askPerBtnApp"; ask.textContent="✦ Fråga P.E.R";
       ask.onclick=()=>document.getElementById("perBubble")?.click();
       d.appendChild(ask);
     }
