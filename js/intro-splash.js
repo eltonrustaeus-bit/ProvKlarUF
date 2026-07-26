@@ -1,6 +1,6 @@
 (function () {
   /* ══════════════════════════════════════
-     PROVIAAI × UNGDRIVE — INTRO SPLASH
+     EXGEN × UNGDRIVE — INTRO SPLASH
      Logo alltid synlig, 4.5s premium reveal
   ══════════════════════════════════════ */
 

@@ -1,4 +1,5 @@
 ﻿import { createClient } from "@supabase/supabase-js";
+import { BRAND_NAME } from "./_site.js";
 
 function escapeHtml(str) {
   return String(str)
@@ -20,13 +21,13 @@ function buildWelcomeHtml(email) {
 
         <!-- Header -->
         <tr><td style="background:#0a130d;padding:28px 32px;border-bottom:1px solid rgba(27,255,140,.12)">
-          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">ProviaAI</span>
+          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">${BRAND_NAME}</span>
         </td></tr>
 
         <!-- Hero -->
         <tr><td style="padding:36px 32px 24px">
           <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:#e8f5ee;line-height:1.25">Ditt konto är redo. Nu kör vi.</h1>
-          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">ProviaAI anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
+          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">${BRAND_NAME} anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
         </td></tr>
 
         <!-- Steps -->
@@ -186,9 +187,9 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "ProviaAI <noreply@proviaai.se>",
+        from: `${BRAND_NAME} <noreply@proviaai.se>`,
         to: "elton.rustaeus@gmail.com",
-        subject: `Ny användare på ProviaAI — ${escapeHtml(email)}`,
+        subject: `Ny användare på ${BRAND_NAME} — ${escapeHtml(email)}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px">
             <h2 style="color:#1bff8c;margin:0 0 16px">Ny registrering</h2>
@@ -210,9 +211,9 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: "ProviaAI <noreply@proviaai.se>",
+        from: `${BRAND_NAME} <noreply@proviaai.se>`,
         to: email,
-        subject: `Välkommen till ProviaAI!`,
+        subject: `Välkommen till ${BRAND_NAME}!`,
         html: buildWelcomeHtml(email)
       })
     });

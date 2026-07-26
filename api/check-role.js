@@ -3,6 +3,7 @@ import { requireAuth } from "./_auth.js";
 import { currentPeriodKey, getEntitlementSnapshot, getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { clearLongMemory } from "./_per-memory.js";
 import { callAI } from "./_per-core.js";
+import { SITE_ORIGIN } from "./_site.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -233,7 +234,7 @@ export default async function handler(req, res) {
       const portalRes = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
         method: "POST",
         headers: { Authorization: `Bearer ${stripeKey}`, "Content-Type": "application/x-www-form-urlencoded" },
-        body: `customer=${encodeURIComponent(prof.stripe_customer_id)}&return_url=${encodeURIComponent("https://proviaai.se/app.html")}&configuration=bpc_1TdEAsCrGHQN9aRpV0vCLM03`,
+        body: `customer=${encodeURIComponent(prof.stripe_customer_id)}&return_url=${encodeURIComponent(`${SITE_ORIGIN}/app.html`)}&configuration=bpc_1TdEAsCrGHQN9aRpV0vCLM03`,
       });
       const portalSession = await portalRes.json();
       if (!portalRes.ok) return res.status(500).json({ error: "portal_failed", details: portalSession });

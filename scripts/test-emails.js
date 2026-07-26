@@ -5,7 +5,7 @@
  */
 
 const TO      = "elton.rustaeus@gmail.com";
-const FROM    = "ProviaAI <noreply@proviaai.se>";
+const FROM    = "ExGen <noreply@proviaai.se>";
 const API_KEY = process.env.RESEND_API_KEY;
 
 if (!API_KEY) {
@@ -33,7 +33,7 @@ function wrap(content) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#08100d;padding:32px 16px"><tr><td align="center">
 <table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
 <tr><td style="background:#0a130d;padding:20px 28px;border-bottom:1px solid rgba(27,255,140,.12)">
-<span style="font-size:18px;font-weight:700;color:#1bff8c">ProviaAI</span></td></tr>
+<span style="font-size:18px;font-weight:700;color:#1bff8c">ExGen</span></td></tr>
 <tr><td style="padding:28px 28px 32px">${content}</td></tr>
 <tr><td style="padding:14px 28px;border-top:1px solid rgba(27,255,140,.08)">
 <p style="margin:0;font-size:12px;color:#5a7a6a">Frågor? Svara på det här mejlet.</p></td></tr>
@@ -50,11 +50,11 @@ function welcomeHtml(email) {
     <tr><td align="center">
       <table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
         <tr><td style="background:#0a130d;padding:28px 32px;border-bottom:1px solid rgba(27,255,140,.12)">
-          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">ProviaAI</span>
+          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">ExGen</span>
         </td></tr>
         <tr><td style="padding:36px 32px 24px">
           <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:#e8f5ee;line-height:1.25">Ditt konto är redo. Nu kör vi.</h1>
-          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">ProviaAI anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
+          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">ExGen anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
         </td></tr>
         <tr><td style="padding:0 32px 28px">
           <table width="100%" cellpadding="0" cellspacing="0">
@@ -133,7 +133,7 @@ function paymentConfirmedHtml() {
   <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">79 kr</td></tr>
   <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(TO)}</td></tr>
 </table>
-<a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ProviaAI →</a>`);
+<a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ExGen →</a>`);
 }
 
 // ── Prenumeration förnyad ─────────────────────────────────────────────────────
@@ -169,7 +169,7 @@ function cancelledHtml() {
 
 // ── Skicka alla ───────────────────────────────────────────────────────────────
 const emails = [
-  { subject: "[TEST] Välkommen till ProviaAI!",                html: welcomeHtml(TO) },
+  { subject: "[TEST] Välkommen till ExGen!",                html: welcomeHtml(TO) },
   { subject: "[TEST] Betalning bekräftad — Premium",           html: paymentConfirmedHtml() },
   { subject: "[TEST] Prenumeration förnyad — Premium",         html: renewalHtml() },
   { subject: "[TEST] Betalning misslyckades — uppdatera kort", html: paymentFailedHtml() },

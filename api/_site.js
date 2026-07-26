@@ -6,5 +6,6 @@
 export const BRAND_NAME = "ExGen";
 // No trailing slash — every call site does `${SITE_ORIGIN}/path`, so a
 // trailing slash here would silently double up and break Stripe/Resend
-// redirect and email links. Keep it exact if you ever set this via env.
-export const SITE_ORIGIN = process.env.SITE_ORIGIN || "https://proviaai.se";
+// redirect and email links. Stripped defensively in case SITE_ORIGIN is
+// ever set via env with one.
+export const SITE_ORIGIN = (process.env.SITE_ORIGIN || "https://proviaai.se").replace(/\/+$/, "");
