@@ -712,8 +712,10 @@
            --exgen-info-text (AA-safe blue) instead of raw teal. Every var()
            carries a literal fallback for pages that don't load
            exgen-tokens.css (integritetspolicy.html, provia-hp.html), and the
-           html.light/:not(.light) block below re-syncs the tokens with the
-           existing per-page dark/light toggle, mirroring exgen-shell.css. */
+           .per-theme-light/.per-theme-dark rules further down (paired with
+           a JS observer near document.body.appendChild(widget)) re-sync the
+           tokens with whichever element the page's own dark/light toggle
+           actually updates. */
         '#perWidget{position:fixed;bottom:22px;right:22px;z-index:9999;font-family:"DM Sans",sans-serif}',
         '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-navy,#0E1B2A);box-shadow:0 4px 16px rgba(14,27,42,.28);transition:transform .15s,box-shadow .15s,color .15s}',
         '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,183,217,.35)}',
@@ -789,8 +791,9 @@
            dark) — same intent as exgen-shell.css's Phase 4 fix, without it
            an OS-level dark preference can leak through exgen-tokens.css's
            unconditional prefers-color-scheme block. Scoped by a JS-managed
-           class (see syncPerTheme below), not an html.light/:not(.light)
-           selector: the toggle button on most pages (app/index/korkortet/
+           class (the MutationObserver near document.body.appendChild(widget)
+           below), not an html.light/:not(.light) selector: the toggle
+           button on most pages (app/index/korkortet/
            förbättring/pricing) flips document.body.classList, not <html> —
            only the initial page-load script sets the class on <html>, so a
            pure-CSS selector keyed off <html> goes stale the moment the user
@@ -834,7 +837,15 @@
       // per-theme-dark/light CSS rules). Rather than guess a selector,
       // watch both elements and mirror whichever currently says 'light'.
       (function () {
+        // Whichever element's class attribute actually changes first is the
+        // one this page's toggle button uses — trust only that one from
+        // then on. A plain OR of both elements breaks the moment a page's
+        // toggle only ever touches <body>: <html> keeps its stale initial
+        // 'light' class forever, so OR can never see the switch to dark.
+        var liveSource = null; // 'html' | 'body' | null (before first toggle)
         var isLight = function () {
+          if (liveSource === 'body') return document.body.classList.contains('light');
+          if (liveSource === 'html') return document.documentElement.classList.contains('light');
           return document.documentElement.classList.contains('light') || document.body.classList.contains('light');
         };
         var sync = function () {
@@ -843,7 +854,10 @@
           widget.classList.toggle('per-theme-dark', !light);
         };
         sync();
-        var mo = new MutationObserver(sync);
+        var mo = new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) { liveSource = (m.target === document.body) ? 'body' : 'html'; });
+          sync();
+        });
         mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
         mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
       })();
