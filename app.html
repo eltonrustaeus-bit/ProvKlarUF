@@ -1546,7 +1546,7 @@ function renderExam(exam){
   });
   const g=$("gradeBtn");if(g)g.disabled=qs.length===0;
   staggerIn(Array.from(eb.querySelectorAll(".qBox")),50);
-  // Inject exam questions into EX1.0 context so PER can see "fråga 3" etc.
+  // Inject exam questions into P.E.R context so PER can see "fråga 3" etc.
   if (window.setPerContext) {
     window.setPerContext({
       page: 'prov',
@@ -1599,7 +1599,7 @@ function renderResult(r){
     d.innerHTML=`<div class="qMeta">${qLabel} · ${item.points}/${item.max_points}</div><div class="resultFeedback">${escapeHtml(item.feedback||"")}</div><div class="resultModelLabel">${t.fullScore}</div><div class="resultModelText">${escapeHtml(model)}</div>`;
     if(Number(item.points||0)<Number(item.max_points||0)){
       const ask=document.createElement("button");
-      ask.type="button"; ask.className="askPerBtnApp"; ask.textContent="✦ Fråga EX1.0";
+      ask.type="button"; ask.className="askPerBtnApp"; ask.textContent="✦ Fråga P.E.R";
       ask.onclick=()=>document.getElementById("perBubble")?.click();
       d.appendChild(ask);
     }

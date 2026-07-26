@@ -446,7 +446,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // EX1.0 class insight: AI summary for the TEACHER. Student data is anonymized
+    // P.E.R class insight: AI summary for the TEACHER. Student data is anonymized
     // (labels Elev 1..N, no email/PII) before it ever reaches OpenAI.
     if (action === "teacher_class_insight") {
       const classId = String(req.body?.classId || "");
@@ -485,7 +485,7 @@ export default async function handler(req, res) {
           .slice(0, 5)
           .map(([c, n]) => `${c} (${n} ${n === 1 ? "elev" : "elever"})`);
 
-        const systemPrompt = `Du är EX1.0 — Provias AI och en erfaren lärarcoach för gymnasie- och grundskola. Skriv en kort, konkret klassrapport till LÄRAREN (inte eleven) om klassens läge i skolarbetet — baserat på mockprov eleverna gjort på sina egna ämnen och material (inte körkort).
+        const systemPrompt = `Du är P.E.R — ExGens AI och en erfaren lärarcoach för gymnasie- och grundskola. Skriv en kort, konkret klassrapport till LÄRAREN (inte eleven) om klassens läge i skolarbetet — baserat på mockprov eleverna gjort på sina egna ämnen och material (inte körkort).
 KRAV:
 - Saklig, professionell, max 200 ord.
 - Använd elevernas anonyma etiketter (Elev 1, Elev 2 …) — aldrig namn.

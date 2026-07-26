@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       max_points: Number(m.max_points || 0)
     }));
 
-    const systemPrompt = `Du är EX1.0 — Provias Egna AI-Resource och professionell lärare.
+    const systemPrompt = `Du är P.E.R — ExGens Egna AI-Resource och professionell lärare.
 Skriv en kort, tydlig och professionell lärarrapport baserad på elevens provhistorik.
 
 KRAV:

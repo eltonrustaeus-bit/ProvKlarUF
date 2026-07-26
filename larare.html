@@ -124,7 +124,7 @@
   .spark.lg{width:100%;height:auto}
   .spark.empty{color:var(--t3);font-family:var(--mono);font-size:11px}
 
-  /* EX1.0 insight */
+  /* P.E.R insight */
   .insightBox{border:1px solid rgba(27,255,140,.25);border-radius:8px;background:rgba(27,255,140,.04);padding:16px 18px;margin-bottom:16px}
   .insightHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
   .insightTitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--a);font-weight:500}
@@ -222,7 +222,7 @@
               <div class="kCardLabel">Klass</div>
               <div class="kCardTitle" id="studentsHead">Elever</div>
             </div>
-            <button class="btn ghost per" id="insightBtn">✦ EX1.0 klass-insikt</button>
+            <button class="btn ghost per" id="insightBtn">✦ P.E.R klass-insikt</button>
           </div>
         </div>
         <div class="kCardBody">
@@ -507,7 +507,7 @@ async function openStudent(sid){
 }
 function closeDrilldown(){ document.getElementById('ddOverlay').classList.remove('open'); }
 
-/* ── EX1.0 CLASS INSIGHT (cached 24h per class) ── */
+/* ── P.E.R CLASS INSIGHT (cached 24h per class) ── */
 const INSIGHT_TTL = 24*60*60*1000;
 const INSIGHT_HEADINGS = ['Klassläge:','Elever som behöver stöd:','Svagaste begrepp/områden i klassen:','Rekommenderad träning (nästa 1–2 veckor):'];
 function insightKey(id){ return 'proviaai_teacher_insight_'+id; }
@@ -521,7 +521,7 @@ function renderInsight(text,ts){
   const box=document.getElementById('insightBox'); box.style.display='';
   box.innerHTML=`
     <div class="insightHead">
-      <span class="insightTitle">✦ EX1.0 · Klassinsikt</span>
+      <span class="insightTitle">✦ P.E.R · Klassinsikt</span>
       <span class="insightMeta">${fmtDate(ts)} · <button class="linkBtn" id="refreshInsight">Uppdatera</button></span>
     </div>
     <div class="insightBody">${fmtInsight(text)}</div>`;
@@ -533,7 +533,7 @@ async function loadInsight(force){
     const raw=localStorage.getItem(insightKey(id));
     if(raw){ try{ const c=JSON.parse(raw); if(Date.now()-c.ts<INSIGHT_TTL){ renderInsight(c.insight,c.ts); return; } }catch(_){} }
   }
-  box.style.display=''; box.innerHTML='<div class="insightLoading">EX1.0 analyserar klassen…</div>';
+  box.style.display=''; box.innerHTML='<div class="insightLoading">P.E.R analyserar klassen…</div>';
   try{
     const r=await api('teacher_class_insight',{ classId:id });
     localStorage.setItem(insightKey(id),JSON.stringify({ insight:r.insight, ts:Date.now() }));
@@ -584,7 +584,7 @@ document.getElementById('studentsBody').addEventListener('keydown',e=>{
   if(row){ e.preventDefault(); openStudent(row.getAttribute('data-sid')); }
 });
 
-// EX1.0 insight button + delegated refresh link
+// P.E.R insight button + delegated refresh link
 document.getElementById('insightBtn').addEventListener('click',()=>loadInsight(false));
 document.getElementById('insightBox').addEventListener('click',e=>{
   if(e.target.id==='refreshInsight') loadInsight(true);

@@ -1,4 +1,4 @@
-﻿/* Provia Shared — page transitions + welcome animation + EX1.0 widget */
+﻿/* Provia Shared — page transitions + welcome animation + P.E.R widget */
 (function () {
   'use strict';
 
@@ -86,7 +86,7 @@
     } catch (_) {}
   });
 
-  /* ── EX1.0 FLOATING WIDGET ── */
+  /* ── P.E.R FLOATING WIDGET ── */
   var PER_HIST_KEY = 'proviaai_per_history';
   var PER_MAX_HIST = 30;
   var PER_CORNER_KEY = 'proviaai_per_corner';
@@ -133,7 +133,7 @@
     }
   }
 
-  /* Pages call this to inject richer context into the EX1.0 widget */
+  /* Pages call this to inject richer context into the P.E.R widget */
   window.setPerContext = function(ctx) {
     window._perPageContext = ctx || null;
     if (ctx && window.PER && window.PER._resetNudge) window.PER._resetNudge();
@@ -523,7 +523,7 @@
       if (sendBtn) sendBtn.disabled = true;
 
       addMsg(q, 'user');
-      var typing = addMsg('EX1.0 skriver…', 'teacher typing');
+      var typing = addMsg('P.E.R skriver…', 'teacher typing');
 
       var hist = perGetHist();
       var token = await getToken();
@@ -619,7 +619,7 @@
           if (typing) {
             if (r.status === 401) {
               typing.className = 'per-msg teacher';
-              typing.textContent = 'Logga in för att chatta med EX1.0.';
+              typing.textContent = 'Logga in för att chatta med P.E.R.';
             } else if (!r.ok) {
               typing.className = 'per-msg teacher';
               typing.textContent = data.error || 'Fel — försök igen.';
@@ -784,9 +784,9 @@
         '<div id="perPanel">' +
           '<div class="per-hdr">' +
             '<div class="per-av"><span class="per-av-txt">PER</span><span class="per-av-bars"><span></span><span></span><span></span></span></div>' +
-            '<div><div class="per-nm">EX1.0</div><div class="per-rl">EXGENS AI</div></div>' +
+            '<div><div class="per-nm">P.E.R</div><div class="per-rl">EXGENS AI</div></div>' +
             '<div class="per-hdr-btns">' +
-              '<button class="per-clr" id="perQuizBtn" title="Quiz – EX1.0 frågar dig"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/></svg></button>' +
+              '<button class="per-clr" id="perQuizBtn" title="Quiz – P.E.R frågar dig"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/></svg></button>' +
               '<button class="per-clr" id="perReadyBtn" title="Din körkortsredo-score"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>' +
               '<button class="per-clr" id="perCornerBtn" title="Flytta widget"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>' +
               '<button class="per-clr" id="perSizeBtn" title="Ändra storlek"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>' +
@@ -798,12 +798,12 @@
             '<div class="per-msg teacher">Vad kan jag hjälpa dig med?</div>' +
           '</div>' +
           '<div class="per-inp-row">' +
-            '<input id="perInput" type="text" placeholder="Fråga EX1.0…" autocomplete="off" />' +
-            '<button id="perMicBtn" title="Tala med EX1.0">🎤</button>' +
+            '<input id="perInput" type="text" placeholder="Fråga P.E.R…" autocomplete="off" />' +
+            '<button id="perMicBtn" title="Tala med P.E.R">🎤</button>' +
             '<button id="perSendBtn">Skicka</button>' +
           '</div>' +
         '</div>' +
-        '<button id="perBubble" title="Chatta med EX1.0">P·E·R</button>';
+        '<button id="perBubble" title="Chatta med P.E.R">P·E·R</button>';
       document.body.appendChild(widget);
 
       document.getElementById('perBubble').onclick = toggle;
@@ -944,7 +944,7 @@
           _micListening = active;
           if (micBtn) micBtn.classList.toggle('listening', active);
           if (perAvEl) perAvEl.classList.toggle('per-listening', active);
-          if (perInpEl) perInpEl.placeholder = active ? 'Lyssnar…' : 'Fråga EX1.0…';
+          if (perInpEl) perInpEl.placeholder = active ? 'Lyssnar…' : 'Fråga P.E.R…';
         }
 
         function createRecognition() {
@@ -1054,7 +1054,7 @@
                 if (introDiv) {
                   introDiv.className = 'per-msg teacher';
                   introDiv.innerHTML = '';
-                  var introText = 'Hallå! Jag är EX1.0. Jag svarar på allt om ExGen — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
+                  var introText = 'Hallå! Jag är P.E.R. Jag svarar på allt om ExGen — vad det är, varför det slår ChatGPT för körkortstudier, och vad det kostar. Fråga på!';
                   typewriterMsg(introDiv, introText, 14);
                   setTimeout(function() {
                     addQuickReplies(['Vad är ExGen?', 'Varför inte ChatGPT?', 'Vad kostar det?']);

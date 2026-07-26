@@ -77,7 +77,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      10 kursfrågor/dag &nbsp;·&nbsp; 2 AI-mockprov/vecka &nbsp;·&nbsp; 5 EX1.0/vecka
+                      10 kursfrågor/dag &nbsp;·&nbsp; 2 AI-mockprov/vecka &nbsp;·&nbsp; 5 P.E.R/vecka
                     </td>
                   </tr>
                 </table>
@@ -97,7 +97,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      30 teoriprov/mån &nbsp;·&nbsp; 30 AI-mockprov/mån &nbsp;·&nbsp; Obegränsad körkortsträning &nbsp;·&nbsp; EX1.0 5/dag
+                      30 teoriprov/mån &nbsp;·&nbsp; 30 AI-mockprov/mån &nbsp;·&nbsp; Obegränsad körkortsträning &nbsp;·&nbsp; P.E.R 5/dag
                     </td>
                   </tr>
                 </table>
@@ -118,7 +118,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      Obegränsat allt &nbsp;·&nbsp; Förbättringscoach &nbsp;·&nbsp; EX1.0 obegränsat
+                      Obegränsat allt &nbsp;·&nbsp; Förbättringscoach &nbsp;·&nbsp; P.E.R obegränsat
                     </td>
                   </tr>
                 </table>

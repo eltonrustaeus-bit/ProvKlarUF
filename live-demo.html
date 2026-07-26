@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ProviaAi — Demo</title>
+  <title>ExGen — Demo</title>
   <style id="_ag">body{visibility:hidden}</style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
@@ -271,7 +271,7 @@
     .wktxt{font:400 12px/1.5 var(--f);color:var(--t2)}
     .wkbtn{font:600 11px var(--m);color:var(--a);margin-left:auto;flex-shrink:0;background:var(--ad);border:1px solid var(--l2);border-radius:var(--r);padding:4px 10px}
 
-    /* MODE 3 — EX1.0 */
+    /* MODE 3 — P.E.R */
     .perHex{display:flex;justify-content:center;margin-bottom:16px}
     .perTagline{font:400 13px var(--m);color:var(--t3);text-align:center;margin-top:6px;letter-spacing:.08em}
     .perCaps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;max-width:440px}
@@ -279,7 +279,7 @@
       border:1px solid var(--l);border-radius:20px;font:500 12px var(--f);color:var(--t2);opacity:0}
     .perCap .ci{font-size:14px}
 
-    /* EX1.0 CHAT */
+    /* P.E.R CHAT */
     #chatbox{width:100%;max-width:540px;display:flex;flex-direction:column;gap:10px}
     .chatMsg{max-width:88%;padding:11px 14px;border-radius:12px;font:400 13px/1.6 var(--f);opacity:0}
     .chatMsg.user{align-self:flex-end;background:var(--s2);border:1px solid var(--l);color:var(--t2);border-radius:12px 12px 4px 12px}
@@ -288,7 +288,7 @@
     .chatMsg.per .perBadge .dot{width:5px;height:5px;border-radius:50%;background:var(--a);animation:dp 1.8s infinite}
     .chatCur{display:inline-block;width:2px;height:12px;background:var(--a);margin-left:2px;vertical-align:middle;animation:blink 1s step-end infinite}
 
-    /* ── EX1.0 WIDGET MOCK ── */
+    /* ── P.E.R WIDGET MOCK ── */
     .m3msg-per{background:var(--s2);border-radius:8px;padding:8px 10px;font:400 12px var(--f);color:var(--t);line-height:1.55}
     .m3msg-user{background:var(--ad);border:1px solid var(--l);border-radius:8px;padding:8px 10px;font:400 12px var(--f);color:var(--t);align-self:flex-end;text-align:right;max-width:85%}
     .m3nav-cta{display:inline-block;margin-top:8px;padding:6px 10px;background:var(--a);border-radius:6px;font:600 11px var(--m);color:#08100d;text-decoration:none;letter-spacing:.04em}
@@ -413,7 +413,7 @@
     .m5spotVsLine.good{color:var(--t2)}
     #m5spotStatVal{font:700 60px/1 var(--f);color:var(--a);letter-spacing:-.03em;text-align:center;display:none}
     #m5spotStatSub{font:400 13px var(--m);color:var(--t3);letter-spacing:.04em;text-align:center;margin-top:8px;display:none}
-    /* EX1.0 MERGE */
+    /* P.E.R MERGE */
     #m5perBig{position:absolute;inset:0;z-index:11;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none}
     #m5perBigTxt{font:700 52px var(--m);color:var(--a);letter-spacing:.22em;text-shadow:0 0 40px rgba(27,255,140,.7)}
     #m5perRing{position:absolute;top:50%;left:50%;width:120px;height:120px;border-radius:50%;border:2px solid rgba(27,255,140,.5);transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none;z-index:10}
@@ -559,13 +559,13 @@
 <!-- HEADER -->
 <div id="hdr">
   <a id="hdrLogo" href="index.html">
-    <img src="image/proviaai-logo.png" width="28" height="28" alt="ProviaAi">
-    <span>ProviaAi</span>
+    <img src="image/proviaai-logo.png" width="28" height="28" alt="ExGen">
+    <span>ExGen</span>
   </a>
   <div id="modeTabs">
     <div class="mTab on" id="tab1" onclick="switchMode(1)"><div class="dot"></div><span class="tFull">Mockprov AI</span><span class="tShort">Prov</span></div>
     <div class="mTab"    id="tab2" onclick="switchMode(2)"><div class="dot"></div><span class="tFull">Körkortsteorin</span><span class="tShort">Körkort</span></div>
-    <div class="mTab"    id="tab3" onclick="switchMode(3)"><div class="dot"></div><span class="tFull">EX1.0</span><span class="tShort">EX1.0</span></div>
+    <div class="mTab"    id="tab3" onclick="switchMode(3)"><div class="dot"></div><span class="tFull">P.E.R</span><span class="tShort">P.E.R</span></div>
     <div class="mTab"    id="tab4" onclick="switchMode(4)"><div class="dot"></div><span class="tFull">Förbättring</span><span class="tShort">Analys</span></div>
     <div class="mTab"    id="tab5" onclick="switchMode(5)"><div class="dot"></div><span class="tFull">Pitch →</span><span class="tShort">Pitch</span></div>
   </div>
@@ -587,7 +587,7 @@
     <div class="gradingRing"></div>
     <div class="gradingCenter">P</div>
   </div>
-  <div class="gradingLabel" id="gradingLabel">EX1.0 rättar ditt prov...</div>
+  <div class="gradingLabel" id="gradingLabel">P.E.R rättar ditt prov...</div>
   <div class="gradingSub" id="gradingSub">Analyserar dina svar</div>
 </div>
 
@@ -607,8 +607,8 @@
 <div id="mode1" class="ms act">
 
   <div id="m1intro" style="text-align:center;display:none">
-    <img id="m1logo" src="image/proviaai-logo.png" width="72" height="72" alt="ProviaAi">
-    <div id="m1htitle" style="font:700 32px/1.2 var(--f);color:var(--t);margin:0 0 10px">ProviaAi</div>
+    <img id="m1logo" src="image/proviaai-logo.png" width="72" height="72" alt="ExGen">
+    <div id="m1htitle" style="font:700 32px/1.2 var(--f);color:var(--t);margin:0 0 10px">ExGen</div>
     <div class="pill" id="m1hpill">📚 AI-prov på ditt eget material</div>
     <div style="font:400 15px var(--f);color:var(--t2);margin-top:10px">Klistra in material → AI genererar → Träna smart</div>
     <a id="ungdriveBadge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive" style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:5px 12px;border:1px solid rgba(27,255,140,.22);background:rgba(27,255,140,.06);border-radius:20px;text-decoration:none"><img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="18" height="18" style="border-radius:4px" alt=""><span style="font:400 11px var(--m);color:#a8c4b4;letter-spacing:.04em">Backed by UngDrive</span></a>
@@ -668,7 +668,7 @@
       <div class="qtxt">Lös ekvationen x² − 2x − 8 = 0 med pq-formeln.</div>
       <div class="wfield" id="q3f"></div>
       <div class="aifb" id="q3fb" style="display:none;opacity:0">
-        <strong>EX1.0 förklarar:</strong> Pq-formeln: <span class="fml">x = −p/2 ± √((p/2)²−q)</span>
+        <strong>P.E.R förklarar:</strong> Pq-formeln: <span class="fml">x = −p/2 ± √((p/2)²−q)</span>
         p = −2, q = −8 → x = 1 ± √(1+8) = 1 ± 3<br>
         <strong>x = 4 eller x = −2</strong> ✓ (du skriver fel tecken på q)
       </div>
@@ -694,12 +694,12 @@
       <div class="sbig" id="scorenum">0%</div>
       <div class="slbl">3 av 4 rätt · 3 min 44 sek</div>
       <div class="sbar"><div class="sfill" id="sfill"></div></div>
-      <div class="rankp" id="rankp" style="opacity:0">🎯 EX1.0 har identifierat ditt fokusområde</div>
+      <div class="rankp" id="rankp" style="opacity:0">🎯 P.E.R har identifierat ditt fokusområde</div>
       <div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
       <div class="lvlbdg" id="lvlbdg" style="opacity:0">⬆ Matematik 2b — Nivå 3 uppnådd!</div>
     </div>
     <div class="improveBanner" id="improveBanner" style="opacity:0">
-      <strong>EX1.0 ser ett mönster:</strong> Du missar ofta tecknet på q. Träna på ekvationer med negativt q — <a href="app.html">starta ett fokuspass →</a>
+      <strong>P.E.R ser ett mönster:</strong> Du missar ofta tecknet på q. Träna på ekvationer med negativt q — <a href="app.html">starta ett fokuspass →</a>
     </div>
   </div>
 
@@ -709,7 +709,7 @@
 <div id="mode2" class="ms">
 
   <div id="m2intro" style="display:none;text-align:center">
-    <img src="image/proviaai-logo.png" width="60" height="60" alt="ProviaAi"
+    <img src="image/proviaai-logo.png" width="60" height="60" alt="ExGen"
          style="margin-bottom:16px;animation:logoF 4.5s ease-in-out infinite">
     <div class="pill" style="margin-bottom:14px">🚗 368 frågor · 16 kategorier</div>
     <div style="font:700 30px/1.2 var(--f);color:var(--t);margin-bottom:8px">Körkortsteorin</div>
@@ -786,7 +786,7 @@
 
 </div>
 
-<!-- ═══════════════════════════════ MODE 3 — EX1.0 ══════════════════════════════════════ -->
+<!-- ═══════════════════════════════ MODE 3 — P.E.R ══════════════════════════════════════ -->
 <div id="mode3" class="ms">
 
   <div id="m3intro" style="display:none;text-align:center;width:100%;max-width:480px">
@@ -795,11 +795,11 @@
         <polygon points="30,3 53,16.5 53,43.5 30,57 7,43.5 7,16.5" stroke="rgba(27,255,140,.2)" stroke-width="1.5"/>
         <polygon points="30,11 47,21 47,39 30,49 13,39 13,21" stroke="rgba(27,255,140,.45)" stroke-width="1.5"/>
         <polygon points="30,19 41,25.5 41,38.5 30,45 19,38.5 19,25.5" stroke="#1bff8c" stroke-width="2" fill="rgba(27,255,140,.06)"/>
-        <text x="30" y="34" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="11" fill="#1bff8c">EX1.0</text>
+        <text x="30" y="34" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="11" fill="#1bff8c">P.E.R</text>
       </svg>
     </div>
-    <div style="font:700 28px/1.2 var(--f);color:var(--t)" id="perTitle">EX1.0</div>
-    <div style="font:600 14px var(--f);color:var(--a);margin-top:4px">Provias Egna AI-Resource</div>
+    <div style="font:700 28px/1.2 var(--f);color:var(--t)" id="perTitle">P.E.R</div>
+    <div style="font:600 14px var(--f);color:var(--a);margin-top:4px">ExGens Egna AI-Resource</div>
     <div class="perTagline">Direkt · Kortfattad · Aldrig fyllnad</div>
     <div class="perCaps" id="perCaps">
       <div class="perCap"><span class="ci">📚</span>Studiehjälp</div>
@@ -826,7 +826,7 @@
       </div>
       <div class="m3cDivider">— vs —</div>
       <div class="m3cRow">
-        <div class="m3cLabel m3cGoodLabel">EX1.0</div>
+        <div class="m3cLabel m3cGoodLabel">P.E.R</div>
         <div class="m3cGoodTxt" id="m3cGood">Tecknet på q. Du tog −8 som positivt. Gör om: q = −8 → x = 1 ± 3</div>
       </div>
     </div>
@@ -834,14 +834,14 @@
 
   <div id="m3perDemo" style="display:none;width:100%;max-width:420px;position:relative">
 
-    <!-- EX1.0 context — what EX1.0 sees about this student -->
+    <!-- P.E.R context — what P.E.R sees about this student -->
     <div id="m3ctx" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;position:relative;overflow:hidden">
       <div class="m3chip">📘 Matematik 2b</div>
       <div class="m3chip">🔢 Fråga 3 av 4</div>
       <div class="m3chip m3chipWarn">⚡ Svag: tecknet på q</div>
       <div id="m3scanLine"></div>
     </div>
-    <!-- EX1.0 weakness analysis bars -->
+    <!-- P.E.R weakness analysis bars -->
     <div id="m3analyzeBar" style="opacity:0">
       <div class="m3barRow">
         <div class="m3barLabel">Tecknet på q</div>
@@ -865,14 +865,14 @@
       <div class="qmeta"><span class="qnum">Fråga 3 av 4</span><span class="qcat">Skriven</span><span class="m3examDate">📅 Provet om 2 dagar</span></div>
       <div class="qtxt">Lös ekvationen x² − 2x − 8 = 0 med pq-formeln.</div>
       <div class="wfield" id="m3wf" style="min-height:38px;color:var(--t2);font:400 13px var(--m)"></div>
-      <div id="m3solvedBadge" style="opacity:0">⚡ EX1.0 förklarade det på 23s</div>
+      <div id="m3solvedBadge" style="opacity:0">⚡ P.E.R förklarade det på 23s</div>
     </div>
 
-    <!-- EX1.0 widget area — all floating elements live below exam card, never overlap -->
+    <!-- P.E.R widget area — all floating elements live below exam card, never overlap -->
     <div id="m3widgetArea" style="position:relative;height:340px;margin-top:8px">
     <div id="m3liveBadge" style="opacity:0">👁 Ser dina svar live</div>
 
-    <!-- EX1.0 nudge tooltip -->
+    <!-- P.E.R nudge tooltip -->
     <div id="m3nudge" style="opacity:0;position:absolute;bottom:62px;right:60px;
       background:var(--s2);border:1px solid var(--l2);border-radius:8px;
       padding:8px 12px;font:500 12px var(--f);color:var(--t);
@@ -880,7 +880,7 @@
       Fastnat? Fråga mig! 💬
     </div>
 
-    <!-- EX1.0 panel -->
+    <!-- P.E.R panel -->
     <div id="m3panel" style="opacity:0;transform:translateY(12px);position:absolute;bottom:62px;right:0;width:286px;
       background:var(--s);border:1px solid var(--l2);border-radius:12px;
       overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.65)">
@@ -889,8 +889,8 @@
           display:grid;place-items:center;font:700 8px var(--m);letter-spacing:1px;
           color:#08100d;flex-shrink:0">PER</div>
         <div>
-          <div style="font:600 13px var(--f);color:var(--t)">EX1.0</div>
-          <div style="font:400 10px var(--m);color:var(--a);letter-spacing:.06em">PROVIAS AI</div>
+          <div style="font:600 13px var(--f);color:var(--t)">P.E.R</div>
+          <div style="font:400 10px var(--m);color:var(--a);letter-spacing:.06em">EXGENS AI</div>
         </div>
         <div id="m3memCount">Minns <span id="m3memN">0</span> svar</div>
       </div>
@@ -926,7 +926,7 @@
       </div>
     </div>
 
-    <!-- EX1.0 floating bubble -->
+    <!-- P.E.R floating bubble -->
     <div id="m3bub" style="opacity:0;position:absolute;bottom:0;right:0">P·E·R</div>
 
     </div><!-- end m3widgetArea -->
@@ -944,7 +944,7 @@
       <div style="display:inline-flex;align-items:center;gap:8px;font:500 10.5px var(--m);color:var(--a);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px">
         <span style="display:block;width:18px;height:1px;background:var(--a)"></span>Förbättring
       </div>
-      <div style="font:700 22px/1.2 var(--f);color:var(--t)">EX1.0 ser ditt mönster</div>
+      <div style="font:700 22px/1.2 var(--f);color:var(--t)">P.E.R ser ditt mönster</div>
       <div style="font:400 13px var(--f);color:var(--t2);margin-top:5px">Baserat på dina 47 senaste svar</div>
     </div>
 
@@ -1014,7 +1014,7 @@
         <div style="display:flex;align-items:center;gap:14px">
           <span style="font:500 10.5px var(--m);color:var(--a);width:22px;flex-shrink:0">02</span>
           <div>
-            <div style="font:600 13.5px var(--f);color:var(--t2)">EX1.0 Coach</div>
+            <div style="font:600 13.5px var(--f);color:var(--t2)">P.E.R Coach</div>
             <div style="font:400 11.5px var(--f);color:var(--t3);margin-top:1px">AI-rekommendationer</div>
           </div>
         </div>
@@ -1024,7 +1024,7 @@
       <div class="fbSBody" id="fbCoachBody">
         <div class="fbSBodyInner">
           <div class="coachBox">
-            <div class="coachLabel">EX1.0 · Rekommendation</div>
+            <div class="coachLabel">P.E.R · Rekommendation</div>
             <div class="coachText" id="fbCoachTxt"></div>
           </div>
           <div class="statsRow">
@@ -1095,7 +1095,7 @@
   <div id="m4cta" style="display:none">
     <div id="ctaWrap">
       <div id="ctaTitle">Redo att börja?</div>
-      <div id="ctaSub">Träna smartare och klara ditt nästa prov med ProviaAi</div>
+      <div id="ctaSub">Träna smartare och klara ditt nästa prov med ExGen</div>
       <div id="planGrid">
         <div class="planCard" id="plan1">
           <div class="planBadge">Gratis</div>
@@ -1114,7 +1114,7 @@
           <ul class="featureList">
             <li>30 AI-prov / månad</li>
             <li>Obegränsad körkortsträning</li>
-            <li>EX1.0 AI-coach</li>
+            <li>P.E.R AI-coach</li>
             <li>Detaljerad statistik</li>
           </ul>
         </div>
@@ -1147,7 +1147,7 @@
         <div class="m5logoSub">AI-driven provträningsplattform</div>
         <div id="m5traction">Aktiv beta · körkortsteorin live · proviaai.se</div>
       </div>
-      <div id="m5mission">Omvandlar elevens eget material till strukturerade, personliga mockprov — med EX1.0 som ser varje elev och vet exakt vad de behöver träna på.</div>
+      <div id="m5mission">Omvandlar elevens eget material till strukturerade, personliga mockprov — med P.E.R som ser varje elev och vet exakt vad de behöver träna på.</div>
     </div>
 
     <!-- PROBLEM -->
@@ -1162,11 +1162,11 @@
       </div>
     </div>
 
-    <!-- SOLUTION: EX1.0 -->
+    <!-- SOLUTION: P.E.R -->
     <div id="m5s2" class="m5sec">
-      <div class="m5sHead"><span class="m5sNum">02</span><span class="m5sLabel">Lösning — EX1.0</span></div>
-      <div id="m5pDesc">EX1.0 är <em>inte en chatbot</em> — det är Provias intelligensmotor, byggd för att känna varje elev.</div>
-      <div id="m5perSubline">EX1.0 består av 6 motorer som samverkar:</div>
+      <div class="m5sHead"><span class="m5sNum">02</span><span class="m5sLabel">Lösning — P.E.R</span></div>
+      <div id="m5pDesc">P.E.R är <em>inte en chatbot</em> — det är ExGens intelligensmotor, byggd för att känna varje elev.</div>
+      <div id="m5perSubline">P.E.R består av 6 motorer som samverkar:</div>
       <div class="m5engines">
         <div class="m5eng" id="m5e0">🧠 Context Engine<span>Förstår frågan och elevens historia</span></div>
         <div class="m5eng" id="m5e1">📊 Performance Engine<span>Spårar mönster och luckor</span></div>
@@ -1186,7 +1186,7 @@
       </div>
       <div class="m5mkRow" id="m5mk0"><span class="m5mkIcon">📚</span><span>Många elever kämpar ensamma inför varje prov — utan återkoppling eller personlig vägledning.</span></div>
       <div class="m5mkRow" id="m5mk1"><span class="m5mkIcon">🤖</span><span>Generella AI-verktyg saknar studiehistorik och progression. De flesta vet inte hur de ska använda AI på rätt sätt.</span></div>
-      <div class="m5mkRow" id="m5mk2"><span class="m5mkIcon">⚡</span><span>Provia löser det direkt ur lådan — ingen konfiguration, bara smart studiehjälp.</span></div>
+      <div class="m5mkRow" id="m5mk2"><span class="m5mkIcon">⚡</span><span>ExGen löser det direkt ur lådan — ingen konfiguration, bara smart studiehjälp.</span></div>
     </div>
 
     <!-- BUSINESS MODEL -->
@@ -1206,7 +1206,7 @@
         <div class="m5tier" id="m5t2">
           <div class="m5tName">Premium</div>
           <div class="m5tPrice">79<span>kr/mån</span></div>
-          <div class="m5tDesc">Full EX1.0-coaching</div>
+          <div class="m5tDesc">Full P.E.R-coaching</div>
         </div>
       </div>
       <div id="m5margins">Marginaler ~88–94% · Freemium SaaS</div>
@@ -1237,7 +1237,7 @@
               <div class="m5spotVsLine bad" id="svl2">Ingen progression spåras</div>
             </div>
             <div class="m5spotVsR">
-              <div class="m5spotVsTag good">EX1.0</div>
+              <div class="m5spotVsTag good">P.E.R</div>
               <div class="m5spotVsLine good" id="svr0">Ser hela din studiehistorik</div>
               <div class="m5spotVsLine good" id="svr1">Anpassar sig till din nivå</div>
               <div class="m5spotVsLine good" id="svr2">Mönster + progression i realtid</div>
@@ -1249,7 +1249,7 @@
       </div>
     </div>
 
-    <!-- EX1.0 MERGE -->
+    <!-- P.E.R MERGE -->
     <div id="m5perBig"><div id="m5perBigTxt">P·E·R</div><div id="m5perTagline">Intelligent nog att känna dig. Snabb nog att hjälpa dig nu.</div></div>
     <div id="m5perRing"></div>
 
@@ -1314,11 +1314,11 @@ function buildCatGrid(){
 
 /* ─── NARRATOR ─── */
 const NData={
-  1:[{s:'Material',t:'Elton klistrar in Matte 2b — vilket ämne som helst fungerar'},{s:'AI-generering',t:'Sekunder senare: 4 skräddarsydda frågor genererade av AI'},{s:'Träning',t:'Välj svar, rätta hela provet på en gång — precis som riktigt prov'},{s:'Resultat',t:'75% och EX1.0 identifierar exakt vad Elton behöver träna på'}],
+  1:[{s:'Material',t:'Elton klistrar in Matte 2b — vilket ämne som helst fungerar'},{s:'AI-generering',t:'Sekunder senare: 4 skräddarsydda frågor genererade av AI'},{s:'Träning',t:'Välj svar, rätta hela provet på en gång — precis som riktigt prov'},{s:'Resultat',t:'75% och P.E.R identifierar exakt vad Elton behöver träna på'}],
   2:[{s:'Kategorier',t:'368 frågor, 16 kategorier — uppbyggt efter Transportstyrelsens upplägg'},{s:'Vägmärken',t:'Bildidentifiering med förklaring på varje svar'},{s:'Simulerat prov',t:'65 frågor, 50 min, 52 rätt = godkänt — samma format som teoriprovets'},{s:'AI-coach',t:'Identifierar svaga kategorier och rekommenderar fokusträning'}],
-  3:[{s:'EX1.0',t:'Provias Egna AI-Resource — alltid med dig, ser vilken fråga du sitter på'},{s:'Fråga',t:'Elton fastnar på Fråga 3 — EX1.0 ser kontexten automatiskt'},{s:'Svar',t:'EX1.0 förklarar pq-formeln steg för steg — inget annat studieverktyg gör detta'}],
-  4:[{s:'Förbättring',t:'Din kompletta lärvyn — coach, statistik och felbank samlat'},{s:'Coach',t:'EX1.0 identifierar svagaste kategorin och rekommenderar fokusträning'},{s:'Felbank',t:'Alla misstag samlade — repetera exakt rätt frågor'},{s:'Kom igång',t:'Gratis att starta — Basic 29 kr/mån för obegränsade AI-prov'}],
-  5:[{s:'Intro',t:'Hook: varför elever tappar poäng — inte kunskap utan träningsstrategi'},{s:'Problem',t:'Alex: 4 dagar kvar, 6 timmars plug — vet fortfarande inte vad som faktiskt frågas'},{s:'EX1.0',t:'6 motorer visas en i taget — sedan alla konvergerar till EX1.0 merge'},{s:'Marknad',t:'360 000+ gymnasieelever — generella AI-verktyg löser inte deras faktiska problem'},{s:'Affärsmodell',t:'Gratis / Basic 29 kr / Premium 79 kr — top 4 features per plan'}],
+  3:[{s:'P.E.R',t:'ExGens Egna AI-Resource — alltid med dig, ser vilken fråga du sitter på'},{s:'Fråga',t:'Elton fastnar på Fråga 3 — P.E.R ser kontexten automatiskt'},{s:'Svar',t:'P.E.R förklarar pq-formeln steg för steg — inget annat studieverktyg gör detta'}],
+  4:[{s:'Förbättring',t:'Din kompletta lärvyn — coach, statistik och felbank samlat'},{s:'Coach',t:'P.E.R identifierar svagaste kategorin och rekommenderar fokusträning'},{s:'Felbank',t:'Alla misstag samlade — repetera exakt rätt frågor'},{s:'Kom igång',t:'Gratis att starta — Basic 29 kr/mån för obegränsade AI-prov'}],
+  5:[{s:'Intro',t:'Hook: varför elever tappar poäng — inte kunskap utan träningsstrategi'},{s:'Problem',t:'Alex: 4 dagar kvar, 6 timmars plug — vet fortfarande inte vad som faktiskt frågas'},{s:'P.E.R',t:'6 motorer visas en i taget — sedan alla konvergerar till P.E.R merge'},{s:'Marknad',t:'360 000+ gymnasieelever — generella AI-verktyg löser inte deras faktiska problem'},{s:'Affärsmodell',t:'Gratis / Basic 29 kr / Premium 79 kr — top 4 features per plan'}],
 };
 function setNarrator(mode,idx){document.getElementById('nSteps').innerHTML=(NData[mode]||[]).map((d,i)=>`<div class="nst" style="opacity:${i===idx?1:.4}"><b>${d.s}:</b> ${d.t}</div>`).join('')}
 
@@ -1328,7 +1328,7 @@ function buildDots(mode){
   const pdots=document.getElementById('pdots');
   if(mode===5){
     pdots.className='mode5';
-    const labels=['Intro','Problem','EX1.0','Marknad','Affärsmodell'];
+    const labels=['Intro','Problem','P.E.R','Marknad','Affärsmodell'];
     pdots.innerHTML=labels.map((l,i)=>`<div class="pd" id="pd${i}" data-l="${l}"></div>`).join('');
     return;
   }
@@ -1414,7 +1414,7 @@ function clearAllTimers(){
 let gradingTick=null,gradingHide=null;
 function showGrading(done){
   const ov=document.getElementById('gradingOverlay');
-  const labels=[['EX1.0 rättar ditt prov...','Analyserar dina svar'],['Kontrollerar dina svar...','Fråga 3 av 4'],['Skapar feedback...','Personlig analys klar']];
+  const labels=[['P.E.R rättar ditt prov...','Analyserar dina svar'],['Kontrollerar dina svar...','Fråga 3 av 4'],['Skapar feedback...','Personlig analys klar']];
   ov.classList.add('vis');
   let li=0;
   if(gradingTick){clearInterval(gradingTick);gradingTick=null}
@@ -1658,7 +1658,7 @@ function buildTL2(){
   return tl2;
 }
 
-/* ─────────────── TIMELINE 3 — EX1.0 ─────────────── */
+/* ─────────────── TIMELINE 3 — P.E.R ─────────────── */
 function buildTL3(){
   if(tl3){tl3.kill();tl3=null}
   clearAllTimers();
@@ -1700,7 +1700,7 @@ function buildTL3(){
 
   tl3=gsap.timeline({onComplete:()=>switchMode(4)});
 
-  /* 0–5s EX1.0 INTRO — compressed: hex + boot seq + contrast */
+  /* 0–5s P.E.R INTRO — compressed: hex + boot seq + contrast */
   tl3
     .call(()=>{hideAll(M3SEC);show('m3intro');setDot(0,'on');setNarrator(3,0);startCountdown(44)},[],0)
     .from('#m3intro > .perHex',{opacity:0,scale:.5,filter:'blur(6px)',rotation:30,duration:.7,ease:'back.out(1.8)'},0)
@@ -1731,12 +1731,12 @@ function buildTL3(){
     },[],3.0)
     /* generic AI text fades in */
     .call(()=>{gsap.to('#m3cBad',{opacity:1,duration:.5})},[],3.2)
-    /* EX1.0 answer snaps in */
+    /* P.E.R answer snaps in */
     .call(()=>{gsap.to('#m3cGood',{opacity:1,duration:.35,ease:'power2.out'})},[],3.9)
     /* contrast fades out */
     .to('#m3contrast',{opacity:0,y:-6,duration:.4},4.5)
 
-  /* 5–44s EX1.0 WIDGET DEMO */
+  /* 5–44s P.E.R WIDGET DEMO */
   tl3
     .call(()=>{hideAll(M3SEC);show('m3perDemo');setDot(0,'dn');setDot(1,'on');setNarrator(3,1)},[],5)
     /* context chips */
@@ -1813,7 +1813,7 @@ function buildTL3(){
         if(el)gsap.to(el,{opacity:1,duration:.25,delay:.3+i*.45,ease:'none'});
       });
     },[],17)
-    /* EX1.0 response — line-by-line HTML reveal */
+    /* P.E.R response — line-by-line HTML reveal */
     .call(()=>{
       document.getElementById('m3typing').style.display='none';
       const resp=document.getElementById('m3resp');
@@ -1862,7 +1862,7 @@ function buildTL3(){
         gsap.to(el,{opacity:1,duration:.35,delay:i*.15,ease:'power2.out'});
       });
     },[],21)
-    /* EX1.0 proaktivt — ser mönster från Fråga 1 oxå */
+    /* P.E.R proaktivt — ser mönster från Fråga 1 oxå */
     .call(()=>{
       const t=document.getElementById('m3typing2');t.style.display='';gsap.to(t,{opacity:1,duration:.3});
       const msgs=document.getElementById('m3msgs');if(msgs)msgs.scrollTop=999;
@@ -1873,7 +1873,7 @@ function buildTL3(){
       gsap.to(m,{opacity:1,y:0,duration:.35,ease:'power2.out'});
       const msgs=document.getElementById('m3msgs');if(msgs)msgs.scrollTop=999;
     },[],23)
-    /* wfield gets typed answer after EX1.0 explains */
+    /* wfield gets typed answer after P.E.R explains */
     .call(()=>{
       const wf=document.getElementById('m3wf');wf.className='wfield active';
       const txt='x = 4 eller x = −2';let ti=0;
@@ -1975,13 +1975,13 @@ const ENGINES=[
 ];
 const MKT_ROWS=[
   {icon:'📚',text:'Många elever pluggar utan fokus — generella AI-verktyg vet inte vad som faktiskt frågas på just deras prov.'},
-  {icon:'🤖',text:'ChatGPT och liknande saknar din studiehistorik. De ger samma svar till alla — EX1.0 ger rätt svar till dig.'},
-  {icon:'⚡',text:'Provia löser det direkt — ladda upp ditt material, generera ett prov, börja träna smart.'},
+  {icon:'🤖',text:'ChatGPT och liknande saknar din studiehistorik. De ger samma svar till alla — P.E.R ger rätt svar till dig.'},
+  {icon:'⚡',text:'ExGen löser det direkt — ladda upp ditt material, generera ett prov, börja träna smart.'},
 ];
 const PLANS=[
-  {badge:'Gratis',name:'Gratis',price:'0 kr',note:'',feats:['2 AI-mockprov per vecka','Körkortsteorin — 2 test / vecka','EX1.0 AI-assistent — 5 frågor / vecka','Resultat & poängöversikt']},
-  {badge:'Basic',name:'Basic',price:'29',note:'kr/mån',feats:['30 AI-mockprov per månad','EX1.0 AI-assistent — 5 frågor / dag','Historik — följ din utveckling','Körkortsteorin — 30 test / månad']},
-  {badge:'Premium',name:'Premium',price:'79',note:'kr/mån',feats:['Obegränsade AI-mockprov','EX1.0 — obegränsat, ser din skärm','EX1.0 Coach — personlig studieplan','Felbank + Träningsläge']},
+  {badge:'Gratis',name:'Gratis',price:'0 kr',note:'',feats:['2 AI-mockprov per vecka','Körkortsteorin — 2 test / vecka','P.E.R AI-assistent — 5 frågor / vecka','Resultat & poängöversikt']},
+  {badge:'Basic',name:'Basic',price:'29',note:'kr/mån',feats:['30 AI-mockprov per månad','P.E.R AI-assistent — 5 frågor / dag','Historik — följ din utveckling','Körkortsteorin — 30 test / månad']},
+  {badge:'Premium',name:'Premium',price:'79',note:'kr/mån',feats:['Obegränsade AI-mockprov','P.E.R — obegränsat, ser din skärm','P.E.R Coach — personlig studieplan','Felbank + Träningsläge']},
 ];
 function _spotHideAll(){
   ['m5spotIcon','m5spotTitle','m5spotDesc','m5spotPlanBadge','m5spotPlanName','m5spotPlanPrice','m5spotFeatList','m5spotVsWrap','m5spotStatVal','m5spotStatSub'].forEach(id=>{
@@ -2084,7 +2084,7 @@ function buildTL5(){
     .to('#m5b3',{opacity:1,x:0,duration:.4,ease:'power2.out'},15.4)
     .to('#m5s1',{opacity:0,y:-10,duration:.5,ease:'power3.in'},22.3);
 
-  /* EX1.0 (23–51.5s) */
+  /* P.E.R (23–51.5s) */
   tl5
     .call(()=>{setNarrator(5,2);setDot(1,'dn');setDot(2,'on')},[],23.0)
     .fromTo('#m5s2',{opacity:0,y:10},{opacity:1,y:0,duration:.55,ease:'power3.out'},23.0)
@@ -2164,7 +2164,7 @@ document.querySelectorAll('#pdots .pd').forEach((dot,i)=>{
   });
 });
 
-const STORY_TEXTS={1:'Dag 1 — Elton gör sitt första prov',2:'Dag 2 — Körkortsteorin med EX1.0',3:'Dag 3 — EX1.0 coachar Elton i realtid',4:'Dag 7 — EX1.0 spårar förbättringen',5:''};
+const STORY_TEXTS={1:'Dag 1 — Elton gör sitt första prov',2:'Dag 2 — Körkortsteorin med P.E.R',3:'Dag 3 — P.E.R coachar Elton i realtid',4:'Dag 7 — P.E.R spårar förbättringen',5:''};
 function switchMode(n){
   if(n===curMode)return;
   const from=document.getElementById('mode'+curMode);
@@ -2228,6 +2228,6 @@ window.addEventListener('load',()=>{
   buildTL1();
 });
 </script>
-<div id="m3notif"><strong>🔔 EX1.0:</strong> Fokuspass redo! Baserat på dina misstag från idag →</div>
+<div id="m3notif"><strong>🔔 P.E.R:</strong> Fokuspass redo! Baserat på dina misstag från idag →</div>
 </body>
 </html>

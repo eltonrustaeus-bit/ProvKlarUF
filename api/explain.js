@@ -85,7 +85,7 @@ async function handleTipsMode(req, res, body) {
   if (!q.trim()) return res.status(400).json({ ok: false, error: "Missing question" });
   if (!fb.trim()) return res.status(400).json({ ok: false, error: "Missing feedback" });
 
-  const systemPrompt = `Du är EX1.0 — Provias Egna AI-Resource.
+  const systemPrompt = `Du är P.E.R — ExGens Egna AI-Resource.
 Du ska ge korta, konkreta tips för en fråga eleven fått fel på.
 Tipsen måste anpassas efter kursen.
 
@@ -119,7 +119,7 @@ Max 200 ord.`;
   }
 }
 
-// ── LEGAL MODE — P.E.R/EX1.0 juridikläge (Fas 7, uppdragets §27.2) ──
+// ── LEGAL MODE — P.E.R/P.E.R juridikläge (Fas 7, uppdragets §27.2) ──
 // Feature-flag-gated (per_legal_rag_enabled, false sedan Fas 2-seedningen) OCH kräver att
 // legalMode:true faktiskt skickas i body — ingen befintlig frontend-yta gör det än, så denna gren
 // är i praktiken tredubbelt inert (ingen UI-trigger + flagga av + retrieveChunks() hittar inga
@@ -255,7 +255,7 @@ export default async function handler(req, res) {
         p_limit: LANDING_HOURLY_LIMIT,
       });
       if (rl && rl.ok === false) {
-        return res.status(429).json({ error: 'För många frågor just nu. Skapa ett gratis konto för obegränsad EX1.0.' });
+        return res.status(429).json({ error: 'För många frågor just nu. Skapa ett gratis konto för obegränsad P.E.R.' });
       }
     } catch (_) { /* fail-open: never block a legit visitor on limiter infra hiccup */ }
 
@@ -294,7 +294,7 @@ export default async function handler(req, res) {
     const stdDev = Math.sqrt(rawScores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / rawScores.length);
     const readiness = Math.round(clamp(avgRecent + (trend === 'improving' ? 0.04 : trend === 'declining' ? -0.04 : 0) + (stdDev > 0.15 ? -0.03 : 0), 0, 1) * 100);
     const trendSv = trend === 'improving' ? 'förbättras' : trend === 'declining' ? 'försämras' : 'stabil';
-    const prompt = `Du är EX1.0 — Provias Egna AI-Resource och körkortscoach. Bedöm elevens körkortsförberedelse.\n\nDATA:\n- Snitt senaste 5 proven: ${Math.round(avgRecent*100)}%\n- Snitt alla ${examsCount} prov: ${Math.round(avgAll*100)}%\n- Trend: ${trendSv}\n- Beräknad beredskap: ${readiness}%\n- Svaga ämnen: ${rawAreas.length ? rawAreas.join(', ') : 'inga identifierade'}\n- Variation: ${stdDev > 0.15 ? 'hög (ojämnt)' : stdDev > 0.08 ? 'måttlig' : 'låg (konsekvent)'}\n\nKörkortsprovet kräver 52/65 rätt (80%). Max 100 ord. Ge: omdöme (redo/nästan redo/inte redo), viktigaste åtgärd, kort motivation. Svenska.`;
+    const prompt = `Du är P.E.R — ExGens Egna AI-Resource och körkortscoach. Bedöm elevens körkortsförberedelse.\n\nDATA:\n- Snitt senaste 5 proven: ${Math.round(avgRecent*100)}%\n- Snitt alla ${examsCount} prov: ${Math.round(avgAll*100)}%\n- Trend: ${trendSv}\n- Beräknad beredskap: ${readiness}%\n- Svaga ämnen: ${rawAreas.length ? rawAreas.join(', ') : 'inga identifierade'}\n- Variation: ${stdDev > 0.15 ? 'hög (ojämnt)' : stdDev > 0.08 ? 'måttlig' : 'låg (konsekvent)'}\n\nKörkortsprovet kräver 52/65 rätt (80%). Max 100 ord. Ge: omdöme (redo/nästan redo/inte redo), viktigaste åtgärd, kort motivation. Svenska.`;
     try {
       const assessment = await callAI([{ role: 'user', content: prompt }], { timeout: 20_000 });
       if (!assessment) return res.status(502).json({ error: 'No response' });
@@ -302,7 +302,7 @@ export default async function handler(req, res) {
     } catch (err) { return res.status(500).json({ error: err.message || 'AI error' }); }
   }
 
-  // ── TEACH MODE: EX1.0 multi-turn chat ──
+  // ── TEACH MODE: P.E.R multi-turn chat ──
   if (body.topic || body.userQuestion || (Array.isArray(body.history) && body.history.length > 0)) {
     const { data: prof, error: profErr } = await supabase
       .from("profiles")
@@ -379,7 +379,7 @@ export default async function handler(req, res) {
     // Load long-term memory before buildLearningSignals so structuredMemory is in scope
     const { summary: longMemory, structured: structuredMemory } = await loadLongMemory(supabase, user.id);
 
-    // Merge DB exam weak categories into session weak areas for immediate EX1.0 awareness
+    // Merge DB exam weak categories into session weak areas for immediate P.E.R awareness
     const dbWeakCats     = structuredMemory?.exam_weak_categories || [];
     const mergedWeakAreas = [...new Set([...contextPack.weakAreas, ...dbWeakCats])].slice(0, 10);
 
@@ -512,7 +512,7 @@ export default async function handler(req, res) {
 
   const opts = { A: option_a, B: option_b, C: option_c, D: option_d };
   const correctText = opts[correct] || correct;
-  const prompt = `Du är EX1.0 — Provias Egna AI-Resource. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
+  const prompt = `Du är P.E.R — ExGens Egna AI-Resource. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
 
 Fråga: ${question}
 A: ${option_a || "—"}

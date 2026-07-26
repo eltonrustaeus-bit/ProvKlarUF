@@ -346,21 +346,21 @@
       </div>
     </div>
 
-    <!-- EX1.0 MEMORY CARD -->
+    <!-- P.E.R MEMORY CARD -->
     <div class="kCard">
       <div class="kCardHead">
         <div class="kCardIcon" aria-hidden="true">P</div>
         <div>
-          <div class="kCardLabel">EX1.0-minne</div>
+          <div class="kCardLabel">P.E.R-minne</div>
           <div class="kCardTitle">Personlig coachning</div>
         </div>
       </div>
       <div class="kCardBody">
-        <p class="kHelpText">EX1.0 kan använda en kort lärprofil för att komma ihåg svaga områden, hjälpstil och nästa studieprioritet. Råa frågor, kontouppgifter och privata uppgifter ska inte sparas i minnet.</p>
+        <p class="kHelpText">P.E.R kan använda en kort lärprofil för att komma ihåg svaga områden, hjälpstil och nästa studieprioritet. Råa frågor, kontouppgifter och privata uppgifter ska inte sparas i minnet.</p>
         <div class="kBtnRow">
-          <button class="kBtn kBtnDanger" id="clearPerMemoryBtn">Rensa EX1.0-minne</button>
+          <button class="kBtn kBtnDanger" id="clearPerMemoryBtn">Rensa P.E.R-minne</button>
         </div>
-        <div class="kPrivacyNote">Rensar EX1.0:s sparade chatthistorik och långtidsminne för ditt konto. Dina prov, resultat och felbank påverkas inte.</div>
+        <div class="kPrivacyNote">Rensar P.E.R:s sparade chatthistorik och långtidsminne för ditt konto. Dina prov, resultat och felbank påverkas inte.</div>
       </div>
     </div>
 
@@ -479,7 +479,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
   }
 
   document.getElementById("planUsage").textContent=entitlements
-    ? `${formatLimit(entitlements.features.mockExam,"mockprov")} · ${formatLimit(entitlements.features.perChat,"EX1.0")}`
+    ? `${formatLimit(entitlements.features.mockExam,"mockprov")} · ${formatLimit(entitlements.features.perChat,"P.E.R")}`
     : (ROLE_DESCS[role]||"");
 
   /* Show admin card */
@@ -581,9 +581,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
     }catch{showMsg("Nätverksfel. Försök igen.","err");btn.disabled=false;btn.textContent="Hantera prenumeration →"}
   });
 
-  /* EX1.0 MEMORY */
+  /* P.E.R MEMORY */
   document.getElementById("clearPerMemoryBtn")?.addEventListener("click",async()=>{
-    const ok=confirm("Rensa EX1.0-minnet?\n\nDetta tar bort EX1.0:s sparade chatthistorik och långtidsminne för ditt konto. Dina provresultat och felbank påverkas inte.");
+    const ok=confirm("Rensa P.E.R-minnet?\n\nDetta tar bort P.E.R:s sparade chatthistorik och långtidsminne för ditt konto. Dina provresultat och felbank påverkas inte.");
     if(!ok)return;
     const btn=document.getElementById("clearPerMemoryBtn");
     const orig=btn.textContent;
@@ -597,9 +597,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
       const data=await r.json().catch(()=>({}));
       if(r.ok&&data.ok){
         try{localStorage.removeItem("proviaai_per_history")}catch{}
-        showMsg("EX1.0-minnet är rensat.","ok");
+        showMsg("P.E.R-minnet är rensat.","ok");
       }else{
-        showMsg("Fel: "+(data.error||"Kunde inte rensa EX1.0-minnet."),"err");
+        showMsg("Fel: "+(data.error||"Kunde inte rensa P.E.R-minnet."),"err");
       }
     }catch{
       showMsg("Nätverksfel. Försök igen.","err");
