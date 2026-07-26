@@ -709,8 +709,15 @@
            see exgen-tokens.css contrast notes). Any text sitting on a solid
            gradient/teal fill uses navy, which stays readable on those fills
            regardless of page theme. Free-floating accent text uses
-           --exgen-info-text (AA-safe blue) instead of raw teal. Every var()
-           carries a literal fallback for pages that don't load
+           --per-accent-text instead of raw teal: exgen-tokens.css's own
+           --exgen-info-text (#0369A1) is only AA-safe on a LIGHT bg (5.67:1
+           on --exgen-bg-secondary) — it drops to 2.65:1 on the dark-mode
+           --exgen-bg-secondary, since exgen-tokens.css never redefines the
+           semantic *-text tokens in its prefers-color-scheme dark block.
+           --per-accent-text (defined per theme class below) picks
+           --exgen-info-text in light mode and the brighter raw
+           --exgen-info (#0EA5E9, 6.27:1+ on dark backgrounds) in dark mode.
+           Every var() carries a literal fallback for pages that don't load
            exgen-tokens.css (integritetspolicy.html, provia-hp.html), and the
            .per-theme-light/.per-theme-dark rules further down (paired with
            a JS observer near document.body.appendChild(widget)) re-sync the
@@ -719,7 +726,7 @@
         '#perWidget{position:fixed;bottom:22px;right:22px;z-index:9999;font-family:"DM Sans",sans-serif}',
         '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-navy,#0E1B2A);box-shadow:0 4px 16px rgba(14,27,42,.28);transition:transform .15s,box-shadow .15s,color .15s}',
         '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,183,217,.35)}',
-        '#perBubble.per-open{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--exgen-info-text,#0369A1)}',
+        '#perBubble.per-open{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--per-accent-text,#0369A1)}',
         '#perPanel{display:none;position:absolute;bottom:64px;right:0;width:320px;background:var(--exgen-bg,#FFFFFF);border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-lg,20px);box-shadow:0 16px 48px rgba(14,27,42,.28);overflow:hidden;flex-direction:column}',
         '#perPanel.per-open{display:flex;animation:perUp .2s ease}',
         '@keyframes perUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}',
@@ -754,7 +761,7 @@
         '@media(max-width:480px){#perWidget.per-left #perPanel{right:auto!important;left:0!important}}',
         '#perMicBtn{background:none;border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-sm,8px);padding:0 9px;cursor:pointer;font-size:14px;color:var(--exgen-text-secondary,#667085);transition:border-color .2s,color .2s;flex-shrink:0}',
         '#perMicBtn:hover{border-color:var(--exgen-teal,#00B7D9)}',
-        '#perMicBtn.listening{border-color:var(--exgen-teal,#00B7D9);color:var(--exgen-info-text,#0369A1);animation:perPulse .9s ease-in-out infinite}',
+        '#perMicBtn.listening{border-color:var(--exgen-teal,#00B7D9);color:var(--per-accent-text,#0369A1);animation:perPulse .9s ease-in-out infinite}',
         '.per-hdr-btns{display:flex;gap:4px;margin-left:auto}',
         '.per-dots{display:inline-flex;align-items:center;gap:3px;padding:2px 0}',
         '.per-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--exgen-teal,#00B7D9);opacity:.7;animation:perBounce 1.1s ease-in-out infinite}',
@@ -766,7 +773,7 @@
         '.per-msg.teacher:hover{border-color:rgba(0,183,217,.32)}',
         '#perLandingBar{display:none;justify-content:space-between;align-items:center;padding:6px 14px;background:rgba(0,183,217,.05);border-bottom:1px solid rgba(0,183,217,.14);font-size:11px;font-family:var(--exgen-font-mono,ui-monospace,monospace);color:var(--exgen-text-secondary,#667085)}',
         '#perLandingBar.visible{display:flex}',
-        '#perLandingBar a{color:var(--exgen-info-text,#0369A1);text-decoration:none;font-weight:600;flex-shrink:0;margin-left:8px}',
+        '#perLandingBar a{color:var(--per-accent-text,#0369A1);text-decoration:none;font-weight:600;flex-shrink:0;margin-left:8px}',
         '#perLandingBar a:hover{text-decoration:underline}',
         '.per-answer-cta{display:block;margin-top:10px;padding:9px 14px;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));color:var(--exgen-navy,#0E1B2A);border-radius:var(--exgen-radius-sm,8px);font-size:12.5px;font-weight:700;text-decoration:none;text-align:center}',
         '.per-answer-cta:hover{filter:brightness(1.06)}',
@@ -798,8 +805,8 @@
            only the initial page-load script sets the class on <html>, so a
            pure-CSS selector keyed off <html> goes stale the moment the user
            clicks the toggle without a reload. */
-        '#perWidget.per-theme-dark{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549}',
-        '#perWidget.per-theme-light{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC}'
+        '#perWidget.per-theme-dark{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549;--per-accent-text:var(--exgen-info,#0EA5E9)}',
+        '#perWidget.per-theme-light{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC;--per-accent-text:var(--exgen-info-text,#0369A1)}'
       ].join('');
       document.head.appendChild(style);
 
