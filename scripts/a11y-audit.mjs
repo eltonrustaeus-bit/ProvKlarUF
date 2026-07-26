@@ -10,7 +10,7 @@ import fs from "fs";
 
 const base = path.resolve(new URL(".", import.meta.url).pathname, "..");
 const port = 8934;
-const pages = ["index.html", "pricing.html", "live-demo.html", "app.html", "konto.html", "korkortet.html", "förbättring.html", "larare.html"];
+const pages = ["index.html", "pricing.html", "live-demo.html", "app.html", "konto.html", "korkortet.html", "förbättring.html", "larare.html", "admin.html", "provia-hp.html"];
 const axeSource = fs.readFileSync(path.join(base, "node_modules/axe-core/axe.min.js"), "utf8");
 
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".svg": "image/svg+xml", ".json": "application/json" };
