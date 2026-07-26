@@ -861,8 +861,18 @@
           widget.classList.toggle('per-theme-dark', !light);
         };
         sync();
-        var mo = new MutationObserver(function (mutations) {
-          mutations.forEach(function (m) { liveSource = (m.target === document.body) ? 'body' : 'html'; });
+        // Only re-pin liveSource when the 'light' class itself actually
+        // flipped — other unrelated class churn on body/html (e.g. the
+        // transient 'pg-leaving' class added during page-navigation clicks
+        // elsewhere in this file) must not hijack which element we trust.
+        var lastHtmlLight = document.documentElement.classList.contains('light');
+        var lastBodyLight = document.body.classList.contains('light');
+        var mo = new MutationObserver(function () {
+          var h = document.documentElement.classList.contains('light');
+          var b = document.body.classList.contains('light');
+          if (h !== lastHtmlLight) liveSource = 'html';
+          else if (b !== lastBodyLight) liveSource = 'body';
+          lastHtmlLight = h; lastBodyLight = b;
           sync();
         });
         mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
