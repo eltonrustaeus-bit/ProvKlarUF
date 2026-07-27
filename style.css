@@ -204,20 +204,6 @@ header {
   .btn { min-height: 44px; }
 }
 
-/* ── THEME TOGGLE ── */
-.themeTgl {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 0 12px; height: 36px;
-  font-family: var(--mono); font-size: 11px; font-weight: 500;
-  color: var(--t3); border: 1px solid var(--l); border-radius: var(--r);
-  background: transparent; cursor: pointer;
-  transition: color .16s ease, border-color .16s ease, background .28s ease;
-}
-.themeTgl:hover { color: var(--t); border-color: var(--l2); background: var(--a-dim); }
-.tglIcon { display: inline-block; transition: transform .28s cubic-bezier(.22,.61,.36,1); }
-.themeTgl:hover .tglIcon { transform: rotate(18deg) scale(1.2); }
-@media (max-width: 768px) { .themeTgl { min-height: 44px; } }
-
 /* Hide brand tag on small screens to save header space */
 @media (max-width: 640px) { .bTag, .brandTag { display: none; } }
 

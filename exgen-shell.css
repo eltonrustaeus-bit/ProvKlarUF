@@ -17,25 +17,11 @@
    consumes yet. Add those when a later phase actually needs them.
 */
 
-/* These pages toggle dark/light via a `.light` class on <html> (default,
-   no class = dark), completely independent of exgen-tokens.css's own
-   prefers-color-scheme-based dark mode (which exists for the standalone
-   Phase 2 preview page, a different consumer with no .light mechanism).
-   Re-map the same tokens onto the existing toggle here so the new header
-   always matches whatever theme the rest of the page is already in. */
-html:not(.light) {
-  --exgen-navy: #0E1B2A;
-  --exgen-text: #F1F5F9;
-  --exgen-text-secondary: #9AA6B2;
-  --exgen-bg: #0E1B2A;
-  --exgen-bg-secondary: #152436;
-  --exgen-border: #233549;
-}
-/* Explicit re-assertion, not just the absence of the rule above — without
-   this, a dark OS preference still wins via exgen-tokens.css's own
-   prefers-color-scheme block (a plain :root rule, unconditional on .light)
-   even when the user explicitly chose the light toggle on this page. */
-html.light {
+/* These pages have no dark mode — light only. Re-assert the tokens here
+   (not just relying on exgen-tokens.css's own :root values) so exgen-tokens'
+   prefers-color-scheme:dark block (still used by the standalone Phase 2
+   preview page, a different consumer) can never leak into this header. */
+html {
   --exgen-navy: #0E1B2A;
   --exgen-text: #1B2430;
   --exgen-text-secondary: #667085;

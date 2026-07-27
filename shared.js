@@ -707,22 +707,14 @@
         /* Phase 7: ExGen token palette (teal/mint gradient, navy). Teal/mint
            are fills+borders only, never text (fail AA on light or dark bg —
            see exgen-tokens.css contrast notes). Any text sitting on a solid
-           gradient/teal fill uses navy, which stays readable on those fills
-           regardless of page theme. Free-floating accent text uses
-           --per-accent-text instead of raw teal: exgen-tokens.css's own
-           --exgen-info-text (#0369A1) is only AA-safe on a LIGHT bg (5.67:1
-           on --exgen-bg-secondary) — it drops to 2.65:1 on the dark-mode
-           --exgen-bg-secondary, since exgen-tokens.css never redefines the
-           semantic *-text tokens in its prefers-color-scheme dark block.
-           --per-accent-text (defined per theme class below) picks
-           --exgen-info-text in light mode and the brighter raw
-           --exgen-info (#0EA5E9, 6.27:1+ on dark backgrounds) in dark mode.
-           Every var() carries a literal fallback for pages that don't load
-           exgen-tokens.css (integritetspolicy.html, provia-hp.html), and the
-           .per-theme-light/.per-theme-dark rules further down (paired with
-           a JS observer near document.body.appendChild(widget)) re-sync the
-           tokens with whichever element the page's own dark/light toggle
-           actually updates. */
+           gradient/teal fill uses navy, which stays readable on those fills.
+           Free-floating accent text uses --per-accent-text (--exgen-info-text,
+           #0369A1, 5.67:1 on --exgen-bg-secondary) instead of raw teal
+           (2.39:1, fails AA as text). Every var() carries a literal fallback
+           for pages that don't load exgen-tokens.css (integritetspolicy.html,
+           provia-hp.html). The #perWidget rule further down re-asserts these
+           tokens unconditionally so exgen-tokens.css's own OS-level
+           prefers-color-scheme:dark block can never leak in. */
         '#perWidget{position:fixed;bottom:22px;right:22px;z-index:9999;font-family:"DM Sans",sans-serif}',
         '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-navy,#0E1B2A);box-shadow:0 4px 16px rgba(14,27,42,.28);transition:transform .15s,box-shadow .15s,color .15s}',
         '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,183,217,.35)}',
@@ -794,19 +786,11 @@
         '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
         '@media(max-width:480px){#perPanel{max-height:70dvh}}',
-        /* Re-sync exgen tokens with the page's own light/dark toggle (default
-           dark) — same intent as exgen-shell.css's Phase 4 fix, without it
-           an OS-level dark preference can leak through exgen-tokens.css's
-           unconditional prefers-color-scheme block. Scoped by a JS-managed
-           class (the MutationObserver near document.body.appendChild(widget)
-           below), not an html.light/:not(.light) selector: the toggle
-           button on most pages (app/index/korkortet/
-           förbättring/pricing) flips document.body.classList, not <html> —
-           only the initial page-load script sets the class on <html>, so a
-           pure-CSS selector keyed off <html> goes stale the moment the user
-           clicks the toggle without a reload. */
-        '#perWidget.per-theme-dark{--exgen-navy:#0E1B2A;--exgen-text:#F1F5F9;--exgen-text-secondary:#9AA6B2;--exgen-bg:#0E1B2A;--exgen-bg-secondary:#152436;--exgen-border:#233549;--per-accent-text:var(--exgen-info,#0EA5E9)}',
-        '#perWidget.per-theme-light{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC;--per-accent-text:var(--exgen-info-text,#0369A1)}'
+        /* Re-assert exgen tokens unconditionally (light only, no dark mode
+           left) — without this an OS-level dark preference can still leak
+           through exgen-tokens.css's unconditional prefers-color-scheme
+           block, same as exgen-shell.css's own header fix. */
+        '#perWidget{--exgen-navy:#0E1B2A;--exgen-text:#1B2430;--exgen-text-secondary:#667085;--exgen-bg:#FFFFFF;--exgen-bg-secondary:#F8FAFC;--exgen-border:#E4E7EC;--per-accent-text:var(--exgen-info-text,#0369A1)}'
       ].join('');
       document.head.appendChild(style);
 
@@ -837,47 +821,6 @@
         '</div>' +
         '<button id="perBubble" title="Chatta med P.E.R">P·E·R</button>';
       document.body.appendChild(widget);
-
-      // Pages disagree on which element carries the '.light' class: the
-      // initial page-load script sets it on <html>, but most in-page toggle
-      // buttons flip it on <body> instead (see comment above the
-      // per-theme-dark/light CSS rules). Rather than guess a selector,
-      // watch both elements and mirror whichever currently says 'light'.
-      (function () {
-        // Whichever element's class attribute actually changes first is the
-        // one this page's toggle button uses — trust only that one from
-        // then on. A plain OR of both elements breaks the moment a page's
-        // toggle only ever touches <body>: <html> keeps its stale initial
-        // 'light' class forever, so OR can never see the switch to dark.
-        var liveSource = null; // 'html' | 'body' | null (before first toggle)
-        var isLight = function () {
-          if (liveSource === 'body') return document.body.classList.contains('light');
-          if (liveSource === 'html') return document.documentElement.classList.contains('light');
-          return document.documentElement.classList.contains('light') || document.body.classList.contains('light');
-        };
-        var sync = function () {
-          var light = isLight();
-          widget.classList.toggle('per-theme-light', light);
-          widget.classList.toggle('per-theme-dark', !light);
-        };
-        sync();
-        // Only re-pin liveSource when the 'light' class itself actually
-        // flipped — other unrelated class churn on body/html (e.g. the
-        // transient 'pg-leaving' class added during page-navigation clicks
-        // elsewhere in this file) must not hijack which element we trust.
-        var lastHtmlLight = document.documentElement.classList.contains('light');
-        var lastBodyLight = document.body.classList.contains('light');
-        var mo = new MutationObserver(function () {
-          var h = document.documentElement.classList.contains('light');
-          var b = document.body.classList.contains('light');
-          if (h !== lastHtmlLight) liveSource = 'html';
-          else if (b !== lastBodyLight) liveSource = 'body';
-          lastHtmlLight = h; lastBodyLight = b;
-          sync();
-        });
-        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-      })();
 
       document.getElementById('perBubble').onclick = toggle;
 
