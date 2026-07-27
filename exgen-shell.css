@@ -30,6 +30,35 @@ html {
   --exgen-border: #E4E7EC;
 }
 
+/* ── Utility bar ── thin secondary strip above the main nav, scrolls away
+   normally (not sticky) while .xg-header below it sticks at top:0 — same
+   two-tier structure Pensionskontrollen's header uses. Reuses existing
+   footer content (UngDrive badge, privacy link, disclaimer) rather than
+   inventing new nav items/pages that don't exist yet. */
+.xg-utility-bar {
+  background: var(--exgen-bg-secondary, #F8FAFC);
+  border-bottom: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+}
+.xg-utility-wrap {
+  max-width: 1080px; margin-inline: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--exgen-space-4, 16px);
+  padding: 6px var(--exgen-space-6, 24px);
+  font: 500 10.5px var(--exgen-font-mono, monospace);
+  color: var(--exgen-text-secondary, #667085);
+  letter-spacing: 0.02em;
+}
+.xg-utility-badge {
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  color: var(--exgen-text-secondary, #667085);
+}
+.xg-utility-badge img { border-radius: 3px; opacity: .85; }
+.xg-utility-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.xg-utility-right a { color: var(--exgen-text-secondary, #667085); text-decoration: underline; text-underline-offset: 2px; }
+.xg-utility-right a:hover { color: var(--exgen-text, #1B2430); }
+@media (max-width: 640px) { .xg-utility-disclaimer { display: none; } }
+@media (max-width: 480px) { .xg-utility-bar { display: none; } }
+
 .xg-header {
   position: sticky; top: 0; z-index: 500;
   background: var(--exgen-bg, #FFFFFF);
