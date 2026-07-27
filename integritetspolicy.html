@@ -28,7 +28,7 @@
 .cookieTable td{padding:9px 10px;border-bottom:1px solid var(--l);color:var(--t2);vertical-align:top}
 .cookieTable tr:last-child td{border-bottom:none}
 .pill{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500}
-.pill.nec{background:rgba(43,255,151,.1);color:var(--a);border:1px solid rgba(43,255,151,.25)}
+.pill.nec{background:rgba(0,183,217,.1);color:var(--a);border:1px solid rgba(0,183,217,.25)}
 .pill.func{background:rgba(244,200,66,.08);color:#f4c842;border:1px solid rgba(244,200,66,.2)}
 .resetBtn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:none;border:1px solid var(--l2);border-radius:8px;color:var(--t2);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;margin-top:4px}
 .resetBtn:hover{border-color:var(--a);color:var(--a)}
@@ -55,10 +55,6 @@
         <a class="hNavLink" href="pricing.html">Priser</a>
         <a class="hNavLink" href="konto.html">Konto</a>
       </nav>
-      <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
-        <span class="tglIcon" id="tglIcon">☀️</span>
-        <span id="tglLabel">Light</span>
-      </button>
     </div>
   </div>
 </header>
@@ -74,7 +70,7 @@
   <ul>
     <li><strong>Kontoinformation</strong>: e-postadress och lösenord (hashad) vid registrering. Lagras i Supabase (EU-region).</li>
     <li><strong>Studieprogress</strong>: dina provresultat, felbanken och kategoriframsteg. Lagras i Supabase kopplat till ditt konto.</li>
-    <li><strong>Lokalt på din enhet</strong>: inloggningssession, temainställning, cached AI-förklaringar. Se tabellen nedan.</li>
+    <li><strong>Lokalt på din enhet</strong>: inloggningssession, cached AI-förklaringar. Se tabellen nedan.</li>
   </ul>
 
   <h2>Cookies &amp; lokal lagring</h2>
@@ -87,7 +83,6 @@
     </thead>
     <tbody>
       <tr><td><code>sb-…-auth-token</code></td><td>Inloggningssession (Supabase Auth)</td><td><span class="pill nec">Nödvändig</span></td><td>Till utloggning</td></tr>
-      <tr><td><code>proviaai_theme</code></td><td>Ljust / mörkt tema</td><td><span class="pill func">Funktionell</span></td><td>Permanent</td></tr>
       <tr><td><code>proviaai_kk_*</code></td><td>Lokalt cachad körkortsdata</td><td><span class="pill func">Funktionell</span></td><td>Permanent</td></tr>
       <tr><td><code>proviaai_expl_cache</code></td><td>Cachade AI-förklaringar</td><td><span class="pill func">Funktionell</span></td><td>Permanent</td></tr>
       <tr><td><code>proviaai_per_hist</code></td><td>P.E.R-chatthistorik (lokal)</td><td><span class="pill func">Funktionell</span></td><td>Permanent</td></tr>

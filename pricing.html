@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
   /* ── PRICING-SPECIFIC ── */
@@ -42,14 +41,14 @@
   }
   .planCard:hover{border-color:var(--l2);transform:translateY(-3px);box-shadow:var(--sh2)}
   /* glow top-right */
-  .planCard::before{content:"";position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(27,255,140,.09),transparent 65%);pointer-events:none}
+  .planCard::before{content:"";position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(0,183,217,.09),transparent 65%);pointer-events:none}
 
   /* premium card highlight */
-  .planCard.featured{border-color:var(--l2);box-shadow:0 0 40px rgba(27,255,140,.09)}
-  .planCard.featured:hover{box-shadow:0 20px 60px rgba(27,255,140,.24)}
+  .planCard.featured{border-color:var(--l2);box-shadow:0 0 40px rgba(0,183,217,.09)}
+  .planCard.featured:hover{box-shadow:0 20px 60px rgba(0,183,217,.24)}
   .planCard.featured::after{
     content:"";position:absolute;inset:0;
-    background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(27,255,140,.07), transparent 65%);
+    background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,183,217,.07), transparent 65%);
     pointer-events:none;
     animation:featuredPulse 3s ease-in-out infinite;
   }
@@ -60,7 +59,7 @@
     font-family:var(--mono);font-size:9px;font-weight:500;
     color:var(--a);letter-spacing:.1em;text-transform:uppercase;
     border:1px solid var(--l2);border-radius:var(--r2);padding:2px 8px;
-    background:rgba(27,255,140,.06);
+    background:rgba(0,183,217,.06);
     margin-bottom:14px;align-self:flex-start;
   }
   .planBadge.muted{color:var(--t3);border-color:var(--l);background:transparent}
@@ -95,16 +94,15 @@
     width:100%;min-height:48px;
     font-family:var(--font);font-weight:700;font-size:15px;
     border-radius:10px;cursor:pointer;
-    border:1px solid var(--a);background:var(--a);color:#0c1f14;
+    border:1px solid var(--a);background:var(--a);color:#fff;
     transition:box-shadow .15s ease,background .15s ease;
     margin-top:auto;
   }
   @media(max-width:480px){.planCta{min-height:48px}}
-  .planCta:hover{box-shadow:0 8px 24px rgba(27,255,140,.28);background:var(--a2)}
+  .planCta:hover{box-shadow:0 8px 24px rgba(0,183,217,.28);background:var(--a2)}
   .planCta:active{transform:scale(.98)}
-  .planCta.outline{background:transparent;color:var(--t);border-color:rgba(27,255,140,.28)}
+  .planCta.outline{background:transparent;color:var(--t);border-color:rgba(0,183,217,.28)}
   .planCta.outline:hover{background:var(--a-dim);border-color:var(--l2);box-shadow:var(--sh)}
-  body.light .planCta { color: #fff; }
 
   /* COMPARE TABLE */
   .compareWrap{margin-bottom:28px;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -138,9 +136,9 @@
   /* CUSTOM CURSOR */
   @media(pointer:fine){
     *{cursor:none!important}
-    #cursorDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:#1bff8c;pointer-events:none;opacity:0;transition:transform .08s ease,opacity .15s;will-change:transform}
+    #cursorDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:#00768F;pointer-events:none;opacity:0;transition:transform .08s ease,opacity .15s;will-change:transform}
     #cursorRing{position:fixed;top:0;left:0;z-index:99998;width:28px;height:28px;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}
-    #cursorRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(27,255,140,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s ease}
+    #cursorRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(0,183,217,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s ease}
     #cursorRing.rHov>div{transform:scale(1.57);opacity:.3}
     #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
   }
@@ -180,10 +178,6 @@
         <a class="xg-nav-link active" href="pricing.html" aria-current="page">Priser</a>
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
-      <button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
-        <span class="tglIcon" id="tglIcon">☀️</span>
-        <span id="tglLabel">Light</span>
-      </button>
       <div class="mWrap">
         <button class="mBtn" id="mBtn" type="button" aria-label="Meny" aria-expanded="false">
           <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -201,9 +195,9 @@
   </div>
 </header>
 
-<div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
+<div id="betaBanner" style="background:#f8fafc;border-bottom:1px solid rgba(0,183,217,.2);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#667085;position:relative;flex-wrap:wrap">
   <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
-  <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
+  <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#667085;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
 
@@ -361,7 +355,7 @@
         <div style="font-family:var(--mono);font-size:10px;color:var(--a);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Din plan</div>
         <div style="font-weight:600;font-size:14px;color:var(--t)">Hantera eller avsluta din prenumeration via säker betalningsportal.</div>
       </div>
-      <button id="manageSubBtn" style="height:38px;padding:0 20px;font-size:13px;font-weight:600;background:transparent;color:var(--t);border:1px solid var(--l2);border-radius:6px;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='rgba(27,255,140,.4)';this.style.color='var(--a)'" onmouseout="this.style.borderColor='var(--l2)';this.style.color='var(--t)'">
+      <button id="manageSubBtn" style="height:38px;padding:0 20px;font-size:13px;font-weight:600;background:transparent;color:var(--t);border:1px solid var(--l2);border-radius:6px;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='rgba(0,183,217,.4)';this.style.color='var(--a)'" onmouseout="this.style.borderColor='var(--l2)';this.style.color='var(--t)'">
         Hantera prenumeration →
       </button>
     </div>
@@ -431,22 +425,6 @@
 window.addEventListener("load", () => setTimeout(() => document.getElementById("ldr").classList.add("out"), 160));
 
 /* THEME */
-(function(){
-  const LS="proviaai_theme";
-  function applyTheme(t){
-    document.body.classList.toggle("light",t==="light");
-    localStorage.setItem(LS,t);
-    const ico=document.getElementById("tglIcon"),lbl=document.getElementById("tglLabel");
-    if(ico)ico.textContent=t==="light"?"🌙":"☀️";
-    if(lbl)lbl.textContent=t==="light"?"Dark":"Light";
-  }
-  const saved=localStorage.getItem(LS);
-  const preferred='light';
-  applyTheme(saved||preferred);
-  const btn=document.getElementById("themeToggleBtn");
-  if(btn)btn.addEventListener("click",()=>applyTheme(document.body.classList.contains("light")?"dark":"light"));
-})();
-
 /* MENU */
 const mBtn = document.getElementById("mBtn");
 const drop = document.getElementById("drop");

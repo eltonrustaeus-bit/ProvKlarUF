@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
   /* ── LÄRARPANEL — matches konto.html design system ── */
@@ -37,7 +36,7 @@
 
   /* status bar */
   .statusBar{display:none;align-items:center;gap:8px;padding:11px 14px;border-radius:8px;font-family:var(--mono);font-size:12px;margin-bottom:16px;border:1px solid var(--l)}
-  .statusBar.ok{background:rgba(27,255,140,.08);border-color:rgba(27,255,140,.2);color:var(--a)}
+  .statusBar.ok{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.2);color:var(--a)}
   .statusBar.err{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.2);color:#ff6b6b}
   .statusBar.warn{background:rgba(255,200,80,.08);border-color:rgba(255,200,80,.25);color:#f4c842}
 
@@ -54,12 +53,12 @@
   /* buttons (konto kBtn) */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;
     font-family:var(--sans);font-size:13.5px;font-weight:600;letter-spacing:-.01em;border-radius:6px;cursor:pointer;
-    border:1px solid var(--a);background:var(--a);color:#08100d;transition:background .15s,border-color .15s,color .15s;
+    border:1px solid var(--a);background:var(--a);color:#fff;transition:background .15s,border-color .15s,color .15s;
     text-decoration:none;white-space:nowrap}
-  .btn:hover{background:#15e67a;border-color:#15e67a}
+  .btn:hover{background:var(--a2);border-color:var(--a2)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .btn.ghost{background:transparent;color:var(--t);border-color:var(--l2)}
-  .btn.ghost:hover{border-color:rgba(27,255,140,.4);color:var(--a);background:rgba(27,255,140,.05)}
+  .btn.ghost:hover{border-color:rgba(0,183,217,.4);color:var(--a);background:rgba(0,183,217,.05)}
   .btn.per{font-size:12.5px;padding:0 14px}
   .btn:focus-visible,.classCard:focus-visible,.codePill:focus-visible,.delClass:focus-visible,
   .stTable tr.clickable:focus-visible,.ddClose:focus-visible,.linkBtn:focus-visible{outline:2px solid var(--a);outline-offset:2px}
@@ -68,22 +67,22 @@
   .createRow{display:flex;gap:8px;flex-wrap:wrap}
   .inp{flex:1;min-width:200px;height:40px;padding:0 14px;border-radius:6px;border:1px solid var(--l);
     background:var(--bg);color:var(--t);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s}
-  .inp:focus{border-color:rgba(27,255,140,.4)}
+  .inp:focus{border-color:rgba(0,183,217,.4)}
   .inp::placeholder{color:var(--t3)}
 
   /* class cards */
   .classGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
   .classCard{background:var(--bg);border:1px solid var(--l);border-radius:8px;padding:15px;cursor:pointer;
     transition:border-color .15s,background .15s;position:relative}
-  .classCard:hover{border-color:rgba(27,255,140,.3);background:rgba(27,255,140,.03)}
-  .classCard.active{border-color:rgba(27,255,140,.5);box-shadow:0 0 0 1px rgba(27,255,140,.4) inset}
+  .classCard:hover{border-color:rgba(0,183,217,.3);background:rgba(0,183,217,.03)}
+  .classCard.active{border-color:rgba(0,183,217,.5);box-shadow:0 0 0 1px rgba(0,183,217,.4) inset}
   .className{font-size:15px;font-weight:600;color:var(--t);margin-bottom:10px;letter-spacing:-.01em;
     padding-right:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .classMeta{display:flex;align-items:center;justify-content:space-between;gap:8px}
   .memberCount{font-family:var(--mono);font-size:10.5px;color:var(--t3)}
-  .codePill{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--a);background:rgba(27,255,140,.07);
-    border:1px solid rgba(27,255,140,.2);border-radius:20px;padding:3px 10px;cursor:pointer;letter-spacing:.06em}
-  .codePill:hover{border-color:rgba(27,255,140,.45)}
+  .codePill{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--a);background:rgba(0,183,217,.07);
+    border:1px solid rgba(0,183,217,.2);border-radius:20px;padding:3px 10px;cursor:pointer;letter-spacing:.06em}
+  .codePill:hover{border-color:rgba(0,183,217,.45)}
   .delClass{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:6px;border:none;background:transparent;
     color:var(--t3);cursor:pointer;font-size:15px;line-height:1;opacity:0;transition:opacity .14s,color .14s}
   .classCard:hover .delClass,.classCard:focus-within .delClass{opacity:1}
@@ -100,7 +99,7 @@
   .stTable td{padding:13px 14px;font-size:13px;color:var(--t2);border-bottom:1px solid var(--l);vertical-align:middle}
   .stTable tbody tr:last-child td{border-bottom:none}
   .stTable tbody tr.clickable{cursor:pointer;transition:background .12s}
-  .stTable tbody tr.clickable:hover{background:rgba(27,255,140,.04)}
+  .stTable tbody tr.clickable:hover{background:rgba(0,183,217,.04)}
   .stEmail{color:var(--t);font-weight:500;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .num{font-family:var(--mono);font-size:12px}
   .attn{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6b6b;margin-right:7px;vertical-align:middle}
@@ -111,7 +110,7 @@
   /* result badges */
   .resBadge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10px;font-weight:500;
     letter-spacing:.04em;padding:3px 9px;border-radius:20px}
-  .resBadge.pass{background:rgba(27,255,140,.08);color:var(--a);border:1px solid rgba(27,255,140,.25)}
+  .resBadge.pass{background:rgba(0,183,217,.08);color:var(--a);border:1px solid rgba(0,183,217,.25)}
   .resBadge.mid{background:rgba(255,200,80,.08);color:#f4c842;border:1px solid rgba(255,200,80,.25)}
   .resBadge.fail{background:rgba(255,107,107,.08);color:#ff6b6b;border:1px solid rgba(255,107,107,.25)}
   .resBadge.none{background:transparent;color:var(--t3);border:1px solid var(--l)}
@@ -125,7 +124,7 @@
   .spark.empty{color:var(--t3);font-family:var(--mono);font-size:11px}
 
   /* P.E.R insight */
-  .insightBox{border:1px solid rgba(27,255,140,.25);border-radius:8px;background:rgba(27,255,140,.04);padding:16px 18px;margin-bottom:16px}
+  .insightBox{border:1px solid rgba(0,183,217,.25);border-radius:8px;background:rgba(0,183,217,.04);padding:16px 18px;margin-bottom:16px}
   .insightHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
   .insightTitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--a);font-weight:500}
   .insightMeta{font-family:var(--mono);font-size:10.5px;color:var(--t3);display:flex;align-items:center;gap:8px}
@@ -134,7 +133,7 @@
   .insightLoading,.insightErr{font-size:13px;color:var(--t3);padding:6px 0}
   .insightErr{color:#ff6b6b}
   .linkBtn{background:none;border:none;color:var(--a);font-family:var(--mono);font-size:10.5px;cursor:pointer;padding:0;text-decoration:underline}
-  .linkBtn:hover{color:#15e67a}
+  .linkBtn:hover{color:var(--a2)}
 
   /* modals */
   .ddOverlay{position:fixed;inset:0;background:rgba(4,8,6,.86);display:none;align-items:flex-start;justify-content:center;

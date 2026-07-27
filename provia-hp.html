@@ -10,14 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #08100d;
-      --accent: #1bff8c;
-      --surface: #111a15;
-      --surface-2: #162019;
-      --text: #e8f5ee;
-      --text-dim: #a8c4b4;
+      --bg: #ffffff;
+      --accent: #00768F;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --text: #1B2430;
+      --text-dim: #667085;
       --radius: 5px;
-      --line: #1f2c24;
+      --line: #E4E7EC;
     }
     * { box-sizing: border-box; }
     body {
@@ -38,7 +38,7 @@
     .hp-card + .hp-card { margin-top: 1rem; }
     .hp-btn {
       appearance: none; cursor: pointer; font: inherit; font-weight: 700;
-      background: var(--accent); color: #04130b; border: none; border-radius: var(--radius);
+      background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
       padding: .8rem 1.4rem; transition: transform .12s ease, filter .12s ease;
     }
     .hp-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
@@ -57,7 +57,7 @@
     }
     .hp-opt:hover:not(:disabled) { border-color: var(--accent); }
     .hp-opt:disabled { cursor: default; opacity: .9; }
-    .hp-opt.hp-correct { border-color: var(--accent); background: rgba(27,255,140,.12); }
+    .hp-opt.hp-correct { border-color: var(--accent); background: rgba(0,183,217,.12); }
     .hp-opt.hp-wrong { border-color: #ff5d5d; background: rgba(255,93,93,.10); }
     .hp-explain { margin-top: 1.1rem; padding: 1rem; background: var(--surface-2); border-left: 2px solid var(--accent); border-radius: var(--radius); color: var(--text-dim); font-size: .95rem; }
     .hp-actions { margin-top: 1.25rem; display: flex; justify-content: flex-end; }
@@ -84,9 +84,9 @@
     @keyframes hp-pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
     .hp-nav { display: flex; flex-wrap: wrap; gap: .35rem; margin: .5rem 0 1rem; }
     .hp-navcell { font-family: "DM Mono", monospace; font-size: .75rem; width: 30px; height: 30px; cursor: pointer; color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius); }
-    .hp-navcell--done { color: var(--accent); border-color: rgba(27,255,140,.4); }
+    .hp-navcell--done { color: var(--accent); border-color: rgba(0,183,217,.4); }
     .hp-navcell--active { outline: 2px solid var(--accent); color: var(--text); }
-    .hp-opt--picked { border-color: var(--accent); background: rgba(27,255,140,.10); }
+    .hp-opt--picked { border-color: var(--accent); background: rgba(0,183,217,.10); }
     .hp-simhead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .75rem; }
     .hp-tblwrap { overflow-x: auto; margin: 0 0 1.1rem; }
     .hp-tbl { border-collapse: collapse; width: 100%; font-family: "DM Mono", monospace; font-size: .82rem; }

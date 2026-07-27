@@ -16,7 +16,6 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <style>
   /* ── KONTO PAGE ── */
@@ -50,8 +49,8 @@
     display:inline-flex;align-items:center;gap:6px;
     font-family:var(--mono);font-size:11px;font-weight:500;
     color:var(--a);letter-spacing:.06em;text-transform:uppercase;
-    border:1px solid rgba(27,255,140,.3);border-radius:20px;
-    padding:5px 12px;background:rgba(27,255,140,.07);
+    border:1px solid rgba(0,183,217,.3);border-radius:20px;
+    padding:5px 12px;background:rgba(0,183,217,.07);
   }
   .planBadge.free{color:var(--t3);border-color:var(--l);background:transparent}
   .planBadgeDot{width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0;animation:eyeBlink 1.8s ease-in-out infinite}
@@ -60,7 +59,7 @@
 
   .usageBar{margin-top:14px}
   .usageLabel{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--t3);margin-bottom:6px}
-  .usageTrack{height:4px;background:rgba(27,255,140,.1);border-radius:2px;overflow:hidden}
+  .usageTrack{height:4px;background:rgba(0,183,217,.1);border-radius:2px;overflow:hidden}
   .usageFill{height:100%;background:var(--a);border-radius:2px;transition:width .5s cubic-bezier(.22,.61,.36,1)}
 
   .planNote{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:10px}
@@ -74,10 +73,10 @@
     cursor:pointer;transition:background .15s,border-color .15s,color .15s;
     text-decoration:none;border:1px solid transparent;
   }
-  .kBtnPrimary{background:var(--a);color:#08100d;border-color:var(--a)}
-  .kBtnPrimary:hover{background:#15e67a}
+  .kBtnPrimary{background:var(--a);color:#fff;border-color:var(--a)}
+  .kBtnPrimary:hover{background:var(--a2)}
   .kBtnOutline{background:transparent;color:var(--t);border-color:var(--l2)}
-  .kBtnOutline:hover{border-color:rgba(27,255,140,.4);color:var(--a);background:rgba(27,255,140,.05)}
+  .kBtnOutline:hover{border-color:rgba(0,183,217,.4);color:var(--a);background:rgba(0,183,217,.05)}
   .kBtnDanger{background:transparent;color:#ff6b6b;border-color:rgba(255,107,107,.3)}
   .kBtnDanger:hover{background:rgba(255,107,107,.07);border-color:rgba(255,107,107,.5)}
 
@@ -94,17 +93,17 @@
     transition:border-color .18s,background .18s;
     position:relative;
   }
-  .upgPlan:hover{border-color:rgba(27,255,140,.3);background:rgba(27,255,140,.03)}
-  .upgPlan.featured{border-color:rgba(27,255,140,.35)}
+  .upgPlan:hover{border-color:rgba(0,183,217,.3);background:rgba(0,183,217,.03)}
+  .upgPlan.featured{border-color:rgba(0,183,217,.35)}
   .upgPlanName{font-weight:700;font-size:14px;color:var(--t);letter-spacing:-.01em;margin-bottom:2px}
   .upgPlanPrice{font-weight:700;font-size:22px;color:var(--t);letter-spacing:-.03em;line-height:1}
   .upgPlanPer{font-family:var(--mono);font-size:10px;color:var(--t3)}
   .upgPlanDesc{font-family:var(--mono);font-size:10px;color:var(--t2);margin-top:6px;line-height:1.5}
   .upgPlanBtn{margin-top:12px;width:100%;height:36px;font-size:13px;font-weight:600;border:none;border-radius:5px;cursor:pointer;transition:background .15s}
-  .upgPlanBtn.primary{background:var(--a);color:#08100d}
-  .upgPlanBtn.primary:hover{background:#15e67a}
+  .upgPlanBtn.primary{background:var(--a);color:#fff}
+  .upgPlanBtn.primary:hover{background:var(--a2)}
   .upgPlanBtn.outline{background:transparent;color:var(--t);border:1px solid var(--l2)}
-  .upgPlanBtn.outline:hover{border-color:rgba(27,255,140,.4);color:var(--a)}
+  .upgPlanBtn.outline:hover{border-color:rgba(0,183,217,.4);color:var(--a)}
 
   /* Divider */
   .kDivider{height:1px;background:var(--l);margin:14px 0}
@@ -115,7 +114,7 @@
     padding:10px 14px;border-radius:6px;
     margin-bottom:12px;display:none;
   }
-  #kontoMsg.ok{background:rgba(27,255,140,.08);color:var(--a);border:1px solid rgba(27,255,140,.2)}
+  #kontoMsg.ok{background:rgba(0,183,217,.08);color:var(--a);border:1px solid rgba(0,183,217,.2)}
   #kontoMsg.err{background:rgba(255,107,107,.07);color:#ff6b6b;border:1px solid rgba(255,107,107,.2)}
 
   /* Auth gate */
@@ -124,7 +123,7 @@
   #authGate .agSub{font-size:14px;color:var(--t2);margin-bottom:24px}
 
   /* Loading skeleton */
-  .kSkel{height:16px;background:rgba(27,255,140,.06);border-radius:4px;animation:skel 1.4s ease-in-out infinite}
+  .kSkel{height:16px;background:rgba(0,183,217,.06);border-radius:4px;animation:skel 1.4s ease-in-out infinite}
   @keyframes skel{0%,100%{opacity:.5}50%{opacity:1}}
   </style>
 
