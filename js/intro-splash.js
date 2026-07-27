@@ -62,45 +62,15 @@
       'display:flex;flex-direction:column;align-items:center;gap:0;',
     '}',
 
-    /* ── Logo — ALWAYS VISIBLE from t=0 ── */
-    '#piLogoWrap{',
-      'position:relative;',
-      'opacity:.55;transform:scale(.82);',
-      'animation:piLogoReveal .65s cubic-bezier(.34,1.5,.64,1) .08s forwards;',
-    '}',
-    '@keyframes piLogoReveal{',
-      'to{opacity:1;transform:scale(1)}',
-    '}',
-    '#piLogoWrap .exgenMark{',
-      'box-shadow:0 0 0 1px rgba(0,183,217,.18),0 12px 40px rgba(0,0,0,.55);',
-    '}',
-    /* Glow ring — expands outward after logo settles */
-    '#piLogoWrap::after{',
-      'content:"";position:absolute;inset:-12px;border-radius:28px;',
-      'border:1.5px solid rgba(0,183,217,.0);',
-      'animation:piRingPulse 3s ease-in-out .9s infinite;',
-    '}',
-    '@keyframes piRingPulse{',
-      '0%{border-color:rgba(0,183,217,.0);transform:scale(1)}',
-      '40%{border-color:rgba(0,183,217,.4);transform:scale(1.06)}',
-      '100%{border-color:rgba(0,183,217,.0);transform:scale(1.12)}',
-    '}',
-    /* Subtle inner glow that pulses */
-    '#piLogoGlow{',
-      'position:absolute;inset:-20px;border-radius:35px;pointer-events:none;',
-      'background:radial-gradient(circle,rgba(0,183,217,.22),transparent 70%);',
-      'filter:blur(14px);',
-      'opacity:0;animation:piGlowPulse 2.6s ease-in-out 1.1s infinite;',
-    '}',
-    '@keyframes piGlowPulse{',
-      '0%,100%{opacity:0}',
-      '50%{opacity:1}',
-    '}',
 
-    /* ── Name ── */
+    /* ── Name — ExGen gradient wordmark, the splash's sole logo element
+       (replaces the old boxed icon + separate name text: the reference
+       logo Elton supplied is a gradient wordmark, no icon) ── */
     '#piName{',
-      'font:700 30px/1 "DM Sans",sans-serif;color:#e8f5ee;',
-      'letter-spacing:-.035em;margin-top:20px;',
+      'font:800 40px/1 "DM Sans",sans-serif;letter-spacing:-.03em;',
+      'background:linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%);',
+      '-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
+      'background-clip:text;color:transparent;',
       'opacity:0;transform:translateY(16px);',
       'animation:piSlideUp .5s cubic-bezier(.22,1,.36,1) .62s forwards;',
     '}',
@@ -202,10 +172,6 @@
     el.innerHTML =
       '<div id="piOrb"></div>' +
       '<div id="piContent">' +
-        '<div id="piLogoWrap">' +
-          '<div id="piLogoGlow"></div>' +
-          '<span class="exgenMark" style="--em:92px" aria-hidden="true">Ex</span>' +
-        '</div>' +
         '<div id="piName">ExGen</div>' +
         '<div id="piTagline">AI-tränare för körkortsteorin och egna prov</div>' +
         '<div id="piDivider"></div>' +

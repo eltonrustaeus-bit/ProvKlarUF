@@ -623,6 +623,20 @@ body.light .welcomeOrb { box-shadow: 0 0 24px rgba(13,148,96,.16), inset 0 0 16p
   background-clip: text;
 }
 
+/* ExGen wordmark — the brand name itself rendered in the teal-to-mint
+   gradient, replacing the earlier .exgenMark boxed-badge approach per
+   Elton's feedback: the reference logo is a gradient wordmark, not an
+   icon. Deliberately used ONLY for the literal brand name ("ExGen"),
+   never body text/headings/links — logos/wordmarks are exempt from
+   WCAG's text-contrast minimums (1.4.5/1.4.6 logotype exception),
+   which regular text is not. */
+.exgenWordmark {
+  background: linear-gradient(110deg, #00B7D9 0%, #28C3B5 48%, #76D76A 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; color: transparent;
+  font-weight: 800; letter-spacing: -.02em;
+}
+
 /* ── DESKTOP hNAV UNDERLINE HOVER ── */
 .hNavLink { position: relative; }
 .hNavLink::after {

@@ -1447,7 +1447,7 @@
       el.innerHTML = '<div id="pvCard">'
         + '<div class="pv-hd">'
           + '<button class="pv-cl" id="pvCl" aria-label="Stäng">✕</button>'
-          + '<span class="exgenMark" style="--em:34px;margin-bottom:16px" aria-hidden="true">Ex</span>'
+          + '<div class="exgenWordmark" style="font-size:22px;margin-bottom:10px" aria-hidden="true">ExGen</div>'
           + '<div class="pv-ti" id="pvTi">Välkommen!</div>'
           + '<div class="pv-sb" id="pvSb">GRATIS ATT STARTA · INGET KORT KRÄVS</div>'
         + '</div>'
