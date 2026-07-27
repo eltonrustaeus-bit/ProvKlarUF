@@ -16,28 +16,18 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 
   <style>
-    /* ── TOKENS DARK ── */
+    /* ── TOKENS — matches style.css's single ExGen palette (Phase 10b) ── */
     :root{
-      --a:#2bff97; --a2:#1ae080; --a-dim:rgba(43,255,151,.10); --a-border:rgba(43,255,151,.20); --a-border2:rgba(43,255,151,.42);
-      --bg:#0d2118; --s:#162e20; --s2:#1e3c2a; --s3:#254836; --glass:rgba(12,20,15,.78);
-      --t:#f2fcf6; --t2:#c2dece; --t3:#8bbca0;
-      --l:rgba(43,255,151,.13); --l2:rgba(43,255,151,.28);
-      --ok:#1bff8c; --warn:#946c00; --danger:#c0392b;
-      --sh:0 2px 12px rgba(0,0,0,.5); --sh2:0 8px 32px rgba(0,0,0,.55); --sh3:0 20px 60px rgba(0,0,0,.65);
+      --a:#00768F; --a2:#00647A; --a-dim:rgba(0,118,143,.08); --a-border:rgba(0,183,217,.20); --a-border2:rgba(0,183,217,.42);
+      --bg:#ffffff; --s:#ffffff; --s2:#f8fafc; --s3:#f1f4f8; --glass:rgba(255,255,255,.88);
+      --t:#1B2430; --t2:#667085; --t3:#667085;
+      --l:rgba(0,183,217,.10); --l2:rgba(0,183,217,.20);
+      --ok:#166534; --warn:#92620A; --danger:#B91C1C;
+      --sh:0 2px 12px rgba(14,27,42,.06); --sh2:0 6px 24px rgba(14,27,42,.08); --sh3:0 12px 40px rgba(14,27,42,.12);
       --r:8px; --r2:4px; --max:1060px;
       --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono','SF Mono',monospace;
-    }
-    /* ── TOKENS LIGHT ── */
-    body.light{
-      --a:#07a863; --a2:#068c52; --a-dim:rgba(7,168,99,.08); --a-border:rgba(7,168,99,.18); --a-border2:rgba(7,168,99,.42);
-      --bg:#f6fbf8; --s:#ffffff; --s2:#eef8f2; --s3:#e4f3ea; --glass:rgba(255,255,255,.88);
-      --t:#091810; --t2:#2c4d3a; --t3:#4a7560;
-      --l:rgba(7,168,99,.12); --l2:rgba(7,168,99,.26);
-      --ok:#07a863; --warn:#946c00; --danger:#c0392b;
-      --sh:0 2px 12px rgba(0,0,0,.07); --sh2:0 6px 24px rgba(0,0,0,.10); --sh3:0 12px 40px rgba(0,0,0,.13);
     }
 
     /* ── RESET ── */
@@ -51,14 +41,9 @@
     body::before{
       content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
       background:
-        radial-gradient(ellipse 70vw 50vh at 8% 0%, rgba(43,255,151,.065),transparent 65%),
-        radial-gradient(ellipse 55vw 35vh at 92% 15%, rgba(43,255,151,.045),transparent 65%);
+        radial-gradient(ellipse 70vw 50vh at 8% 0%, rgba(0,183,217,.055),transparent 65%),
+        radial-gradient(ellipse 55vw 35vh at 92% 15%, rgba(0,183,217,.035),transparent 65%);
       transition:opacity .28s ease;
-    }
-    body.light::before{
-      background:
-        radial-gradient(ellipse 70vw 50vh at 8% 0%, rgba(13,148,96,.055),transparent 65%),
-        radial-gradient(ellipse 55vw 35vh at 92% 15%, rgba(13,148,96,.035),transparent 65%);
     }
     a{text-decoration:none;color:inherit}
 
@@ -86,7 +71,6 @@
       line-height:1.07;color:var(--t);margin-bottom:14px;
     }
     .heroTitle em{font-style:normal;color:var(--a)}
-    body.light .heroTitle em{color:var(--a)}
     .heroSub{font-size:clamp(15px,1.6vw,17px);color:var(--t2);max-width:460px;line-height:1.7;margin-bottom:22px}
     .heroMeta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
     .heroStatusWrap{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--t3)}
@@ -248,7 +232,7 @@
     }
     .tinyBtn:hover{border-color:var(--l2);color:var(--t);box-shadow:var(--sh)}
     .tinyBtnP{background:var(--a-dim);border-color:var(--a-border);color:var(--a2)}
-    .tinyBtnP:hover{background:rgba(27,255,140,.16);border-color:var(--a-border2);color:var(--t)}
+    .tinyBtnP:hover{background:rgba(0,183,217,.16);border-color:var(--a-border2);color:var(--t)}
 
     .tipsBox{
       margin-top:9px;padding:13px;border:1px solid var(--a-border);border-left:2px solid var(--a);
@@ -322,7 +306,7 @@
       *{cursor:none!important}
       #cursorDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:var(--a);pointer-events:none;opacity:0;transition:transform .08s ease,opacity .15s;will-change:transform}
       #cursorRing{position:fixed;top:0;left:0;z-index:99998;width:28px;height:28px;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}
-      #cursorRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(27,255,140,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s ease}
+      #cursorRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(0,183,217,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s ease}
       #cursorRing.rHov>div{transform:scale(1.57);opacity:.3}
       #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
     }
@@ -388,10 +372,6 @@
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
       <div class="hRight">
-        <button class="themeTgl" id="themeToggle" type="button" aria-label="Växla tema">
-          <span class="tglIcon" id="themeIcon">🌙</span>
-          <span id="themeLabel">Light</span>
-        </button>
         <div class="menuWrap">
           <button class="mBtn" id="menuBtn" type="button" aria-label="Meny" aria-expanded="false">
             <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -624,19 +604,7 @@
       LS_TRAIN_PICK='proviaai_train_pick',LS_UI_OPEN='proviaai_ui_open_improve',
       LS_USER_NAME_A='proviaai_user_name',LS_USER_NAME_B='proviaai_name',
       LS_SMART_TIPS_CACHE='proviaai_smart_tips_cache',LS_TEACHER_REPORT_CACHE='proviaai_teacher_report_cache',
-      LS_PER_COACH_CACHE='proviaai_per_coach_cache',
-      LS_THEME='proviaai_theme';
-
-    /* ── THEME ── */
-    let THEME=localStorage.getItem(LS_THEME)||'light';
-    function applyTheme(t){
-      THEME=t; document.body.classList.toggle('light',t==='light');
-      const icon=document.getElementById('themeIcon'),lbl=document.getElementById('themeLabel');
-      if(icon) icon.textContent=t==='light'?'☀️':'🌙';
-      if(lbl) lbl.textContent=t==='light'?'Dark':'Light';
-      localStorage.setItem(LS_THEME,t);
-    }
-    applyTheme(THEME);
+      LS_PER_COACH_CACHE='proviaai_per_coach_cache';
 
     /* ── SUPABASE ── */
     const SB_URL='https://mnmotdluigzeehdjbhbu.supabase.co'.trim();
@@ -1046,16 +1014,15 @@
       const data=h.slice(-20);
       const labels=data.map(x=>new Date(x.ts||Date.now()).toLocaleDateString(undefined,{month:'2-digit',day:'2-digit'}));
       const values=data.map(x=>Number(x.percent||0));
-      const lt=document.body.classList.contains('light');
-      const grid=lt?'rgba(13,148,96,.07)':'rgba(27,255,140,.06)',tick=lt?'#7aaa92':'#6b8f7c';
-      const line=lt?'#0d9460':'#1bff8c',fill=lt?'rgba(13,148,96,.08)':'rgba(27,255,140,.09)';
+      const grid='rgba(0,183,217,.07)',tick='#667085';
+      const line='#00768F',fill='rgba(0,183,217,.08)';
       if(_chart){_chart.destroy();_chart=null;}
       _chart=new Chart(canvas,{
         type:'line',
-        data:{labels,datasets:[{data:values,borderColor:line,backgroundColor:fill,borderWidth:2,pointBackgroundColor:line,pointBorderColor:lt?'#fff':'#08100d',pointBorderWidth:2,pointRadius:3.5,pointHoverRadius:5,fill:true,tension:0.4}]},
+        data:{labels,datasets:[{data:values,borderColor:line,backgroundColor:fill,borderWidth:2,pointBackgroundColor:line,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:3.5,pointHoverRadius:5,fill:true,tension:0.4}]},
         options:{
           responsive:true,maintainAspectRatio:true,aspectRatio:4,
-          plugins:{legend:{display:false},tooltip:{backgroundColor:lt?'rgba(255,255,255,.97)':'rgba(10,20,14,.97)',borderColor:lt?'rgba(13,148,96,.18)':'rgba(27,255,140,.18)',borderWidth:1,titleColor:lt?'#0c1e15':'#e8f5ee',bodyColor:lt?'#3a6050':'#a8c4b4',padding:10,cornerRadius:4,callbacks:{label:c=>` ${c.raw}%`}}},
+          plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(255,255,255,.97)',borderColor:'rgba(0,183,217,.18)',borderWidth:1,titleColor:'#1B2430',bodyColor:'#667085',padding:10,cornerRadius:4,callbacks:{label:c=>` ${c.raw}%`}}},
           scales:{
             x:{grid:{color:grid,drawBorder:false},ticks:{color:tick,font:{size:10,weight:'500',family:'DM Mono'},maxTicksLimit:8},border:{display:false}},
             y:{min:0,max:100,grid:{color:grid,drawBorder:false},ticks:{color:tick,font:{size:10,weight:'500',family:'DM Mono'},callback:v=>v+'%',stepSize:25},border:{display:false}}
@@ -1360,14 +1327,6 @@
       const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:0.07,rootMargin:'0px 0px -3% 0px'});
       els.forEach((el,i)=>{el.style.transitionDelay=`${Math.min(i*40,160)}ms`;io.observe(el);});
     }
-
-    /* ── THEME TOGGLE ── */
-    document.addEventListener('DOMContentLoaded',()=>{
-      $('themeToggle')?.addEventListener('click',()=>{
-        applyTheme(THEME==='dark'?'light':'dark');
-        const h=lsArr(LS_HISTORY);if(h.length>=2)renderChart(h);
-      });
-    });
 
     /* ── INIT ── */
     (async()=>{

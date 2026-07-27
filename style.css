@@ -1,54 +1,19 @@
 /* ProviaAI — Shared Design System v1.0 */
 
 /* ── TOKENS ── */
+/* ExGen palette — the site's only theme (Phase 10b removed the dark/light
+   toggle entirely per Elton's explicit request, "ta bort helt"). Values
+   match exgen-tokens.css's own verified-AA set (one source of truth) with
+   one deliberate exception: --a/--a2 are NOT the raw --exgen-teal
+   (#00B7D9, which measures 2.39:1 on white and fails AA) because --a is
+   used as a `color:` value directly in many rules in this file, and far
+   more across inline page styles — a token this widely used as text has
+   to be AA-safe itself, not just usable as a fill. #00768F/#00647A are
+   darker points on the same teal hue that clear 4.5:1 (5.27/6.77:1).
+   Full-strength --exgen-teal/--exgen-gradient stay available (via
+   exgen-tokens.css, loaded alongside this file) for fills/borders/hero
+   moments. */
 :root {
-  --a: #2bff97;
-  --a2: #1ae080;
-  --a-dim: rgba(43,255,151,.14);
-  --a-glow: rgba(43,255,151,.30);
-  --bg: #0d2118;
-  --s: #162e20;
-  --s2: #1e3c2a;
-  --s3: #254836;
-  --t: #f2fcf6;
-  --t2: #c2dece;
-  --t3: #8bbca0;
-  --l: rgba(43,255,151,.13);
-  --l2: rgba(43,255,151,.28);
-  --l3: rgba(43,255,151,.42);
-  --sh: 0 8px 32px rgba(0,0,0,.35);
-  --sh2: 0 16px 48px rgba(0,0,0,.40);
-  --sh3: 0 24px 64px rgba(0,0,0,.50);
-  --r: 8px;
-  --r2: 4px;
-  --max: 1080px;
-  --font: 'DM Sans', system-ui, sans-serif;
-  --mono: 'DM Mono', monospace;
-  --danger: #ff6b6b;
-  --warn: #f4c842;
-  --ok: #1bff8c;
-}
-
-/* Anti-FOUC: applied in <head> before body renders */
-html.light { background: #ffffff; color: #1B2430; }
-html.light body { background: #ffffff; color: #1B2430; }
-
-/* ExGen light tokens — the site's default theme (Phase 10a). Values match
-   exgen-tokens.css's own verified-AA set (one source of truth) with one
-   deliberate exception: --a/--a2 are NOT the raw --exgen-teal (#00B7D9,
-   which measures 2.39:1 on white and fails AA) because --a is used as a
-   `color:` value directly in ~20 rules in this file alone, and far more
-   across inline page styles — a token this widely used as text has to be
-   AA-safe itself, not just usable as a fill. #00768F/#00647A are darker
-   points on the same teal hue that clear 4.5:1 (5.27/6.77:1). Full-strength
-   --exgen-teal/--exgen-gradient stay available (via exgen-tokens.css,
-   loaded alongside this file) for fills/borders/hero moments — see Phase
-   10c for applying those more deliberately to primary CTAs.
-   Matched selectors on both html.light and body.light: some pages
-   (konto.html, larare.html) only ever add .light to <html>, never <body>,
-   so a body-only selector left their component colors permanently dark
-   even when the page background itself correctly went light. */
-html.light, body.light {
   --a: #00768F;
   --a2: #00647A;
   --a-dim: rgba(0,118,143,.08);
@@ -66,6 +31,11 @@ html.light, body.light {
   --sh: 0 2px 12px rgba(14,27,42,.06);
   --sh2: 0 6px 24px rgba(14,27,42,.08);
   --sh3: 0 12px 40px rgba(14,27,42,.12);
+  --r: 8px;
+  --r2: 4px;
+  --max: 1080px;
+  --font: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
   --danger: #B91C1C;
   --warn: #92620A;
   --ok: #166534;
@@ -111,7 +81,7 @@ input, select, textarea, button { font-family: var(--font); }
   position: absolute; inset: -6px; border-radius: 50%;
   border: 2px solid transparent;
   border-top-color: var(--a);
-  border-right-color: rgba(43,255,151,.3);
+  border-right-color: rgba(0,183,217,.3);
   animation: spin .9s linear infinite;
 }
 .lTxt, .loaderText {
@@ -122,12 +92,12 @@ input, select, textarea, button { font-family: var(--font); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(43,255,151,.4); }
-  50%       { box-shadow: 0 0 0 7px rgba(43,255,151,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,183,217,.4); }
+  50%       { box-shadow: 0 0 0 7px rgba(0,183,217,0); }
 }
 @keyframes glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(43,255,151,0); }
-  50%       { box-shadow: 0 0 0 5px rgba(43,255,151,.1); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,183,217,0); }
+  50%       { box-shadow: 0 0 0 5px rgba(0,183,217,.1); }
 }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes fadeIn {
@@ -138,13 +108,12 @@ input, select, textarea, button { font-family: var(--font); }
 /* ── HEADER ── */
 header {
   height: 58px; position: sticky; top: 0; z-index: 3000;
-  background: rgba(10,26,18,.82);
+  background: rgba(243,248,245,.92);
   backdrop-filter: blur(18px) saturate(160%);
   border-bottom: 1px solid var(--l2);
   display: flex; align-items: center;
   transition: background .28s ease, border-color .28s ease;
 }
-body.light header { background: rgba(243,248,245,.92); }
 
 .hWrap {
   max-width: var(--max); width: 100%; margin: 0 auto;
@@ -195,7 +164,7 @@ body.light header { background: rgba(243,248,245,.92); }
 /* the pulsing dot inside the pill */
 .dot, .aiStatus .aiDot {
   width: 5px; height: 5px; border-radius: 50%; background: var(--a);
-  box-shadow: 0 0 0 0 rgba(43,255,151,.4);
+  box-shadow: 0 0 0 0 rgba(0,183,217,.4);
   animation: pulse 2s ease infinite;
 }
 /* pricing uses .aiStatus as the pill and .aiDot as the inner dot */
@@ -225,30 +194,15 @@ body.light header { background: rgba(243,248,245,.92); }
 .btn:active { transform: scale(.98); }
 .btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .btn:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
-.btnP { background: var(--a); color: #0d1a12; border-color: var(--a); font-weight: 700; }
-body.light .btnP { color: #fff; }
+.btnP { background: var(--a); color: #fff; border-color: var(--a); font-weight: 700; }
 .btnP:hover { background: var(--a2); border-color: var(--a2); }
-.btnG { background: transparent; border-color: rgba(43,255,151,.18); }
+.btnG { background: transparent; border-color: rgba(0,183,217,.18); }
 .btnG:hover { background: var(--a-dim); border-color: var(--l2); }
 
 /* Bigger touch targets on mobile */
 @media (max-width: 768px) {
   .btn { min-height: 44px; }
 }
-
-/* ── THEME TOGGLE ── */
-.themeTgl {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 0 12px; height: 36px;
-  font-family: var(--mono); font-size: 11px; font-weight: 500;
-  color: var(--t3); border: 1px solid var(--l); border-radius: var(--r);
-  background: transparent; cursor: pointer;
-  transition: color .16s ease, border-color .16s ease, background .28s ease;
-}
-.themeTgl:hover { color: var(--t); border-color: var(--l2); background: var(--a-dim); }
-.tglIcon { display: inline-block; transition: transform .28s cubic-bezier(.22,.61,.36,1); }
-.themeTgl:hover .tglIcon { transform: rotate(18deg) scale(1.2); }
-@media (max-width: 768px) { .themeTgl { min-height: 44px; } }
 
 /* Hide brand tag on small screens to save header space */
 @media (max-width: 640px) { .bTag, .brandTag { display: none; } }
@@ -312,7 +266,7 @@ body.light .btnP { color: #fff; }
   color: var(--t3); letter-spacing: .06em;
   border: 1px solid var(--l); border-radius: var(--r2); padding: 2px 7px;
 }
-.ddPill.hi { color: var(--a); border-color: var(--l2); background: rgba(43,255,151,.08); }
+.ddPill.hi { color: var(--a); border-color: var(--l2); background: rgba(0,183,217,.08); }
 .ddSep { height: 1px; background: var(--l); margin: 4px 2px; }
 
 /* ── LAYOUT ── */
@@ -368,7 +322,7 @@ select:focus,
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
-textarea:focus { border-color: var(--l2); box-shadow: 0 0 0 3px rgba(43,255,151,.08); }
+textarea:focus { border-color: var(--l2); box-shadow: 0 0 0 3px rgba(0,183,217,.08); }
 textarea { min-height: 160px; resize: vertical; line-height: 1.6; }
 select option { background: var(--s); color: var(--t); }
 
@@ -388,10 +342,9 @@ select option { background: var(--s); color: var(--t); }
 /* ── SPINNER ── */
 .spinner {
   width: 14px; height: 14px; border-radius: 50%;
-  border: 1.5px solid rgba(43,255,151,.15); border-top-color: var(--a);
+  border: 1.5px solid rgba(0,183,217,.15); border-top-color: var(--a);
   animation: spin .7s linear infinite; flex-shrink: 0;
 }
-body.light .spinner { border-color: rgba(13,148,96,.15); border-top-color: var(--a); }
 
 /* ── LOGIN ── */
 .loginOverlay {
@@ -435,7 +388,7 @@ body.light .spinner { border-color: rgba(13,148,96,.15); border-top-color: var(-
   display: none;
   align-items: center; justify-content: space-between; gap: 12px;
   border: 1px solid var(--l2); border-radius: var(--r);
-  background: rgba(43,255,151,.05);
+  background: rgba(0,183,217,.05);
   padding: 10px 14px; margin-bottom: 16px; flex-wrap: wrap;
 }
 .quotaBanner.show { display: flex; }
@@ -443,7 +396,7 @@ body.light .spinner { border-color: rgba(13,148,96,.15); border-top-color: var(-
 .quotaBannerTxt strong { color: var(--a); }
 .quotaBannerLink {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
-  color: var(--a); border-bottom: 1px solid rgba(43,255,151,.3); white-space: nowrap;
+  color: var(--a); border-bottom: 1px solid rgba(0,183,217,.3); white-space: nowrap;
 }
 .quotaBannerLink:hover { border-bottom-color: var(--a); }
 
@@ -461,7 +414,7 @@ body.light .spinner { border-color: rgba(13,148,96,.15); border-top-color: var(-
   animation: toastIn .22s cubic-bezier(.22,.61,.36,1) forwards;
   max-width: min(320px, calc(100vw - 32px));
 }
-.toast.ok  { border-color: rgba(43,255,151,.38); color: var(--a); }
+.toast.ok  { border-color: rgba(0,183,217,.38); color: var(--a); }
 .toast.bad { border-color: rgba(255,107,107,.35); color: #ff8484; }
 .toast.out { animation: toastOut .18s ease forwards; }
 @keyframes toastIn  { from { opacity: 0; transform: translateY(-10px) scale(.97); } to { opacity: 1; transform: none; } }
@@ -513,7 +466,7 @@ footer {
 /* ── SKIP LINK ── */
 .skip-link {
   position: absolute; left: -9999px; top: 6px;
-  background: var(--a); color: #0d1a12;
+  background: var(--a); color: #fff;
   padding: 8px 16px; border-radius: var(--r);
   font-family: var(--font); font-weight: 700; font-size: 14px;
   z-index: 99999; white-space: nowrap;
@@ -563,11 +516,10 @@ body.pg-leaving {
 .welcomeOrb {
   width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
   border: 1px solid var(--l2);
-  background: radial-gradient(circle at 38% 33%, rgba(43,255,151,.18), transparent 68%);
-  box-shadow: 0 0 32px rgba(43,255,151,.20), inset 0 0 20px rgba(43,255,151,.06);
+  background: radial-gradient(circle at 38% 33%, rgba(0,183,217,.16), transparent 68%);
+  box-shadow: 0 0 24px rgba(0,183,217,.16), inset 0 0 16px rgba(0,183,217,.05);
   animation: wlcOrbPulse 2s ease-in-out infinite;
 }
-body.light .welcomeOrb { box-shadow: 0 0 24px rgba(13,148,96,.16), inset 0 0 16px rgba(13,148,96,.05); }
 .welcomeHi {
   font-family: var(--mono); font-size: 11px; font-weight: 500;
   color: var(--t3); letter-spacing: .12em; text-transform: uppercase;
@@ -581,8 +533,8 @@ body.light .welcomeOrb { box-shadow: 0 0 24px rgba(13,148,96,.16), inset 0 0 16p
 @keyframes wlcIn  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wlcOut { from { opacity: 1; } to { opacity: 0; transform: scale(1.02); } }
 @keyframes wlcOrbPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 32px rgba(43,255,151,.20), inset 0 0 20px rgba(43,255,151,.06); }
-  50%       { transform: scale(1.06); box-shadow: 0 0 52px rgba(43,255,151,.34), inset 0 0 28px rgba(43,255,151,.10); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(0,183,217,.16), inset 0 0 16px rgba(0,183,217,.05); }
+  50%       { transform: scale(1.06); box-shadow: 0 0 36px rgba(0,183,217,.26), inset 0 0 22px rgba(0,183,217,.08); }
 }
 @keyframes wlcNameIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -615,14 +567,6 @@ body.light .welcomeOrb { box-shadow: 0 0 24px rgba(13,148,96,.16), inset 0 0 16p
   .hWrap { padding: 0 14px; }
 }
 
-/* ── GRADIENT TEXT ── */
-.gradient-text {
-  background: linear-gradient(135deg, #1bff8c 0%, #00d4ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 /* ── DESKTOP hNAV UNDERLINE HOVER ── */
 .hNavLink { position: relative; }
 .hNavLink::after {
@@ -649,7 +593,7 @@ header.scrolled .hWrap { height: 48px; }
 .sec-divider {
   border: none;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(27,255,140,.18), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,183,217,.18), transparent);
   margin: 4rem 0;
 }
 
@@ -686,9 +630,8 @@ header.scrolled .hWrap { height: 48px; }
   border: 1px solid var(--l2);
   border-radius: 14px;
   padding: 16px 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+  box-shadow: 0 4px 16px rgba(0,0,0,.09);
 }
-body.light .mhpCard { box-shadow: 0 4px 16px rgba(0,0,0,.09); }
 .mhpTop {
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 12px;
@@ -705,33 +648,31 @@ body.light .mhpCard { box-shadow: 0 4px 16px rgba(0,0,0,.09); }
   font-size: 11.5px; color: var(--t2);
 }
 .mhpOpt.mhpOk {
-  border-color: var(--a); background: rgba(43,255,151,.09); color: var(--t);
+  border-color: var(--a); background: rgba(0,183,217,.09); color: var(--t);
 }
-body.light .mhpOpt.mhpOk { background: rgba(7,168,99,.09); }
 .mhpLetter {
   width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0;
   display: grid; place-items: center;
   font-family: var(--mono); font-size: 9px; font-weight: 600;
   background: var(--s); border: 1px solid var(--l); color: var(--t3);
 }
-.mhpOpt.mhpOk .mhpLetter { background: var(--a); border-color: var(--a); color: #08100d; }
+.mhpOpt.mhpOk .mhpLetter { background: var(--a); border-color: var(--a); color: #fff; }
 .mhpExpl {
   font-size: 11px; color: var(--t2); line-height: 1.55;
-  border: 1px solid rgba(43,255,151,.18); background: rgba(43,255,151,.05);
+  border: 1px solid rgba(0,183,217,.16); background: rgba(0,183,217,.05);
   border-radius: 7px; padding: 8px 10px;
 }
 .mhpExplTag {
   font-family: var(--mono); font-size: 9px; color: var(--a);
   text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 3px;
 }
-body.light .mhpExpl { border-color: rgba(7,168,99,.16); background: rgba(7,168,99,.05); }
 
 /* ── CARD HOVER GLOW (enhanced) ── */
 .feat, .sCard, .featureCard {
   transition: border-color .22s ease, transform .22s cubic-bezier(.22,.61,.36,1), box-shadow .22s ease;
 }
 .feat:hover, .sCard:hover, .featureCard:hover {
-  box-shadow: 0 0 40px rgba(27,255,140,.08);
+  box-shadow: 0 0 40px rgba(0,183,217,.08);
 }
 
 /* ── DESIGN SYSTEM — Linear/Vercel-inspired improvements ── */
@@ -739,7 +680,7 @@ body.light .mhpExpl { border-color: rgba(7,168,99,.16); background: rgba(7,168,9
 /* Stronger top-glow on important cards */
 .feat::before, .sCard::before {
   content: ""; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(43,255,151,.45), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,183,217,.45), transparent);
   opacity: 0; transition: opacity .22s ease;
 }
 .feat:hover::before, .sCard:hover::before { opacity: 1; }

@@ -16,7 +16,6 @@
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="exgen-tokens.css" />
 <link rel="stylesheet" href="exgen-shell.css" />
-<script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <style>
 /* ── APP-SPECIFIC ── */
@@ -35,7 +34,7 @@ body.exam-mode{padding-bottom:0!important}
 .heroSub{font-size:clamp(15px,1.6vw,17px);color:var(--t2);font-weight:400;max-width:560px;line-height:1.7}
 .statusRow{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
 .sDot{width:6px;height:6px;border-radius:50%;background:var(--t3);transition:background .28s ease,box-shadow .28s ease}
-.sDot.ok{background:var(--a);box-shadow:0 0 0 3px rgba(27,255,140,.18)}
+.sDot.ok{background:var(--a);box-shadow:0 0 0 3px rgba(0,183,217,.18)}
 .statusLabel{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--t3);letter-spacing:.06em}
 
 /* HOW-TO */
@@ -81,10 +80,8 @@ background:var(--s2);border:1px solid var(--l);color:var(--t3);
 transition:background .16s ease,border-color .16s ease,color .16s ease;
 }
 .wStep.active{color:var(--t);background:var(--a-dim);border-color:var(--l2)}
-.wStep.active .wStepNum{background:var(--a);border-color:var(--a);color:#08100d}
-body.light .wStep.active .wStepNum{color:#fff}
-.wStep.done .wStepNum{background:rgba(27,255,140,.18);border-color:var(--l2);color:var(--a)}
-body.light .wStep.done .wStepNum{color:var(--a)}
+.wStep.active .wStepNum{background:var(--a);border-color:var(--a);color:#fff}
+.wStep.done .wStepNum{background:rgba(0,183,217,.18);border-color:var(--l2);color:var(--a)}
 .wStep.done{color:var(--t2)}
 @media(max-width:500px){.wStepLabel{display:none}.wStep{padding:7px 8px}}
 
@@ -159,7 +156,7 @@ outline:none;
 transition:border-color .16s ease,background .28s ease,color .28s ease,box-shadow .16s ease;
 }
 select:focus,input[type="text"]:focus,input[type="email"]:focus,input[type="password"]:focus,textarea:focus{
-border-color:var(--l2);box-shadow:0 0 0 3px rgba(27,255,140,.08);
+border-color:var(--l2);box-shadow:0 0 0 3px rgba(0,183,217,.08);
 }
 textarea{min-height:160px;resize:vertical;line-height:1.6}
 select option{background:var(--s);color:var(--t)}
@@ -176,10 +173,9 @@ color:var(--t3);margin-top:8px;line-height:1.5;word-break:break-word;
 /* SPINNER */
 .spinner{
 width:14px;height:14px;border-radius:50%;
-border:1.5px solid rgba(27,255,140,.15);border-top-color:var(--a);
+border:1.5px solid rgba(0,183,217,.15);border-top-color:var(--a);
 animation:spin .7s linear infinite;flex-shrink:0;
 }
-body.light .spinner{border-color:rgba(13,148,96,.15);border-top-color:var(--a)}
 
 /* UPLOAD BOX */
 .uploadBox{
@@ -191,7 +187,7 @@ transition:border-color .16s ease,background .28s ease;
 .uploadBox:hover{border-color:var(--l2)}
 .uploadBox::after{
 content:"";position:absolute;inset:0 auto 0 -40%;width:36%;
-background:linear-gradient(100deg,transparent,rgba(27,255,140,.05),transparent);
+background:linear-gradient(100deg,transparent,rgba(0,183,217,.05),transparent);
 animation:shimmer 4s ease-in-out infinite;pointer-events:none;
 }
 @keyframes shimmer{0%,70%,100%{transform:translateX(0)}35%{transform:translateX(500%)}}
@@ -269,7 +265,7 @@ font-family:'DM Sans',sans-serif;font-size:13.5px;
 min-height:100px;resize:vertical;width:100%;outline:none;
 transition:border-color .16s ease,background .28s ease;
 }
-.answerTa:focus{border-color:var(--l2);box-shadow:0 0 0 3px rgba(27,255,140,.07)}
+.answerTa:focus{border-color:var(--l2);box-shadow:0 0 0 3px rgba(0,183,217,.07)}
 
 /* MC */
 .mcGroup{display:grid;gap:7px;margin-top:10px}
@@ -284,17 +280,16 @@ transition:border-color .16s ease,background .16s ease,color .16s ease,transform
 .mcOpt:hover{border-color:var(--l2);background:var(--a-dim);color:var(--t);transform:translateY(-1px)}
 .mcOpt:disabled{cursor:default;transform:none}
 .mcOpt:disabled:hover{background:var(--bg)}
-.mcOpt.correct:disabled:hover{background:rgba(27,255,140,.10)}
+.mcOpt.correct:disabled:hover{background:rgba(0,183,217,.10)}
 .mcOpt.incorrect:disabled:hover{background:rgba(255,107,107,.10)}
 .mcSym{margin-left:auto;font-weight:800;font-size:15px}
 /* Selected BEFORE grading: neutral highlight — must NOT read as "correct".
    The brand accent (green) is reserved for the graded-correct state. */
 .mcOpt.sel{border-color:var(--t2);background:var(--s2);color:var(--t);box-shadow:inset 0 0 0 1px var(--t2)}
-body.light .mcOpt.sel{background:var(--s2)}
 /* AFTER grading (set by renderResult): text + symbol + colour together */
-.mcOpt.correct{border-color:var(--a);background:rgba(27,255,140,.10);color:var(--t);box-shadow:inset 0 0 0 1px var(--a)}
+.mcOpt.correct{border-color:var(--a);background:rgba(0,183,217,.10);color:var(--t);box-shadow:inset 0 0 0 1px var(--a)}
 .mcOpt.incorrect{border-color:#ff6b6b;background:rgba(255,107,107,.10);color:var(--t);box-shadow:inset 0 0 0 1px #ff6b6b}
-.mcOpt.correct .mcLetter{background:var(--a);border-color:var(--a);color:#08100d}
+.mcOpt.correct .mcLetter{background:var(--a);border-color:var(--a);color:#fff}
 .mcOpt.incorrect .mcLetter{background:#ff6b6b;border-color:#ff6b6b;color:#1a0808}
 .mcLetter{
 width:24px;height:24px;border-radius:var(--r2);
@@ -318,7 +313,7 @@ margin-top:12px;padding-top:12px;border-top:1px solid var(--l);margin-bottom:6px
 }
 .resultModelText{font-size:13.5px;color:var(--t);white-space:pre-wrap;line-height:1.55;font-weight:400}
 .askPerBtnApp{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:6px;transition:color .15s,background .15s;letter-spacing:.03em;margin-top:8px}
-.askPerBtnApp:hover{color:var(--a);background:rgba(27,255,140,.08)}
+.askPerBtnApp:hover{color:var(--a);background:rgba(0,183,217,.08)}
 @media(max-width:640px){
   .qBox{padding:16px}
   .mcOpt{min-height:54px;font-size:15px}
@@ -384,13 +379,13 @@ width:72px;height:72px;border-radius:50%;position:relative;
 .gradingOrb::before{
 content:"";position:absolute;inset:-4px;border-radius:50%;
 border:2px solid transparent;
-border-top-color:var(--a);border-right-color:rgba(27,255,140,.3);
+border-top-color:var(--a);border-right-color:rgba(0,183,217,.3);
 animation:spin .8s linear infinite;
 }
 .gradingOrb::after{
 content:"";position:absolute;inset:8px;border-radius:50%;
 border:1.5px solid transparent;
-border-top-color:rgba(27,255,140,.5);
+border-top-color:rgba(0,183,217,.5);
 animation:spin 1.4s linear infinite reverse;
 }
 .gradingLabel{
@@ -433,11 +428,11 @@ display:inline-flex;align-items:center;gap:8px;
 padding:0 20px;height:40px;
 font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;
 border:none;border-radius:10px;
-background:var(--a);color:#061009;
+background:var(--a);color:#fff;
 cursor:pointer;white-space:nowrap;position:relative;overflow:hidden;
 transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s ease,background .15s ease;
 }
-.floatingGradeBtn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(27,255,140,.35);background:var(--a2)}
+.floatingGradeBtn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,183,217,.35);background:var(--a2)}
 .floatingGradeBtn:active{transform:scale(.98)}
 
 /* IMPROVEMENT BANNER — visas efter rättning */
@@ -445,7 +440,7 @@ transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s ease,backg
 display:none;
 align-items:center;justify-content:space-between;gap:14px;
 border:1px solid var(--l2);border-radius:var(--r);
-background:rgba(27,255,140,.06);
+background:rgba(0,183,217,.06);
 padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;
 animation:bannerSlideIn .3s cubic-bezier(.22,.61,.36,1);
 }
@@ -463,7 +458,7 @@ display:inline-flex;align-items:center;gap:7px;
 padding:0 16px;height:36px;
 font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;
 border-radius:var(--r);border:1px solid var(--a);
-background:var(--a);color:#061009;
+background:var(--a);color:#fff;
 cursor:pointer;white-space:nowrap;
 transition:transform .15s ease,background .15s ease;
 }
@@ -475,24 +470,24 @@ display:inline-flex;align-items:center;gap:6px;
 padding:0 12px;height:34px;
 font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
 color:var(--a);border:1px solid var(--l2);border-radius:var(--r);
-background:rgba(27,255,140,.06);
+background:rgba(0,183,217,.06);
 transition:background .15s ease,border-color .15s ease,transform .15s ease;
 white-space:nowrap;
 }
-.improveShortcut:hover{background:rgba(27,255,140,.12);border-color:var(--l3);transform:translateY(-1px)}
+.improveShortcut:hover{background:rgba(0,183,217,.12);border-color:var(--l3);transform:translateY(-1px)}
 @media(max-width:500px){.improveShortcut span{display:none}}
 
 @media(max-width:500px){.wStepLabel{display:none}.wStep{padding:7px 8px;min-height:44px}}
 
 /* ── SKELETON LOADING ── */
 .skelBox{padding:14px 16px;border:1px solid var(--l);border-radius:var(--r);background:var(--s2);margin-top:10px;position:relative;overflow:hidden}
-.skelBox::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 20%,rgba(27,255,140,.06) 50%,transparent 80%);animation:skelShim 1.5s ease-in-out infinite}
+.skelBox::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 20%,rgba(0,183,217,.06) 50%,transparent 80%);animation:skelShim 1.5s ease-in-out infinite}
 @keyframes skelShim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 .skelLine{height:9px;border-radius:3px;background:var(--l2);margin-bottom:9px}
 .skelLine.s{width:38%}.skelLine.m{width:62%}.skelLine.l{width:87%}
 .skelOpts{display:grid;gap:7px;margin-top:14px}
 .skelOpt{height:40px;border-radius:var(--r);background:var(--l);position:relative;overflow:hidden}
-.skelOpt::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 20%,rgba(27,255,140,.04) 50%,transparent 80%);animation:skelShim 1.8s .15s ease-in-out infinite}
+.skelOpt::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 20%,rgba(0,183,217,.04) 50%,transparent 80%);animation:skelShim 1.8s .15s ease-in-out infinite}
 
 
 @media(prefers-reduced-motion:reduce){
@@ -571,10 +566,6 @@ white-space:nowrap;
   <a class="xg-nav-link" href="pricing.html">Priser</a>
   <a class="xg-nav-link" href="konto.html">Konto</a>
 </nav>
-<button class="themeTgl" id="themeToggleBtn" type="button" aria-label="Växla tema">
-<span class="tglIcon" id="tglIcon">🌙</span>
-<span id="tglLabel">Light</span>
-</button>
 <div class="menuWrap">
 <button class="menuBtn" id="menuBtn" type="button" aria-label="Meny">
 <div class="barsIcon" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -586,7 +577,7 @@ white-space:nowrap;
 <button class="ddItem" type="button" data-scroll="#result"><span id="m4">04 — Rättning</span><span class="ddPill">Svar</span></button>
 <div class="ddSep"></div>
 <a class="ddItem" href="förbättring.html"><span class="ddi-ico">📈</span><span id="mImprove">Förbättring</span><span class="ddPill">Coach</span></a>
-<a class="ddItem" href="korkortet.html"><span class="ddi-ico">🚗</span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(27,255,140,.08)">Nytt</span></a>
+<a class="ddItem" href="korkortet.html"><span class="ddi-ico">🚗</span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(0,183,217,.08)">Nytt</span></a>
 <a class="ddItem" href="pricing.html"><span class="ddi-ico">💳</span><span>Uppgradera</span><span class="ddPill" id="rolePill">Gratis</span></a>
 <a class="ddItem" href="konto.html" id="kontoLink" style="display:none"><span>Mitt konto</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></a>
 <button class="ddItem" type="button" id="cancelSubBtn" style="display:none"><span>Hantera prenumeration</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></button>
@@ -598,9 +589,9 @@ white-space:nowrap;
 </div>
 </header>
 
-<div id="betaBanner" style="background:#0d1a10;border-bottom:1px solid rgba(27,255,140,.15);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#a8c4b4;position:relative;flex-wrap:wrap">
+<div id="betaBanner" style="background:#f8fafc;border-bottom:1px solid rgba(0,183,217,.2);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#667085;position:relative;flex-wrap:wrap">
   <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
-  <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#a8c4b4;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
+  <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#667085;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
 
@@ -832,7 +823,6 @@ const LS_MATERIAL = "proviaai_last_material";
 const LS_TRAIN_PICK = "proviaai_train_pick";
 const LS_UI_OPEN = "proviaai_ui_open";
 const LS_CUSTOM_COURSES = "proviaai_custom_courses";
-const LS_THEME = "proviaai_theme";
 const LS_ROLE = "proviaai_role";
 const LS_PENDING_ANSWERS = "proviaai_pending_answers"; // answers saved before grading, cleared on success
 
@@ -902,8 +892,7 @@ sv:{
   wBack:"← Tillbaka",wNext2:"Rätta prov →",wRestart:"Nytt prov →",
   heroSub:"Klistra in ditt studiematerial, välj nivå och antal frågor — ExGen genererar ett komplett prov med automatisk rättning och modellsvar.",
   howtoTitle:"Hur det fungerar",
-  howtoText:"Följ stegen nedan i ordning: Lägg in material → Välj inställningar → Besvara provet → Se rättning. Du kan hoppa mellan steg via navigeringen.",
-  lightLabel:"Light",darkLabel:"Dark"
+  howtoText:"Följ stegen nedan i ordning: Lägg in material → Välj inställningar → Besvara provet → Se rättning. Du kan hoppa mellan steg via navigeringen."
 },
 en:{
   brandTag:"Mock exams · Grading · Model answers",
@@ -942,8 +931,7 @@ en:{
   wBack:"← Back",wNext2:"Grade exam →",wRestart:"New exam →",
   heroSub:"Paste your study material, choose level and number of questions — ExGen generates a complete exam with automatic grading and model answers.",
   howtoTitle:"How it works",
-  howtoText:"Follow the steps in order: Add material → Choose settings → Answer the exam → See grading. You can jump between steps at any time.",
-  lightLabel:"Light",darkLabel:"Dark"
+  howtoText:"Follow the steps in order: Add material → Choose settings → Answer the exam → See grading. You can jump between steps at any time."
 }
 };
 
@@ -1046,25 +1034,6 @@ async function refreshQuotaUi() {
       banner.classList.remove("show");
     }
   }
-}
-
-// ── THEME ────────────────────────────────────────────────────────────
-function applyTheme(theme){
-  if(theme === "light") document.body.classList.add("light");
-  else document.body.classList.remove("light");
-  localStorage.setItem(LS_THEME, theme);
-  const icon = $("tglIcon"), label = $("tglLabel");
-  if(icon) icon.textContent = theme === "light" ? "🌙" : "☀️";
-  if(label) label.textContent = theme === "light" ? (T[LANG]?.darkLabel||"Dark") : (T[LANG]?.lightLabel||"Light");
-}
-function initTheme(){
-  const saved = localStorage.getItem(LS_THEME);
-  const preferred='light';
-  applyTheme(saved||preferred);
-  const btn = $("themeToggleBtn");
-  if(btn) btn.addEventListener("click", () => {
-    applyTheme(document.body.classList.contains("light") ? "dark" : "light");
-  });
 }
 
 function showDebug(txt){ const w=$("debugWrap"),p=$("debug"); if(!w||!p)return; w.style.display="block"; p.textContent=txt||""; }
@@ -1291,8 +1260,6 @@ function applyLang(){
   if(cs)cs.placeholder=(LANG==="sv")?"Sök kurs, t.ex. Matematik 4...":"Search course...";
   if(cc)cc.placeholder=(LANG==="sv")?"Skriv kurs/ämne exakt...":"Type subject/course...";
   if(sc)sc.textContent=(LANG==="sv")?"Spara i min lista":"Save to my list";
-  const isDark=!document.body.classList.contains("light");
-  const tglLabel=$("tglLabel"); if(tglLabel)tglLabel.textContent=isDark?t.lightLabel:t.darkLabel;
 }
 
 const spinWrap=()=>$("spinWrap"),miniStateEl=()=>$("miniState"),statusEl=()=>$("status");
@@ -1645,7 +1612,6 @@ function clearAll(){
 
 window.addEventListener("DOMContentLoaded",async()=>{
 try{
-  initTheme();
   initSectionHeads();
   initWizard();
   initCourseLibrary();
