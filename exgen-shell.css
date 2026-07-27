@@ -59,12 +59,6 @@ html.light {
 
 .xg-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .xg-brand:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); border-radius: 4px; }
-.xg-mark {
-  width: 32px; height: 32px; border-radius: var(--exgen-radius-sm, 8px);
-  background: var(--exgen-gradient, linear-gradient(110deg, #00B7D9, #76D76A)); flex-shrink: 0;
-  display: grid; place-items: center;
-  font: 700 13px var(--exgen-font, sans-serif); color: var(--exgen-navy, #0E1B2A); letter-spacing: -0.02em;
-}
 .xg-brand-name {
   font: 700 16px var(--exgen-font, sans-serif); color: var(--exgen-text, #1B2430); letter-spacing: -0.02em;
 }
