@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 
   <style>
     /* ── TOKENS DARK ── */
@@ -341,9 +341,8 @@
 <div id="loginScreen" class="loginOverlay" style="display:none">
   <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
     <div class="loginTop">
-      <img src="image/proviaai-logo.png" alt="ExGen logga">
       <div>
-        <div class="loginTitle">ExGen – Förbättring</div>
+        <div class="loginTitle" style="display:flex;align-items:center;gap:8px"><img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto"> – Förbättring</div>
         <div class="loginSub">Logga in för att se din progress</div>
       </div>
     </div>
@@ -630,7 +629,7 @@
       LS_THEME='proviaai_theme';
 
     /* ── THEME ── */
-    let THEME=localStorage.getItem(LS_THEME)||'dark';
+    let THEME=localStorage.getItem(LS_THEME)||'light';
     function applyTheme(t){
       THEME=t; document.body.classList.toggle('light',t==='light');
       const icon=document.getElementById('themeIcon'),lbl=document.getElementById('themeLabel');

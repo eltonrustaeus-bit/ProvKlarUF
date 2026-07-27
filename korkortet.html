@@ -26,7 +26,7 @@
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="exgen-tokens.css" />
 <link rel="stylesheet" href="exgen-shell.css" />
-<script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+<script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <script src="korkortet-srs.js" defer></script>
 <style>
@@ -705,9 +705,8 @@ body.light .adminSaveBtn{color:#fff}
 <div id="loginScreen" class="loginOverlay" style="display:none">
   <div class="loginCard">
     <div class="loginTop">
-      <img src="image/proviaai-logo.png" alt="ExGen">
       <div>
-        <div class="loginTitle">ExGen – Körkortsteorin</div>
+        <div class="loginTitle" style="display:flex;align-items:center;gap:8px"><img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto"> – Körkortsteorin</div>
         <div class="loginSub">Logga in eller skapa konto</div>
       </div>
     </div>
@@ -2743,7 +2742,7 @@ $("themeBtn").onclick = () => {
   const n = document.body.classList.contains("light") ? "dark" : "light";
   localStorage.setItem(LS_THEME, n); applyTheme(n);
 };
-applyTheme(localStorage.getItem(LS_THEME) || "dark");
+applyTheme(localStorage.getItem(LS_THEME) || "light");
 
 // ── MENU ──
 (function() {

@@ -36,7 +36,10 @@ for (const file of pages) {
     const consoleErrors = [];
     page.on("pageerror", e => consoleErrors.push("pageerror: " + e.message));
     page.on("console", msg => { if (msg.type() === "error") consoleErrors.push("console: " + msg.text()); });
-    if (theme === "light") await page.addInitScript(() => localStorage.setItem("proviaai_theme", "light"));
+    // Light is the site default since Phase 10a (no stored preference = light),
+    // so both passes must set localStorage explicitly or "dark" would silently
+    // test light twice.
+    await page.addInitScript((t) => localStorage.setItem("proviaai_theme", t), theme);
     await page.goto(`http://localhost:${port}/${file}`);
     await page.waitForTimeout(1200);
     await page.evaluate(() => {

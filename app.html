@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="exgen-tokens.css" />
 <link rel="stylesheet" href="exgen-shell.css" />
-<script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+<script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
 <script src="shared.js" defer></script>
 <style>
 /* ── APP-SPECIFIC ── */
@@ -522,9 +522,8 @@ white-space:nowrap;
 <div id="loginScreen" class="loginOverlay" aria-hidden="false">
 <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
 <div class="loginTop">
-<img src="image/proviaai-logo.png" alt="ExGen logga">
 <div>
-<div class="loginTitle" id="lockTitle">ExGen</div>
+<img src="image/exgen-logo.png" alt="ExGen" id="lockTitle" style="height:28px;width:auto;display:block;margin-bottom:2px">
 <div class="loginSub" id="lockSub">Logga in eller skapa konto</div>
 </div>
 </div>
@@ -1061,7 +1060,7 @@ function applyTheme(theme){
 }
 function initTheme(){
   const saved = localStorage.getItem(LS_THEME);
-  const preferred='dark';
+  const preferred='light';
   applyTheme(saved||preferred);
   const btn = $("themeToggleBtn");
   if(btn) btn.addEventListener("click", () => {

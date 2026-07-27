@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
-  <script>(function(){try{if(localStorage.getItem('proviaai_theme')==='light')document.documentElement.classList.add('light');}catch(e){}})()</script>
+  <script>(function(){try{if(localStorage.getItem('proviaai_theme')!=='dark')document.documentElement.classList.add('light');}catch(e){}})()</script>
   <script src="shared.js" defer></script>
   <noscript><style>.wi{transform:none!important}.heroCtas{opacity:1!important}.rev,.reveal{opacity:1!important;transform:none!important}</style></noscript>
   <style>
@@ -1121,7 +1121,7 @@ document.getElementById("yr").textContent=new Date().getFullYear();
     if(btn)btn.setAttribute("aria-label",t==="light"?"Växla till mörkt tema":"Växla till ljust tema");
   }
   const saved=localStorage.getItem(LS);
-  const preferred='dark';
+  const preferred='light';
   applyTheme(saved||preferred);
   const btn=document.getElementById("themeToggleBtn");
   if(btn)btn.addEventListener("click",()=>applyTheme(document.body.classList.contains("light")?"dark":"light"));

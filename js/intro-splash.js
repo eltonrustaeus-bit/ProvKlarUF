@@ -34,8 +34,8 @@
     '#piSplash::before{',
       'content:"";position:absolute;inset:0;pointer-events:none;z-index:0;',
       'background-image:',
-        'linear-gradient(rgba(27,255,140,.035) 1px,transparent 1px),',
-        'linear-gradient(90deg,rgba(27,255,140,.035) 1px,transparent 1px);',
+        'linear-gradient(rgba(0,183,217,.035) 1px,transparent 1px),',
+        'linear-gradient(90deg,rgba(0,183,217,.035) 1px,transparent 1px);',
       'background-size:56px 56px;',
       'mask-image:radial-gradient(ellipse 75% 75% at 50% 44%,#000,transparent);',
       '-webkit-mask-image:radial-gradient(ellipse 75% 75% at 50% 44%,#000,transparent);',
@@ -45,7 +45,7 @@
     /* Large ambient glow orb — slowly drifts */
     '#piOrb{',
       'position:absolute;width:500px;height:500px;pointer-events:none;z-index:0;',
-      'background:radial-gradient(circle,rgba(27,255,140,.11) 0%,transparent 65%);',
+      'background:radial-gradient(circle,rgba(0,183,217,.11) 0%,transparent 65%);',
       'filter:blur(55px);',
       'top:50%;left:50%;margin:-250px 0 0 -250px;',
       'opacity:0;',
@@ -62,46 +62,12 @@
       'display:flex;flex-direction:column;align-items:center;gap:0;',
     '}',
 
-    /* ── Logo — ALWAYS VISIBLE from t=0 ── */
-    '#piLogoWrap{',
-      'position:relative;',
-      'opacity:.55;transform:scale(.82);',
-      'animation:piLogoReveal .65s cubic-bezier(.34,1.5,.64,1) .08s forwards;',
-    '}',
-    '@keyframes piLogoReveal{',
-      'to{opacity:1;transform:scale(1)}',
-    '}',
-    '#piLogoWrap img{',
-      'display:block;border-radius:20px;',
-      'box-shadow:0 0 0 1px rgba(27,255,140,.12),0 12px 40px rgba(0,0,0,.55);',
-    '}',
-    /* Glow ring — expands outward after logo settles */
-    '#piLogoWrap::after{',
-      'content:"";position:absolute;inset:-12px;border-radius:28px;',
-      'border:1.5px solid rgba(27,255,140,.0);',
-      'animation:piRingPulse 3s ease-in-out .9s infinite;',
-    '}',
-    '@keyframes piRingPulse{',
-      '0%{border-color:rgba(27,255,140,.0);transform:scale(1)}',
-      '40%{border-color:rgba(27,255,140,.35);transform:scale(1.06)}',
-      '100%{border-color:rgba(27,255,140,.0);transform:scale(1.12)}',
-    '}',
-    /* Subtle inner glow that pulses */
-    '#piLogoGlow{',
-      'position:absolute;inset:-20px;border-radius:35px;pointer-events:none;',
-      'background:radial-gradient(circle,rgba(27,255,140,.18),transparent 70%);',
-      'filter:blur(14px);',
-      'opacity:0;animation:piGlowPulse 2.6s ease-in-out 1.1s infinite;',
-    '}',
-    '@keyframes piGlowPulse{',
-      '0%,100%{opacity:0}',
-      '50%{opacity:1}',
-    '}',
 
-    /* ── Name ── */
+    /* ── Name — ExGen logo image, the splash's sole logo element (replaces
+       the old boxed icon + separate name text, and an earlier CSS
+       gradient-text attempt: Elton supplied the actual logo file) ── */
     '#piName{',
-      'font:700 30px/1 "DM Sans",sans-serif;color:#e8f5ee;',
-      'letter-spacing:-.035em;margin-top:20px;',
+      'display:block;height:52px;width:auto;',
       'opacity:0;transform:translateY(16px);',
       'animation:piSlideUp .5s cubic-bezier(.22,1,.36,1) .62s forwards;',
     '}',
@@ -116,7 +82,7 @@
 
     /* ── Divider ── */
     '#piDivider{',
-      'height:1px;background:linear-gradient(90deg,transparent,rgba(27,255,140,.28),transparent);',
+      'height:1px;background:linear-gradient(90deg,transparent,rgba(0,183,217,.28),transparent);',
       'width:0;margin:24px auto;',
       'animation:piDividerDraw .6s cubic-bezier(.22,1,.36,1) 1.2s forwards;',
     '}',
@@ -135,11 +101,11 @@
     '#piBadge{',
       'display:flex;align-items:center;gap:9px;',
       'padding:7px 16px;',
-      'border:1px solid rgba(27,255,140,.22);border-radius:22px;',
-      'background:rgba(27,255,140,.06);text-decoration:none;',
+      'border:1px solid rgba(0,183,217,.22);border-radius:22px;',
+      'background:rgba(0,183,217,.06);text-decoration:none;',
       'transition:background .2s,border-color .2s;',
     '}',
-    '#piBadge:hover{background:rgba(27,255,140,.12);border-color:rgba(27,255,140,.38)}',
+    '#piBadge:hover{background:rgba(0,183,217,.12);border-color:rgba(0,183,217,.38)}',
     '#piBadge img{border-radius:5px;opacity:.92}',
     '#piBadgeName{font:600 13px "DM Sans",sans-serif;color:#c4dfd0;letter-spacing:-.01em}',
 
@@ -151,7 +117,7 @@
     '}',
     '.piDot{',
       'width:4px;height:4px;border-radius:50%;',
-      'background:rgba(27,255,140,.3);',
+      'background:rgba(0,183,217,.3);',
       'animation:piDotAnim 1.6s ease-in-out infinite;',
     '}',
     '.piDot:nth-child(1){animation-delay:0s}',
@@ -182,7 +148,7 @@
 
     /* ── Reduced motion ── */
     '@media(prefers-reduced-motion:reduce){',
-      '#piLogoWrap,#piName,#piTagline,#piDivider,#piPartner{',
+      '#piName,#piTagline,#piDivider,#piPartner{',
         'animation:none!important;opacity:1!important;transform:none!important}',
       '#piDivider{width:60px}',
       '#piOrb,#piSplash::before{animation:none!important;opacity:1!important}',
@@ -203,12 +169,7 @@
     el.innerHTML =
       '<div id="piOrb"></div>' +
       '<div id="piContent">' +
-        '<div id="piLogoWrap">' +
-          '<div id="piLogoGlow"></div>' +
-          '<img src="/image/proviaai-logo.png" width="92" height="92" alt="ExGen"' +
-               ' onerror="this.style.display=\'none\'">' +
-        '</div>' +
-        '<div id="piName">ExGen</div>' +
+        '<img id="piName" src="/image/exgen-logo.png" alt="ExGen">' +
         '<div id="piTagline">AI-tränare för körkortsteorin och egna prov</div>' +
         '<div id="piDivider"></div>' +
         '<div id="piPartner">' +

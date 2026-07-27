@@ -67,8 +67,6 @@
       padding:0 18px;background:rgba(8,16,13,.90);backdrop-filter:blur(18px);
       border-bottom:1px solid var(--l)}
     #hdrLogo{display:flex;align-items:center;gap:9px;text-decoration:none}
-    #hdrLogo img{height:28px;width:28px;object-fit:contain}
-    #hdrLogo span{font:700 15px var(--f);color:var(--t)}
     #modeTabs{display:flex;gap:3px;background:rgba(8,16,13,.80);
       border:1px solid var(--l2);border-radius:24px;padding:3px}
     .mTab{font:600 11px var(--m);color:var(--t3);padding:5px 13px;border-radius:20px;
@@ -201,7 +199,6 @@
     .improveBanner a{color:var(--a);text-decoration:none;font-weight:600}
 
     /* MODE 1 specific */
-    #m1logo{width:72px;height:72px;margin-bottom:20px;animation:logoF 4.5s ease-in-out infinite}
     #m1mat{font:400 13px/1.85 var(--m);color:var(--t2);min-height:100px;word-break:break-word}
     #m1cur{display:inline-block;width:2px;height:14px;background:var(--a);margin-left:1px;vertical-align:middle;animation:blink 1s step-end infinite}
     #m1cnt{font:400 11px var(--m);color:var(--t3);text-align:right;margin-top:6px}
@@ -510,7 +507,6 @@
     @keyframes blink{50%{opacity:0}}
     @keyframes hexspin{to{transform:rotate(360deg)}}
     @keyframes scan{0%{left:-100%}100%{left:100%}}
-    @keyframes logoF{0%,100%{transform:translateY(0);filter:drop-shadow(0 0 20px rgba(27,255,140,.4))}50%{transform:translateY(-9px);filter:drop-shadow(0 0 34px rgba(27,255,140,.65))}}
 
     /* MOBILE */
     .tShort{display:none}
@@ -521,7 +517,6 @@
       #modeTabs::-webkit-scrollbar{display:none}
     }
     @media(max-width:620px){
-      #hdrLogo span{display:none}
       .mTab{padding:5px 9px;font-size:9.5px}
       .kh{display:none}
       #catgrid{grid-template-columns:repeat(2,1fr)}
@@ -559,8 +554,7 @@
 <!-- HEADER -->
 <div id="hdr">
   <a id="hdrLogo" href="index.html">
-    <img src="image/proviaai-logo.png" width="28" height="28" alt="ExGen">
-    <span>ExGen</span>
+    <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
   </a>
   <div id="modeTabs">
     <div class="mTab on" id="tab1" onclick="switchMode(1)"><div class="dot"></div><span class="tFull">Mockprov AI</span><span class="tShort">Prov</span></div>
@@ -607,8 +601,7 @@
 <div id="mode1" class="ms act">
 
   <div id="m1intro" style="text-align:center;display:none">
-    <img id="m1logo" src="image/proviaai-logo.png" width="72" height="72" alt="ExGen">
-    <div id="m1htitle" style="font:700 32px/1.2 var(--f);color:var(--t);margin:0 0 10px">ExGen</div>
+    <img id="m1htitle" src="image/exgen-logo.png" alt="ExGen" style="height:52px;width:auto;margin:0 0 10px">
     <div class="pill" id="m1hpill">📚 AI-prov på ditt eget material</div>
     <div style="font:400 15px var(--f);color:var(--t2);margin-top:10px">Klistra in material → AI genererar → Träna smart</div>
     <a id="ungdriveBadge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive" style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:5px 12px;border:1px solid rgba(27,255,140,.22);background:rgba(27,255,140,.06);border-radius:20px;text-decoration:none"><img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="18" height="18" style="border-radius:4px" alt=""><span style="font:400 11px var(--m);color:#a8c4b4;letter-spacing:.04em">Backed by UngDrive</span></a>
@@ -709,8 +702,7 @@
 <div id="mode2" class="ms">
 
   <div id="m2intro" style="display:none;text-align:center">
-    <img src="image/proviaai-logo.png" width="60" height="60" alt="ExGen"
-         style="margin-bottom:16px;animation:logoF 4.5s ease-in-out infinite">
+    <img src="image/exgen-logo.png" alt="ExGen" style="height:36px;width:auto;margin-bottom:16px">
     <div class="pill" style="margin-bottom:14px">🚗 368 frågor · 16 kategorier</div>
     <div style="font:700 30px/1.2 var(--f);color:var(--t);margin-bottom:8px">Körkortsteorin</div>
     <div style="font:400 14px var(--f);color:var(--t2)">Exakt som Transportstyrelsens teoriprov</div>
@@ -1480,8 +1472,7 @@ function buildTL1(){
   tl1
     .call(()=>{hideAll(M1SEC);show('m1intro');const _b=document.getElementById('ungdriveBadge');if(_b){_b.classList.remove('vis');void _b.offsetWidth;}setTimeout(()=>_b?.classList.add('vis'),400);setDot(0,'on');setNarrator(1,0);startCountdown(45)})
     .from('#m1intro',{opacity:0,duration:.01})
-    .from('#m1logo',{opacity:0,scale:.7,duration:.8,ease:'back.out(1.8)'})
-    .from('#m1htitle',{opacity:0,y:14,duration:.7},'+=0')
+    .from('#m1htitle',{opacity:0,scale:.85,duration:.8,ease:'back.out(1.8)'},'+=0')
     .from('#m1hpill',{opacity:0,y:8,duration:.5},'-=.2')
 
   /* 4–10s MATERIAL */
