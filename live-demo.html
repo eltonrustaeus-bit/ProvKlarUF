@@ -67,8 +67,17 @@
       padding:0 18px;background:rgba(8,16,13,.90);backdrop-filter:blur(18px);
       border-bottom:1px solid var(--l)}
     #hdrLogo{display:flex;align-items:center;gap:9px;text-decoration:none}
-    #hdrLogo img{height:28px;width:28px;object-fit:contain}
-    #hdrLogo span{font:700 15px var(--f);color:var(--t)}
+    #hdrLogo .hdrLogoName{font:700 15px var(--f);color:var(--t)}
+    /* This page loads no shared stylesheet, so .exgenMark (the CSS-only
+       gradient brand badge used everywhere else instead of the old raster
+       logo) needs its own copy here — same recipe as style.css/.xg-mark. */
+    .exgenMark{
+      display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+      width:var(--em,30px);height:var(--em,30px);border-radius:26%;
+      background:linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%);
+      color:#0E1B2A;font:700 calc(var(--em,30px) * .44)/1 var(--f);
+      letter-spacing:-.03em;
+    }
     #modeTabs{display:flex;gap:3px;background:rgba(8,16,13,.80);
       border:1px solid var(--l2);border-radius:24px;padding:3px}
     .mTab{font:600 11px var(--m);color:var(--t3);padding:5px 13px;border-radius:20px;
@@ -521,7 +530,7 @@
       #modeTabs::-webkit-scrollbar{display:none}
     }
     @media(max-width:620px){
-      #hdrLogo span{display:none}
+      #hdrLogo .hdrLogoName{display:none}
       .mTab{padding:5px 9px;font-size:9.5px}
       .kh{display:none}
       #catgrid{grid-template-columns:repeat(2,1fr)}
@@ -560,7 +569,7 @@
 <div id="hdr">
   <a id="hdrLogo" href="index.html">
     <span class="exgenMark" style="--em:28px" aria-hidden="true">Ex</span>
-    <span>ExGen</span>
+    <span class="hdrLogoName">ExGen</span>
   </a>
   <div id="modeTabs">
     <div class="mTab on" id="tab1" onclick="switchMode(1)"><div class="dot"></div><span class="tFull">Mockprov AI</span><span class="tShort">Prov</span></div>
