@@ -13,6 +13,9 @@ import legalVerifierBlind from "../../src/ai/prompts/legal-verifier-blind/v1.js"
 import legalVerifierCompare from "../../src/ai/prompts/legal-verifier-compare/v1.js";
 import legalRepair from "../../src/ai/prompts/legal-repair/v1.js";
 import perLegal, { sanitizeLegalQuestion } from "../../src/ai/prompts/per-legal/v1.js";
+import perAssess from "../../src/ai/prompts/per-assess/v1.js";
+import perCoach from "../../src/ai/prompts/per-coach/v1.js";
+import errorClassifier from "../../src/ai/prompts/error-classifier/v1.js";
 
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 
@@ -70,6 +73,48 @@ const modules = [
     mod: perLegal,
     systemArgs: [],
     userCtx: { question: "Vad krävs för att ett anbud ska vara bindande?", sourceChunks },
+    schemaArgs: [],
+  },
+  // Fas 9 — P.E.R:s elevloop.
+  {
+    name: "per-assess",
+    mod: perAssess,
+    systemArgs: [{ level: "E", concept: "anbud-accept", subjectLabel: "Privatjuridik" }],
+    userCtx: {
+      question: "Vad gäller om accepten kommer för sent?",
+      studentAnswer: "Den blir ett nytt anbud.",
+      referenceAnswer: "En för sen accept gäller som nytt anbud.",
+      explanation: "Avtalslagen 1 kap 4 §.",
+      criteria: "Avtalslagen 1 kap 4 §",
+      sourceChunks: [{ chunk_id: "chunk-1", ...sourceChunks[0] }],
+    },
+    schemaArgs: [],
+  },
+  {
+    name: "per-coach",
+    mod: perCoach,
+    systemArgs: [{ helpLevel: 0, level: "E", concept: "anbud-accept", subjectLabel: "Privatjuridik" }],
+    userCtx: {
+      concept: "anbud-accept",
+      misconception: "Tror att en sen accept ändå binder",
+      previousAnswer: "Avtalet gäller ändå.",
+      question: "Vad gäller om accepten kommer för sent?",
+      sourceChunks: [{ chunk_id: "chunk-1", ...sourceChunks[0] }],
+    },
+    schemaArgs: [],
+  },
+  {
+    name: "error-classifier",
+    mod: errorClassifier,
+    systemArgs: [{ level: "E", concept: "anbud-accept", subjectLabel: "Privatjuridik" }],
+    userCtx: {
+      question: "Vad gäller?",
+      options: [{ id: "A", text: "X" }, { id: "B", text: "Y" }],
+      studentAnswer: ["A"],
+      correctAnswer: ["B"],
+      concept: "anbud-accept",
+      sourceChunks: [{ chunk_id: "chunk-1", ...sourceChunks[0] }],
+    },
     schemaArgs: [],
   },
 ];
