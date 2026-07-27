@@ -63,14 +63,11 @@
     '}',
 
 
-    /* ── Name — ExGen gradient wordmark, the splash's sole logo element
-       (replaces the old boxed icon + separate name text: the reference
-       logo Elton supplied is a gradient wordmark, no icon) ── */
+    /* ── Name — ExGen logo image, the splash's sole logo element (replaces
+       the old boxed icon + separate name text, and an earlier CSS
+       gradient-text attempt: Elton supplied the actual logo file) ── */
     '#piName{',
-      'font:800 40px/1 "DM Sans",sans-serif;letter-spacing:-.03em;',
-      'background:linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%);',
-      '-webkit-background-clip:text;-webkit-text-fill-color:transparent;',
-      'background-clip:text;color:transparent;',
+      'display:block;height:52px;width:auto;',
       'opacity:0;transform:translateY(16px);',
       'animation:piSlideUp .5s cubic-bezier(.22,1,.36,1) .62s forwards;',
     '}',
@@ -151,7 +148,7 @@
 
     /* ── Reduced motion ── */
     '@media(prefers-reduced-motion:reduce){',
-      '#piLogoWrap,#piName,#piTagline,#piDivider,#piPartner{',
+      '#piName,#piTagline,#piDivider,#piPartner{',
         'animation:none!important;opacity:1!important;transform:none!important}',
       '#piDivider{width:60px}',
       '#piOrb,#piSplash::before{animation:none!important;opacity:1!important}',
@@ -172,7 +169,7 @@
     el.innerHTML =
       '<div id="piOrb"></div>' +
       '<div id="piContent">' +
-        '<div id="piName">ExGen</div>' +
+        '<img id="piName" src="/image/exgen-logo.png" alt="ExGen">' +
         '<div id="piTagline">AI-tränare för körkortsteorin och egna prov</div>' +
         '<div id="piDivider"></div>' +
         '<div id="piPartner">' +
