@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Privatjuridik — träna med P.E.R. | ExGen</title>
+<link rel="stylesheet" href="/exgen-tokens.css">
+<style>
+/* Fristående pilotsida. Egen layout med ExGens tokens — medvetet inte inbyggd i app.html,
+   som har pågående designarbete. Inga tekniska termer (RAG, LLM, modell) i elevens gränssnitt. */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--exgen-bg-secondary, #F8FAFC); color: var(--exgen-text, #1B2430);
+  font-family: var(--exgen-font, Inter, system-ui, sans-serif); line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 64px; }
+header.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+h1 { font-size: clamp(20px, 5vw, 26px); margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--exgen-text-secondary, #667085); font-size: 14px; margin: 4px 0 0; }
+.card {
+  background: var(--exgen-bg, #fff); border: 1px solid var(--exgen-border, #E4E7EC);
+  border-radius: 14px; padding: 18px; margin-bottom: 16px;
+}
+.card h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--exgen-text-secondary, #667085); margin: 0 0 12px; }
+.q-text { font-size: 17px; font-weight: 600; margin: 0 0 14px; }
+.why { font-size: 14px; color: var(--exgen-text-secondary); background: var(--exgen-bg-secondary); border-left: 3px solid var(--exgen-teal, #00B7D9); padding: 8px 12px; border-radius: 0 8px 8px 0; margin-bottom: 14px; }
+textarea, select, input[type=text] {
+  width: 100%; font: inherit; padding: 12px; border-radius: 10px;
+  border: 1px solid var(--exgen-border, #E4E7EC); background: #fff; color: inherit; resize: vertical;
+}
+textarea { min-height: 130px; }
+label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--exgen-border); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+label.opt:has(input:checked) { border-color: var(--exgen-teal, #00B7D9); background: #f0fbfe; }
+label.opt input { margin-top: 3px; flex: none; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button {
+  font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 12px 20px;
+  background: var(--exgen-navy, #0E1B2A); color: #fff; cursor: pointer; min-height: 44px;
+}
+button.secondary { background: transparent; color: var(--exgen-navy, #0E1B2A); border: 1px solid var(--exgen-border); }
+button[disabled] { opacity: 0.55; cursor: default; }
+.badge { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+.badge.good { background: #dcfce7; color: var(--exgen-success-text, #166534); }
+.badge.partial { background: #fef3c7; color: var(--exgen-warning-text, #92620A); }
+.badge.bad { background: #fee2e2; color: var(--exgen-error-text, #B91C1C); }
+.badge.unknown { background: #e0f2fe; color: var(--exgen-info-text, #0369A1); }
+ul.plain { margin: 8px 0 0; padding-left: 20px; }
+ul.plain li { margin-bottom: 4px; }
+.gap { border: 1px solid #fde68a; background: #fffbeb; border-radius: 10px; padding: 12px; margin-top: 14px; }
+.gap strong { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--exgen-warning-text, #92620A); margin-bottom: 4px; }
+.sources { font-size: 13px; color: var(--exgen-text-secondary); margin-top: 14px; }
+.sources li { margin-bottom: 2px; }
+.meter { height: 8px; border-radius: 999px; background: var(--exgen-border, #E4E7EC); overflow: hidden; }
+.meter > i { display: block; height: 100%; background: var(--exgen-gradient, linear-gradient(110deg,#00B7D9,#76D76A)); }
+.concept { padding: 12px 0; border-bottom: 1px solid var(--exgen-border); }
+.concept:last-child { border-bottom: 0; }
+.concept .line { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; margin-bottom: 6px; }
+.concept .meta { color: var(--exgen-text-secondary); font-size: 12px; margin-top: 5px; }
+.next { border: 1px solid var(--exgen-border); border-radius: 10px; padding: 14px; margin-top: 16px; background: var(--exgen-bg-secondary); }
+.next p { margin: 0 0 12px; font-size: 15px; }
+.note { font-size: 13px; color: var(--exgen-text-secondary); }
+.err { background: #fee2e2; color: var(--exgen-error-text, #B91C1C); padding: 12px; border-radius: 10px; font-size: 14px; }
+.hidden { display: none; }
+.spin::after { content: "…"; }
+@media (max-width: 480px) { .card { padding: 15px; } .wrap { padding: 16px 12px 48px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Privatjuridik</h1>
+      <p class="sub">Träna med P.E.R. — du får frågor som utgår från vad du redan kan.</p>
+    </div>
+    <a href="/app.html" class="note">← Tillbaka</a>
+  </header>
+
+  <div id="error" class="err hidden" role="alert"></div>
+
+  <section id="startCard" class="card">
+    <h2>Kom igång</h2>
+    <div class="row">
+      <label class="note" for="levelSel">Nivå</label>
+      <select id="levelSel" style="width:auto">
+        <option value="E">E — grunderna</option>
+        <option value="C">C — tillämpning</option>
+        <option value="A">A — fördjupning</option>
+      </select>
+      <select id="typeSel" style="width:auto">
+        <option value="short_answer">Skriv eget svar</option>
+        <option value="multiple_choice">Flervalsfråga</option>
+      </select>
+      <button id="startBtn">Starta träning</button>
+    </div>
+    <p class="note" style="margin-top:12px">P.E.R. väljer område utifrån din tidigare träning. Första gången börjar den med att ta reda på var du står.</p>
+  </section>
+
+  <section id="questionCard" class="card hidden">
+    <h2>Uppgift</h2>
+    <p class="why" id="whyThis"></p>
+    <p class="q-text" id="questionText"></p>
+    <div id="answerArea"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="submitBtn">Skicka svar</button>
+      <button id="skipBtn" class="secondary">Hoppa över</button>
+    </div>
+    <div class="sources" id="questionSources"></div>
+  </section>
+
+  <section id="feedbackCard" class="card hidden">
+    <h2>Återkoppling</h2>
+    <p><span id="resultBadge" class="badge"></span></p>
+    <p id="feedbackText"></p>
+    <div id="strengths"></div>
+    <div id="missing"></div>
+    <div id="knowledgeGap" class="gap hidden"></div>
+    <div class="sources" id="feedbackSources"></div>
+    <div class="next" id="nextStep"></div>
+  </section>
+
+  <section id="coachCard" class="card hidden">
+    <h2>Hjälp på vägen</h2>
+    <p id="coachText"></p>
+    <p id="coachQuestion" class="note"></p>
+    <div class="sources" id="coachSources"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="coachMoreBtn" class="secondary">Förklara mer</button>
+      <button id="coachDoneBtn">Ny uppgift</button>
+    </div>
+  </section>
+
+  <section id="profileCard" class="card">
+    <h2>Din kunskapsprofil</h2>
+    <p id="profileSummary" class="note">Laddar…</p>
+    <div id="conceptList"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var SUPA_LS = "sb-mnmotdluigzeehdjbhbu-auth-token";
+  var state = { question: null, concept: null, level: "E", helpLevel: 0 };
+
+  function el(id) { return document.getElementById(id); }
+  function show(node, on) { node.classList.toggle("hidden", !on); }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+  function setText(node, text) { clear(node); node.appendChild(document.createTextNode(text || "")); }
+
+  function token() {
+    try {
+      var raw = localStorage.getItem(SUPA_LS);
+      if (raw) { var s = JSON.parse(raw); return (s && s.access_token) || ""; }
+    } catch (e) {}
+    return "";
+  }
+
+  function showError(message) {
+    var box = el("error");
+    setText(box, message);
+    show(box, true);
+  }
+  function clearError() { show(el("error"), false); }
+
+  async function callApi(op, body) {
+    var jwt = token();
+    if (!jwt) { showError("Du behöver logga in först."); return null; }
+    var payload = Object.assign({ op: op }, body || {});
+    var res;
+    try {
+      res = await fetch("/api/knowledge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + jwt },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      // Nätverksfel kastade tidigare vidare, vilket lämnade knappen avstängd tills sidan laddades
+      // om. Nu returneras null och anroparen återställer knappen i sitt finally-block.
+      showError("Ingen kontakt med servern. Kontrollera uppkopplingen och försök igen.");
+      return null;
+    }
+    var data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    if (!res.ok) {
+      showError((data && (data.error || data.reason)) || "Något gick fel. Försök igen om en stund.");
+      return null;
+    }
+    clearError();
+    return data;
+  }
+
+  function renderSources(node, sources, prefix) {
+    clear(node);
+    if (!sources || !sources.length) return;
+    var head = document.createElement("div");
+    head.appendChild(document.createTextNode(prefix));
+    node.appendChild(head);
+    var list = document.createElement("ul");
+    list.className = "plain";
+    sources.forEach(function (s) {
+      var li = document.createElement("li");
+      var label = [s.section_ref, s.document_title].filter(Boolean).join(" — ");
+      li.appendChild(document.createTextNode(label || "Kursmaterial"));
+      list.appendChild(li);
+    });
+    node.appendChild(list);
+  }
+
+  function renderList(node, title, items) {
+    clear(node);
+    if (!items || !items.length) return;
+    var h = document.createElement("p");
+    h.style.margin = "12px 0 0";
+    h.style.fontWeight = "600";
+    h.appendChild(document.createTextNode(title));
+    node.appendChild(h);
+    var ul = document.createElement("ul");
+    ul.className = "plain";
+    items.forEach(function (t) {
+      var li = document.createElement("li");
+      li.appendChild(document.createTextNode(t));
+      ul.appendChild(li);
+    });
+    node.appendChild(ul);
+  }
+
+  function renderAnswerArea(question) {
+    var area = el("answerArea");
+    clear(area);
+    if (question.question_type === "multiple_choice" && question.options) {
+      question.options.forEach(function (opt) {
+        var label = document.createElement("label");
+        label.className = "opt";
+        var input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.value = opt.id;
+        label.appendChild(input);
+        var span = document.createElement("span");
+        span.appendChild(document.createTextNode(opt.id + ". " + opt.text));
+        label.appendChild(span);
+        area.appendChild(label);
+      });
+    } else {
+      var ta = document.createElement("textarea");
+      ta.id = "answerText";
+      ta.placeholder = "Skriv ditt svar här. Motivera gärna hur du tänker.";
+      ta.setAttribute("aria-label", "Ditt svar");
+      area.appendChild(ta);
+    }
+  }
+
+  function collectAnswer() {
+    if (state.question.question_type === "multiple_choice") {
+      var picked = document.querySelector('input[name="answer"]:checked');
+      return picked ? [picked.value] : null;
+    }
+    var ta = el("answerText");
+    var value = ta ? ta.value.trim() : "";
+    return value ? value : null;
+  }
+
+  async function loadQuestion() {
+    show(el("feedbackCard"), false);
+    show(el("coachCard"), false);
+    var btn = el("startBtn");
+    btn.disabled = true;
+    btn.classList.add("spin");
+    var data;
+    try {
+      data = await callApi("per_diagnose", {
+        level: el("levelSel").value,
+        question_type: el("typeSel").value,
+      });
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("spin");
+    }
+    if (!data || !data.ok) {
+      if (data && data.reason === "no_question_available") showError("Det finns ingen godkänd uppgift för det här området än.");
+      return;
+    }
+    state.question = data.question;
+    state.concept = data.concept;
+    state.level = data.level;
+    state.helpLevel = 0;
+    // Idempotensnyckeln sätts EN gång per uppgift, inte per klick. Med en tidsstämpel per försök
+    // fick varje omskick en ny nyckel — vilket är motsatsen till vad nyckeln finns för.
+    state.attemptKey = data.question.id + ":" + (self.crypto && self.crypto.randomUUID
+      ? self.crypto.randomUUID()
+      : String(Date.now()) + Math.random().toString(36).slice(2));
+
+    setText(el("whyThis"), data.why_this || "");
+    setText(el("questionText"), data.question.question || "");
+    renderAnswerArea(data.question);
+    renderSources(el("questionSources"), data.sources, "Bygger på:");
+    show(el("questionCard"), true);
+    el("questionCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function badgeFor(feedback) {
+    if (feedback.grounded === false || feedback.is_correct === null) return { cls: "badge unknown", text: "Kunde inte bedömas" };
+    if (feedback.is_correct) return { cls: "badge good", text: "Rätt" };
+    if (feedback.score >= 0.5) return { cls: "badge partial", text: "Delvis rätt" };
+    return { cls: "badge bad", text: "Inte rätt än" };
+  }
+
+  function renderNextStep(next) {
+    var box = el("nextStep");
+    clear(box);
+    var p = document.createElement("p");
+    p.appendChild(document.createTextNode(next.rationale || ""));
+    box.appendChild(p);
+    var row = document.createElement("div");
+    row.className = "row";
+    if (next.needs_coaching) {
+      var helpBtn = document.createElement("button");
+      helpBtn.appendChild(document.createTextNode("Visa hur jag ska tänka"));
+      helpBtn.addEventListener("click", function () { loadCoach(0); });
+      row.appendChild(helpBtn);
+      var skip = document.createElement("button");
+      skip.className = "secondary";
+      skip.appendChild(document.createTextNode("Ny uppgift ändå"));
+      skip.addEventListener("click", loadQuestion);
+      row.appendChild(skip);
+    } else {
+      var nextBtn = document.createElement("button");
+      nextBtn.appendChild(document.createTextNode("Nästa uppgift"));
+      nextBtn.addEventListener("click", loadQuestion);
+      row.appendChild(nextBtn);
+    }
+    box.appendChild(row);
+  }
+
+  async function submitAnswer() {
+    var answer = collectAnswer();
+    if (!answer) { showError("Skriv eller välj ett svar först."); return; }
+    var btn = el("submitBtn");
+    btn.disabled = true;
+    btn.classList.add("spin");
+    var data;
+    try {
+      data = await callApi("per_answer", {
+        question_id: state.question.id,
+        answer: answer,
+        // Nyckeln kommer från state och är oförändrad över omskick — dubbelklick eller retry
+        // efter timeout bokförs som ETT svar.
+        idempotency_key: state.attemptKey,
+      });
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("spin");
+    }
+    if (!data || !data.ok) return;
+    if (data.already_answered) showError("Du har redan svarat på den här frågan — här är bedömningen du fick.");
+
+    var badge = badgeFor(data.feedback);
+    var badgeEl = el("resultBadge");
+    badgeEl.className = badge.cls;
+    setText(badgeEl, badge.text);
+    setText(el("feedbackText"), data.feedback.text || "");
+    renderList(el("strengths"), "Det här satt:", data.feedback.strengths);
+    renderList(el("missing"), "Det här saknades:", data.feedback.missing_points);
+
+    var gapBox = el("knowledgeGap");
+    clear(gapBox);
+    if (data.feedback.knowledge_gap && data.feedback.knowledge_gap.description) {
+      var strong = document.createElement("strong");
+      strong.appendChild(document.createTextNode("Kunskapslucka"));
+      gapBox.appendChild(strong);
+      gapBox.appendChild(document.createTextNode(data.feedback.knowledge_gap.description));
+      show(gapBox, true);
+    } else {
+      show(gapBox, false);
+    }
+
+    renderSources(el("feedbackSources"), data.sources, "Bedömningen bygger på:");
+    renderNextStep(data.next_step);
+
+    show(el("questionCard"), false);
+    show(el("feedbackCard"), true);
+    el("feedbackCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    loadProfile();
+  }
+
+  async function loadCoach(level) {
+    state.helpLevel = level;
+    var data = await callApi("per_coach", {
+      concept_id: state.concept.id,
+      help_level: level,
+      question_id: state.question ? state.question.id : null,
+    });
+    if (!data || !data.ok) return;
+    setText(el("coachText"), data.message || "");
+    setText(el("coachQuestion"), data.guiding_question || "");
+    renderSources(el("coachSources"), data.sources, "Bygger på:");
+    el("coachMoreBtn").disabled = level >= 2;
+    show(el("coachCard"), true);
+    el("coachCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function loadProfile() {
+    var data = await callApi("per_profile", {});
+    if (!data || !data.ok) return;
+    var s = data.summary;
+    setText(
+      el("profileSummary"),
+      s.concepts_practiced + " av " + s.concepts_total + " områden påbörjade · " +
+      s.total_attempts + " besvarade uppgifter · snittnivå " + s.average_mastery + " av 100"
+    );
+    var list = el("conceptList");
+    clear(list);
+    data.concepts.forEach(function (c) {
+      var wrap = document.createElement("div");
+      wrap.className = "concept";
+      var line = document.createElement("div");
+      line.className = "line";
+      var name = document.createElement("span");
+      name.appendChild(document.createTextNode(c.name));
+      var val = document.createElement("strong");
+      val.appendChild(document.createTextNode(c.attempts ? Math.round(c.mastery_score) + " / 100" : "ej påbörjat"));
+      line.appendChild(name);
+      line.appendChild(val);
+      wrap.appendChild(line);
+
+      var meter = document.createElement("div");
+      meter.className = "meter";
+      var fill = document.createElement("i");
+      fill.style.width = Math.max(0, Math.min(100, c.mastery_score)) + "%";
+      meter.appendChild(fill);
+      wrap.appendChild(meter);
+
+      var meta = document.createElement("div");
+      meta.className = "meta";
+      var bits = [];
+      if (c.attempts) bits.push(c.correct_attempts + " rätt av " + c.attempts);
+      // Säkerheten är hur väl belagd siffran är — förklarad i vardagsspråk, inte som "confidence".
+      if (c.attempts) bits.push("underlag: " + (c.confidence >= 0.6 ? "gott" : c.confidence >= 0.3 ? "en del" : "tunt"));
+      meta.appendChild(document.createTextNode(bits.join(" · ")));
+      wrap.appendChild(meta);
+      list.appendChild(wrap);
+    });
+  }
+
+  el("startBtn").addEventListener("click", loadQuestion);
+  el("submitBtn").addEventListener("click", submitAnswer);
+  el("skipBtn").addEventListener("click", loadQuestion);
+  el("coachDoneBtn").addEventListener("click", loadQuestion);
+  el("coachMoreBtn").addEventListener("click", function () { loadCoach(Math.min(2, state.helpLevel + 1)); });
+  loadProfile();
+})();
+</script>
+</body>
+</html>
