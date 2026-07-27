@@ -23,7 +23,7 @@
 import { retrieveChunks } from "../retrieval/legal-retrieval.mjs";
 import { generateVerifiedQuestion, persistGeneratedQuestion } from "../generation/legal-generation.mjs";
 import { assessAnswer, LEVEL_DIFFICULTY } from "./assessment.mjs";
-import { loadLearnerProfile, commitAssessment } from "./learner-model.mjs";
+import { loadLearnerProfile, commitAssessment, assessmentFromRow } from "./learner-model.mjs";
 import { decideNextStep, selectDiagnosticConcept, COACHING_ACTIONS } from "./recommendation.mjs";
 import { logUsage } from "./usage.mjs";
 import { callAIRaw } from "../../api/_per-core.js";
@@ -313,13 +313,13 @@ export async function runAnswer({
         questionType: prior.question_type,
         level: prior.level,
         studentAnswer: prior.student_answer,
-        assessment: storedAssessment(prior),
+        assessment: assessmentFromRow(prior),
         idempotencyKey: prior.idempotency_key,
       });
     }
     return buildAnswerResponse({
       supabase, userId, conceptId, level: prior.level, now,
-      assessment: storedAssessment(prior),
+      assessment: assessmentFromRow(prior),
       attemptId: prior.id, duplicate: true, alreadyAnswered: true,
       masterySkipped: "already_answered",
     });
@@ -355,40 +355,15 @@ export async function runAnswer({
   });
 
   return buildAnswerResponse({
-    supabase, userId, conceptId, level, now, assessment,
+    supabase, userId, conceptId, level, now,
+    // Vid en kapplöpning kan committed ha bokfört en ANNAN bedömning än den vi just räknade fram;
+    // eleven ska alltid se den som faktiskt sparades (Codex CR-PER-026).
+    assessment: committed.assessment ?? assessment,
     attemptId: committed.attempt?.id ?? null,
     duplicate: !committed.created,
     masterySkipped: committed.skippedReason,
     persistRecommendation: true,
   });
-}
-
-/**
- * Rekonstruerar ett assessment-objekt ur en sparad student_attempts-rad, så att ett redan besvarat
- * svar kan visas igen utan nya AI-anrop.
- */
-function storedAssessment(row) {
-  const a = row?.assessment ?? {};
-  return {
-    method: row?.assessment_method ?? "deterministic",
-    score: row?.score ?? 0,
-    is_correct: row?.is_correct ?? null,
-    confidence: row?.confidence ?? 0,
-    grounded: a.grounded ?? true,
-    dimensions: a.dimensions ?? { factual_accuracy: 0, reasoning: 0, concept_usage: 0, method: 1, language: 1 },
-    error_code: a.error_code ?? null,
-    error_severity: a.error_severity ?? null,
-    misconception: a.misconception ?? "",
-    strengths: a.strengths ?? [],
-    missing_points: a.missing_points ?? [],
-    feedback_student: a.feedback_student ?? "",
-    next_step_hint: a.next_step_hint ?? "",
-    cited_chunk_ids: row?.source_chunk_ids ?? [],
-    redacted_input: a.redacted_input ?? false,
-    disagreement: a.disagreement ?? false,
-    latency_ms: row?.latency_ms ?? 0,
-    models_used: a.models_used ?? [],
-  };
 }
 
 /**

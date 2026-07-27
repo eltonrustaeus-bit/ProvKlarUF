@@ -130,6 +130,48 @@ export function normalizeErrorCode(code, { isCorrect, score = 0 }) {
   return { error_code: upper, error_severity: null };
 }
 
+/**
+ * Deterministiskt facitskydd (Codex CR-PER-027).
+ *
+ * Felklassificeraren MÅSTE se rätt svar för att kunna förklara felet, och prompten förbjuder den
+ * att röja det. En promptregel är dock inte en garanti — det här är kontrollen som är det. Om
+ * återkopplingen innehåller det rätta alternativets text, eller pekar ut dess bokstav med en
+ * facitliknande formulering, kasseras texten till förmån för ett neutralt besked.
+ *
+ * Pure function — exporterad för test.
+ */
+export function leaksAnswerKey(feedback, { options, correctAnswer } = {}) {
+  const text = String(feedback ?? "");
+  if (!text.trim()) return false;
+  const correctIds = (Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer])
+    .filter(Boolean).map((v) => String(v).trim().toUpperCase());
+  if (!correctIds.length) return false;
+
+  // 1. Alternativets text ordagrant (bara meningsfullt långa strängar — korta ord som "Ja"
+  //    förekommer naturligt i en förklaring).
+  const normalized = text.toLowerCase().replace(/\s+/g, " ");
+  for (const option of options ?? []) {
+    if (!correctIds.includes(String(option.id).trim().toUpperCase())) continue;
+    const optionText = String(option.text ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+    if (optionText.length >= 20 && normalized.includes(optionText)) return true;
+  }
+
+  // 2. Facitliknande formulering som pekar ut bokstaven: "rätt svar är B", "alternativ B är rätt",
+  //    "det korrekta alternativet är B".
+  for (const id of correctIds) {
+    const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Lookaround i stället för \b: ordgränser i JS är ASCII-baserade och bryts av å/ä/ö, så
+    // \b före "är" matchar inte alls. Klassen nedan täcker svenska bokstäver explicit.
+    const notLetter = "[A-Za-zÅÄÖåäö0-9]";
+    const patterns = [
+      new RegExp(`(rätt|korrekt)[a-zåäö]*\\s+(svar|alternativ)[a-zåäö]*[^.!?]{0,20}(?<!${notLetter})${escaped}(?!${notLetter})`, "i"),
+      new RegExp(`(alternativ|svar)[a-zåäö]*\\s*(?<!${notLetter})${escaped}(?!${notLetter})[^.!?]{0,20}(är|var)\\s+(rätt|korrekt)`, "i"),
+    ];
+    if (patterns.some((re) => re.test(text))) return true;
+  }
+  return false;
+}
+
 function clamp01(n, fallback = 0) {
   const v = Number(n);
   return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback;
@@ -223,6 +265,17 @@ export async function assessAnswer({
     }
 
     const codes = normalizeErrorCode(classification?.error_code, { isCorrect: false });
+    const NEUTRAL_MISS =
+      "Det blev inte rätt den här gången. Ta hjälp av ledtråden så går vi igenom hur man tänker.";
+    // Deterministisk kontroll före allt annat som når eleven.
+    const answerKeyContext = { options: question.options, correctAnswer: question.correct_answer };
+    const safeFeedback = leaksAnswerKey(classification?.feedback_student, answerKeyContext)
+      ? NEUTRAL_MISS
+      : classification?.feedback_student;
+    const safeHint = leaksAnswerKey(classification?.next_step_hint, answerKeyContext)
+      ? ""
+      : classification?.next_step_hint;
+
     return {
       method: "deterministic",
       score,
@@ -238,10 +291,8 @@ export async function assessAnswer({
       // Codex CR-PER-016: fallbacken använde tidigare frågans lagrade `explanation`, som
       // innehåller facit. Efter ett FELsvar ska eleven få hjälp att tänka om — inte serverat
       // rätt svar. Faller nu tillbaka på ett neutralt besked och hänvisar vidare till coachningen.
-      feedback_student:
-        classification?.feedback_student ||
-        "Det blev inte rätt den här gången. Ta hjälp av ledtråden så går vi igenom hur man tänker.",
-      next_step_hint: classification?.next_step_hint ?? "",
+      feedback_student: safeFeedback || NEUTRAL_MISS,
+      next_step_hint: safeHint ?? "",
       cited_chunk_ids: filterCitations(classification?.cited_chunk_ids, chunks),
       redacted_input: false,
       disagreement: false,

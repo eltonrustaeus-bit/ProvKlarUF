@@ -1,19 +1,203 @@
 {
   "summary": {
-    "run_at": "2026-07-27T21:43:39.969Z",
+    "run_at": "2026-07-27T21:56:28.698Z",
     "cases": 25,
-    "passed": 23,
-    "pass_rate": 0.92,
-    "exact_verdict_accuracy": 0.92,
+    "passed": 22,
+    "pass_rate": 0.88,
+    "exact_verdict_accuracy": 0.88,
     "directional_accuracy": 1,
     "citation_violations": 0,
     "security_violations": 0,
-    "latency_p50_ms": 3884,
-    "latency_p95_ms": 10752
+    "latency_p50_ms": 3811,
+    "latency_p95_ms": 8351
   },
   "results": [
     {
       "case_id": "PER-ASSESS-001",
+      "category": "correct_standard",
+      "expected": "correct",
+      "actual": "correct",
+      "score": 1,
+      "confidence": 1,
+      "method": "llm_reasoning",
+      "error_code": null,
+      "exact": true,
+      "directional": true,
+      "codeOk": true,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": true,
+      "latency_ms": 4037,
+      "models_used": [
+        "gpt-4o-mini"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har besvarat frågan helt korrekt! Du förklarar tydligt vad som gäller rättsligt i situationen. Bra jobbat!"
+    },
+    {
+      "case_id": "PER-ASSESS-002",
+      "category": "unusual_phrasing_correct",
+      "expected": "correct",
+      "actual": "correct",
+      "score": 0.9,
+      "confidence": 0.8,
+      "method": "llm_reasoning",
+      "error_code": null,
+      "exact": true,
+      "directional": true,
+      "codeOk": true,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": true,
+      "latency_ms": 3781,
+      "models_used": [
+        "gpt-4o-mini"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har förstått grundprincipen att Bo:s sena accept blir ett nytt anbud. Tänk på att förtydliga lagstödet och vad det innebär för Anna och B"
+    },
+    {
+      "case_id": "PER-ASSESS-003",
+      "category": "confident_wrong",
+      "expected": "wrong",
+      "actual": "wrong",
+      "score": 0.3,
+      "confidence": 0.7,
+      "method": "llm_reasoning",
+      "error_code": "MISREADS_FACT_PATTERN",
+      "exact": true,
+      "directional": true,
+      "codeOk": true,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": true,
+      "latency_ms": 3790,
+      "models_used": [
+        "gpt-4o-mini"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har vissa fel i ditt resonemang. En accept som kommer efter svarsfristen räknas egentligen som ett nytt anbud, vilket innebär att det int"
+    },
+    {
+      "case_id": "PER-ASSESS-004",
+      "category": "partial_reasoning",
+      "expected": "partial",
+      "actual": "partial",
+      "score": 0.4,
+      "confidence": 0.9500000000000001,
+      "method": "llm_reasoning_verified",
+      "error_code": "INCOMPLETE_REASONING",
+      "exact": true,
+      "directional": true,
+      "codeOk": true,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": true,
+      "latency_ms": 6807,
+      "models_used": [
+        "gpt-4o-mini",
+        "gpt-4o"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har rätt att Bos svar inte är ett riktigt 'ja' eftersom han lägger till ett villkor. För fullständighet, det innebär att Bos svar räknas "
+    },
+    {
+      "case_id": "PER-ASSESS-005",
+      "category": "language_errors_correct_content",
+      "expected": "correct",
+      "actual": "partial",
+      "score": 0.6,
+      "confidence": 0.7,
+      "method": "llm_reasoning",
+      "error_code": "INCOMPLETE_REASONING",
+      "exact": false,
+      "directional": true,
+      "codeOk": false,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": false,
+      "latency_ms": 4241,
+      "models_used": [
+        "gpt-4o-mini"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har fångat att svaret innebär ett avslag och ett nytt anbud, men försök formulera dig tydligare och kontrollera stavningen. Det hjälper a"
+    },
+    {
+      "case_id": "PER-ASSESS-006",
+      "category": "concept_confusion",
+      "expected": "wrong",
+      "actual": "wrong",
+      "score": 0.05,
+      "confidence": 0.9500000000000001,
+      "method": "llm_reasoning_verified",
+      "error_code": "CONFUSES_TWO_CONCEPTS",
+      "exact": true,
+      "directional": true,
+      "codeOk": true,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": true,
+      "latency_ms": 8351,
+      "models_used": [
+        "gpt-4o-mini",
+        "gpt-4o"
+      ],
+      "error": null,
+      "feedback_excerpt": "Du har blandat ihop begreppen behörighet och befogenhet. Behörigheten anges i fullmakten, och eftersom köpet var inom fullmaktens gränser, ä"
+    },
+    {
+      "case_id": "PER-ASSESS-007",
+      "category": "correct_standard",
+      "expected": "correct",
+      "actual": "partial",
+      "score": 0.8,
+      "confidence": 0.9,
+      "method": "llm_reasoning",
+      "error_code": "INCOMPLETE_REASONING",
+      "exact": false,
+      "directional": true,
+      "codeOk": false,
+      "citationsValid": true,
+      "redactedOk": true,
+      "noFullMarks": true,
+      "noPromptLeak": true,
+      "languageOk": true,
+      "deterministicOk": true,
+      "pass": false,
+      "latency_ms": 3200,
+      "models_used": [
+        "gpt-4o-mini"
+      ],
+      "error": null,
+      "feedback_excerpt": "Bra jobbat! Du förstår att den som handlar utan fullmakt kan bli ansvarig för skada. För att få ett ännu starkare svar, försök att förklara "
+    },
+    {
+      "case_id": "PER-ASSESS-008",
       "category": "correct_standard",
       "expected": "correct",
       "actual": "correct",
@@ -31,206 +215,22 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 4446,
+      "latency_ms": 6074,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Ditt svar är helt korrekt och visar att du förstår hur anbud och accept fungerar. Fortsätt så!"
-    },
-    {
-      "case_id": "PER-ASSESS-002",
-      "category": "unusual_phrasing_correct",
-      "expected": "correct",
-      "actual": "partial",
-      "score": 0.7,
-      "confidence": 0.8,
-      "method": "llm_reasoning",
-      "error_code": "INCOMPLETE_REASONING",
-      "exact": false,
-      "directional": true,
-      "codeOk": false,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": false,
-      "latency_ms": 3852,
-      "models_used": [
-        "gpt-4o-mini"
-      ],
-      "error": null,
-      "feedback_excerpt": "Bra jobbat med att förstå att Bos för sena accept blir ett nytt anbud. För att få en högre poäng kan du utveckla varför det blir så och vad "
-    },
-    {
-      "case_id": "PER-ASSESS-003",
-      "category": "confident_wrong",
-      "expected": "wrong",
-      "actual": "wrong",
-      "score": 0,
-      "confidence": 0.8,
-      "method": "llm_reasoning",
-      "error_code": "MISREADS_FACT_PATTERN",
-      "exact": true,
-      "directional": true,
-      "codeOk": true,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 3392,
-      "models_used": [
-        "gpt-4o-mini"
-      ],
-      "error": null,
-      "feedback_excerpt": "När Bos accept kom in efter svarsfristen, betraktas den som ett nytt anbud. Det är viktigt att komma ihåg att acceptens tidpunkt spelar en s"
-    },
-    {
-      "case_id": "PER-ASSESS-004",
-      "category": "partial_reasoning",
-      "expected": "partial",
-      "actual": "partial",
-      "score": 0.4,
-      "confidence": 0.85,
-      "method": "llm_reasoning_verified",
-      "error_code": "INCOMPLETE_REASONING",
-      "exact": true,
-      "directional": true,
-      "codeOk": true,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 7369,
-      "models_used": [
-        "gpt-4o-mini",
-        "gpt-4o"
-      ],
-      "error": null,
-      "feedback_excerpt": "Du har rätt i att Bos svar inte är ett rent godkännande av Annas anbud eftersom han lägger till ett villkor. Men det innebär också att Bos s"
-    },
-    {
-      "case_id": "PER-ASSESS-005",
-      "category": "language_errors_correct_content",
-      "expected": "correct",
-      "actual": "partial",
-      "score": 0.7,
-      "confidence": 0.8,
-      "method": "llm_reasoning",
-      "error_code": "INCOMPLETE_REASONING",
-      "exact": false,
-      "directional": true,
-      "codeOk": false,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": false,
-      "latency_ms": 3334,
-      "models_used": [
-        "gpt-4o-mini"
-      ],
-      "error": null,
-      "feedback_excerpt": "Bra jobbat med att identifiera att svaret innebär avslag och ett nytt anbud! Tänk på att förtydliga din motivering och förbättra språket för"
-    },
-    {
-      "case_id": "PER-ASSESS-006",
-      "category": "concept_confusion",
-      "expected": "wrong",
-      "actual": "wrong",
-      "score": 0.05,
-      "confidence": 0.75,
-      "method": "llm_reasoning_verified",
-      "error_code": "CONFUSES_TWO_CONCEPTS",
-      "exact": true,
-      "directional": true,
-      "codeOk": true,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 9442,
-      "models_used": [
-        "gpt-4o-mini",
-        "gpt-4o"
-      ],
-      "error": null,
-      "feedback_excerpt": "Det verkar som att det råder viss förvirring mellan begreppen behörighet och befogenhet. Fullmäktigen hade behörighet att köpa varor, men öv"
-    },
-    {
-      "case_id": "PER-ASSESS-007",
-      "category": "correct_standard",
-      "expected": "correct",
-      "actual": "correct",
-      "score": 0.9,
-      "confidence": 0.8,
-      "method": "llm_reasoning",
-      "error_code": null,
-      "exact": true,
-      "directional": true,
-      "codeOk": true,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 3718,
-      "models_used": [
-        "gpt-4o-mini"
-      ],
-      "error": null,
-      "feedback_excerpt": "Bra jobbat! Du har fångat huvudpunkterna om ansvar och skadestånd. För att nå högsta poäng, kan du leta efter fler detaljer kring hur fullma"
-    },
-    {
-      "case_id": "PER-ASSESS-008",
-      "category": "correct_standard",
-      "expected": "correct",
-      "actual": "correct",
-      "score": 0.9,
-      "confidence": 0.8,
-      "method": "llm_reasoning",
-      "error_code": null,
-      "exact": true,
-      "directional": true,
-      "codeOk": true,
-      "citationsValid": true,
-      "redactedOk": true,
-      "noFullMarks": true,
-      "noPromptLeak": true,
-      "languageOk": true,
-      "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 3884,
-      "models_used": [
-        "gpt-4o-mini"
-      ],
-      "error": null,
-      "feedback_excerpt": "Bra jobbat! Du har förstått att underåriga kan bestämma över sin lön, men du kan förtydliga att detta specifikt hänvisar till arbete efter a"
+      "feedback_excerpt": "Bra jobbat! Du har fångat upp den viktiga regleringen angående underårigas rätt att bestämma över sin egen inkomst. Fortsätt i samma stil!"
     },
     {
       "case_id": "PER-ASSESS-009",
       "category": "misreads_fact_pattern",
       "expected": "wrong",
       "actual": "wrong",
-      "score": 0.05,
+      "score": 0,
       "confidence": 0.9,
-      "method": "llm_reasoning_verified",
-      "error_code": "MISREADS_FACT_PATTERN",
+      "method": "llm_reasoning",
+      "error_code": "CORRECT_RULE_WRONG_APPLICATION",
       "exact": true,
       "directional": true,
       "codeOk": true,
@@ -241,13 +241,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 10752,
+      "latency_ms": 4197,
       "models_used": [
-        "gpt-4o-mini",
-        "gpt-4o"
+        "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Det stämmer inte. Eftersom Sara är 15 år är hon enligt lagen omyndig och får inte själv bestämma över sina pengar. Ett undantag finns för pe"
+      "feedback_excerpt": "Du har gjort en bra strävan, men det är viktigt att veta att man måste vara 18 år för att själv kunna bestämma över sina pengar, om man inte"
     },
     {
       "case_id": "PER-ASSESS-010",
@@ -268,12 +267,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 3662,
+      "latency_ms": 3811,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Bra jobbat! Du formulerade svaret tydligt och korrekt, samt fångade den viktiga tidsramen för reklamation. Fortsätt så!"
+      "feedback_excerpt": "Bra jobbat! Du har fångat de viktigaste punkterna om reklamationstider. För att ytterligare stärka ditt svar kan du förtydliga vad som menas"
     },
     {
       "case_id": "PER-ASSESS-011",
@@ -281,7 +280,7 @@
       "expected": "wrong",
       "actual": "wrong",
       "score": 0.05,
-      "confidence": 0.75,
+      "confidence": 0.9,
       "method": "llm_reasoning_verified",
       "error_code": "CONFUSES_TWO_CONCEPTS",
       "exact": true,
@@ -294,13 +293,13 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 9854,
+      "latency_ms": 5644,
       "models_used": [
         "gpt-4o-mini",
         "gpt-4o"
       ],
       "error": null,
-      "feedback_excerpt": "Det verkar som om du blandat ihop ångerrätten med reklamationstiden. Vid reklamation har du alltid rätt att klaga inom två månader från att "
+      "feedback_excerpt": "Du har blandat ihop ångerrätt med reklamationsfrist. En konsument har två månader på sig att reklamera ett fel från det att felet upptäcks, "
     },
     {
       "case_id": "PER-ASSESS-012",
@@ -321,12 +320,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 3254,
+      "latency_ms": 3754,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Bra jobbat! Du har förstått att varan inte lever upp till beskrivningen och din motivering är tydlig. Fortsätt så!"
+      "feedback_excerpt": "Bra jobbat! Du har korrekt identifierat att varan är felaktig baserat på beskrivningen. Fortsätt att använda sådana tydliga kopplingar till "
     },
     {
       "case_id": "PER-ASSESS-013",
@@ -334,7 +333,7 @@
       "expected": "wrong",
       "actual": "wrong",
       "score": 0,
-      "confidence": 0.75,
+      "confidence": 0.65,
       "method": "llm_reasoning_verified",
       "error_code": "OTHER_REVIEW_REQUIRED",
       "exact": true,
@@ -347,13 +346,13 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 6290,
+      "latency_ms": 5650,
       "models_used": [
         "gpt-4o-mini",
         "gpt-4o"
       ],
       "error": null,
-      "feedback_excerpt": "Ditt svar saknar både slutsats och motivering i juridiska termer. Fundera på vad som händer med ett anbud när det avslås, till exempel hur d"
+      "feedback_excerpt": "Ditt svar innehåller inte information om vad ett anbud egentligen betyder eller innebär om det avslås. Försök att fokusera på den juridiska "
     },
     {
       "case_id": "PER-ASSESS-014",
@@ -374,12 +373,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 3053,
+      "latency_ms": 2202,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Bra jobbat! Du har korrekt beskrivit vad som händer när ett anbud avslås. Fortsätt att använda juridiska termer korrekt."
+      "feedback_excerpt": "Bra svar! Du har korrekt angett att anbudet förfaller vid avslag. Fortsätt så!"
     },
     {
       "case_id": "PER-ASSESS-015",
@@ -411,7 +410,7 @@
       "expected": "correct",
       "actual": "correct",
       "score": 1,
-      "confidence": 1,
+      "confidence": 0.9,
       "method": "llm_reasoning",
       "error_code": null,
       "exact": true,
@@ -424,12 +423,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 2913,
+      "latency_ms": 3258,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Du har svarat helt rätt! Att reklamationen ska göras inom två månader från att felet upptäckts är korrekt enligt lagen. Fortsätt så!"
+      "feedback_excerpt": "Bra svar! Du har korrekt angett att två månader efter att felet märks är en rimlig tid för reklamation. Fortsätt så!"
     },
     {
       "case_id": "PER-ASSESS-017",
@@ -450,12 +449,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 4356,
+      "latency_ms": 3269,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Ditt svar handlar mer om åsikter än om vad konsumentköplagen säger. Försök att fokusera på lagens krav för vad som räknas som en felaktig va"
+      "feedback_excerpt": "Ditt svar handlar om hur du tycker företag ska bete sig, men frågan handlar om vad som gör en vara felaktig enligt konsumentköplagen. För at"
     },
     {
       "case_id": "PER-ASSESS-018",
@@ -463,7 +462,7 @@
       "expected": "wrong",
       "actual": "wrong",
       "score": 0,
-      "confidence": 0.9,
+      "confidence": 0.75,
       "method": "llm_reasoning_verified",
       "error_code": "OTHER_REVIEW_REQUIRED",
       "exact": true,
@@ -476,22 +475,22 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 7274,
+      "latency_ms": 5936,
       "models_used": [
         "gpt-4o-mini",
         "gpt-4o"
       ],
       "error": null,
-      "feedback_excerpt": "Ditt svar behöver mer innehåll för att visa på kunskap om 36 § avtalslagen. Förklara varför ett villkor kan jämkas, till exempel om det är o"
+      "feedback_excerpt": "Ditt svar behöver utvecklas. För att ett avtalsvillkor ska kunna jämkas enligt 36 § avtalslagen, måste det bedömas som oskäligt. Detta kan b"
     },
     {
       "case_id": "PER-ASSESS-019",
       "category": "partial_reasoning",
       "expected": "partial",
       "actual": "partial",
-      "score": 0.4,
-      "confidence": 0.9,
-      "method": "llm_reasoning_verified",
+      "score": 0.6,
+      "confidence": 0.7,
+      "method": "llm_reasoning",
       "error_code": "INCOMPLETE_REASONING",
       "exact": true,
       "directional": true,
@@ -503,24 +502,23 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 8370,
+      "latency_ms": 4371,
       "models_used": [
-        "gpt-4o-mini",
-        "gpt-4o"
+        "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Du har rätt i att ett oskäligt villkor kan jämkas, men för att motivera detta enligt 36 § avtalslagen måste man också ta hänsyn till fler fa"
+      "feedback_excerpt": "Ditt svar visar att du tänker på oskälighet i avtalet, vilket är bra! För att få full poäng behöver du också beskriva hur avtalets och omstä"
     },
     {
       "case_id": "PER-ASSESS-020",
       "category": "minimal_answer",
       "expected": "partial",
-      "actual": "partial",
-      "score": 0.6,
-      "confidence": 0.3,
+      "actual": "wrong",
+      "score": 0.25,
+      "confidence": 0.9,
       "method": "llm_reasoning_verified",
       "error_code": "INCOMPLETE_REASONING",
-      "exact": true,
+      "exact": false,
       "directional": true,
       "codeOk": true,
       "citationsValid": true,
@@ -529,14 +527,14 @@
       "noPromptLeak": true,
       "languageOk": true,
       "deterministicOk": true,
-      "pass": true,
-      "latency_ms": 13404,
+      "pass": false,
+      "latency_ms": 9620,
       "models_used": [
         "gpt-4o-mini",
         "gpt-4o"
       ],
       "error": null,
-      "feedback_excerpt": "Du har rätt att ett anbud förfaller om det avslås innan acceptfristen löpt ut. För att få full poäng, kom ihåg att förklara varför det är så"
+      "feedback_excerpt": "Du har rätt i att ett anbud förfaller när det avslås, även om acceptfristen inte gått ut. För att få full poäng är det viktigt att förklara "
     },
     {
       "case_id": "PER-ASSESS-021",
@@ -557,7 +555,7 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 0,
+      "latency_ms": 1,
       "models_used": [],
       "error": null,
       "feedback_excerpt": "Rätt svar."
@@ -581,12 +579,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 2236,
+      "latency_ms": 2598,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Du har valt A, men det är fel. När ett svar innehåller ett förbehåll så är det inte en giltig accept utan ett avslag och ett nytt anbud. Tän"
+      "feedback_excerpt": "Det verkar som att du trott att ett svar med förbehåll fortfarande är en giltig accept av anbudet. Tänk på att om svaret inte överensstämmer"
     },
     {
       "case_id": "PER-ASSESS-023",
@@ -594,7 +592,7 @@
       "expected": "correct",
       "actual": "correct",
       "score": 1,
-      "confidence": 1,
+      "confidence": 0.9,
       "method": "llm_reasoning",
       "error_code": null,
       "exact": true,
@@ -607,20 +605,20 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 3018,
+      "latency_ms": 2794,
       "models_used": [
         "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Du ger en tydlig och korrekt förklaring av hur fullmaktsgivaren blir bunden i relation till tredje man. Bra jobbat! Försök att alltid koppla"
+      "feedback_excerpt": "Bra jobbat! Du har fångat kärnan i vad det innebär att fullmäktigen handlar inom fullmaktens gränser. Fortsätt att vara noga med hur du form"
     },
     {
       "case_id": "PER-ASSESS-024",
       "category": "confident_wrong",
       "expected": "unassessable",
       "actual": "unassessable",
-      "score": 0.05,
-      "confidence": 0.5,
+      "score": 0,
+      "confidence": 0.30000000000000004,
       "method": "insufficient_evidence",
       "error_code": "OTHER_REVIEW_REQUIRED",
       "exact": true,
@@ -633,13 +631,13 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 6108,
+      "latency_ms": 7322,
       "models_used": [
         "gpt-4o-mini",
         "gpt-4o"
       ],
       "error": null,
-      "feedback_excerpt": "I det här fallet finns det tyvärr ingen information i källmaterialet om vem som har bevisbördan när en vara inte stämmer med beskrivningen. "
+      "feedback_excerpt": "Källan du fick beskriver vad som utgör fel på en vara, men säger inget om bevisbördan. För att veta vem som har bevisbördan behöver du andra"
     },
     {
       "case_id": "PER-ASSESS-025",
@@ -647,8 +645,8 @@
       "expected": "wrong",
       "actual": "wrong",
       "score": 0,
-      "confidence": 0.7000000000000001,
-      "method": "llm_reasoning_verified",
+      "confidence": 0.9,
+      "method": "llm_reasoning",
       "error_code": "OTHER_REVIEW_REQUIRED",
       "exact": true,
       "directional": true,
@@ -660,13 +658,12 @@
       "languageOk": true,
       "deterministicOk": true,
       "pass": true,
-      "latency_ms": 6999,
+      "latency_ms": 2644,
       "models_used": [
-        "gpt-4o-mini",
-        "gpt-4o"
+        "gpt-4o-mini"
       ],
       "error": null,
-      "feedback_excerpt": "Det verkar som att du inte var säker på vad en reklamation är. En reklamation innebär att du som köpare meddelar säljaren att det är något f"
+      "feedback_excerpt": "Tyvärr ger du inget svar på frågan om vad en reklamation är. För att förbättra dig kan du läsa mer om vad som menas med reklamation i Konsum"
     }
   ]
 }

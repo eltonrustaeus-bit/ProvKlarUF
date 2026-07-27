@@ -275,6 +275,18 @@ async function underAssessmentQuota(userId) {
   return { allowed: data?.allowed === true, remaining: data?.remaining ?? 0 };
 }
 
+// Codex CR-PER-029: kvoten konsumeras innan ägarskaps- och dubblettkontrollen hunnit köra. Ett
+// 404, ett redan besvarat svar eller ett fel innan första AI-anropet kostar ingenting — då ska
+// platsen tillbaka. Återbetalning får aldrig kasta; en missad återbetalning är ett litet fel,
+// ett kastat undantag mitt i ett svar är ett stort.
+async function refundAssessmentQuota(userId) {
+  try {
+    await supabase.rpc("per_refund_daily_quota", { p_user_id: userId, p_feature: "per_assessment" });
+  } catch {
+    /* ignoreras med flit */
+  }
+}
+
 function badRequest(res, message) {
   return res.status(400).json({ error: message });
 }
@@ -295,9 +307,13 @@ async function opPerDiagnose(req, res, user) {
       conceptId: concept_id ?? null,
       questionType: question_type ?? "short_answer",
     });
-    if (!result.ok) return res.status(422).json(result);
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(422).json(result);
+    }
     return res.status(200).json(result);
   } catch (e) {
+    await refundAssessmentQuota(user.id);
     console.error("per diagnose error:", e?.message);
     return res.status(502).json({ error: "Kunde inte hämta en uppgift just nu" });
   }
@@ -326,9 +342,15 @@ async function opPerAnswer(req, res, user) {
       studentAnswer: Array.isArray(answer) ? answer : answerText,
       idempotencyKey: idempotency_key,
     });
-    if (!result.ok) return res.status(result.reason === "question_not_found_or_not_owned" ? 404 : 422).json(result);
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(result.reason === "question_not_found_or_not_owned" ? 404 : 422).json(result);
+    }
+    // Ett redan besvarat svar returnerar den lagrade bedömningen utan ett enda AI-anrop.
+    if (result.already_answered) await refundAssessmentQuota(user.id);
     return res.status(200).json(result);
   } catch (e) {
+    await refundAssessmentQuota(user.id);
     console.error("per answer error:", e?.message);
     return res.status(502).json({ error: "Kunde inte bedöma svaret just nu" });
   }
@@ -347,9 +369,13 @@ async function opPerCoach(req, res, user) {
     const result = await runCoach({
       supabase, userId: user.id, conceptId: concept_id, helpLevel, questionId: question_id ?? null,
     });
-    if (!result.ok) return res.status(422).json(result);
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(422).json(result);
+    }
     return res.status(200).json(result);
   } catch (e) {
+    await refundAssessmentQuota(user.id);
     console.error("per coach error:", e?.message);
     return res.status(502).json({ error: "Kunde inte hämta hjälp just nu" });
   }

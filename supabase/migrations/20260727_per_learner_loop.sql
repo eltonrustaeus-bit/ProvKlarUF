@@ -66,6 +66,12 @@ create table if not exists public.student_attempts (
   created_at         timestamptz not null default now(),
   unique (user_id, idempotency_key)
 );
+-- Om en tidigare version av denna migration redan skapat tabellen gör CREATE TABLE IF NOT EXISTS
+-- ingenting — då saknas de kolumner som lagts till senare (Codex CR-PER-028). Explicit ALTER
+-- gör migrationen säker att köra om.
+alter table public.student_attempts add column if not exists mastery_applied boolean not null default false;
+alter table public.student_attempts add column if not exists idempotency_key text;
+
 create index if not exists idx_student_attempts_user on public.student_attempts(user_id, created_at desc);
 create index if not exists idx_student_attempts_concept on public.student_attempts(user_id, concept_id, created_at desc);
 
@@ -127,7 +133,10 @@ begin
   if v_user_id <> new.user_id then
     raise exception 'user_id matchar inte attempt-radens user_id';
   end if;
-  if new.concept_id is not null and v_concept_id is not null and new.concept_id <> v_concept_id then
+  -- Codex CR-PER-030: tidigare tilläts att felhändelsen hade concept_id = null när försöket hade
+  -- ett koncept. En felhändelse utan koncept är osynlig för rekommendationsmotorn — den ska inte
+  -- gå att skriva när kopplingen faktiskt är känd.
+  if v_concept_id is not null and new.concept_id is distinct from v_concept_id then
     raise exception 'concept_id matchar inte attempt-radens concept_id';
   end if;
   return new;
@@ -221,12 +230,18 @@ alter table public.ai_usage_events add constraint ai_usage_events_pipeline_step_
 --
 -- Elo: expected = 1/(1+10^((difficulty*100 − mastery)/40)), K=24 medan attempts<10 annars 12.
 -- Identiska konstanter som HP — samma 0–100-skala, samma inlärningstakt, en konvention i produkten.
+-- p_attempt_id ger EXAKT-EN-GÅNG-semantik (Codex CR-PER-025). Att uppdatera mastery och sedan
+-- markera försöket i två separata anrop räcker inte: kraschar processen däremellan står flaggan
+-- kvar på false och nästa retry räknar samma svar en gång till. Här sker båda i SAMMA transaktion
+-- (en plpgsql-funktion är en transaktion), och funktionen avbryter direkt om försöket redan är
+-- bokfört. Det är databasen, inte applikationen, som äger den garantin.
 create or replace function public.apply_legal_mastery(
   p_user_id    uuid,
   p_concept_id uuid,
   p_difficulty real,
   p_score      real,
-  p_confidence real
+  p_confidence real,
+  p_attempt_id uuid default null
 )
 returns jsonb
 language plpgsql
@@ -234,6 +249,7 @@ security definer
 set search_path = public
 as $$
 declare
+  v_applied     boolean;
   v_mastery     real;
   v_attempts    integer;
   v_correct     integer;
@@ -251,6 +267,30 @@ declare
   v_correct_threshold constant real := 0.85;
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_user_id::text || ':' || p_concept_id::text, 0));
+
+  -- Bokför bara ett försök en gång. Radlåset hålls till transaktionens slut, så två parallella
+  -- anrop för samma försök kan inte båda se false.
+  if p_attempt_id is not null then
+    select mastery_applied into v_applied
+    from public.student_attempts
+    where id = p_attempt_id and user_id = p_user_id
+    for update;
+
+    if not found then
+      raise exception 'attempt % finns inte för denna användare', p_attempt_id;
+    end if;
+    if v_applied then
+      select mastery_score, confidence, attempts, evidence_quality
+        into v_new, v_new_conf, v_attempts, v_new_quality
+      from public.student_mastery
+      where user_id = p_user_id and concept_id = p_concept_id;
+      return jsonb_build_object(
+        'mastery_score', coalesce(v_new, 0), 'confidence', coalesce(v_new_conf, 0),
+        'attempts', coalesce(v_attempts, 0), 'evidence_quality', coalesce(v_new_quality, 0),
+        'already_applied', true
+      );
+    end if;
+  end if;
 
   select mastery_score, attempts, correct_attempts, evidence_quality
     into v_mastery, v_attempts, v_correct, v_quality
@@ -290,19 +330,57 @@ begin
         evidence_quality  = excluded.evidence_quality,
         updated_at        = excluded.updated_at;
 
+  -- Samma transaktion som Elo-uppdateringen ovan: antingen sker båda, eller ingen av dem.
+  if p_attempt_id is not null then
+    update public.student_attempts set mastery_applied = true where id = p_attempt_id;
+  end if;
+
   return jsonb_build_object(
     'mastery_score', v_new,
     'confidence', v_new_conf,
     'attempts', v_attempts + 1,
-    'evidence_quality', v_new_quality
+    'evidence_quality', v_new_quality,
+    'already_applied', false
   );
 end;
 $$;
 
-revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real) from public;
-revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real) from anon;
-revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real) from authenticated;
-grant  execute on function public.apply_legal_mastery(uuid, uuid, real, real, real) to service_role;
+-- Den gamla 5-argumentsvarianten tas bort explicit: CREATE OR REPLACE skapar en NY överlagring
+-- när signaturen ändras, och en kvarlämnad variant utan p_attempt_id skulle sakna exakt-en-gång-
+-- garantin helt tyst.
+drop function if exists public.apply_legal_mastery(uuid, uuid, real, real, real);
+
+revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real, uuid) from public;
+revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real, uuid) from anon;
+revoke execute on function public.apply_legal_mastery(uuid, uuid, real, real, real, uuid) from authenticated;
+grant  execute on function public.apply_legal_mastery(uuid, uuid, real, real, real, uuid) to service_role;
+
+-- ── per_refund_daily_quota() ────────────────────────────────────────────────
+-- Codex CR-PER-029: kvoten konsumeras innan ägarskaps- och dubblettkontrollen hunnit köra, så en
+-- 404 eller ett redan besvarat svar — som inte kostar ett enda AI-anrop — åt ändå upp en plats av
+-- dagens 40. Återbetalning stänger det.
+create or replace function public.per_refund_daily_quota(
+  p_user_id uuid,
+  p_feature text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.per_quota_counters
+     set used = greatest(0, used - 1)
+   where user_id = p_user_id
+     and feature = p_feature
+     and day = (now() at time zone 'utc')::date;
+end;
+$$;
+
+revoke execute on function public.per_refund_daily_quota(uuid, text) from public;
+revoke execute on function public.per_refund_daily_quota(uuid, text) from anon;
+revoke execute on function public.per_refund_daily_quota(uuid, text) from authenticated;
+grant  execute on function public.per_refund_daily_quota(uuid, text) to service_role;
 
 -- ── Dygnskvot: räknare + atomisk konsumtion ────────────────────────────────
 -- Codex CR-PER-007 (ACCEPTERAD): den befintliga kvoten i api/knowledge.js är en icke-atomisk

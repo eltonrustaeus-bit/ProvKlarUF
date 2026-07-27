@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 import {
   normalizeChoice, gradeMultipleChoice, reconcileAssessments, normalizeErrorCode,
-  normalizeSeverity, scoreBucket, LEVEL_DIFFICULTY, CORRECT_THRESHOLD,
+  normalizeSeverity, scoreBucket, leaksAnswerKey, LEVEL_DIFFICULTY, CORRECT_THRESHOLD,
 } from "../../src/per/assessment.mjs";
 import {
   redactInstructions, sanitizeStudentAnswer, sanitizeSourceChunks, filterCitations, REDACTION_MARKER,
@@ -276,6 +276,41 @@ check("FACITSKYDD: publik projektion innehåller aldrig correct_answer eller exp
   assert.ok(!/Facit-förklaringen/.test(serialized), "explanation får aldrig lämna servern");
   assert.ok(!/"A"\]/.test(serialized) || !serialized.includes("correct"), "facitvärdet får inte läcka");
   assert.equal(pub.question, "Vad krävs?");
+});
+
+// ── Facitskydd i återkopplingen ─────────────────────────────────────────────
+const mcqContext = {
+  options: [
+    { id: "A", text: "Det är en giltig accept och avtal har slutits" },
+    { id: "B", text: "Det gäller som avslag i förening med nytt anbud" },
+  ],
+  correctAnswer: ["B"],
+};
+
+check("facitskydd: rätt alternativs text ordagrant i återkopplingen fångas", () => {
+  assert.equal(leaksAnswerKey("Tänk på att det gäller som avslag i förening med nytt anbud.", mcqContext), true);
+});
+
+check("facitskydd: facitliknande formulering med bokstaven fångas", () => {
+  assert.equal(leaksAnswerKey("Rätt svar är B, inte A.", mcqContext), true);
+  assert.equal(leaksAnswerKey("Alternativ B är rätt här.", mcqContext), true);
+});
+
+check("facitskydd: pedagogisk återkoppling utan facit släpps igenom", () => {
+  assert.equal(
+    leaksAnswerKey("Du utgår från att alla svar binder direkt. Läs vad som händer när svaret ändrar villkoren.", mcqContext),
+    false
+  );
+});
+
+check("facitskydd: att nämna elevens EGET (felaktiga) alternativ är inte en läcka", () => {
+  assert.equal(leaksAnswerKey("Du valde A, men fundera på vad tillägget gör med anbudet.", mcqContext), false);
+});
+
+check("facitskydd: tom text och saknat facit hanteras utan krasch", () => {
+  assert.equal(leaksAnswerKey("", mcqContext), false);
+  assert.equal(leaksAnswerKey("Något", { options: [], correctAnswer: [] }), false);
+  assert.equal(leaksAnswerKey(null, undefined), false);
 });
 
 // ── Kostnadsmätning ─────────────────────────────────────────────────────────

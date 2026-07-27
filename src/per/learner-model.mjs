@@ -109,18 +109,58 @@ export async function recordAttempt(supabase, {
   const { data, error } = await supabase.from("student_attempts").insert(row).select().single();
   if (!error) return { attempt: data, created: true };
 
-  // 23505 = unique_violation → samma submit har redan bokförts.
+  // 23505 = unique_violation. TVÅ olika constraints kan ge den koden (Codex CR-PER-026):
+  //   (user_id, idempotency_key) — samma submit skickad igen
+  //   (user_id, question_id)     — frågan är redan besvarad, t.ex. av en parallell request som
+  //                                hann före efter att båda passerat den tidiga kontrollen
+  // Att bara slå upp på idempotensnyckeln (som förut) gav i det andra fallet ingen träff och ett
+  // kastat fel → 502 för eleven. Sök därför på båda, i den ordning som är mest specifik först.
   if (error.code === "23505") {
-    const { data: existing, error: fetchError } = await supabase
-      .from("student_attempts")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("idempotency_key", idempotencyKey)
-      .single();
-    if (fetchError) throw new Error(`Kunde inte läsa befintligt försök: ${fetchError.message}`);
-    return { attempt: existing, created: false };
+    const byKey = await supabase
+      .from("student_attempts").select("*")
+      .eq("user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
+    if (byKey.data) return { attempt: byKey.data, created: false };
+
+    if (questionId) {
+      const byQuestion = await supabase
+        .from("student_attempts").select("*")
+        .eq("user_id", userId).eq("question_id", questionId).maybeSingle();
+      if (byQuestion.data) return { attempt: byQuestion.data, created: false };
+    }
+    throw new Error("Kunde inte läsa befintligt försök efter unikhetskonflikt");
   }
   throw new Error(`Kunde inte spara försök: ${error.message}`);
+}
+
+/**
+ * Rekonstruerar ett assessment-objekt ur en sparad student_attempts-rad.
+ *
+ * Används när ett svar redan är bokfört: eleven ska se den bedömning som FAKTISKT sparades, och
+ * en återupptagen evidenskedja ska appliceras med de siffror som ligger i databasen — inte med en
+ * ny, möjligen annorlunda, modellbedömning från den anropande requesten (Codex CR-PER-026).
+ */
+export function assessmentFromRow(row) {
+  const a = row?.assessment ?? {};
+  return {
+    method: row?.assessment_method ?? "deterministic",
+    score: row?.score ?? 0,
+    is_correct: row?.is_correct ?? null,
+    confidence: row?.confidence ?? 0,
+    grounded: a.grounded ?? true,
+    dimensions: a.dimensions ?? { factual_accuracy: 0, reasoning: 0, concept_usage: 0, method: 1, language: 1 },
+    error_code: a.error_code ?? null,
+    error_severity: a.error_severity ?? null,
+    misconception: a.misconception ?? "",
+    strengths: a.strengths ?? [],
+    missing_points: a.missing_points ?? [],
+    feedback_student: a.feedback_student ?? "",
+    next_step_hint: a.next_step_hint ?? "",
+    cited_chunk_ids: row?.source_chunk_ids ?? [],
+    redacted_input: a.redacted_input ?? false,
+    disagreement: a.disagreement ?? false,
+    latency_ms: row?.latency_ms ?? 0,
+    models_used: a.models_used ?? [],
+  };
 }
 
 /**
@@ -151,14 +191,19 @@ export async function recordErrorEvent(supabase, { userId, questionId, conceptId
   throw new Error(`Kunde inte spara felhändelse: ${error.message}`);
 }
 
-/** Atomisk mastery-uppdatering via RPC (advisory lock, se migrationen). */
-export async function applyMastery(supabase, { userId, conceptId, level, score, confidence }) {
+/**
+ * Atomisk mastery-uppdatering via RPC. Med attemptId sätter RPC:n även `mastery_applied` i SAMMA
+ * transaktion och vägrar bokföra samma försök två gånger — exakt-en-gång-garantin ligger i
+ * databasen, inte här (se migrationen).
+ */
+export async function applyMastery(supabase, { userId, conceptId, level, score, confidence, attemptId = null }) {
   const { data, error } = await supabase.rpc("apply_legal_mastery", {
     p_user_id: userId,
     p_concept_id: conceptId,
     p_difficulty: LEVEL_DIFFICULTY[level] ?? 0.5,
     p_score: score,
     p_confidence: confidence,
+    p_attempt_id: attemptId,
   });
   if (error) throw new Error(`apply_legal_mastery misslyckades: ${error.message}`);
   return data;
@@ -188,49 +233,57 @@ export async function commitAssessment(supabase, {
     userId, questionId, conceptId, questionType, level, studentAnswer, assessment, idempotencyKey,
   });
 
+  // Ett redan bokfört svar äger sin egen bedömning. Anroparens (nya) assessment får inte användas
+  // vidare — den skrevs aldrig till databasen och skulle ge eleven en annan återkoppling än den
+  // som faktiskt är sparad (Codex CR-PER-026).
+  const effective = created ? assessment : assessmentFromRow(attempt);
+  const effectiveLevel = created ? level : attempt.level ?? level;
+  const effectiveConceptId = created ? conceptId : attempt.concept_id ?? conceptId;
+
   // Redan färdigbokfört svar — gör ingenting mer.
   if (!created && attempt?.mastery_applied) {
-    return { attempt, created: false, mastery: null, errorEvent: null, skippedReason: "duplicate_submission" };
+    return { attempt, assessment: effective, created: false, mastery: null, errorEvent: null, skippedReason: "duplicate_submission" };
   }
 
-  if (assessment.method === "insufficient_evidence" || assessment.grounded === false) {
+  if (effective.method === "insufficient_evidence" || effective.grounded === false) {
     // Inget att applicera, men kedjan är avslutad — markera den så att en retry inte försöker igen.
-    await supabase.from("student_attempts").update({ mastery_applied: true }).eq("id", attempt.id);
+    const { error: flagError } = await supabase
+      .from("student_attempts").update({ mastery_applied: true }).eq("id", attempt.id);
+    if (flagError) console.error("kunde inte markera mastery_applied (insufficient_evidence):", flagError.message, "attempt:", attempt.id);
     return {
-      attempt, created, mastery: null, errorEvent: null,
+      attempt, assessment: effective, created, mastery: null, errorEvent: null,
       skippedReason: created ? "insufficient_evidence" : "duplicate_submission",
     };
   }
 
   let errorEvent = null;
-  if (assessment.error_code && conceptId) {
+  if (effective.error_code && effectiveConceptId) {
     errorEvent = await recordErrorEvent(supabase, {
-      userId, questionId, conceptId,
-      errorCode: assessment.error_code,
-      severity: assessment.error_severity ?? "medium",
+      userId, questionId, conceptId: effectiveConceptId,
+      errorCode: effective.error_code,
+      severity: effective.error_severity ?? "medium",
       attemptId: attempt.id,
     });
   }
 
+  // mastery_applied sätts av RPC:n i samma transaktion som Elo-uppdateringen — ingen separat
+  // markering här, och därmed inget fönster där mastery hunnit uppdateras men flaggan inte.
   let mastery = null;
-  if (conceptId) {
+  if (effectiveConceptId) {
     mastery = await applyMastery(supabase, {
-      userId, conceptId, level,
-      score: assessment.score,
-      confidence: assessment.confidence,
+      userId, conceptId: effectiveConceptId, level: effectiveLevel,
+      score: effective.score,
+      confidence: effective.confidence,
+      attemptId: attempt.id,
     });
-  }
-
-  const { error: flagError } = await supabase
-    .from("student_attempts").update({ mastery_applied: true }).eq("id", attempt.id);
-  if (flagError) {
-    // Mastery ÄR uppdaterad; bara markeringen fallerade. En retry skulle då applicera mastery en
-    // gång till. Logga tydligt — det är värt att veta om det inträffar — men riv inte elevens svar.
-    console.error("kunde inte markera mastery_applied:", flagError.message, "attempt:", attempt.id);
+  } else {
+    const { error: flagError } = await supabase
+      .from("student_attempts").update({ mastery_applied: true }).eq("id", attempt.id);
+    if (flagError) console.error("kunde inte markera mastery_applied (utan koncept):", flagError.message, "attempt:", attempt.id);
   }
 
   return {
-    attempt, created, mastery, errorEvent,
+    attempt, assessment: effective, created, mastery, errorEvent,
     skippedReason: created ? null : "resumed_incomplete_commit",
   };
 }

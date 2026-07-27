@@ -21,8 +21,10 @@ alter table if exists public.student_error_events
 drop table if exists public.student_recommendations;
 drop table if exists public.student_attempts;
 
+drop function if exists public.apply_legal_mastery(uuid, uuid, real, real, real, uuid);
 drop function if exists public.apply_legal_mastery(uuid, uuid, real, real, real);
 drop function if exists public.per_consume_daily_quota(uuid, text, integer);
+drop function if exists public.per_refund_daily_quota(uuid, text);
 drop table if exists public.per_quota_counters;
 
 -- Återställ ai_usage_events.pipeline_step till ursprunglig enum. Misslyckas om rader med de nya

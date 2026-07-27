@@ -78,6 +78,8 @@ await check("normalfall: försök, felhändelse och mastery skrivs i rätt ordni
   assert.equal(supabase.calls.rpc[0].args.p_confidence, 0.8);
   // C-nivå ska mappas till sin svårighetsgrad, inte skickas som bokstav
   assert.equal(typeof supabase.calls.rpc[0].args.p_difficulty, "number");
+  // Försöks-id måste följa med: det är RPC:n som äger exakt-en-gång-garantin, inte JS-koden.
+  assert.ok(supabase.calls.rpc[0].args.p_attempt_id, "p_attempt_id ska skickas till apply_legal_mastery");
 });
 
 await check("rätt svar ger ingen felhändelse men uppdaterar ändå mastery", async () => {
@@ -117,7 +119,8 @@ await check("ÅTERUPPTAGNING: halvskriven evidenskedja slutförs vid retry i st�
   assert.equal(result.created, false);
   assert.equal(result.skippedReason, "resumed_incomplete_commit");
   assert.equal(supabase.calls.rpc.length, 1, "mastery ska appliceras när kedjan var ofullständig");
-  assert.ok(supabase.calls.updates.some((u) => u.patch.mastery_applied === true), "kedjan ska markeras som klar");
+  assert.equal(supabase.calls.rpc[0].args.p_attempt_id, "attempt-1", "RPC:n markerar kedjan som klar i samma transaktion");
+  assert.equal(supabase.calls.updates.length, 0, "ingen separat flagguppdatering — den sker inuti RPC:n");
 });
 
 await check("OTILLRÄCKLIGT UNDERLAG: försöket sparas men elevmodellen lämnas orörd", async () => {
@@ -129,6 +132,7 @@ await check("OTILLRÄCKLIGT UNDERLAG: försöket sparas men elevmodellen lämnas
   assert.equal(result.created, true);
   assert.equal(result.skippedReason, "insufficient_evidence");
   assert.equal(supabase.calls.rpc.length, 0, "en bedömning som inte kunde göras är inte evidens");
+  assert.ok(supabase.calls.updates.some((u) => u.patch.mastery_applied === true), "kedjan ska ändå avslutas");
   assert.deepEqual(supabase.calls.inserts.map((i) => i.table), ["student_attempts"]);
 });
 
