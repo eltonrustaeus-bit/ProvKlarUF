@@ -74,6 +74,35 @@ html {
 }
 .xg-nav-link:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
 
+/* Persistent header action button (Pensionskontrollen-style — a nav bar's
+   plain browse-links plus one distinct account-action button). Always
+   visible, unlike .xg-nav which collapses into the hamburger below 860px.
+   Uses var(--a) (style.css's own token, always present in the same
+   cascade on every page that loads this file) rather than exgen-tokens'
+   --exgen-teal: --exgen-teal fails AA for white text (see exgen-tokens.css
+   contrast notes), var(--a) is the same #00768F already verified at
+   5.27:1 for white-on-fill everywhere else in this codebase. */
+.xg-login-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 36px; padding: 0 18px; margin-left: 4px;
+  font: 700 13px var(--exgen-font, sans-serif); color: #fff;
+  background: var(--a, #00768F); border-radius: var(--exgen-radius-pill, 999px);
+  text-decoration: none; white-space: nowrap; flex-shrink: 0;
+  transition: background var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-login-btn:hover { background: var(--a2, #00647A); }
+.xg-login-btn:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
+@media (max-width: 480px) { .xg-login-btn { padding: 0 14px; font-size: 12.5px; } }
+
+/* ── Section band ── alternating light-gray-blue background for
+   horizontally well-separated page sections (Pensionskontrollen-style),
+   built on the existing --exgen-bg-secondary token. */
+.xg-band {
+  background: var(--exgen-bg-secondary, #F8FAFC);
+  border-top: 1px solid var(--exgen-border, #E4E7EC);
+  border-bottom: 1px solid var(--exgen-border, #E4E7EC);
+}
+
 /* ── Page heading (used by larare.html's lighter-touch treatment) ── */
 .xg-eyebrow {
   font: 600 11px var(--exgen-font-mono, monospace); color: var(--exgen-text-secondary, #667085);

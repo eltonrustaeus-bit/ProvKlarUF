@@ -1533,4 +1533,23 @@
     window.closeProviaLogin = closeModal;
   })();
 
+  /* ── HEADER LOGIN BUTTON — swap label for already-authenticated visitors ── */
+  /* .xg-login-btn is a static "Logga in" link with data-pv-auth="login" (the
+     shared click-gate above already handles logged-out clicks correctly).
+     Reads the same raw localStorage key the auth modal above uses — that
+     helper is scoped inside its own IIFE, so this re-checks directly rather
+     than exporting one, matching how initGlobalNav() does the same thing
+     elsewhere in this file. */
+  document.addEventListener('DOMContentLoaded', function () {
+    var btns = document.querySelectorAll('.xg-login-btn');
+    if (!btns.length) return;
+    var loggedIn = false;
+    try {
+      var s = JSON.parse(localStorage.getItem('sb-mnmotdluigzeehdjbhbu-auth-token') || '{}');
+      loggedIn = !!(s && s.access_token);
+    } catch (_) {}
+    if (!loggedIn) return;
+    btns.forEach(function (btn) { btn.textContent = 'Mitt konto'; });
+  });
+
 })();

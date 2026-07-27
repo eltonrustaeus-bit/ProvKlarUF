@@ -236,6 +236,42 @@
   @keyframes scrollD{0%,100%{transform:translateX(-50%) translateY(0);opacity:1}75%{transform:translateX(-50%) translateY(10px);opacity:0}}
   @keyframes fadeUp{to{opacity:1}}
 
+  /* ── BENEFITS ── Pensionskontrollen-style callout: a soft turkos-tinted
+     card stating the concrete payoff, right after the hero/stats, before
+     the product demo. Kept as a tint (not a hard solid block) to stay
+     "ljust" per the brand direction — the green gradient is reserved for
+     the one accent touch on the card's top edge only. */
+  .benefits{padding:8px 0 48px}
+  @media(max-width:600px){.benefits{padding:4px 0 28px}}
+  .benefitsCard{
+    display:flex;align-items:center;gap:40px;flex-wrap:wrap;
+    background:linear-gradient(180deg,rgba(0,183,217,.05),rgba(0,183,217,.02));
+    border:1px solid var(--l2);border-radius:16px;
+    padding:32px 36px;box-shadow:var(--sh2);
+    position:relative;overflow:hidden;
+  }
+  .benefitsCard::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,#00B7D9,#28C3B5,#76D76A);
+  }
+  .benefitsLeft{flex:1;min-width:240px}
+  .benefitsEye{
+    font-family:var(--mono);font-size:11px;color:var(--a);
+    letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;
+  }
+  .benefitsTitle{
+    font-size:clamp(19px,2.4vw,24px);font-weight:700;
+    letter-spacing:-.03em;color:var(--t);line-height:1.3;
+  }
+  .benefitsList{display:flex;flex-direction:column;gap:12px;flex:1;min-width:260px}
+  .benefitsItem{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--t2);line-height:1.5}
+  .benefitsCheck{
+    width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:1px;
+    background:var(--a);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  @media(max-width:700px){.benefitsCard{padding:26px 22px;gap:22px}}
+
   /* ── FEATURES ── */
   .feats{padding:56px 0 48px}
   @media(max-width:600px){.feats{padding:36px 0 28px}}
@@ -292,21 +328,27 @@
   }
   @media(max-width:580px){.stepsRow{grid-template-columns:1fr;gap:28px}.stepsConnector{display:none}}
   .stepsConnector{
-    position:absolute;top:19px;
-    left:calc(16.6% + 24px);right:calc(16.6% + 24px);
-    height:1px;
+    position:absolute;top:26px;
+    left:calc(16.6% + 30px);right:calc(16.6% + 30px);
+    height:2px;
     background:linear-gradient(90deg,rgba(0,183,217,.5),rgba(0,183,217,.15),rgba(0,183,217,.5));
   }
   .step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 16px}
+  /* Bold, solid-fill step markers (Pensionskontrollen-style) — steps 1-2
+     use the same solid --a teal; step 3 (the payoff step) is the one
+     sparing use of the ExGen gradient accent per page. */
   .stepNum{
-    width:38px;height:38px;border-radius:50%;
-    border:1.5px solid rgba(0,183,217,.35);
-    background:rgba(0,183,217,.07);
+    width:54px;height:54px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:11px;font-weight:500;color:var(--a);
-    margin-bottom:16px;position:relative;z-index:1;
+    font-family:var(--font);font-size:19px;font-weight:700;color:#fff;
+    background:var(--a);box-shadow:0 4px 16px rgba(0,118,143,.24);
+    margin-bottom:18px;position:relative;z-index:1;
   }
-  .stepT{font-weight:600;font-size:14px;color:var(--t);margin-bottom:6px}
+  /* Navy text, not white — exgen-tokens.css documents white-on-gradient
+     failing AA at every stop; navy/--t clears 6.5-9.7:1 on this same
+     gradient instead. */
+  .stepNum--accent{background:linear-gradient(135deg,#00B7D9,#28C3B5,#76D76A);box-shadow:0 4px 16px rgba(0,183,217,.28);color:#0E1B2A}
+  .stepT{font-weight:600;font-size:14.5px;color:var(--t);margin-bottom:6px}
   .stepD{font-size:12.5px;color:var(--t3);line-height:1.6}
 
   /* ── FAQ ── */
@@ -683,6 +725,7 @@
         <a class="xg-nav-link" href="pricing.html">Priser</a>
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
+      <a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
       <div class="mWrap">
         <button class="mBtn" id="mBtn" type="button" aria-label="Meny" aria-expanded="false" aria-controls="drop">
           <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -813,8 +856,34 @@
     </div>
   </section>
 
+  <!-- ═══ BENEFITS ═══ -->
+  <section class="benefits" aria-label="Vad ExGen ger dig">
+    <div class="wrap">
+      <div class="benefitsCard rev">
+        <div class="benefitsLeft">
+          <p class="benefitsEye">Vad ExGen ger dig</p>
+          <h2 class="benefitsTitle">En tydlig fördel innan du sätter dig vid det riktiga provet</h2>
+        </div>
+        <ul class="benefitsList" style="list-style:none;padding:0;margin:0">
+          <li class="benefitsItem">
+            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span>Se exakt vad du kan och var du behöver träna mer — inga gissningar.</span>
+          </li>
+          <li class="benefitsItem">
+            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span>AI-förklaring på varje fråga direkt — gratis att starta, inget kort krävs.</span>
+          </li>
+          <li class="benefitsItem">
+            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span>Simulerat teoriprov — samma format och gräns som Transportstyrelsens riktiga prov.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ PRODUCT SHOWCASE ═══ -->
-  <section class="productShowcase" aria-label="Produktvisning">
+  <section class="productShowcase xg-band" aria-label="Produktvisning">
     <div class="wrap">
       <p class="secEye rev">Så här ser det ut</p>
       <h2 class="secTitle rev">Träna som på riktiga provet</h2>
@@ -917,7 +986,7 @@
           <div class="stepD">AI förklarar varje svar direkt. Förstå varför — inte bara vad.</div>
         </div>
         <div class="step">
-          <div class="stepNum">03</div>
+          <div class="stepNum stepNum--accent">03</div>
           <div class="stepT">Bygg på misstagen</div>
           <div class="stepD">Systemet minns dina misstag och fokuserar träningen dit du behöver den mest.</div>
         </div>
