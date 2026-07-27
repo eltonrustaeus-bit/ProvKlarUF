@@ -1,0 +1,11 @@
+{
+  "$comment": "Prislista för kostnadsuppskattning i ai_usage_events.estimated_cost. TOM MED FLIT. docs/provia-knowledge-engine/05-cost-baseline.md slår fast att priser inte får hämtas ur en AI-modells minne — de måste slås upp mot OpenAI:s officiella prissida och skrivas in här manuellt. Så länge verified=false lämnas estimated_cost NULL i databasen, och tokenräkningen (som är uppmätt, inte gissad) loggas ändå. Fyll i usd_per_1m_input/usd_per_1m_output per modell och sätt verified=true när siffrorna är kontrollerade och daterade.",
+  "verified": false,
+  "verified_at": null,
+  "currency": "USD",
+  "models": {
+    "gpt-4o-mini": { "usd_per_1m_input": null, "usd_per_1m_cached_input": null, "usd_per_1m_output": null },
+    "gpt-4o": { "usd_per_1m_input": null, "usd_per_1m_cached_input": null, "usd_per_1m_output": null },
+    "text-embedding-3-small": { "usd_per_1m_input": null, "usd_per_1m_cached_input": null, "usd_per_1m_output": null }
+  }
+}
