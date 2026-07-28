@@ -151,6 +151,14 @@ input, select, textarea, button { font-family: var(--font); }
   color: var(--t3); letter-spacing: .12em; text-transform: uppercase;
   text-align: center;
 }
+/* Laddarens ExGen-logotyp — ersätter den tidigare versaliserade texten "ExGen",
+   så laddaren och intro-splashen visar samma märke. Höjden matchar splashens
+   #piName-skala nedskalad; logotypen är en teal→grön gradient på transparent
+   och sitter mot --bg (vitt) precis som i sidhuvudet. */
+.lLogo {
+  margin-top: 16px;
+  height: 22px; width: auto; display: block;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0,183,217,.4); }

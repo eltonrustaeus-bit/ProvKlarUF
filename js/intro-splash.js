@@ -25,7 +25,7 @@
 
     /* ── Overlay ── */
     '#piSplash{',
-      'position:fixed;inset:0;z-index:9999;background:#08100d;',
+      'position:fixed;inset:0;z-index:9999;background:#ffffff;',
       'display:flex;flex-direction:column;align-items:center;',
       'justify-content:center;overflow:hidden;',
     '}',
@@ -34,8 +34,8 @@
     '#piSplash::before{',
       'content:"";position:absolute;inset:0;pointer-events:none;z-index:0;',
       'background-image:',
-        'linear-gradient(rgba(0,183,217,.035) 1px,transparent 1px),',
-        'linear-gradient(90deg,rgba(0,183,217,.035) 1px,transparent 1px);',
+        'linear-gradient(rgba(0,183,217,.075) 1px,transparent 1px),',
+        'linear-gradient(90deg,rgba(0,183,217,.075) 1px,transparent 1px);',
       'background-size:56px 56px;',
       'mask-image:radial-gradient(ellipse 75% 75% at 50% 44%,#000,transparent);',
       '-webkit-mask-image:radial-gradient(ellipse 75% 75% at 50% 44%,#000,transparent);',
@@ -45,7 +45,7 @@
     /* Large ambient glow orb — slowly drifts */
     '#piOrb{',
       'position:absolute;width:500px;height:500px;pointer-events:none;z-index:0;',
-      'background:radial-gradient(circle,rgba(0,183,217,.11) 0%,transparent 65%);',
+      'background:radial-gradient(circle,rgba(0,183,217,.16) 0%,transparent 65%);',
       'filter:blur(55px);',
       'top:50%;left:50%;margin:-250px 0 0 -250px;',
       'opacity:0;',
@@ -74,7 +74,7 @@
 
     /* ── Tagline ── */
     '#piTagline{',
-      'font:400 13.5px/1.55 "DM Sans",sans-serif;color:#6b8f7c;',
+      'font:400 13.5px/1.55 "DM Sans",sans-serif;color:#667085;',
       'text-align:center;max-width:230px;margin-top:9px;',
       'opacity:0;transform:translateY(12px);',
       'animation:piSlideUp .48s cubic-bezier(.22,1,.36,1) .95s forwards;',
@@ -95,7 +95,7 @@
       'animation:piSlideUp .48s cubic-bezier(.22,1,.36,1) 1.45s forwards;',
     '}',
     '#piPartnerLabel{',
-      'font:500 9.5px "DM Mono",monospace;color:#3d6650;',
+      'font:500 9.5px "DM Mono",monospace;color:#667085;',
       'letter-spacing:.16em;text-transform:uppercase;',
     '}',
     '#piBadge{',
@@ -107,7 +107,7 @@
     '}',
     '#piBadge:hover{background:rgba(0,183,217,.12);border-color:rgba(0,183,217,.38)}',
     '#piBadge img{border-radius:5px;opacity:.92}',
-    '#piBadgeName{font:600 13px "DM Sans",sans-serif;color:#c4dfd0;letter-spacing:-.01em}',
+    '#piBadgeName{font:600 13px "DM Sans",sans-serif;color:#1B2430;letter-spacing:-.01em}',
 
     /* ── Pulsing dots ── */
     '#piDots{',
