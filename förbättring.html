@@ -1241,7 +1241,7 @@
         per.forEach(item=>{
           const got=Number(item.points||0),mx=Number(item.max_points||0);
           if(mx>0&&got<mx){const qid=String(item.id),q=qById.get(qid)||{};
-            out.push({ts:cTs||Date.now(),course:r.course||'',level:r.level||'C',qType:q.type||(r.qtype||'mix'),id:qid,question:String(q.question||''),user_answer:String(aById.get(qid)||''),feedback:String(item.feedback||''),model_answer:String(item.model_answer||''),points:got,max_points:mx});}
+            out.push({ts:cTs||Date.now(),course:r.course||'',level:r.level||'C',qType:q.type||(r.qtype||'mix'),id:qid,question:String(q.question||''),user_answer:String(aById.get(qid)||''),feedback:String(item.feedback||''),model_answer:String(item.model_answer||''),points:got,max_points:mx,concept_tag:String(item.concept_tag||''),error_tags:Array.isArray(item.error_tags)?item.error_tags:[]});}
         });
       });
       while(out.length>200)out.shift();return out;
