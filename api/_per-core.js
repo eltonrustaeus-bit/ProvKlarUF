@@ -304,8 +304,7 @@ Hjälp besökaren förstå vad ExGen är, varför det passar dem och varför de 
 Om ditt svar naturligt leder besökaren till en specifik sida, avsluta med EXAKT en rad: [GOTO:sida.html]
 - [GOTO:pricing.html] — vid frågor om priser, planer, vad det kostar
 - [GOTO:korkortet.html] — vid "kom igång", "skapa konto", "börja träna"
-- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"
-- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
+${MODULES.demo ? '- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"\n' : ''}- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
 Lägg bara till GOTO om det verkligen hjälper besökaren ta nästa steg. Inte i varje svar.
 
 ## FORMAT

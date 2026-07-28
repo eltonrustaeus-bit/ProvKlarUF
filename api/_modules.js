@@ -13,6 +13,7 @@
 export const MODULES = Object.freeze({
   korkort: false,
   hp: false,
+  demo: false,
 });
 
 export function moduleEnabled(name) {

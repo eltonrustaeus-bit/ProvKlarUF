@@ -19,6 +19,7 @@
   var MODULES = {
     korkort: false, // Körkortsteorin — korkortet.html + api/check-role.js kk-kvoter
     hp: false,      // Högskoleprovet — provia-hp.html + api/hp.js
+    demo: false,    // Live-demo — live-demo.html (marknadsföringsgenomgång, fortfarande körkortsinnehåll)
   };
 
   window.EXGEN_MODULES = MODULES;
