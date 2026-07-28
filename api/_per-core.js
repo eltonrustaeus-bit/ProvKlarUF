@@ -2,11 +2,17 @@
 // Unified AI caller + personality builder for all ExGen AI endpoints
 import { PROVIA_KB } from './_provia-kb.js';
 import { getPlan, normalizeRole } from './_provia-rules.js';
+import { MODULES } from './_modules.js';
+
+// Körkortsraden tas bort ur kartan när modulen är av (js/exgen-modules.js + api/_modules.js) —
+// annars fortsätter P.E.R erbjuda körkortsträning och länka till en sida som inte längre nås.
+const KORKORT_MAP_LINE = MODULES.korkort
+  ? "\n- Körkortsteorin: frågor, kategorier, SRS/repetition, simulerat teoriprov och direktförklaringar."
+  : "";
 
 const PROVIA_OPERATING_MAP = `## EXGEN-KARTA
 - Startsida: förklarar ExGen och leder nya elever vidare.
-- Skolarbete/skolämnen: elever kan använda eget material eller OCR för att skapa mockprov, få rättning, feedback, modellsvar, lärarrapporter och P.E.R-coaching.
-- Körkortsteorin: frågor, kategorier, SRS/repetition, simulerat teoriprov och direktförklaringar.
+- Skolarbete/skolämnen: elever kan använda eget material eller OCR för att skapa mockprov, få rättning, feedback, modellsvar, lärarrapporter och P.E.R-coaching.${KORKORT_MAP_LINE}
 - Mockprov: eleven klistrar in eget material eller OCR-bild, väljer nivå/frågetyp och får prov med rättning, feedback och modellsvar.
 - Förbättring: historik, felbank, P.E.R-tips, lärarrapport, träningsläge och personlig coachning.
 - Priser: Gratis, Basic och Premium.
@@ -171,11 +177,11 @@ export function buildPERSystemPrompt({
   const planLabel = `${plan.label} (${plan.price})`;
   const hasUnlimited = ['premium', 'admin', 'user'].includes(normalizedRole);
   const PLAN_FEATURES = {
-    gratis:  "2 mockprov/vecka · ingen teoriprov · 10 kursfrågor/dag · 5 P.E.R-frågor/vecka",
-    basic:   "30 mockprov/mån · 30 teoriprov/mån · obegränsade kursfrågor · 5 P.E.R-frågor/dag",
-    premium: "Obegränsade mockprov · Obegränsade teoriprov · Obegränsade kursfrågor · Obegränsad P.E.R",
+    gratis:  "3 mockprov/vecka · 5 P.E.R-frågor/vecka",
+    basic:   "30 mockprov/mån · felbank · 5 P.E.R-frågor/dag",
+    premium: "Obegränsade mockprov · felbank · AI-coach · obegränsad P.E.R",
     admin:   "Admin: allt obegränsat",
-    user:    "Obegränsade mockprov · Obegränsade teoriprov · Obegränsade kursfrågor · Obegränsad P.E.R",
+    user:    "Obegränsade mockprov · felbank · AI-coach · obegränsad P.E.R",
   };
   const features = PLAN_FEATURES[normalizedRole] || PLAN_FEATURES.gratis;
   lines.push(`## ELEVKONTO\nPlan: ${planLabel} | Inkluderat: ${features}${quotaRemaining !== null ? ` | P.E.R-frågor kvar denna period: ${quotaRemaining}` : ''}`);
@@ -246,7 +252,7 @@ ${teachGuide}
 ## SVARSMÖNSTER
 1. Svara kärnfrågan direkt — ingen intro
 2. Koppla till elevens situation om det tillför värde (inte för att visa att du märkt)
-3. Välj rätt ExGen-flöde: körkort, mockprov, förbättring/felbank, rapport, konto eller pricing
+3. Välj rätt ExGen-flöde: ${MODULES.korkort ? 'körkort, ' : ''}mockprov, förbättring/felbank, rapport, konto eller pricing
 4. Konkret nästa steg — vad gör eleven nu?
 5. Om eleven fastnat flera gånger på samma sak: nämn kopplingen naturligt, utan att göra en poäng av det
 
@@ -261,13 +267,12 @@ Om eleven explicit frågar om att byta sida, hitta en funktion eller gå vidare 
 - [GOTO:förbättring.html] — om eleven vill se historik, felbank, AI-coach, förbättringsanalys
 - [GOTO:pricing.html] — om eleven vill se priser, uppgradera, jämföra planer
 - [GOTO:konto.html] — om eleven vill hantera konto, avsluta prenumeration
-- [GOTO:korkortet.html] — om eleven vill börja träna körkortsteorin
-- [GOTO:app.html] — om eleven vill göra ett mockprov
+${MODULES.korkort ? '- [GOTO:korkortet.html] — om eleven vill börja träna körkortsteorin\n' : ''}- [GOTO:app.html] — om eleven vill göra ett mockprov
 Lägg BARA till GOTO vid tydlig navigation-intent. Aldrig i rena studiesvar.
 
 ## FELSKYDD
 Hitta aldrig på trafikregler, priser eller statistik. Saknas info — säg det direkt.
-Säg aldrig att ExGen bara är för körkortsteori. Verifierad fakta: ExGen stödjer både skolarbete/skolämnen via eget material/OCR/mockprov och körkortsteori.
+${MODULES.korkort ? 'Säg aldrig att ExGen bara är för körkortsteori. Verifierad fakta: ExGen stödjer både skolarbete/skolämnen via eget material/OCR/mockprov och körkortsteori.' : 'ExGen är en studieplattform för grundskolan och gymnasiet. Erbjud aldrig körkortsteori eller högskoleprov — de ingår inte i produkten just nu.'}
 Om frågan gäller elevens eget material: basera dig på material/provkontexten du fått, inte externa antaganden.
 Om eleven frågar om sin plan, prenumeration eller kvot — svara baserat på plan-infon angiven ovan. Skicka till [GOTO:konto.html] om de vill ändra något.
 
@@ -299,8 +304,7 @@ Hjälp besökaren förstå vad ExGen är, varför det passar dem och varför de 
 Om ditt svar naturligt leder besökaren till en specifik sida, avsluta med EXAKT en rad: [GOTO:sida.html]
 - [GOTO:pricing.html] — vid frågor om priser, planer, vad det kostar
 - [GOTO:korkortet.html] — vid "kom igång", "skapa konto", "börja träna"
-- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"
-- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
+${MODULES.demo ? '- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"\n' : ''}- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
 Lägg bara till GOTO om det verkligen hjälper besökaren ta nästa steg. Inte i varje svar.
 
 ## FORMAT
@@ -449,8 +453,7 @@ Om svaret kräver handling, lägg EXAKT en rad sist:
 - [GOTO:konto.html] — konto, plan, prenumeration, avsluta, Stripe, logga ut
 - [GOTO:pricing.html] — jämföra planer/priser
 - [GOTO:app.html] — mockprov
-- [GOTO:korkortet.html] — körkortsträning
-- [GOTO:förbättring.html] — felbank, historik, rapport, svagheter
+${MODULES.korkort ? '- [GOTO:korkortet.html] — körkortsträning\n' : ''}- [GOTO:förbättring.html] — felbank, historik, rapport, svagheter
 
 FORMAT:
 - Max 110 ord

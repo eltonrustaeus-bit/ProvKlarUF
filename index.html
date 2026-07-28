@@ -4,17 +4,18 @@
   <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="js/exgen-modules.js"></script>
   <script>if(location.hostname.includes("vercel.app")){location.replace("https://proviaai.se"+location.pathname+location.search)}</script>
   <title>ExGen – AI-driven studieapp för elever och studenter</title>
-  <meta name="description" content="ExGen är en AI-driven studieapp för elever och studenter. Klistra in ditt studiematerial och få ett komplett mockprov med rättning och AI-förklaring på varje svar. Inkluderar även fullständig körkortsteorin." />
+  <meta name="description" content="ExGen är studieplattformen för grundskolan och gymnasiet. Klistra in ditt material och få ett prov med rättning, modellsvar och förklaring på varje fråga — plus en felbank som visar exakt vad du behöver träna på." />
   <meta property="og:title" content="ExGen – AI-driven studieapp för elever och studenter" />
-  <meta property="og:description" content="Generera AI-prov på ditt eget material, träna körkortsteorin och få personlig AI-förklaring på varje svar. Gratis att starta." />
+  <meta property="og:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
   <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.png" />
   <meta property="og:url" content="https://proviaai.se/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ExGen – AI-driven studieapp för elever och studenter" />
-  <meta name="twitter:description" content="Generera AI-prov på ditt eget material, träna körkortsteorin och få personlig AI-förklaring på varje svar. Gratis att starta." />
+  <meta name="twitter:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
   <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.png" />
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
@@ -32,7 +33,7 @@
   <noscript><style>.rev,.reveal{opacity:1!important;transform:none!important}</style></noscript>
   <style>
   /* ═══════════════════════════════════
-     INDEX 2.0 — Körkortet-fokus
+     INDEX 2.0 — skolfokus (grundskola + gymnasium)
   ═══════════════════════════════════ */
 
   /* ── HERO ──
@@ -579,7 +580,7 @@
 <div id="ldr" class="loader" aria-hidden="true">
   <div style="display:grid;place-items:center">
     <div class="lOrb"></div>
-    <div class="lTxt">ExGen</div>
+    <img class="lLogo" src="image/exgen-logo.png" alt="ExGen">
   </div>
 </div>
 
@@ -601,15 +602,15 @@
     <a class="xg-brand" href="index.html">
       <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
       <div>
-        <div class="xg-brand-tag">Körkortsteorin · AI</div>
+        <div class="xg-brand-tag">Studieplattform för skolan</div>
       </div>
     </a>
     <div class="hR">
       <nav class="xg-nav" aria-label="Huvudnavigation">
         <a class="xg-nav-link active" href="index.html" aria-current="page">Hem</a>
-        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
         <a class="xg-nav-link" href="app.html">Mockprov</a>
-        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
         <a class="xg-nav-link" href="pricing.html">Priser</a>
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
@@ -619,9 +620,9 @@
           <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
         </button>
         <div class="drop" id="drop">
-          <a class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
+          <a data-module="korkort" class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
           <a class="ddi" href="app.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Mockprov</span><span class="dpill">AI</span></a>
-          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Förbättring</span><span class="dpill">Coach</span></a>
+          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Min utveckling</span><span class="dpill">Coach</span></a>
           <a class="ddi" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Priser</span><span class="dpill">29/79</span></a>
           <a class="ddi" href="konto.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Konto</span></a>
         </div>
@@ -655,10 +656,10 @@
         <div class="heroCtas" id="heroCtas">
           <div class="heroBtns">
             <a class="ctaBtn" href="app.html" data-pv-auth="register">Skapa ditt första prov</a>
-            <a class="demoBtn" href="korkortet.html" data-pv-auth="register">Träna körkortsteorin</a>
+            <a class="demoBtn" href="förbättring.html" data-pv-auth="register">Se din utveckling</a>
           </div>
           <div class="heroMeta">
-            <a class="demoLink" id="demoBtnLink" href="live-demo.html">Se hur ExGen fungerar</a>
+            <a data-module="demo" class="demoLink" id="demoBtnLink" href="live-demo.html">Se hur ExGen fungerar</a>
             <p class="heroFine">Gratis att börja · inget kort krävs</p>
           </div>
         </div>
@@ -670,26 +671,26 @@
         <div class="pvCard">
           <div class="pvProgressRow">
             <div class="pvProgressBar"><div class="pvProgressFill"></div></div>
-            <span class="pvProgressLabel">Fråga 12 / 20</span>
+            <span class="pvProgressLabel">Fråga 7 / 12 · Nivå C</span>
           </div>
-          <p class="pvQ">Vilken funktion har mitokondrierna i cellen?</p>
+          <p class="pvQ">Vad anger diskriminanten i en andragradsekvation?</p>
           <div class="pvOpts">
-            <div class="pvOpt">
-              <span class="pvLetter">A</span>
-              <span>Bygger upp cellens proteiner</span>
-            </div>
             <div class="pvOpt pvOpt--correct">
+              <span class="pvLetter">A</span>
+              <span>Antalet reella lösningar</span>
+            </div>
+            <div class="pvOpt">
               <span class="pvLetter">B</span>
-              <span>Omvandlar näring till energi</span>
+              <span>Ekvationens symmetrilinje</span>
             </div>
             <div class="pvOpt">
               <span class="pvLetter">C</span>
-              <span>Lagrar cellens arvsmassa</span>
+              <span>Kurvans högsta punkt</span>
             </div>
           </div>
           <div class="pvExpl">
             <span class="pvExplLabel">Rätt svar — återkoppling</span>
-            Mitokondrien sköter cellandningen och bildar ATP. Ditt svar på fråga 8 tyder på att proteinsyntesen är värd en repetition.
+            Diskriminanten b²−4ac avgör antalet reella lösningar: positiv ger två, noll ger en, negativ ger ingen.
           </div>
         </div>
       </div>
@@ -700,23 +701,23 @@
   <section class="statsRow" aria-label="Nyckeltal">
     <div class="wrap statsRowInner rev">
       <div class="statChip">
-        <span class="statBig counter" data-target="356" aria-live="off">356</span>
-        <span class="statLbl">verifierade frågor</span>
+        <span class="statBig">Ditt</span>
+        <span class="statLbl">eget material blir provet</span>
       </div>
       <div class="statDivider" aria-hidden="true"></div>
       <div class="statChip">
-        <span class="statBig">16</span>
-        <span class="statLbl">ämnesområden</span>
+        <span class="statBig">E·C·A</span>
+        <span class="statLbl">nivå, som betygsstegen</span>
       </div>
       <div class="statDivider" aria-hidden="true"></div>
       <div class="statChip">
-        <span class="statBig">52</span>
-        <span class="statLbl">rätt av 65 = godkänt</span>
+        <span class="statBig">Alla</span>
+        <span class="statLbl">svar får en förklaring</span>
       </div>
       <div class="statDivider" aria-hidden="true"></div>
       <div class="statChip">
-        <span class="statBig">50 min</span>
-        <span class="statLbl">provtid</span>
+        <span class="statBig">0 kr</span>
+        <span class="statLbl">att komma igång</span>
       </div>
     </div>
   </section>
@@ -740,7 +741,7 @@
           </li>
           <li class="benefitsItem">
             <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <span>Simulerat teoriprov — samma format och gräns som Transportstyrelsens riktiga prov.</span>
+            <span>Prov på nivå E, C eller A — så du vet var du ligger innan läraren säger det.</span>
           </li>
         </ul>
       </div>
@@ -751,27 +752,27 @@
   <section class="productShowcase xg-band" aria-label="Produktvisning">
     <div class="wrap">
       <p class="secEye rev">Så här ser det ut</p>
-      <h2 class="secTitle rev">Träna som på riktiga provet</h2>
+      <h2 class="secTitle rev">Prov på ditt material, rättat på riktigt</h2>
       <div class="showcaseOuter rev d1">
         <div class="showcaseCard">
           <div class="mhpTop">
             <div class="mhpBar"><div class="mhpFill"></div></div>
-            <span class="mhpLbl">Fråga 36 / 65</span>
+            <span class="mhpLbl">Fråga 4 / 10 · Nivå C</span>
           </div>
-          <p class="mhpQ">Hur påverkas bromssträckan om du fördubblar hastigheten?</p>
+          <p class="mhpQ">Vad menas med att Sverige har en parlamentarisk demokrati?</p>
           <div class="mhpOpts">
-            <div class="mhpOpt"><span class="mhpLetter">A</span><span>Den blir dubbelt så lång</span></div>
-            <div class="mhpOpt mhpOk"><span class="mhpLetter">B</span><span>Den blir fyra gånger så lång</span></div>
-            <div class="mhpOpt"><span class="mhpLetter">C</span><span>Den påverkas inte nämnvärt</span></div>
+            <div class="mhpOpt"><span class="mhpLetter">A</span><span>Folket röstar direkt om varje lag</span></div>
+            <div class="mhpOpt mhpOk"><span class="mhpLetter">B</span><span>Regeringen måste ha riksdagens stöd</span></div>
+            <div class="mhpOpt"><span class="mhpLetter">C</span><span>Kungen utser statsministern</span></div>
           </div>
           <div class="mhpExpl">
-            <span class="mhpExplTag">Rätt — AI-förklaring</span>
-            Bromssträckan ökar med kvadraten på hastigheten. Dubbel hastighet ger fyra gånger så lång bromssträcka.
+            <span class="mhpExplTag">Rätt — förklaring</span>
+            Regeringen styr så länge den tolereras av riksdagen. Saknar den stödet kan riksdagen fälla den genom misstroendeförklaring.
           </div>
         </div>
         <div class="showcaseBadge">
           <span class="pvBadgeDot" aria-hidden="true"></span>
-          <span>AI förklarar varje svar direkt</span>
+          <span>Förklaring på varje svar — direkt</span>
         </div>
       </div>
     </div>
@@ -782,28 +783,28 @@
     <!-- ═══ FEATURES ═══ -->
     <section class="feats" aria-label="Vad ingår">
       <p class="secEye rev">Vad ingår</p>
-      <h2 class="secTitle rev">Allt du behöver för teoriprovet</h2>
+      <h2 class="secTitle rev">Allt du behöver inför provet</h2>
       <div class="featsGrid">
 
         <div class="feat rev">
-          <span class="featBig counter" data-target="356" aria-live="off">0</span>
-          <div class="featLabel">Frågor</div>
-          <div class="featT">Komplett frågebank</div>
-          <div class="featD">Alla 356 frågor fördelade på 16 ämnesområden — exakt som Transportstyrelsens teoriprov.</div>
+          <span class="featIcon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span>
+          <div class="featLabel">Ditt material</div>
+          <div class="featT">Prov på det ni faktiskt läser</div>
+          <div class="featD">Klistra in anteckningar, kapitel eller stenciler — provet byggs på just det, inte på en färdig frågebank som gissar vad din kurs innehåller.</div>
         </div>
 
         <div class="feat rev d1">
           <span class="featIcon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg></span>
-          <div class="featLabel">AI-förklaring</div>
-          <div class="featT">Förstå varje svar</div>
-          <div class="featD">AI förklarar rätt och fel direkt efter varje fråga. Lär dig riktigt — inte bara memorera.</div>
+          <div class="featLabel">Rättning</div>
+          <div class="featT">Modellsvar, inte bara rätt/fel</div>
+          <div class="featD">Varje fråga får poäng, feedback och ett modellsvar som visar hur ett fullpoängssvar ser ut. Du ser vad som saknades, inte bara att något saknades.</div>
         </div>
 
         <div class="feat rev d2">
-          <span class="featIcon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
-          <div class="featLabel">Simulerat prov</div>
-          <div class="featT">Som riktiga provet</div>
-          <div class="featD">65 slumpade frågor på 50 minuter med 52 rätt för godkänt — precis som på Transportstyrelsen.</div>
+          <span class="featIcon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
+          <div class="featLabel">Felbank</div>
+          <div class="featT">Dina luckor samlas på ett ställe</div>
+          <div class="featD">Allt du svarar fel på sparas med begrepp och feltyp. Du kan träna om precis de frågorna — och se om det faktiskt sitter nästa gång.</div>
         </div>
 
       </div>
@@ -842,13 +843,13 @@
         <div class="stepsConnector" aria-hidden="true"></div>
         <div class="step">
           <div class="stepNum">01</div>
-          <div class="stepT">Välj läge</div>
-          <div class="stepD">Träna fritt per kategori, kör simulerat teoriprov eller fokusera svaga delar.</div>
+          <div class="stepT">Klistra in materialet</div>
+          <div class="stepD">Anteckningar, kapitel eller stencil. Välj ämne och nivå — E, C eller A.</div>
         </div>
         <div class="step">
           <div class="stepNum">02</div>
-          <div class="stepT">Svara &amp; lär dig</div>
-          <div class="stepD">AI förklarar varje svar direkt. Förstå varför — inte bara vad.</div>
+          <div class="stepT">Skriv provet</div>
+          <div class="stepD">Du får poäng, feedback och modellsvar på varje fråga. Förstå varför — inte bara vad.</div>
         </div>
         <div class="step">
           <div class="stepNum stepNum--accent">03</div>
@@ -868,23 +869,23 @@
           <span>Är det gratis att använda?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-1-answer" role="region" aria-labelledby="faq-1-q" hidden>2 träningspass i veckan är helt gratis — inget kort krävs. Premium (79 kr/mån) ger obegränsad träning och AI-coach.</div>
+        <div class="faqA" id="faq-1-answer" role="region" aria-labelledby="faq-1-q" hidden>Ja, 3 prov i veckan är gratis — inget kort krävs. Basic (29 kr/mån) ger 30 prov i månaden och felbank, Premium (79 kr/mån) obegränsat plus AI-coach.</div>
       </div>
 
       <div class="faqItem">
         <button class="faqQ" id="faq-2-q" type="button" aria-expanded="false" aria-controls="faq-2-answer">
-          <span>Hur likt är det riktiga teoriprovet?</span>
+          <span>Vilka ämnen fungerar det för?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-2-answer" role="region" aria-labelledby="faq-2-q" hidden>Simulerat teoriprovläge kör 65 slumpade frågor på 50 minuter med 52 rätt för godkänt — exakt samma upplägg som Transportstyrelsens officiella prov.</div>
+        <div class="faqA" id="faq-2-answer" role="region" aria-labelledby="faq-2-q" hidden>Alla ämnen där du har text att utgå från — matematik, svenska, engelska, samhällskunskap, historia, naturkunskap, biologi, kemi, fysik, religion, geografi, ekonomi. Provet byggs på det material du klistrar in, så det följer din kurs och inte en färdig mall.</div>
       </div>
 
       <div class="faqItem">
         <button class="faqQ" id="faq-3-q" type="button" aria-expanded="false" aria-controls="faq-3-answer">
-          <span>Vad ingår i körkortsteorin?</span>
+          <span>Är det fusk att använda ExGen?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-3-answer" role="region" aria-labelledby="faq-3-q" hidden>356 frågor på 16 ämnesområden: vägmärken, trafikregler, korsningar, alkohol &amp; droger, mörker, nödsituationer, miljö och mer. AI-förklaring till varje svar.</div>
+        <div class="faqA" id="faq-3-answer" role="region" aria-labelledby="faq-3-q" hidden>Nej. ExGen skriver inte dina inlämningar — det gör prov på material du redan ska kunna, rättar dem och visar vad du missat. Det är studieteknik, ungefär som att göra gamla prov, fast på just din kurs. Ingen betygssättning sker här.</div>
       </div>
 
       <div class="faqItem">
@@ -924,7 +925,7 @@
             <div class="tier">
               <span class="tierName">Gratis</span>
               <span class="tierPrice">0 kr</span>
-              <span class="tierDesc">2 prov / vecka</span>
+              <span class="tierDesc">3 prov / vecka</span>
             </div>
             <div class="tierSep" aria-hidden="true"></div>
             <div class="tier">
@@ -1211,7 +1212,7 @@ window._statsReady = (async function() {
   if (jc) window.addEventListener('scroll', checkScroll, { passive: true });
 
   // Auth is the shared shared.js pvModal. After auth, send to the app.
-  window.PROVIA_AUTH_REDIRECT = 'korkortet.html';
+  window.PROVIA_AUTH_REDIRECT = 'app.html';
 
   var joinBtn = document.getElementById('joinCtaBtn');
   if (joinBtn) joinBtn.addEventListener('click', function(){

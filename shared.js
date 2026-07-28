@@ -1130,13 +1130,18 @@
       return false;
     }
 
+    // module: sätts på poster som hör till en modul som kan vara avstängd (js/exgen-modules.js).
+    // Filtreras bort helt här i stället för att döljas med CSS — den här menyn byggs i JS, så
+    // en dold-men-närvarande post skulle fortfarande gå att nå med tangentbordsnavigering.
     var links = [
       { href:'index.html',       icon:'🏠', label:'Hem' },
-      { href:'korkortet.html',   icon:'🚗', label:'Körkort' },
+      { href:'korkortet.html',   icon:'🚗', label:'Körkort', module:'korkort' },
       { href:'app.html',         icon:'📝', label:'Mockprov' },
-      { href:'förbättring.html', icon:'📈', label:'Coach' },
+      { href:'förbättring.html', icon:'📈', label:'Utveckling' },
       { href:'konto.html',       icon:'👤', label:'Konto' }
-    ];
+    ].filter(function(l){
+      return !l.module || (window.EXGEN_MODULES && window.EXGEN_MODULES[l.module]);
+    });
 
     var s = document.createElement('style');
     s.textContent =

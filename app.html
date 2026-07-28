@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="js/exgen-modules.js"></script>
 <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
 <title>ExGen – App</title>
 <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
@@ -539,7 +540,7 @@ white-space:nowrap;
 <button class="btn btnP" type="button" id="signInBtn">Logga in</button>
 <button class="btn btnG" type="button" id="signUpBtn">Skapa konto</button>
 <a class="btn btnG" href="index.html" id="toInfoBtn">Infosidan</a>
-<a class="btn btnG" href="förbättring.html" id="toImproveBtn">Förbättring</a>
+<a class="btn btnG" href="förbättring.html" id="toImproveBtn">Min utveckling</a>
 </div>
 <!-- Login hint uppdateras dynamiskt beroende på roll -->
 <div class="loginHint" id="authHint">Skapa konto för att börja — gratis, inget kort krävs.</div>
@@ -572,9 +573,9 @@ white-space:nowrap;
 <div class="hRight">
 <nav class="xg-nav" aria-label="Huvudnavigation">
   <a class="xg-nav-link" href="index.html">Hem</a>
-  <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+  <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
   <a class="xg-nav-link active" href="app.html" aria-current="page">Mockprov</a>
-  <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+  <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
   <a class="xg-nav-link" href="pricing.html">Priser</a>
   <a class="xg-nav-link" href="konto.html">Konto</a>
 </nav>
@@ -589,8 +590,8 @@ white-space:nowrap;
 <button class="ddItem" type="button" data-scroll="#exam"><span id="m3">03 — Mockprov</span><span class="ddPill">Frågor</span></button>
 <button class="ddItem" type="button" data-scroll="#result"><span id="m4">04 — Rättning</span><span class="ddPill">Svar</span></button>
 <div class="ddSep"></div>
-<a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span id="mImprove">Förbättring</span><span class="ddPill">Coach</span></a>
-<a class="ddItem" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(0,183,217,.08)">Nytt</span></a>
+<a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span id="mImprove">Min utveckling</span><span class="ddPill">Coach</span></a>
+<a data-module="korkort" class="ddItem" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(0,183,217,.08)">Nytt</span></a>
 <a class="ddItem" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Uppgradera</span><span class="ddPill" id="rolePill">Gratis</span></a>
 <a class="ddItem" href="konto.html" id="kontoLink" style="display:none"><span>Mitt konto</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></a>
 <button class="ddItem" type="button" id="cancelSubBtn" style="display:none"><span>Hantera prenumeration</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></button>
@@ -753,7 +754,7 @@ white-space:nowrap;
 <button class="btn btnP" id="generateExamBtn" type="button">Skapa mockprov</button>
 <button class="btn btnG" id="gradeBtn" type="button" disabled>Rätta prov</button>
 <button class="btn btnG" id="clearBtn" type="button">Rensa</button>
-<a class="btn btnG" href="förbättring.html" id="improveBtnInline">Förbättring</a>
+<a class="btn btnG" href="förbättring.html" id="improveBtnInline">Min utveckling</a>
 </div>
 <div class="stxt" id="status" aria-live="polite"></div>
 <details id="debugWrap" style="display:none">
@@ -840,11 +841,11 @@ const LS_ROLE = "proviaai_role";
 const LS_PENDING_ANSWERS = "proviaai_pending_answers"; // answers saved before grading, cleared on success
 
 // ── QUOTA CONSTANTS PER ROLL ──────────────────────────────────────────
-// Gratis: 2 prov per vecka (räknat måndag–söndag)
+// Gratis: 3 prov per vecka (räknat måndag–söndag) — måste matcha api/_provia-rules.js
 // Basic:  30 prov per månad (kalendermånad)
 // Premium: obegränsat
 const ROLE_LIMITS = {
-  gratis:  { period: "week",  limit: 2        },
+  gratis:  { period: "week",  limit: 3        },
   basic:   { period: "month", limit: 30       },
   premium: { period: "month", limit: Infinity },
   admin:   { period: "month", limit: Infinity },
@@ -873,7 +874,7 @@ sv:{
   lockSub:"Logga in eller skapa konto",
   lockLabel:"Åtkomstkod",unlock:"Lås upp",toInfo:"Infosidan",toImprove:"Förbättring",
   m1:"01 — Material",m2:"02 — Inställningar",m3:"03 — Mockprov",m4:"04 — Rättning",
-  mImprove:"Förbättring",mLang:"English",mLogout:"Logga ut",
+  mImprove:"Min utveckling",mLang:"English",mLogout:"Logga ut",
   step1:"Material",step1Sub:"Klistra in texten du pluggar på — rubriker, definitioner, formler, exempel",
   pasteLabel:"Studiematerial",pastePH:"Rubriker → punktlista → definitioner/formler → exempel",
   ocrTitle:"Bild → OCR (valfritt)",ocrBtn:"OCR till material",
@@ -912,7 +913,7 @@ en:{
   lockSub:"Log in or create account",lockLabel:"Access code",unlock:"Unlock",
   toInfo:"Info page",toImprove:"Improve",
   m1:"01 — Material",m2:"02 — Settings",m3:"03 — Mock exam",m4:"04 — Grading",
-  mImprove:"Improve",mLang:"Svenska",mLogout:"Log out",
+  mImprove:"My progress",mLang:"Svenska",mLogout:"Log out",
   step1:"Material",step1Sub:"Paste the material you're studying — headings, definitions, formulas, examples",
   pasteLabel:"Study material",pastePH:"Headings → bullet points → definitions/formulas → examples",
   ocrTitle:"Image → OCR (optional)",ocrBtn:"OCR into material",

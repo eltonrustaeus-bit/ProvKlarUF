@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="js/exgen-modules.js"></script>
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
   <title>ExGen – Lärare</title>
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
@@ -273,8 +274,9 @@ const SB_URL = 'https://mnmotdluigzeehdjbhbu.supabase.co';
 const SB_KEY = 'sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN';
 const db = window.supabase.createClient(SB_URL, SB_KEY);
 
-// Private demo — only this account may view the dashboard.
-const OWNER_ID = '4a2d4593-16d3-4f9f-bc6c-54c856c21553'; // elton.rustaeus@gmail.com
+// Ingen hårdkodad ägar-ID längre. Den här kontrollen är bara till för att visa rätt
+// meddelande — den riktiga spärren sitter serversidan i api/check-role.js, som kräver
+// rollen teacher/admin och dessutom verifierar ägarskap av varje enskild klass.
 
 let CLASSES = [];
 let activeClassId = null;
@@ -600,13 +602,37 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrilldown(); 
 async function init(){
   const who=document.getElementById('whoLabel');
   const { data:{ session } } = await db.auth.getSession();
-  // Private demo gate — block everyone except the owner account.
-  if(!session || session.user.id!==OWNER_ID){
-    who.textContent='Sidan finns inte';
+  if(!session){
+    who.textContent='Inte inloggad';
     document.getElementById('main').style.display='none';
-    showStatus('Den här sidan är inte tillgänglig.','warn');
+    showStatus('Logga in med ditt lärarkonto för att se panelen.','warn');
     return;
   }
+
+  // Fråga servern om rollen i stället för att lita på något klientsidan känner till.
+  let role='';
+  try{
+    const res=await fetch('/api/check-role',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({})
+    });
+    const j=await res.json();
+    role=String(j?.role||'');
+  }catch(e){
+    who.textContent='Kunde inte kontrollera behörighet';
+    document.getElementById('main').style.display='none';
+    showStatus('Kunde inte kontrollera din behörighet. Försök igen.','bad');
+    return;
+  }
+
+  if(role!=='teacher' && role!=='admin'){
+    who.textContent='Ingen lärarbehörighet';
+    document.getElementById('main').style.display='none';
+    showStatus('Det här kontot har inte lärarbehörighet. Hör av dig till ExGen så lägger vi upp dig som lärare.','warn');
+    return;
+  }
+
   who.textContent=`Lärare · ${session.user.email}`;
   await loadClasses();
 }
