@@ -25,6 +25,28 @@ Vercel serverless exam platform for Swedish students. No framework, no build ste
 - Match CJS/ESM style of file being edited (see .claude/COMMON_MISTAKES.md)
 - No speculative features, no over-engineering
 
+## Concurrent Sessions — always use a worktree
+Multiple Claude Code sessions run against this repo at once (e.g. one on
+a theme/design branch, another on a feature branch). The bare checkout
+at `~/provia-ai` has exactly one git HEAD — if two sessions both `git
+checkout` in that same directory, whichever checks out second silently
+moves the other's HEAD too. This has already caused one session's
+commits to land on a branch named after another session's unrelated
+work, force-pushed over it, and required manual recovery.
+
+**Rule: never run `git checkout <branch>` directly in `~/provia-ai`
+once a second session is active.** Each concurrent session must work in
+its own git worktree instead:
+- Start of session: `git worktree add .claude/worktrees/<short-task-name> -b <branch-name>`
+- Do all work (edits, commits, pushes) from inside that worktree path
+- `~/provia-ai` itself stays on `main`, untouched, for the whole session
+- `git worktree list` shows every active worktree if unsure whether one
+  already exists for the current task before creating a new one
+
+This costs nothing (worktrees share the same object store/history) and
+makes the two sessions fully independent — no shared HEAD, no
+possibility of one session's checkout silently relocating another's.
+
 ## Output Rules
 - Code first, explanation only if non-obvious
 - No boilerplate unless asked
