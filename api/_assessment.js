@@ -42,8 +42,13 @@ function verifyAnswerKey(q, sig, secret) {
 
 // ── Subject detection ───────────────────────────────────────────────────────
 const SUBJECT_KEYWORDS = {
-  mathematics: ["matematik", "math", "algebra", "ekvation", "funktion", "derivata",
-    "integral", "geometri", "sannolikhet", "statistik", "bråk", "procent", "polynom"],
+  // Kept in step with MATH_TERMS in generate-exam.js: a course the generator
+  // treats as mathematics must also reach the mathematics profile here, or the
+  // math-specific gate check never runs on it.
+  mathematics: ["matematik", "math", "algebra", "ekvation", "olikhet", "funktion", "derivat",
+    "integral", "geometri", "trigonometri", "sinus", "cosinus", "tangens", "vektor",
+    "komplexa tal", "diskret matematik", "logaritm", "exponentialfunktion",
+    "sannolikhet", "statistik", "bråk", "procent", "polynom"],
   law: ["juridik", "juridisk", "rätts", "lag ", "lagen", "brottsbalk", "åtal",
     "straffrätt", "avtalsrätt", "domstol", "paragraf", "§", "rättskälla"],
   languages: ["engelska", "english", "spanska", "franska", "tyska", "grammatik",
@@ -73,8 +78,16 @@ const COGNITIVE_VERBS = {
       "analyze", "evaluate", "weigh", "critically assess", "synthesize"],
 };
 
+// "funktion" is a maths keyword, but Vård och omsorg has real courses built on
+// the same stem ("Funktionsförmåga och funktionsnedsättning"). Strip those
+// compounds before scoring so they cannot pull a care course into the maths
+// profile — mirrors NON_MATH_FUNKTION in generate-exam.js.
+const NON_MATH_FUNKTION = /funktions(nedsättning|förmåga|hinder|variation)/gi;
+
 function detectSubjectProfile(course, pastedText) {
-  const s = `${String(course || "")}\n${String(pastedText || "")}`.toLowerCase();
+  const s = `${String(course || "")}\n${String(pastedText || "")}`
+    .toLowerCase()
+    .replace(NON_MATH_FUNKTION, " ");
   let best = "generic", bestHits = 0;
   for (const [key, kws] of Object.entries(SUBJECT_KEYWORDS)) {
     const hits = kws.reduce((n, k) => n + (s.includes(k) ? 1 : 0), 0);
