@@ -238,7 +238,6 @@
   .mockStripT{font-weight:700;font-size:15px;color:var(--t);letter-spacing:-.02em;margin-bottom:4px}
   .mockStripD{font-size:12.5px;color:var(--t2);line-height:1.55}
 
-  @keyframes fadeUp{to{opacity:1}}
 
   /* ── BENEFITS ── Pensionskontrollen-style callout: a solid-fill card
      stating the concrete payoff, right after the hero/stats, before the
@@ -259,7 +258,7 @@
   }
   .benefitsLeft{flex:1;min-width:240px}
   .benefitsEye{
-    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:rgba(255,255,255,.82);
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:#fff;
     letter-spacing:0;margin-bottom:var(--sp-2);
   }
   .benefitsTitle{
@@ -847,7 +846,7 @@
   <section class="statsRow" aria-label="Nyckeltal">
     <div class="wrap statsRowInner rev">
       <div class="statChip">
-        <span class="statBig counter" data-target="368" aria-live="off">368</span>
+        <span class="statBig counter" data-target="356" aria-live="off">356</span>
         <span class="statLbl">verifierade frågor</span>
       </div>
       <div class="statDivider" aria-hidden="true"></div>
@@ -933,10 +932,10 @@
       <div class="featsGrid">
 
         <div class="feat rev">
-          <span class="featBig counter" data-target="368" aria-live="off">0</span>
+          <span class="featBig counter" data-target="356" aria-live="off">0</span>
           <div class="featLabel">Frågor</div>
           <div class="featT">Komplett frågebank</div>
-          <div class="featD">Alla 368 frågor fördelade på 16 ämnesområden — exakt som Transportstyrelsens teoriprov.</div>
+          <div class="featD">Alla 356 frågor fördelade på 16 ämnesområden — exakt som Transportstyrelsens teoriprov.</div>
         </div>
 
         <div class="feat rev d1">
@@ -1011,51 +1010,51 @@
 
       <div class="faqList">
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-1-answer">
+        <button class="faqQ" id="faq-1-q" type="button" aria-expanded="false" aria-controls="faq-1-answer">
           <span>Är det gratis att använda?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-1-answer" role="region" aria-labelledby="faq-1-answer" hidden>2 träningspass i veckan är helt gratis — inget kort krävs. Premium (79 kr/mån) ger obegränsad träning och AI-coach.</div>
+        <div class="faqA" id="faq-1-answer" role="region" aria-labelledby="faq-1-q" hidden>2 träningspass i veckan är helt gratis — inget kort krävs. Premium (79 kr/mån) ger obegränsad träning och AI-coach.</div>
       </div>
 
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-2-answer">
+        <button class="faqQ" id="faq-2-q" type="button" aria-expanded="false" aria-controls="faq-2-answer">
           <span>Hur likt är det riktiga teoriprovet?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-2-answer" role="region" aria-labelledby="faq-2-answer" hidden>Simulerat teoriprovläge kör 65 slumpade frågor på 50 minuter med 52 rätt för godkänt — exakt samma upplägg som Transportstyrelsens officiella prov.</div>
+        <div class="faqA" id="faq-2-answer" role="region" aria-labelledby="faq-2-q" hidden>Simulerat teoriprovläge kör 65 slumpade frågor på 50 minuter med 52 rätt för godkänt — exakt samma upplägg som Transportstyrelsens officiella prov.</div>
       </div>
 
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-3-answer">
+        <button class="faqQ" id="faq-3-q" type="button" aria-expanded="false" aria-controls="faq-3-answer">
           <span>Vad ingår i körkortsteorin?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-3-answer" role="region" aria-labelledby="faq-3-answer" hidden>368 frågor på 16 ämnesområden: vägmärken, trafikregler, korsningar, alkohol &amp; droger, mörker, nödsituationer, miljö och mer. AI-förklaring till varje svar.</div>
+        <div class="faqA" id="faq-3-answer" role="region" aria-labelledby="faq-3-q" hidden>356 frågor på 16 ämnesområden: vägmärken, trafikregler, korsningar, alkohol &amp; droger, mörker, nödsituationer, miljö och mer. AI-förklaring till varje svar.</div>
       </div>
 
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-4-answer">
+        <button class="faqQ" id="faq-4-q" type="button" aria-expanded="false" aria-controls="faq-4-answer">
           <span>Kan jag avbryta prenumerationen när som helst?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-4-answer" role="region" aria-labelledby="faq-4-answer" hidden>Ja, ingen bindningstid. Avbryt när du vill — direkt i kontoinställningarna.</div>
+        <div class="faqA" id="faq-4-answer" role="region" aria-labelledby="faq-4-q" hidden>Ja, ingen bindningstid. Avbryt när du vill — direkt i kontoinställningarna.</div>
       </div>
 
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-5-answer">
+        <button class="faqQ" id="faq-5-q" type="button" aria-expanded="false" aria-controls="faq-5-answer">
           <span>Fungerar det på mobilen?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-5-answer" role="region" aria-labelledby="faq-5-answer" hidden>Ja, optimerat för mobil. Träna var som helst — alla sidor fungerar på telefon och surfplatta.</div>
+        <div class="faqA" id="faq-5-answer" role="region" aria-labelledby="faq-5-q" hidden>Ja, optimerat för mobil. Träna var som helst — alla sidor fungerar på telefon och surfplatta.</div>
       </div>
 
       <div class="faqItem">
-        <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-6-answer">
+        <button class="faqQ" id="faq-6-q" type="button" aria-expanded="false" aria-controls="faq-6-answer">
           <span>Vad händer när gratiskvoten tar slut?</span>
           <div class="faqIco" aria-hidden="true">+</div>
         </button>
-        <div class="faqA" id="faq-6-answer" role="region" aria-labelledby="faq-6-answer" hidden>Kvoten återställs automatiskt varje vecka. Du kan också uppgradera till Basic eller Premium när som helst för fler eller obegränsade träningspass.</div>
+        <div class="faqA" id="faq-6-answer" role="region" aria-labelledby="faq-6-q" hidden>Kvoten återställs automatiskt varje vecka. Du kan också uppgradera till Basic eller Premium när som helst för fler eller obegränsade träningspass.</div>
       </div>
       </div><!-- /faqList -->
 
@@ -1130,7 +1129,7 @@
       <div class="sIco" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></div>
       <div class="sBody">
         <div class="sT">Körkortsteorin</div>
-        <div class="sS">368 frågor · 16 kategorier · AI-förklaring</div>
+        <div class="sS">356 frågor · 16 kategorier · AI-förklaring</div>
       </div>
       <svg class="sArr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><polyline points="6 3 11 8 6 13"/></svg>
     </a>
@@ -1232,7 +1231,7 @@ window._statsReady = (async function() {
     const cCount = Array.isArray(cats) ? new Set(cats.map(r => r.category).filter(Boolean)).size : null;
 
     if (qCount) {
-      document.querySelectorAll("[data-target='368']").forEach(el => { el.dataset.target = qCount; });
+      document.querySelectorAll("[data-target='356']").forEach(el => { el.dataset.target = qCount; });
       const sub = document.getElementById("heroSub");
       if (sub) sub.innerHTML = sub.innerHTML.replace(/\d+ frågor/, qCount + " frågor");
       document.querySelectorAll(".sS").forEach(el => {
@@ -1253,7 +1252,7 @@ window._statsReady = (async function() {
     if (qCount || cCount) {
       document.querySelectorAll(".faqA").forEach(el => {
         el.innerHTML = el.innerHTML
-          .replace(/\d+ frågor/, (qCount || 368) + " frågor")
+          .replace(/\d+ frågor/, (qCount || 356) + " frågor")
           .replace(/\d+ ämnesområden/, (cCount || 16) + " ämnesområden");
       });
     }
