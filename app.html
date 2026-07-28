@@ -83,7 +83,7 @@ transition:background .16s ease,border-color .16s ease,color .16s ease;
 .wStep.active .wStepNum{background:var(--a);border-color:var(--a);color:#fff}
 .wStep.done .wStepNum{background:rgba(0,183,217,.18);border-color:var(--l2);color:var(--a)}
 .wStep.done{color:var(--t2)}
-@media(max-width:500px){.wStepLabel{display:none}.wStep{padding:7px 8px}}
+@media(max-width:500px){.wStepLabel{font-size:10.5px}.wStep{padding:7px 8px}}
 
 /* SECTIONS */
 .section{
@@ -477,7 +477,7 @@ white-space:nowrap;
 .improveShortcut:hover{background:rgba(0,183,217,.12);border-color:var(--l3);transform:translateY(-1px)}
 @media(max-width:500px){.improveShortcut span{display:none}}
 
-@media(max-width:500px){.wStepLabel{display:none}.wStep{padding:7px 8px;min-height:44px}}
+@media(max-width:500px){.wStepLabel{font-size:10.5px}.wStep{padding:7px 8px;min-height:44px}}
 
 /* ── SKELETON LOADING ── */
 .skelBox{padding:14px 16px;border:1px solid var(--l);border-radius:var(--r);background:var(--s2);margin-top:10px;position:relative;overflow:hidden}
@@ -1195,7 +1195,7 @@ function setWizardStep(step,opts={}){
   const{scroll=true}=opts;
   currentWizardStep=Math.max(0,Math.min(step,WIZARD_STEP_IDS.length-1));
   WIZARD_STEP_IDS.forEach((id,i)=>{
-    const btn=$("wStep"+i); if(btn){btn.classList.remove("active","done");if(i===currentWizardStep)btn.classList.add("active");else if(i<currentWizardStep)btn.classList.add("done");}
+    const btn=$("wStep"+i); if(btn){btn.classList.remove("active","done");if(i===currentWizardStep){btn.classList.add("active");btn.scrollIntoView({behavior:"smooth",block:"nearest",inline:"nearest"});}else if(i<currentWizardStep)btn.classList.add("done");}
     setSectionOpen(document.getElementById(id),i===currentWizardStep);
   });
   if(scroll){const card=document.getElementById(WIZARD_STEP_IDS[currentWizardStep]);if(card)window.setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),60);}
@@ -1262,6 +1262,7 @@ function applyLang(){
   set("improveBtnInline",t.mImprove);set("debugTitle",t.debug);
   set("tStep3",t.step3);set("tStep4",t.step4);set("footerText",t.footer);
   set("wLabel0",t.wLabel0);set("wLabel1",t.wLabel1);set("wLabel2",t.wLabel2);set("wLabel3",t.wLabel3);
+  [["wStep0",t.wLabel0],["wStep1",t.wLabel1],["wStep2",t.wLabel2],["wStep3",t.wLabel3]].forEach(([id,label],i)=>{const el=$(id);if(el)el.setAttribute("aria-label",(LANG==="sv"?"Steg":"Step")+" "+(i+1)+": "+label);});
   set("wNext0",t.wNext0);set("wHint0",t.wHint0);set("wHint1",t.wHint1);
   set("wBack1",t.wBack);set("wBack2",t.wBack);set("wBack3",t.wBack);
   set("wNext2",t.wNext2);set("wRestart",t.wRestart);

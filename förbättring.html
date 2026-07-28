@@ -115,7 +115,7 @@
       .navBtnLabel{font-size:10px}
     }
     @media(max-width:420px){
-      .navBtnLabel{display:none}
+      .navBtnLabel{font-size:9px}
       .navBtn{min-width:44px;padding:10px 6px}
       .navBtnIcon{font-size:16px}
     }
@@ -913,6 +913,7 @@
       $('courseFilterLabel').textContent=t.course;$('showModeLabel').textContent=t.show;$('syncBtnLabel').textContent=t.sync;
       $('navExamsLabel').textContent=t.navExamsLabel;$('navCoachLabel').textContent=t.navCoachLabel;
       $('navReportLabel').textContent=t.navReportLabel;$('navReadyLabel').textContent=t.navReadyLabel;$('navMistakesLabel').textContent=t.navMistakesLabel;
+      [["navExams",t.navExamsLabel],["navCoach",t.navCoachLabel],["navReport",t.navReportLabel],["navReady",t.navReadyLabel],["navMistakes",t.navMistakesLabel]].forEach(([id,label],i)=>{const el=$(id);if(el)el.setAttribute("aria-label",(LANG==='sv'?'Steg':'Step')+' '+(i+1)+': '+label);});
       if($('chartTitle'))$('chartTitle').textContent=t.chartTitle;
     }
     $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
