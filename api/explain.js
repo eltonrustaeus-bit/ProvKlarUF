@@ -2,7 +2,7 @@
 import { requireAuth } from "./_auth.js";
 import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt } from "./_per-core.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
-import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal } from "./_per-memory.js";
+import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
@@ -379,18 +379,37 @@ export default async function handler(req, res) {
     if (context) ctxParts.push(context);
     if (contextPack.summary) ctxParts.push(`Prioriterad sidkontext:\n${contextPack.summary}`);
 
-    // Load long-term memory before buildLearningSignals so structuredMemory is in scope
-    const { summary: longMemory, structured: structuredMemory } = await loadLongMemory(supabase, user.id);
+    // Long-term memory (AI-summarized, refreshed at most daily) och riktig prov-/felbanksdata
+    // (DB-läs, alltid färsk) hämtas parallellt — annars ser P.E.R inte ett prov taget efter
+    // dagens senaste minnesuppdatering förrän tidigast imorgon.
+    const [{ summary: longMemory, structured: structuredMemory }, liveExamData] = await Promise.all([
+      loadLongMemory(supabase, user.id),
+      enrichMemoryFromExamData(supabase, user.id),
+    ]);
+
+    // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
+    // "mjuka" fälten (study_pattern, preferred_help_level, sessions_total, m.fl.) kräver ett
+    // AI-anrop att extrahera och kommer fortsatt bara från structuredMemory.
+    const mergedStructured = {
+      ...structuredMemory,
+      exam_weak_categories: liveExamData.weakCategories,
+      exam_recent_scores:   liveExamData.recentScores,
+      mock_weak_concepts:   liveExamData.mockWeakConcepts,
+      mock_recent_scores:   liveExamData.mockRecentScores,
+      felbank_weak_concepts: liveExamData.felBankWeakConcepts,
+      felbank_error_types:   liveExamData.felBankErrorTypes,
+      felbank_courses:       liveExamData.felBankCourses,
+    };
 
     // Merge DB exam weak categories into session weak areas for immediate P.E.R awareness
-    const dbWeakCats     = structuredMemory?.exam_weak_categories || [];
+    const dbWeakCats     = mergedStructured.exam_weak_categories || [];
     const mergedWeakAreas = [...new Set([...contextPack.weakAreas, ...dbWeakCats])].slice(0, 10);
 
     const learningSignals = buildLearningSignals({
       weakAreas:      mergedWeakAreas,
       recentMistakes: contextPack.recentMistakes,
       pageContext,
-      structured:     structuredMemory,
+      structured:     mergedStructured,
     });
 
     const sessionContext = structuredMemory ? {
