@@ -5,7 +5,6 @@ import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
-import { retrieveChunks } from "../src/retrieval/legal-retrieval.mjs";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
 const FRUSTRATION_REGEX = /fattar inte|förstår inte|helt lost|ger upp|hopplöst|omöjligt|förvirrad|inte alls|ingen koll|jag fattar|hjälp mig|wtf|ugh/i;
@@ -168,6 +167,10 @@ async function handleLegalMode(req, res, body, user) {
 
   let retrieved;
   try {
+    // Dynamisk import (inte statisk top-level): en riktig .mjs-fil kan inte require():as av den
+    // CommonJS-bundle Vercel bygger av denna .js-fil — en statisk import här kraschade HELA
+    // funktionen (även för vanlig P.E.R-chatt som aldrig når legalMode) redan vid kallstart.
+    const { retrieveChunks } = await import("../src/retrieval/legal-retrieval.mjs");
     retrieved = await retrieveChunks(supabase, question, { matchCount: 4, includePending: false });
   } catch (e) {
     return res.status(502).json({ error: "Kunde inte söka i källmaterialet" });
