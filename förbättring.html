@@ -19,13 +19,20 @@
 
   <style>
     /* ── TOKENS — matches style.css's single ExGen palette (Phase 10b) ── */
+    /* This page carries its own :root, declared after style.css and therefore
+       winning over it. Left untouched it would have been the one page that
+       kept the pre-rework palette — pure-white page and teal-tinted borders
+       — while every other page moved to the tinted page / neutral hairline
+       system. Values below are kept in sync with style.css deliberately;
+       --a-border/--a-border2/--glass are local-only and have no shared
+       equivalent, so they stay. */
     :root{
-      --a:#00768F; --a2:#00647A; --a-dim:rgba(0,118,143,.08); --a-border:rgba(0,183,217,.20); --a-border2:rgba(0,183,217,.42);
-      --bg:#ffffff; --s:#ffffff; --s2:#f8fafc; --s3:#f1f4f8; --glass:rgba(255,255,255,.88);
-      --t:#1B2430; --t2:#667085; --t3:#667085;
-      --l:rgba(0,183,217,.10); --l2:rgba(0,183,217,.20);
+      --a:#00768F; --a2:#00647A; --a-dim:rgba(0,118,143,.08); --a-border:#E4E7EC; --a-border2:#D4D9E0;
+      --bg:#F7F9FB; --s:#ffffff; --s2:#f8fafc; --s3:#f1f4f8; --glass:rgba(255,255,255,.88);
+      --t:#1B2430; --t2:#5B6472; --t3:#667085;
+      --l:#EEF1F4; --l2:#E4E7EC;
       --ok:#166534; --warn:#92620A; --danger:#B91C1C;
-      --sh:0 2px 12px rgba(14,27,42,.06); --sh2:0 6px 24px rgba(14,27,42,.08); --sh3:0 12px 40px rgba(14,27,42,.12);
+      --sh:0 1px 2px rgba(14,27,42,.04); --sh2:0 4px 16px rgba(14,27,42,.06); --sh3:0 12px 32px rgba(14,27,42,.09);
       --r:8px; --r2:4px; --max:1060px;
       --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono','SF Mono',monospace;
     }
