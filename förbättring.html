@@ -218,6 +218,33 @@
       background:rgba(212,160,22,.07);flex-shrink:0;
     }
     .mQ{font-size:13px;font-weight:500;color:var(--t);line-height:1.55;margin-bottom:11px}
+    .mTags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+    .mConcept{
+      font-family:var(--mono);font-size:10px;font-weight:500;color:var(--a2);
+      padding:2px 8px;border:1px solid var(--a-border);border-radius:var(--r2);
+      background:var(--a-dim);letter-spacing:.02em;
+    }
+    .mErr{
+      font-size:10.5px;font-weight:500;color:var(--t3);
+      padding:2px 8px;border:1px solid var(--l);border-radius:var(--r2);background:var(--s);
+    }
+
+    /* ── CONCEPT BREAKDOWN (level 2 under course) ── */
+    .conceptBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .conceptBarLabel{
+      font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.05em;
+      text-transform:uppercase;margin-right:2px;
+    }
+    .conceptChip{
+      display:inline-flex;align-items:center;gap:6px;padding:4px 10px;
+      border-radius:var(--r2);border:1px solid var(--l);background:var(--s);
+      cursor:pointer;font-family:var(--font);font-weight:500;font-size:11.5px;color:var(--t2);
+      transition:all .13s ease;
+    }
+    .conceptChip:hover{border-color:var(--l2);color:var(--t)}
+    .conceptChip.active{background:var(--a-dim);border-color:var(--a-border2);color:var(--a2)}
+    .conceptChipN{font-family:var(--mono);font-size:10px;color:var(--t3)}
+    .conceptChip.active .conceptChipN{color:var(--a2)}
     .mDiv{height:1px;background:var(--l);margin:11px 0}
     .mFL{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
     .mFV{font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap;margin-bottom:9px}
@@ -605,7 +632,7 @@
       <div class="sBody">
         <div class="sBodyInner">
           <div class="statusText" id="mistakeStatus" aria-live="polite"></div>
-          <div class="mistakeGrid" id="mistakeList"></div>
+          <div id="mistakeList"></div>
         </div>
       </div>
     </div>
@@ -689,6 +716,16 @@
         course:'Kurs',show:'Visa',allCourses:'Alla kurser',selected:'valda',doneBtn:'Klar ✓',pick:'Välj',
         showingAll:(n,c)=>`${n} misstag${c?' · '+c:''}`,showingExams:(n,c)=>`${n} prov${c?' · '+c:''}`,
         removedOne:'Borttagen från felbanken.',open:'Öppna',close:'Stäng',
+        concepts:'Begrepp',allConcepts:'Alla begrepp',noConcept:'Otaggade',
+        errLabels:{
+          definition_missing:'Definition saknas',concept_confusion:'Begreppsförväxling',
+          calculation_error:'Räknefel',units_missing:'Enhet saknas',
+          method_missing:'Metod saknas',reasoning_gap:'Resonemangsglapp',
+          missing_steps:'Steg saknas',structure_weak:'Svag struktur',
+          example_missing:'Exempel saknas',language_unclear:'Otydligt språk',
+          off_topic:'Utanför ämnet',insufficient_material:'För tunt material',
+          mc_wrong:'Fel alternativ',answer_key_unverified:'Facit ej verifierat',
+        },
         smartTips:'P.E.R-tips',smartTipsLoading:'P.E.R analyserar…',smartTipsError:'Kunde inte hämta tips — försök igen.',smartTipsCached:'cache',
         reportNav:'Rapport',reportTitle:'Lärarrapport',reportSub:'Kräver minst 3 genomförda prov',
         reportNeed3:n=>`Minst 3 prov krävs. Du har ${n}.`,reportReady:n=>`Redo – ${n} prov`,
@@ -714,6 +751,16 @@
         course:'Course',show:'Show',allCourses:'All courses',selected:'selected',doneBtn:'Done ✓',pick:'Pick',
         showingAll:(n,c)=>`${n} mistakes${c?' · '+c:''}`,showingExams:(n,c)=>`${n} exams${c?' · '+c:''}`,
         removedOne:'Removed from library.',open:'Open',close:'Close',
+        concepts:'Concepts',allConcepts:'All concepts',noConcept:'Untagged',
+        errLabels:{
+          definition_missing:'Definition missing',concept_confusion:'Concept confusion',
+          calculation_error:'Calculation error',units_missing:'Units missing',
+          method_missing:'Method missing',reasoning_gap:'Reasoning gap',
+          missing_steps:'Missing steps',structure_weak:'Weak structure',
+          example_missing:'Example missing',language_unclear:'Unclear language',
+          off_topic:'Off topic',insufficient_material:'Insufficient material',
+          mc_wrong:'Wrong option',answer_key_unverified:'Answer key unverified',
+        },
         smartTips:'P.E.R tips',smartTipsLoading:'P.E.R analysing…',smartTipsError:'Could not fetch tips — try again.',smartTipsCached:'cache',
         reportNav:'Report',reportTitle:'Teacher report',reportSub:'Requires at least 3 completed exams',
         reportNeed3:n=>`At least 3 exams required. You have ${n}.`,reportReady:n=>`Ready – ${n} exams`,
@@ -849,6 +896,29 @@
     function computeTrend(h){if(h.length<2)return null;const l=h.slice(-3),p=h.slice(-6,-3),avg=a=>a.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,a.length),a1=avg(l);if(!p.length)return{delta:a1-(Number(h[0].percent)||0)};return{delta:a1-avg(p)};}
     function countMistakeDays(m,d){const since=Date.now()-(d*86400000);return(m||[]).filter(x=>Number(x.ts||0)>=since).length;}
     function mostMistakeCourse(m){const map=new Map();(m||[]).forEach(x=>{const c=String(x.course||'').trim();if(c)map.set(c,(map.get(c)||0)+1);});let best={course:'',n:0};for(const[c,n]of map.entries())if(n>best.n)best={course:c,n};return best;}
+
+    /* ── CONCEPT TAGS (level 2 under course) ──
+       grade.js tags every mistake with concept_tag + error_tags. The sentinels
+       'Okänt'/'Unknown' mean the grader could not determine one — treat those
+       as untagged rather than showing them as if they were real concepts. */
+    const CONCEPT_UNKNOWN=new Set(['okänt','okant','unknown','']);
+    function conceptOf(m){
+      const c=String(m?.concept_tag||'').trim();
+      return CONCEPT_UNKNOWN.has(c.toLowerCase())?'':c;
+    }
+    function errorTagsOf(m){
+      return Array.isArray(m?.error_tags)?m.error_tags.map(x=>String(x||'').trim()).filter(Boolean):[];
+    }
+    function errLabel(tag){
+      const map=T[LANG]?.errLabels||{};
+      return map[tag]||String(tag).replaceAll('_',' ');
+    }
+    /* Counts concepts within an already course-filtered list, most frequent first. */
+    function conceptCounts(list){
+      const map=new Map();
+      (list||[]).forEach(m=>{const c=conceptOf(m);if(c)map.set(c,(map.get(c)||0)+1);});
+      return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+    }
     function deriveMethods(m){
       const f=(m||[]).slice(-30).map(x=>(String(x.feedback||'')+' '+String(x.question||'')).toLowerCase());
       const methods=[];const add=(sv,en)=>methods.push({sv,en});
@@ -891,6 +961,11 @@
       p.push('');p.push(sv?`Senaste prov: ${lastP}%.`:`Latest exam: ${lastP}%.`);
       return p.join('\n');
     }
+
+    /* Second-level filter inside the selected course. Deliberately not persisted:
+       it is a drill-down on the current view, and a stale concept from a course
+       the student has since left would silently hide their whole mistake list. */
+    let CONCEPT_FILTER='';
 
     /* ── USER NAME ── */
     let USER_NAME='';
@@ -1058,26 +1133,62 @@
       const t=T[LANG],list=$('mistakeList'),st=$('mistakeStatus');
       list.innerHTML='';
       const course=(courseFilter||'').trim();
-      const filtered=course?mistakes.filter(m=>String(m.course||'').trim()===course):mistakes;
-      if(!filtered.length){
+      const inCourse=course?mistakes.filter(m=>String(m.course||'').trim()===course):mistakes;
+      if(!inCourse.length){
         st.textContent='';st.className='statusText';
         const es=document.createElement('div');es.className='emptyState';
         es.innerHTML=`<div class="emptyIcon">🎉</div><div class="emptyTitle">${t.mistakesEmpty}</div><div class="emptyDesc">${t.mistakesEmptyDesc}</div>`;
         list.appendChild(es);return;
       }
-      st.textContent=t.showingAll(filtered.length,course);st.className='statusText';
+
+      // Level 2: concepts within the selected course. Drop a stale filter that
+      // no longer matches anything so the list can never render empty-by-filter.
+      const counts=conceptCounts(inCourse);
+      const untagged=inCourse.filter(m=>!conceptOf(m)).length;
+      const valid=new Set(counts.map(c=>c[0]));
+      if(CONCEPT_FILTER&&CONCEPT_FILTER!=='__none__'&&!valid.has(CONCEPT_FILTER))CONCEPT_FILTER='';
+      if(CONCEPT_FILTER==='__none__'&&!untagged)CONCEPT_FILTER='';
+
+      const filtered=!CONCEPT_FILTER?inCourse
+        :CONCEPT_FILTER==='__none__'?inCourse.filter(m=>!conceptOf(m))
+        :inCourse.filter(m=>conceptOf(m)===CONCEPT_FILTER);
+
+      if(counts.length){
+        const bar=document.createElement('div');bar.className='conceptBar';
+        const chips=[['',t.allConcepts,inCourse.length]]
+          .concat(counts.map(c=>[c[0],c[0],c[1]]));
+        if(untagged)chips.push(['__none__',t.noConcept,untagged]);
+        bar.innerHTML=`<span class="conceptBarLabel">${esc(t.concepts)}</span>`+chips.map(c=>
+          `<button type="button" class="conceptChip${CONCEPT_FILTER===c[0]?' active':''}" data-concept="${esc(c[0])}" aria-pressed="${CONCEPT_FILTER===c[0]?'true':'false'}">${esc(c[1])}<span class="conceptChipN">${c[2]}</span></button>`
+        ).join('');
+        bar.querySelectorAll('.conceptChip').forEach(btn=>{
+          btn.addEventListener('click',()=>{CONCEPT_FILTER=btn.dataset.concept||'';renderAll();});
+        });
+        list.appendChild(bar);
+      }
+
+      const shownConcept=CONCEPT_FILTER==='__none__'?t.noConcept:CONCEPT_FILTER;
+      const scope=[course,shownConcept].filter(Boolean).join(' › ');
+      st.textContent=t.showingAll(filtered.length,scope);st.className='statusText';
       const pick=getPick(),pickSet=new Set((Array.isArray(pick.ids)?pick.ids:[]).map(x=>String(x)));
       const tc=getTipsCache();
+      const grid=document.createElement('div');grid.className='mistakeGrid';
+      list.appendChild(grid);
       filtered.slice().sort((a,b)=>Number(b.ts||0)-Number(a.ts||0)).forEach(m=>{
         const d=document.createElement('div');d.className='mCard';
         const date=new Date(m.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
         const isPicked=pickSet.has(String(m.id)),cKey=tipsCKey(m),hasCached=!!(tc[cKey]);
+        const cTag=conceptOf(m),eTags=errorTagsOf(m).slice(0,3);
+        const tagsHtml=(cTag||eTags.length)?`<div class="mTags">${
+          cTag?`<span class="mConcept">${esc(cTag)}</span>`:''
+        }${eTags.map(x=>`<span class="mErr">${esc(errLabel(x))}</span>`).join('')}</div>`:'';
         d.innerHTML=`
           <div class="mHeader">
             <div class="mMeta">${date} · ${esc((m.course||'').trim()||(LANG==='sv'?'ingen kurs':'no course'))}</div>
             <div class="mScore">${m.points}/${m.max_points}p</div>
           </div>
           <div class="mQ">${esc(m.question||'')}</div>
+          ${tagsHtml}
           <div class="mDiv"></div>
           <div class="mFL">${LANG==='sv'?'Ditt svar':'Your answer'}</div>
           <div class="mFV">${esc(m.user_answer||'—')}</div>
@@ -1106,7 +1217,7 @@
           catch{tBox.textContent=tt.smartTipsError;}
           finally{tBtn.removeAttribute('disabled');}
         });
-        list.appendChild(d);
+        grid.appendChild(d);
       });
       if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
         const cards=list.querySelectorAll(".mCard");
@@ -1120,15 +1231,26 @@
     }
 
     /* ── BUILD COURSE OPTIONS ── */
+    /* Rebuilding the <option> list wipes the current selection, so the value has
+       to be captured first and put back. Restoring from the saved pick is only
+       correct on the first populated render — after that the student's own
+       choice wins, otherwise selecting "Alla kurser" would snap straight back
+       to the picked course and the filter could not be cleared. */
+    let COURSE_OPTS_INIT=false;
     function buildCourseOpts(h,m){
       const t=T[LANG],set=new Set();
       h.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
       m.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
       const arr=Array.from(set).sort((a,b)=>a.localeCompare(b));
-      const sel=$('courseFilter');sel.innerHTML='';
+      const sel=$('courseFilter');
+      const current=String(sel.value||'').trim();
+      sel.innerHTML='';
       const o=document.createElement('option');o.value='';o.textContent=t.allCourses;sel.appendChild(o);
       arr.forEach(c=>{const o2=document.createElement('option');o2.value=c;o2.textContent=c;sel.appendChild(o2);});
-      const pick=getPick();if(pick?.course&&arr.includes(pick.course))sel.value=pick.course;else sel.value='';
+      const pick=getPick();
+      sel.value=(!COURSE_OPTS_INIT&&pick?.course&&arr.includes(pick.course))?pick.course
+        :(arr.includes(current)?current:'');
+      if(arr.length)COURSE_OPTS_INIT=true;
     }
 
     /* ── RENDER EXAM LIST ── */
@@ -1143,7 +1265,7 @@
         const d=document.createElement('div');d.className='dataCard';
         const date=new Date(x.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
         d.innerHTML=`<div class="dLabel">${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}</div><div class="dValue">${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</div><div style="margin-top:9px"><button class="tinyBtn viewBtn" type="button">${LANG==='sv'?'Visa felbank':'Show mistakes'}</button></div>`;
-        d.querySelector('.viewBtn')?.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();renderAll();openSection('#mistakeSection');});
+        d.querySelector('.viewBtn')?.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();openSection('#mistakeSection');});
         wrap.appendChild(d);
       });
       if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
@@ -1211,17 +1333,25 @@
       setTopStatus(LANG==='sv'?`${h.length} prov synkade`:`${h.length} exams synced`,'ok');
       const lastA=(last&&last.attempt)?last.attempt:h[h.length-1],trend=computeTrend(h);
 
-      // Inject P.E.R context so the floating widget understands improvement page state
+      // Inject P.E.R context so the floating widget understands improvement page state.
+      // weakAreas is sent as "course › concept" so the widget sees the same second
+      // level the student does — course alone is a label the student typed, while
+      // concept_tag is what the grader actually derived from the answer.
       if (window.setPerContext) {
         const avg5=avgPct(h.slice(-5));
-        const mc2=mostMistakeCourse(m);
-        const weakCourses=Object.entries(
-          m.slice(-30).reduce(function(acc,x){const c=String(x.course||'').trim();if(c)acc[c]=(acc[c]||0)+1;return acc;},{})
-        ).sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(e){return e[0];});
+        const recent=m.slice(-30);
+        const areaCounts=recent.reduce(function(acc,x){
+          const c=String(x.course||'').trim(),cn=conceptOf(x);
+          const key=[c,cn].filter(Boolean).join(' › ');
+          if(key)acc[key]=(acc[key]||0)+1;
+          return acc;
+        },{});
+        const weakAreas=Object.entries(areaCounts)
+          .sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(e){return e[0];});
         window.setPerContext({
           page:'förbättring',
           userScore: avg5 / 100,
-          weakAreas: weakCourses,
+          weakAreas: weakAreas,
           examState: { answered: h.length, remaining: 0 }
         });
       }
@@ -1231,7 +1361,11 @@
       $('lastText').textContent=LANG==='sv'?`${lastP}% · ${lastA?.level||'—'} · ${lastC||'Ingen kurs'}`:`${lastP}% · ${lastA?.level||'—'} · ${lastC||'No course'}`;
       if(trend){const sign=trend.delta>=0?'+':'',delta=Math.round(trend.delta);$('trendText').textContent=`${sign}${delta} ${LANG==='sv'?'p.p.':'p.p.'}`;}else $('trendText').textContent='—';
       const mc=mostMistakeCourse(m);
-      $('focusText').textContent=mc.course?`${mc.course} (${mc.n})`:(LANG==='sv'?'Markera 5 misstag':'Select 5 mistakes');
+      if(mc.course){
+        // Narrow the focus stat to the top concept inside the worst course.
+        const topC=conceptCounts(m.filter(x=>String(x.course||'').trim()===mc.course))[0];
+        $('focusText').textContent=topC?`${mc.course} › ${topC[0]} (${topC[1]})`:`${mc.course} (${mc.n})`;
+      } else $('focusText').textContent=(LANG==='sv'?'Markera 5 misstag':'Select 5 mistakes');
       renderExamList(h,course);renderMistakes(m,course);renderChart(h);updateSelPill();
       const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
       renderReportState(fH);
@@ -1291,7 +1425,7 @@
         if(btn){btn.disabled=false;btn.textContent='Hämta P.E.R-analys';}
       }
     });
-    $('courseFilter').addEventListener('change',()=>renderAll());
+    $('courseFilter').addEventListener('change',()=>{CONCEPT_FILTER='';renderAll();});
     $('showMode').addEventListener('change',()=>{openSection($('showMode').value==='all'?'#examSection':'#mistakeSection');});
     $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();openSection('#examSection');});
     $('trainSelectedBtn').addEventListener('click',()=>{const p=getPick();if(!p.ids?.length)lsSet(LS_TRAIN_PICK,{ids:[],course:String($('courseFilter')?.value||'')});window.location.href='app.html#train';});
