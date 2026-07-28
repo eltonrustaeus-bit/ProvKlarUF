@@ -7,7 +7,10 @@ export const PLAN_RULES = Object.freeze({
   gratis: Object.freeze({
     label: "Gratis",
     price: "0 kr",
-    mockExam: Object.freeze({ cap: 2, period: "week" }),
+    // 3/vecka sedan skolfokuseringen 2026-07-28: körkortsteorins 10 kursfrågor/dag var
+    // tidigare gratisplanens huvudsakliga innehåll. När den modulen dolts skulle 2 mockprov
+    // i veckan blivit för tunt för att någon skulle hinna se vad produkten gör.
+    mockExam: Object.freeze({ cap: 3, period: "week" }),
     drivingTest: Object.freeze({ cap: 0, period: "week" }),  // teoriprov kräver Basic
     kkPractice: Object.freeze({ cap: 10, period: "day" }),   // 10 kursfrågor/dag
     perChat: Object.freeze({ cap: 5, period: "week" }),

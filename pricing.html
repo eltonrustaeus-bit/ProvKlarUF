@@ -4,9 +4,10 @@
   <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="js/exgen-modules.js"></script>
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
   <title>Priser & Planer – ExGen</title>
-  <meta name="description" content="Välj rätt plan för dig. ExGen erbjuder gratis- och betalda planer med AI-genererade prov på eget material, körkortsteorin, AI-förklaringar och personlig studiecoach." />
+  <meta name="description" content="Välj rätt plan för dig. ExGen ger dig prov på ditt eget kursmaterial, rättning med modellsvar, felbank och en personlig studiecoach. Gratis att börja." />
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
@@ -178,9 +179,9 @@
     <div class="hR">
       <nav class="xg-nav" aria-label="Huvudnavigation">
         <a class="xg-nav-link" href="index.html">Hem</a>
-        <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
         <a class="xg-nav-link" href="app.html">Mockprov</a>
-        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
         <a class="xg-nav-link active" href="pricing.html" aria-current="page">Priser</a>
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
@@ -191,10 +192,10 @@
         </button>
         <div class="drop" id="drop">
           <a class="ddi" href="index.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span><span>Hem</span><span class="dpill">Start</span></a>
-          <a class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
+          <a data-module="korkort" class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
           <a class="ddi" href="app.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Mockprov</span><span class="dpill">AI</span></a>
           <a class="ddi active" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Priser</span><span class="dpill" style="color:var(--a)">29/79</span></a>
-          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Förbättring</span><span class="dpill">Coach</span></a>
+          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Min utveckling</span><span class="dpill">Coach</span></a>
           <a class="ddi" href="konto.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Konto</span></a>
         </div>
       </div>
@@ -237,17 +238,16 @@
       <div class="planInclLabel">Ingår i Gratis</div>
 
       <ul class="featureList">
-        <li>Körkortsteorin — 10 kursfrågor / dag</li>
-        <li>Bokmärken, XP &amp; statistik per kategori</li>
-        <li>Repetitionsläge (SRS) — alltid gratis</li>
-        <li>2 AI-mockprov per vecka</li>
+        <li>3 prov per vecka på ditt eget material</li>
         <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
-        <li>P.E.R AI-assistent — 5 frågor / vecka</li>
-        <li class="dim">Teoriprov — kräver Basic</li>
+        <li>Rättning med poäng, feedback och modellsvar</li>
+        <li>Se dina resultat och din poängutveckling</li>
+        <li>P.E.R — 5 frågor / vecka</li>
+        <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
       </ul>
 
-      <div class="planNote2">Prova plattformen utan kostnad. Uppgradera till Basic för teoriprov och obegränsade kursfrågor.</div>
-      <a class="planCta outline" href="korkortet.html">Börja träna gratis</a>
+      <div class="planNote2">Prova plattformen utan kostnad. Uppgradera till Basic när du vill träna om det du svarat fel på.</div>
+      <a class="planCta outline" href="app.html" data-pv-auth="register">Skapa ditt första prov</a>
     </div>
 
     <!-- BASIC -->
@@ -266,16 +266,15 @@
       <div class="planInclLabel">Ingår i Basic</div>
 
       <ul class="featureList">
-        <li>Körkortsteorin — 30 teoriprov / månad</li>
-        <li>Obegränsade kursfrågor i övning &amp; kurser</li>
-        <li>Upp till 30 AI-mockprov per månad</li>
-        <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
+        <li>Upp till 30 prov per månad — ungefär ett om dagen</li>
+        <li>Fota anteckningar och gör prov på dem direkt</li>
         <li>Historik — följ din utveckling över tid</li>
-        <li>Bokmärken, XP &amp; statistik per kategori</li>
-        <li>P.E.R AI-assistent — 5 frågor / dag</li>
+        <li>Synk mellan dator, telefon och surfplatta</li>
+        <li>P.E.R — 5 frågor / dag</li>
+        <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
       </ul>
 
-      <div class="planNote2">Basic ger dig teoriprov, obegränsad körkortsträning och daglig P.E.R-hjälp. Uppgradera till Premium för AI-coaching och felbank.</div>
+      <div class="planNote2">Basic är för dig som pluggar regelbundet och vill ha prov när du behöver dem. Uppgradera till Premium för felbank, AI-coach och obegränsat.</div>
       <button class="planCta outline" id="btn-basic" onclick="startCheckout('basic')">Kom igång med Basic</button>
     </div>
 
@@ -295,16 +294,14 @@
       <div class="planInclLabel">Allt i Basic, plus</div>
 
       <ul class="featureList">
-        <li>Körkortsteorin — obegränsad träning</li>
-        <li>Adaptivt lärande — fokuserar dina svagheter automatiskt</li>
-        <li>Obegränsade AI-mockprov</li>
-        <li>P.E.R AI-assistent — obegränsat (ser din skärm)</li>
+        <li>Obegränsat antal prov</li>
+        <li>P.E.R utan gräns — ser vilken fråga du sitter på</li>
         <li>P.E.R Coach: personlig studieplan från dina misstag</li>
-        <li>Felbank + träningsläge för svagheter</li>
-        <li>Lärarrapport &amp; historik</li>
+        <li>Lärarrapport — sammanställning inför utvecklingssamtal</li>
+        <li>Full progression över alla ämnen</li>
       </ul>
 
-      <div class="planNote2">Premium ger dig P.E.R utan gräns — din personliga AI-Resource som ser exakt vad du jobbar med och hjälper dig klara provet snabbare.</div>
+      <div class="planNote2">Premium ger dig P.E.R utan gräns — den ser vilket prov och vilken fråga du jobbar med, och känner till vad du brukar svara fel på.</div>
       <button class="planCta" id="btn-premium" onclick="startCheckout('premium')">Kom igång med Premium</button>
     </div>
 
@@ -323,13 +320,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr><td>Körkortsteorin — kursfrågor (övning)</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">10/dag</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
-        <tr><td>Teoriprov (simulerat prov, 65 frågor)</td><td><span class="dash">—</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">30/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
-        <tr><td>Repetitionsläge (SRS)</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Verifierade teorifrågor</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Bokmärken, XP &amp; streaks</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Statistik per kategori</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
-        <tr><td>Adaptivt lärande (svaga kategorier)</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
+        <tr data-module="korkort"><td>Körkortsteorin — kursfrågor (övning)</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">10/dag</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
+        <tr data-module="korkort"><td>Teoriprov (simulerat prov, 65 frågor)</td><td><span class="dash">—</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">30/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
+        <tr data-module="korkort"><td>Repetitionsläge (SRS)</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr data-module="korkort"><td>Verifierade teorifrågor</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr data-module="korkort"><td>Bokmärken, XP &amp; streaks</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr data-module="korkort"><td>Statistik per kategori</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
+        <tr data-module="korkort"><td>Adaptivt lärande (svaga kategorier)</td><td><span class="dash">—</span></td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td></tr>
         <!-- PROVIA HP — uncomment at launch (when HP_PUBLIC=true). Caps match _provia-rules.js hpGen/hpSim.
         <tr><td>Högskoleprovet — AI-frågor (träning)</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Endast cache</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">60/dag</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
         <tr><td>Högskoleprovet — provpass-simulering</td><td><span class="dash">—</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">4/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
@@ -338,7 +335,7 @@
         <!-- END PROVIA HP -->
 
 
-        <tr><td>Mockprov med AI</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">2/vecka</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">30/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
+        <tr><td>Prov på eget material</td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">3/vecka</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">30/mån</span></td><td><span class="chk" style="font-size:11px;font-family:var(--mono)">Obegränsat</span></td></tr>
         <tr><td>E / C / A-nivå</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Flervals + kortsvar</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
         <tr><td>Resultat &amp; poängöversikt</td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
@@ -377,7 +374,7 @@
         <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
       </div>
       <div class="faqDiv"></div>
-      <div class="faqA">Ja. Du kan skapa konto och prova appen utan att ange kortuppgifter. Gratisläget ger dig 10 kursfrågor per dag i körkortsteorin och 2 AI-mockprov per vecka. Teoriprov (simulerat prov, 65 frågor) kräver Basic eller Premium.</div>
+      <div class="faqA">Ja. Du kan skapa konto och prova utan att ange kortuppgifter. Gratisläget ger dig 3 prov i veckan på ditt eget material, med rättning och modellsvar på varje fråga.</div>
     </div>
 
     <div class="faqItem faqCol" id="fq2">
@@ -421,7 +418,7 @@
     <span>·</span>
     <a href="app.html">Mockprov</a>
     <span>·</span>
-    <a href="korkortet.html">Körkortsteorin</a>
+    <a data-module="korkort" href="korkortet.html">Körkortsteorin</a>
     <span>·</span>
     <span>Studiestöd — ingen officiell betygssättning</span>
   </div>

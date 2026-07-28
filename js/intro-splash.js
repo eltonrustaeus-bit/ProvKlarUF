@@ -170,7 +170,7 @@
       '<div id="piOrb"></div>' +
       '<div id="piContent">' +
         '<img id="piName" src="/image/exgen-logo.png" alt="ExGen">' +
-        '<div id="piTagline">AI-tränare för körkortsteorin och egna prov</div>' +
+        '<div id="piTagline">Prov på ditt eget material — med rättning som förklarar</div>' +
         '<div id="piDivider"></div>' +
         '<div id="piPartner">' +
           '<span id="piPartnerLabel">Backed by</span>' +

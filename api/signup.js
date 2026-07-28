@@ -36,13 +36,13 @@ function buildWelcomeHtml(email) {
             <tr>
               <td style="padding:13px 0;border-bottom:1px solid rgba(27,255,140,.08)">
                 <span style="display:inline-block;width:22px;height:22px;background:#1bff8c;color:#08100d;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:12px;vertical-align:middle">1</span>
-                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Kör teoriprov — AI väljer frågor du behöver träna mest på</span>
+                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Klistra in ditt kursmaterial — få ett prov på nivå E, C eller A</span>
               </td>
             </tr>
             <tr>
               <td style="padding:13px 0;border-bottom:1px solid rgba(27,255,140,.08)">
                 <span style="display:inline-block;width:22px;height:22px;background:#1bff8c;color:#08100d;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:12px;vertical-align:middle">2</span>
-                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Öva körkortsteorin — vägmärken, trafikregler, alla kategorier</span>
+                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Skriv provet — varje fråga rättas med poäng, feedback och modellsvar</span>
               </td>
             </tr>
             <tr>
@@ -98,7 +98,7 @@ function buildWelcomeHtml(email) {
                   </tr>
                   <tr>
                     <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      30 teoriprov/mån &nbsp;·&nbsp; 30 AI-mockprov/mån &nbsp;·&nbsp; Obegränsad körkortsträning &nbsp;·&nbsp; P.E.R 5/dag
+                      30 prov/mån &nbsp;·&nbsp; fota anteckningar &nbsp;·&nbsp; historik &nbsp;·&nbsp; P.E.R 5/dag
                     </td>
                   </tr>
                 </table>
