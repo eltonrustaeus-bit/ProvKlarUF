@@ -445,6 +445,7 @@ export default async function handler(req, res) {
       studentName,
       sessionContext,
       preferredHelpLevel: structuredMemory?.preferred_help_level ?? null,
+      learningSignals,
     });
 
     const userMsg = userQuestion

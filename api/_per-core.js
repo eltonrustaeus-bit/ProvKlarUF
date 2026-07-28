@@ -76,6 +76,7 @@ export function buildPERSystemPrompt({
   studentName = null,
   sessionContext = null,
   preferredHelpLevel = null,
+  learningSignals = '',
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context });
@@ -158,6 +159,11 @@ export function buildPERSystemPrompt({
     if (parts.length) lines.push(`Elevhistorik: ${parts.join(" · ")}`);
   }
   if (longMemory) lines.push(`## ELEVPROFIL (långtidsminne)\n${longMemory}`);
+
+  // Faktisk prov-/felbanksdata (mockprov, körkortsteori, felbank) — byggd av buildLearningSignals()
+  // i api/_per-memory.js. Detta var tidigare beräknat men ALDRIG skickat hit — bara den generella
+  // weakAreas-listan (körkortskategorier) nådde modellen, mockprov/felbank-signalerna kastades bort.
+  if (learningSignals) lines.push(`## FAKTISK PROV- OCH FELBANKSDATA\n${learningSignals}`);
 
   // Account status — lets PER answer account questions accurately
   const normalizedRole = normalizeRole(role);
