@@ -716,9 +716,13 @@
            tokens unconditionally so exgen-tokens.css's own OS-level
            prefers-color-scheme:dark block can never leak in. */
         '#perWidget{position:fixed;bottom:22px;right:22px;z-index:9999;font-family:"DM Sans",sans-serif}',
-        '#perBubble{width:52px;height:52px;border-radius:50%;background:var(--exgen-gradient,linear-gradient(110deg,#00B7D9 0%,#28C3B5 48%,#76D76A 100%));border:none;cursor:pointer;display:grid;place-items:center;font-size:10px;font-family:"DM Mono",monospace;font-weight:700;letter-spacing:1.5px;color:var(--exgen-navy,#0E1B2A);box-shadow:0 4px 16px rgba(14,27,42,.28);transition:transform .15s,box-shadow .15s,color .15s}',
-        '#perBubble:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(0,183,217,.35)}',
-        '#perBubble.per-open{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--per-accent-text,#0369A1)}',
+        /* Deliberately NOT a round gradient blob. A floating gradient circle
+           reads as a bolted-on third-party chatbot; P.E.R is meant to read as
+           part of the product. Solid brand fill, pill shape, icon + wordmark,
+           restrained shadow. */
+        '#perBubble{height:44px;padding:0 16px;border-radius:999px;background:var(--a,#00768F);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-family:"DM Sans",sans-serif;font-weight:600;letter-spacing:0;color:#fff;box-shadow:0 4px 14px rgba(14,27,42,.16);transition:background .15s,box-shadow .15s,transform .15s}',
+        '#perBubble:hover{background:var(--a2,#00647A);box-shadow:0 6px 18px rgba(14,27,42,.22);transform:translateY(-1px)}',
+        '#perBubble.per-open{background:var(--s,#fff);border:1px solid var(--l2,#E4E7EC);color:var(--t,#1B2430);box-shadow:0 2px 8px rgba(14,27,42,.10)}',
         '#perPanel{display:none;position:absolute;bottom:64px;right:0;width:320px;background:var(--exgen-bg,#FFFFFF);border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-lg,20px);box-shadow:0 16px 48px rgba(14,27,42,.28);overflow:hidden;flex-direction:column}',
         '#perPanel.per-open{display:flex;animation:perUp .2s ease}',
         '@keyframes perUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}',
@@ -819,7 +823,9 @@
             '<button id="perSendBtn">Skicka</button>' +
           '</div>' +
         '</div>' +
-        '<button id="perBubble" title="Chatta med P.E.R">P·E·R</button>';
+        '<button id="perBubble" title="Fråga P.E.R" aria-label="Fråga P.E.R">'+
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H9l-4 4V5Z"/></svg>'+
+          '<span>P.E.R</span></button>';
       document.body.appendChild(widget);
 
       document.getElementById('perBubble').onclick = toggle;
@@ -1204,8 +1210,11 @@
     s.textContent =
       '#proviaCookieBanner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9500;' +
       'width:calc(100% - 24px);max-width:560px;' +
-      'background:rgba(243,248,245,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);' +
-      'border:1px solid rgba(0,183,217,.3);border-radius:14px;' +
+      /* Was rgba(243,248,245,.98) with a teal border — green-tinted white
+         from the pre-ExGen palette, missed by earlier colour sweeps because
+         it is an rgba triplet rather than a searched-for hex. */
+      'background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);' +
+      'border:1px solid var(--l2,#E4E7EC);border-radius:14px;' +
       'padding:18px 20px;box-shadow:0 8px 40px rgba(14,27,42,.18);' +
       'font-family:"DM Sans",sans-serif;animation:cookieSlideUp .35s cubic-bezier(.22,.61,.36,1) forwards}' +
       '@keyframes cookieSlideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}' +

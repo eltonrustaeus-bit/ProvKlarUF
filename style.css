@@ -18,19 +18,45 @@
   --a2: #00647A;
   --a-dim: rgba(0,118,143,.08);
   --a-glow: rgba(0,118,143,.18);
-  --bg: #ffffff;
+
+  /* Page vs surface. These used to be identical (#ffffff), so cards had no
+     depth against the page — the "flat, harsh white" problem. --bg is now a
+     hair cooler than pure white so white cards read as raised surfaces
+     without needing heavier shadows. Separation is deliberately subtle
+     (1.055:1); anything stronger starts looking grey rather than clean. */
+  --bg: #F7F9FB;
   --s: #ffffff;
   --s2: #f8fafc;
   --s3: #f1f4f8;
+
+  /* Three genuine text tiers. --t2 and --t3 were previously the SAME value
+     (#667085), so the system claimed three levels but rendered two — a
+     direct cause of the flat hierarchy. Rather than lighten --t3 (the
+     obvious move, which fails: #8A94A6 measures 3.06:1 and breaks AA), --t2
+     is darkened and the old value becomes --t3. Every tier now clears AA on
+     BOTH surfaces — measured on --bg, the worse of the two:
+     --t 14.83:1, --t2 5.67:1, --t3 4.71:1. Secondary text is more readable
+     than before this change, not less. */
   --t: #1B2430;
-  --t2: #667085;
+  --t2: #5B6472;
   --t3: #667085;
-  --l: rgba(0,183,217,.10);
-  --l2: rgba(0,183,217,.20);
-  --l3: rgba(0,183,217,.32);
-  --sh: 0 2px 12px rgba(14,27,42,.06);
-  --sh2: 0 6px 24px rgba(14,27,42,.08);
-  --sh3: 0 12px 40px rgba(14,27,42,.12);
+
+  /* Neutral borders. Previously every border/divider on the site was
+     teal-tinted rgba(0,183,217,…) across ~274 usages, which made the whole
+     UI shimmer faintly cyan and read as a generic AI product. Neutral
+     hairlines put the brand colour back where it belongs — on accents and
+     actions, not on every box edge. Same token names, so all 274 call
+     sites pick this up without being touched. */
+  --l: #EEF1F4;
+  --l2: #E4E7EC;
+  --l3: #D4D9E0;
+
+  /* Softer than before (was .06/.08/.12) — with real bg/surface separation
+     the elevation no longer has to be carried by shadow alone. */
+  --sh: 0 1px 2px rgba(14,27,42,.04);
+  --sh2: 0 4px 16px rgba(14,27,42,.06);
+  --sh3: 0 12px 32px rgba(14,27,42,.09);
+
   --r: 8px;
   --r2: 4px;
   --max: 1080px;
@@ -39,6 +65,41 @@
   --danger: #B91C1C;
   --warn: #92620A;
   --ok: #166534;
+
+  /* ── Scales (new) ──────────────────────────────────────────────
+     index.html alone shipped 19 distinct font sizes, 10 radii and ad-hoc
+     spacing (26/28/32/36/56/68/80px) — i.e. no system at all. These are
+     additive: existing rules keep their literal values and are unaffected;
+     new and reworked components use the scale. Nothing below 12px, because
+     the old 9–10px labels were past comfortable reading size. */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 17px;
+  --fs-lg: 20px;
+  --fs-xl: 26px;
+  --fs-2xl: clamp(28px, 3.4vw, 38px);
+  --fs-3xl: clamp(36px, 5vw, 56px);
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-normal: 1.6;
+
+  /* 4px base */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-pill: 999px;
 }
 
 /* ── RESET ── */
@@ -108,7 +169,11 @@ input, select, textarea, button { font-family: var(--font); }
 /* ── HEADER ── */
 header {
   height: 58px; position: sticky; top: 0; z-index: 3000;
-  background: rgba(243,248,245,.92);
+  /* Was rgba(243,248,245,.92) — a green-tinted white left over from the
+     pre-ExGen ProviaAI palette, missed by the earlier colour purge because
+     it is an rgba() triplet rather than one of the hex values that sweep
+     searched for. Now a neutral translucent white matching --s. */
+  background: rgba(255,255,255,.86);
   backdrop-filter: blur(18px) saturate(160%);
   border-bottom: 1px solid var(--l2);
   display: flex; align-items: center;
@@ -638,14 +703,14 @@ header.scrolled .hWrap { height: 48px; }
 }
 .mhpBar { flex: 1; height: 3px; border-radius: 999px; background: var(--l); overflow: hidden; }
 .mhpFill { height: 100%; width: 55%; background: var(--a); border-radius: 999px; }
-.mhpLbl { font-family: var(--mono); font-size: 10px; color: var(--t3); white-space: nowrap; }
-.mhpQ { font-size: 12.5px; font-weight: 600; color: var(--t); line-height: 1.5; margin-bottom: 10px; }
+.mhpLbl { font-family: var(--mono); font-size: var(--fs-xs); color: var(--t3); white-space: nowrap; }
+.mhpQ { font-size: var(--fs-sm); font-weight: 600; color: var(--t); line-height: var(--lh-snug); margin-bottom: var(--sp-3); }
 .mhpOpts { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
 .mhpOpt {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 10px; border-radius: 7px;
   border: 1px solid var(--l); background: var(--s2);
-  font-size: 11.5px; color: var(--t2);
+  font-size: var(--fs-sm); color: var(--t2);
 }
 .mhpOpt.mhpOk {
   border-color: var(--a); background: rgba(0,183,217,.09); color: var(--t);
@@ -653,18 +718,18 @@ header.scrolled .hWrap { height: 48px; }
 .mhpLetter {
   width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0;
   display: grid; place-items: center;
-  font-family: var(--mono); font-size: 9px; font-weight: 600;
-  background: var(--s); border: 1px solid var(--l); color: var(--t3);
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  background: var(--s); border: 1px solid var(--l2); color: var(--t3);
 }
 .mhpOpt.mhpOk .mhpLetter { background: var(--a); border-color: var(--a); color: #fff; }
 .mhpExpl {
-  font-size: 11px; color: var(--t2); line-height: 1.55;
-  border: 1px solid rgba(0,183,217,.16); background: rgba(0,183,217,.05);
-  border-radius: 7px; padding: 8px 10px;
+  font-size: var(--fs-xs); color: var(--t2); line-height: var(--lh-normal);
+  border: 1px solid var(--l2); background: var(--s2);
+  border-radius: var(--r-sm); padding: 10px 12px;
 }
 .mhpExplTag {
-  font-family: var(--mono); font-size: 9px; color: var(--a);
-  text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 3px;
+  font-family: var(--font); font-size: var(--fs-xs); font-weight: 600; color: var(--a);
+  letter-spacing: 0; display: block; margin-bottom: 4px;
 }
 
 /* ── CARD HOVER GLOW (enhanced) ── */

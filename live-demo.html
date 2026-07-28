@@ -33,11 +33,18 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <style>
+    /* Own token block — this page loads no shared CSS. Kept in sync with
+       style.css's reworked palette (neutral hairlines, real three-tier text,
+       tinted page vs white surface) because the hero links straight here:
+       without this, one click took the visitor from the new system to the
+       old white/teal one. --bg stays #ffffff here specifically: this is a
+       full-bleed cinematic demo whose own scenes paint the backdrop, so a
+       tinted page would show through as a seam rather than as depth. */
     :root{
       --bg:#ffffff;--a:#00768F;--ad:rgba(0,118,143,.08);
       --s:#ffffff;--s2:#f8fafc;
-      --t:#1B2430;--t2:#667085;--t3:#667085;
-      --l:rgba(0,183,217,.10);--l2:rgba(0,183,217,.22);
+      --t:#1B2430;--t2:#5B6472;--t3:#667085;
+      --l:#EEF1F4;--l2:#E4E7EC;
       --ok:#166534;--err:#B91C1C;
       --r:5px;--r2:4px;
       --f:'DM Sans',sans-serif;--m:'DM Mono',monospace;

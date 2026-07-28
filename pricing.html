@@ -40,24 +40,18 @@
     display:flex;flex-direction:column;gap:0;
   }
   .planCard:hover{border-color:var(--l2);transform:translateY(-3px);box-shadow:var(--sh2)}
-  /* glow top-right */
-  .planCard::before{content:"";position:absolute;top:-50px;right:-50px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(0,183,217,.09),transparent 65%);pointer-events:none}
 
   /* premium card highlight */
-  .planCard.featured{border-color:var(--l2);box-shadow:0 0 40px rgba(0,183,217,.09)}
-  .planCard.featured:hover{box-shadow:0 20px 60px rgba(0,183,217,.24)}
-  .planCard.featured::after{
-    content:"";position:absolute;inset:0;
-    background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,183,217,.07), transparent 65%);
-    pointer-events:none;
-    animation:featuredPulse 3s ease-in-out infinite;
-  }
-  @keyframes featuredPulse{0%,100%{opacity:.7}50%{opacity:1}}
+  /* Featured plan is marked by a solid brand border + elevation, not by a
+     permanently pulsing glow — the animation drew the eye away from the
+     content and read as decoration for its own sake. */
+  .planCard.featured{border-color:var(--a);box-shadow:var(--sh2)}
+  .planCard.featured:hover{box-shadow:var(--sh3)}
 
   .planBadge{
     display:inline-flex;align-items:center;gap:5px;
-    font-family:var(--mono);font-size:9px;font-weight:500;
-    color:var(--a);letter-spacing:.1em;text-transform:uppercase;
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;
+    color:var(--a);letter-spacing:0;
     border:1px solid var(--l2);border-radius:var(--r2);padding:2px 8px;
     background:rgba(0,183,217,.06);
     margin-bottom:14px;align-self:flex-start;
@@ -71,11 +65,11 @@
   .planAmt{font-weight:700;font-size:36px;color:var(--t);letter-spacing:-.04em;line-height:1}
   .planCurr{font-family:var(--mono);font-size:13px;color:var(--t3);margin-bottom:2px}
   .planPer{font-family:var(--mono);font-size:11px;color:var(--t3)}
-  .planNote{font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:20px}
+  .planNote{font-family:var(--font);font-size:var(--fs-xs);color:var(--t3);margin-bottom:20px}
 
   .planDivider{height:1px;background:var(--l);margin:16px 0}
 
-  .planInclLabel{font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+  .planInclLabel{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--t2);letter-spacing:0;margin-bottom:10px}
 
   .featureList{list-style:none;display:grid;gap:7px;margin-bottom:22px;flex:1}
   .featureList li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--t2);line-height:1.55}
@@ -84,9 +78,9 @@
   .featureList li.dim::before{content:"—";color:var(--t3)}
 
   .planNote2{
-    font-size:12px;color:var(--t3);line-height:1.5;
-    border-left:2px solid var(--l);padding-left:10px;
-    margin-bottom:18px;font-family:var(--mono);
+    font-size:var(--fs-sm);color:var(--t2);line-height:var(--lh-normal);
+    border-left:2px solid var(--l2);padding-left:12px;
+    margin-bottom:18px;
   }
 
   .planCta{
@@ -106,10 +100,10 @@
 
   /* COMPARE TABLE */
   .compareWrap{margin-bottom:28px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .compareLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+  .compareLabel{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--t2);letter-spacing:0;margin-bottom:12px}
   .compareTable{width:100%;border-collapse:collapse;min-width:420px}
   @media(max-width:580px){.compareTable th{padding:6px 8px;font-size:9.5px}.compareTable td{padding:7px 8px;font-size:12px}}
-  .compareTable th{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;text-align:left;padding:8px 12px;border-bottom:1px solid var(--l)}
+  .compareTable th{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--t2);letter-spacing:0;text-align:left;padding:10px 12px;border-bottom:1px solid var(--l2)}
   .compareTable th:not(:first-child){text-align:center}
   .compareTable td{font-size:13px;color:var(--t2);padding:9px 12px;border-bottom:1px solid var(--l)}
   .compareTable td:not(:first-child){text-align:center;font-family:var(--mono);font-size:12px}
@@ -209,7 +203,7 @@
 </header>
 
 <div id="betaBanner" style="background:#f8fafc;border-bottom:1px solid rgba(0,183,217,.2);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#667085;position:relative;flex-wrap:wrap">
-  <span>⚡ ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
+  <span>ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
   <button onclick="document.getElementById('betaBanner').style.display='none';sessionStorage.setItem('betaDismissed','1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#667085;cursor:pointer;font-size:16px;line-height:1;padding:4px 6px" aria-label="Stäng">✕</button>
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
@@ -421,7 +415,7 @@
 
 <footer class="xg-footer">
   <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap">
-    <span>© 2025 ExGen</span>
+    <span>© <span id="yr">2026</span> ExGen</span>
     <span>·</span>
     <a href="index.html">Hem</a>
     <span>·</span>
@@ -607,6 +601,10 @@ document.querySelectorAll("[data-faq]").forEach(btn => {
   document.addEventListener('mousedown',()=>ring.classList.add('rDown'));
   document.addEventListener('mouseup',()=>ring.classList.remove('rDown'));
 })();
+/* Footer year — was hardcoded "© 2025", i.e. already wrong on a page whose
+   whole job is converting visitors. index.html has had this since launch;
+   pricing.html never got it. */
+(function(){var y=document.getElementById('yr');if(y)y.textContent=new Date().getFullYear();})();
 </script>
 <!-- VISITOR BOTTOM NAV -->
 </body>
