@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="js/exgen-modules.js"></script>
+<script>exgenRequireModule("korkort");</script>
 <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
 <title>Körkortsteorin – ExGen</title>
 <meta name="description" content="Träna körkortsteorin med AI från ExGen. Öva på alla kategorier, simulera riktiga teoriprovet och få AI-förklaring på varje svar. En del av ExGen – AI-driven studieapp för elever och studenter." />
@@ -751,9 +753,9 @@ body.teori-lock #modeTabs{display:none!important}
     <div class="hRight">
       <nav class="xg-nav" aria-label="Huvudnavigation">
         <a class="xg-nav-link" href="index.html">Hem</a>
-        <a class="xg-nav-link active" href="korkortet.html" aria-current="page">Körkortsteorin</a>
+        <a data-module="korkort" class="xg-nav-link active" href="korkortet.html" aria-current="page">Körkortsteorin</a>
         <a class="xg-nav-link" href="app.html">Mockprov</a>
-        <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+        <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
         <a class="xg-nav-link" href="pricing.html">Priser</a>
         <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
@@ -765,8 +767,8 @@ body.teori-lock #modeTabs{display:none!important}
         </button>
         <div class="dropdown" id="menu">
           <a class="ddItem" href="app.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Mockprov</span><span class="ddPill">AI</span></a>
-          <a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Förbättring</span><span class="ddPill">Coach</span></a>
-          <a class="ddItem active" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill hi">Nytt</span></a>
+          <a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Min utveckling</span><span class="ddPill">Coach</span></a>
+          <a data-module="korkort" class="ddItem active" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill hi">Nytt</span></a>
           <a class="ddItem" href="konto.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Konto</span></a>
           <div class="ddSep"></div>
           <a class="ddItem" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Uppgradera</span><span class="ddPill" id="rolePill">Gratis</span></a>

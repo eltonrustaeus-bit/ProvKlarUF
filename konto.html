@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="js/exgen-modules.js"></script>
   <script>if(location.hostname.includes("vercel.app")&&!location.hostname.includes("provia-ai-uf")){location.replace("https://provia-ai-uf.vercel.app"+location.pathname+location.search)}</script>
   <title>ExGen – Mitt konto</title>
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
@@ -156,14 +157,14 @@
     <a class="xg-brand" href="index.html">
       <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
       <div>
-        <div class="xg-brand-tag">Körkortsteorin · AI</div>
+        <div class="xg-brand-tag">Studieplattform för skolan</div>
       </div>
     </a>
     <nav class="xg-nav" aria-label="Huvudnavigation">
       <a class="xg-nav-link" href="index.html">Hem</a>
-      <a class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+      <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
       <a class="xg-nav-link" href="app.html">Mockprov</a>
-      <a class="xg-nav-link" href="förbättring.html">Förbättring</a>
+      <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
       <a class="xg-nav-link" href="pricing.html">Priser</a>
       <a class="xg-nav-link active" href="konto.html" aria-current="page">Konto</a>
     </nav>
@@ -179,10 +180,10 @@
         </button>
         <div class="drop" id="drop">
           <a class="ddi" href="index.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span><span>Hem</span></a>
-          <a class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
+          <a data-module="korkort" class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
           <a class="ddi" href="app.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Mockprov</span><span class="dpill">AI</span></a>
           <a class="ddi" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Priser</span><span class="dpill">29/79</span></a>
-          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Förbättring</span><span class="dpill">Coach</span></a>
+          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Min utveckling</span><span class="dpill">Coach</span></a>
           <a class="ddi active" href="konto.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Mitt konto</span><span class="dpill" style="color:var(--a)">Konto</span></a>
         </div>
       </div>
@@ -296,7 +297,7 @@
         </div>
       </div>
       <div class="kCardBody">
-        <p class="kHelpText">Skapa klasser, dela klasskoder och följ dina elevers framsteg i körkortsteorin.</p>
+        <p class="kHelpText">Skapa klasser, dela klasskoder och följ dina elevers framsteg.</p>
         <div class="kBtnRow">
           <a class="kBtn kBtnOutline" href="larare.html">Öppna lärar-dashboard →</a>
         </div>
@@ -334,9 +335,9 @@
       </div>
       <div class="kCardBody">
         <div class="kBtnRow">
-          <a class="kBtn kBtnOutline" href="korkortet.html">Körkortsteorin</a>
+          <a data-module="korkort" class="kBtn kBtnOutline" href="korkortet.html">Körkortsteorin</a>
           <a class="kBtn kBtnOutline" href="app.html">Mockprov</a>
-          <a class="kBtn kBtnOutline" href="förbättring.html">Förbättring</a>
+          <a class="kBtn kBtnOutline" href="förbättring.html">Min utveckling</a>
         </div>
       </div>
     </div>
@@ -428,7 +429,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
 
   const ROLE_LABELS={gratis:"Gratis",basic:"Basic",premium:"Premium",admin:"Admin",user:"Premium",teacher:"Lärare"};
   const ROLE_DESCS={
-    gratis:"2 körkortstest · 2 mockprov per vecka",
+    gratis:"3 mockprov per vecka · P.E.R 5 frågor/vecka",
     basic:"30 prov per månad · historik · synk",
     premium:"Obegränsat · AI-coach · felbank",
     admin:"Full tillgång",user:"Obegränsat · AI-coach · felbank"
