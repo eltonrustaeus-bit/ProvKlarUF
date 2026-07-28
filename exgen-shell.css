@@ -123,11 +123,15 @@ html {
 .xg-login-btn:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
 @media (max-width: 480px) { .xg-login-btn { padding: 0 14px; font-size: 12.5px; } }
 
-/* ── Section band ── alternating light-gray-blue background for
-   horizontally well-separated page sections (Pensionskontrollen-style),
-   built on the existing --exgen-bg-secondary token. */
+/* ── Section band ── full-width alternating surface for horizontally
+   well-separated page sections (Pensionskontrollen-style).
+   Inverted as of the design-system rework: the page background is now a
+   soft off-white (--bg #F7F9FB) rather than pure white, so a grey band
+   would be almost invisible against it (#F8FAFC vs #F7F9FB). The band is
+   now the WHITE surface standing proud of the tinted page — same
+   separation, right way round. */
 .xg-band {
-  background: var(--exgen-bg-secondary, #F8FAFC);
+  background: #ffffff;
   border-top: 1px solid var(--exgen-border, #E4E7EC);
   border-bottom: 1px solid var(--exgen-border, #E4E7EC);
 }

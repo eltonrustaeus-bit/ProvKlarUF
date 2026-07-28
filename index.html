@@ -36,18 +36,20 @@
   ═══════════════════════════════════ */
 
   /* ── HERO ── */
+  /* Height is content-driven, not 100svh. The viewport-height hero left a
+     large dead band above and below the content on desktop (content is
+     centred, so any leftover viewport became empty space) while pushing the
+     first real section entirely below the fold. */
   .hero {
     position: relative;
-    min-height: 100svh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: 48px 20px 36px;
+    padding: var(--sp-12) var(--sp-6) var(--sp-16);
   }
-  @media(min-width:600px){.hero{padding:68px 24px 48px}}
-  @media(max-width:599px){.hero{min-height:75svh}}
+  @media(min-width:920px){.hero{padding:var(--sp-16) var(--sp-12) var(--sp-24)}}
   @media(max-width:390px){.heroTitle{font-size:30px;letter-spacing:-.03em}}
 
   /* Background — Elton asked for a fuller, more Allra-like full-bleed hero
@@ -108,13 +110,16 @@
   }
 
   /* Eyebrow pill */
+  /* Sans, sentence case, 12px. Was 10.5px uppercase mono with .12em
+     tracking — which wrapped to two lines on a 390px phone and set the
+     "terminal aesthetic" tone for the whole page from the first element. */
   .heroEye {
-    display:inline-flex;align-items:center;gap:7px;
-    font-family:var(--mono);font-size:10.5px;font-weight:500;
-    color:var(--a);letter-spacing:.12em;text-transform:uppercase;
-    border:1px solid rgba(0,183,217,.22);border-radius:20px;
-    padding:5px 14px;background:rgba(0,183,217,.06);
-    margin-bottom:22px;
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:500;
+    color:var(--t2);letter-spacing:0;
+    border:1px solid var(--l2);border-radius:var(--r-pill);
+    padding:6px 14px;background:var(--s);
+    margin-bottom:var(--sp-6);
   }
   .heroEye::before {
     content:"";width:6px;height:6px;border-radius:50%;
@@ -150,10 +155,10 @@
   .ctaBtn {
     position:relative;display:inline-flex;
     align-items:center;gap:9px;
-    height:48px;padding:0 32px;
-    font-family:var(--font);font-size:15px;font-weight:700;
-    letter-spacing:-.01em;color:#fff;
-    background:var(--a);border:none;border-radius:10px;
+    height:50px;padding:0 26px;
+    font-family:var(--font);font-size:var(--fs-base);font-weight:600;
+    letter-spacing:-.01em;color:#fff;white-space:nowrap;
+    background:var(--a);border:none;border-radius:var(--r-md);
     cursor:pointer;overflow:hidden;
     transition:box-shadow .18s ease,background .15s ease,transform .15s ease;
   }
@@ -169,21 +174,21 @@
 
   .demoBtn{
     display:inline-flex;align-items:center;gap:8px;
-    height:48px;padding:0 28px;
-    font-family:var(--font);font-size:15px;font-weight:600;
-    color:var(--t);letter-spacing:-.01em;
+    height:50px;padding:0 24px;
+    font-family:var(--font);font-size:var(--fs-base);font-weight:600;
+    color:var(--t);letter-spacing:-.01em;white-space:nowrap;
     background:var(--s);
-    border:1.5px solid var(--l2);
-    border-radius:10px;text-decoration:none;
+    border:1px solid var(--l2);
+    border-radius:var(--r-md);text-decoration:none;
     transition:border-color .18s,color .18s,background .18s;
   }
-  .demoBtn:hover{border-color:var(--a);color:var(--a);background:var(--a-dim)}
+  .demoBtn:hover{border-color:var(--l3);color:var(--a);background:var(--s2)}
 
   /* Small text-link style for secondary actions like "Se live-demo" */
   .demoLink {
     display:inline-flex;align-items:center;gap:6px;
-    font-family:var(--mono);font-size:12px;font-weight:500;
-    color:var(--t3);letter-spacing:.04em;text-decoration:none;
+    font-family:var(--font);font-size:var(--fs-sm);font-weight:500;
+    color:var(--t2);letter-spacing:0;text-decoration:none;
     transition:color .15s;
   }
   .demoLink:hover{color:var(--a)}
@@ -191,17 +196,26 @@
   /* "Vad kan ExGen?" small trigger */
   .heroMoreLink{
     background:none;border:none;padding:0;
-    font-family:var(--mono);font-size:12px;font-weight:500;
-    color:var(--t2);letter-spacing:.04em;cursor:pointer;
+    font-family:var(--font);font-size:var(--fs-sm);font-weight:500;
+    color:var(--t2);letter-spacing:0;cursor:pointer;
     transition:color .15s;
   }
   .heroMoreLink:hover{color:var(--a)}
 
-  .heroCtas{margin-bottom:24px}
+  .heroCtas{margin-bottom:0}
+  .heroFine{
+    font-family:var(--font);font-size:var(--fs-xs);
+    color:var(--t3);letter-spacing:0;margin-top:var(--sp-1);
+  }
 
-  @media(max-width:460px){
-    .ctaBtn,.demoBtn{width:100%;justify-content:center}
-    .heroCtas>div{flex-direction:column;width:100%;max-width:280px}
+  /* 320px was too narrow for the primary label at 15px, so "Träna
+     körkortsteorin gratis" wrapped onto two lines inside the button. */
+  @media(max-width:520px){
+    .ctaBtn,.demoBtn{width:100%;justify-content:center;padding:0 16px}
+    .heroCtas>div{flex-direction:column;width:100%;max-width:340px}
+  }
+  @media(max-width:360px){
+    .ctaBtn,.demoBtn{font-size:var(--fs-sm)}
   }
 
   /* MOCKPROV STRIP */
@@ -220,31 +234,10 @@
   }
   .mockStripLeft{flex:1;min-width:180px;display:flex;align-items:center;gap:16px}
   .mockStripIcon{font-size:28px;flex-shrink:0;display:flex;align-items:center;color:var(--a)}
-  .mockStripEye{font-family:var(--mono);font-size:10px;color:var(--a);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+  .mockStripEye{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--a);letter-spacing:0;margin-bottom:6px}
   .mockStripT{font-weight:700;font-size:15px;color:var(--t);letter-spacing:-.02em;margin-bottom:4px}
   .mockStripD{font-size:12.5px;color:var(--t2);line-height:1.55}
 
-  /* Scroll indicator */
-  .scrollHint {
-    position:absolute;bottom:28px;left:50%;
-    transform:translateX(-50%);
-    display:flex;flex-direction:column;align-items:center;gap:7px;
-    font-family:var(--mono);font-size:9px;color:var(--t3);
-    letter-spacing:.1em;text-transform:uppercase;
-    opacity:0;animation:fadeUp .5s 2.4s forwards;
-  }
-  .scrollMouse {
-    width:20px;height:30px;
-    border:1.5px solid rgba(0,183,217,.22);border-radius:10px;
-    position:relative;
-  }
-  .scrollMouse::after {
-    content:"";position:absolute;
-    top:5px;left:50%;transform:translateX(-50%);
-    width:3px;height:5px;background:var(--a);border-radius:2px;
-    animation:scrollD 1.9s ease-in-out infinite;
-  }
-  @keyframes scrollD{0%,100%{transform:translateX(-50%) translateY(0);opacity:1}75%{transform:translateX(-50%) translateY(10px);opacity:0}}
   @keyframes fadeUp{to{opacity:1}}
 
   /* ── BENEFITS ── Pensionskontrollen-style callout: a solid-fill card
@@ -266,8 +259,8 @@
   }
   .benefitsLeft{flex:1;min-width:240px}
   .benefitsEye{
-    font-family:var(--mono);font-size:11px;color:#fff;
-    letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:rgba(255,255,255,.82);
+    letter-spacing:0;margin-bottom:var(--sp-2);
   }
   .benefitsTitle{
     font-size:clamp(19px,2.4vw,24px);font-weight:700;
@@ -283,17 +276,17 @@
   @media(max-width:700px){.benefitsCard{padding:26px 22px;gap:22px}}
 
   /* ── FEATURES ── */
-  .feats{padding:56px 0 48px}
-  @media(max-width:600px){.feats{padding:36px 0 28px}}
+  .feats{padding:var(--sp-24) 0}
+  @media(max-width:600px){.feats{padding:var(--sp-16) 0}}
   .secEye {
-    font-family:var(--mono);font-size:11px;color:var(--a);
-    letter-spacing:.12em;text-transform:uppercase;
-    text-align:center;margin-bottom:10px;
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--a);
+    letter-spacing:0;
+    text-align:center;margin-bottom:var(--sp-2);
   }
   .secTitle{
-    font-size:clamp(26px,3.5vw,38px);font-weight:700;
-    letter-spacing:-.04em;color:var(--t);
-    text-align:center;margin-bottom:32px;
+    font-size:var(--fs-2xl);font-weight:700;
+    letter-spacing:-.03em;line-height:var(--lh-tight);color:var(--t);
+    text-align:center;margin-bottom:var(--sp-12);
   }
   .featsGrid{
     display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
@@ -323,8 +316,8 @@
   }
   .featIcon{display:block;margin-bottom:12px;color:var(--a)}
   .featLabel{
-    font-family:var(--mono);font-size:10px;color:var(--a);
-    letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+    font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--a);
+    letter-spacing:0;margin-bottom:var(--sp-2);
   }
   .featT{font-weight:700;font-size:16px;color:var(--t);letter-spacing:-.02em;margin-bottom:8px;line-height:1.25}
   .featD{font-size:13px;color:var(--t2);line-height:1.65}
@@ -362,13 +355,16 @@
   .stepD{font-size:12.5px;color:var(--t3);line-height:1.6}
 
   /* ── FAQ ── */
-  .faq{padding:56px 0}
-  @media(max-width:600px){.faq{padding:36px 0}}
-  .faqItem{border-bottom:1px solid var(--l);overflow:hidden}
+  .faq{padding:var(--sp-24) 0}
+  @media(max-width:600px){.faq{padding:var(--sp-16) 0}}
+  .faqList{background:var(--s);border:1px solid var(--l2);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
+  .faqItem{border-bottom:1px solid var(--l);overflow:hidden;padding:0 var(--sp-6)}
+  .faqItem:last-child{border-bottom:none}
+  .faqItem.open{background:var(--s2)}
   .faqQ{
     display:flex;align-items:center;justify-content:space-between;gap:16px;
-    padding:18px 0;cursor:pointer;width:100%;
-    font-family:var(--font);font-weight:600;font-size:14px;color:var(--t);
+    padding:var(--sp-4) 0;cursor:pointer;width:100%;
+    font-family:var(--font);font-weight:600;font-size:var(--fs-base);color:var(--t);
     background:none;border:none;text-align:left;
     transition:color .15s;
   }
@@ -381,42 +377,38 @@
     font-size:14px;color:var(--a);
     transition:transform .22s cubic-bezier(.22,.61,.36,1),background .15s;
   }
-  .faqItem.open .faqIco{transform:rotate(45deg);background:rgba(0,183,217,.1)}
+  .faqItem.open .faqIco{transform:rotate(45deg);background:var(--a);color:#fff;border-color:var(--a)}
   .faqA{
     max-height:0;overflow:hidden;padding-bottom:0;
-    font-size:13.5px;color:var(--t2);line-height:1.72;
+    font-size:var(--fs-base);color:var(--t2);line-height:var(--lh-normal);
     transition:max-height .3s cubic-bezier(.22,.61,.36,1),padding .22s;
   }
   .faqA[hidden]{display:block;max-height:0;padding-bottom:0}
-  .faqItem.open .faqA{max-height:600px;padding-bottom:20px}
+  .faqItem.open .faqA{max-height:600px;padding-bottom:var(--sp-4)}
 
   /* ── PRICING STRIP ── */
-  .pricingStrip{padding:32px 0 64px}
-  @media(max-width:600px){.pricingStrip{padding:24px 0 40px}}
+  .pricingStrip{padding:0 0 var(--sp-24)}
+  @media(max-width:600px){.pricingStrip{padding:0 0 var(--sp-16)}}
   .pCard{
-    background:var(--s);border:1px solid var(--l2);
-    border-radius:14px;padding:28px 32px;
+    background:var(--s);border:1px solid var(--l2);box-shadow:var(--sh);
+    border-radius:var(--r-lg);padding:var(--sp-8);
     display:flex;align-items:center;justify-content:space-between;
     gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;
   }
-  .pCard::before{
-    content:"";position:absolute;inset:0;
-    background:radial-gradient(ellipse 60% 100% at 100% 50%,rgba(0,183,217,.05),transparent 65%);
-    pointer-events:none;
-  }
+
   .pLeft{flex:1;min-width:180px}
-  .pEye{font-family:var(--mono);font-size:10px;color:var(--a);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  .pEye{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--a);letter-spacing:0;margin-bottom:var(--sp-2)}
   .pH{font-weight:700;font-size:18px;color:var(--t);letter-spacing:-.025em;margin-bottom:16px}
   .pTiers{display:flex;align-items:center;flex-wrap:wrap}
   .tier{display:flex;flex-direction:column;gap:2px;padding:0 18px}
   .tier:first-child{padding-left:0}
-  .tierName{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase}
+  .tierName{font-family:var(--font);font-size:var(--fs-xs);font-weight:600;color:var(--t2);letter-spacing:0}
   .tierPrice{font-weight:700;font-size:16px;color:var(--t);letter-spacing:-.02em;line-height:1}
   .tierPrice sub{font-size:10px;font-weight:400;color:var(--t3);vertical-align:baseline}
-  .tierDesc{font-family:var(--mono);font-size:9px;color:var(--t3)}
+  .tierDesc{font-family:var(--font);font-size:var(--fs-xs);color:var(--t3)}
   .tierSep{width:1px;height:36px;background:var(--l);flex-shrink:0;margin:0 2px}
   .pRight{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
-  .pNote{font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.04em}
+  .pNote{font-family:var(--font);font-size:var(--fs-xs);color:var(--t3);letter-spacing:0}
 
   /* ── BOTTOM SHEET ── */
   .backdrop{
@@ -482,7 +474,7 @@
   }
   .sBody{flex:1;min-width:0}
   .sT{font-weight:600;font-size:14px;color:var(--t);letter-spacing:-.01em;line-height:1.3}
-  .sS{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px}
+  .sS{font-family:var(--font);font-size:var(--fs-sm);color:var(--t3);margin-top:3px}
   .sArr{
     width:16px;height:16px;color:var(--t3);flex-shrink:0;
     transition:transform .15s,color .15s;
@@ -511,7 +503,6 @@
     .heroCtas{opacity:1 !important}
     .wi{transform:none !important}
     .rev{opacity:1 !important;transform:none !important}
-    .scrollHint{opacity:1 !important;animation:none !important}
     .heroVisual,.pvExpl,.pvBadge{opacity:1 !important;transform:none !important;animation:none !important}
   }
 
@@ -591,15 +582,15 @@
     opacity:0;animation:fadeIn .4s 2.4s ease forwards;
   }
   .pvExplLabel{
-    font-family:var(--mono);font-size:10px;color:var(--a);font-weight:500;
-    letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:4px;
+    font-family:var(--font);font-size:var(--fs-xs);color:var(--a);font-weight:600;
+    letter-spacing:0;display:block;margin-bottom:5px;
   }
 
   .pvBadge{
     display:flex;align-items:center;gap:8px;
     padding:10px 14px;border-radius:10px;
     border:1px solid var(--l);background:var(--s);
-    font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:.04em;
+    font-family:var(--font);font-size:var(--fs-xs);color:var(--t2);letter-spacing:0;
     width:fit-content;
     opacity:0;animation:fadeIn .4s 2.8s ease forwards;
   }
@@ -626,8 +617,8 @@
     color: var(--t); letter-spacing: -.04em; line-height: 1;
   }
   .statLbl {
-    font-family: var(--mono); font-size: 10px; color: var(--t3);
-    letter-spacing: .08em; text-transform: uppercase; margin-top: 5px;
+    font-family: var(--font); font-size: var(--fs-xs); color: var(--t3);
+    letter-spacing: 0; margin-top: 6px;
   }
   .statDivider { width: 1px; height: 32px; background: var(--l); flex-shrink: 0; }
   @media(max-width:580px){
@@ -664,7 +655,7 @@
     display: inline-flex; align-items: center; gap: 8px;
     padding: 8px 14px; border-radius: 10px;
     border: 1px solid var(--l); background: var(--s);
-    font-family: var(--mono); font-size: 11px; color: var(--t3); letter-spacing: .04em;
+    font-family: var(--font); font-size: var(--fs-xs); color: var(--t2); letter-spacing: 0;
   }
 
   /* ── JOIN CTA STICKY BAR ── */
@@ -673,16 +664,19 @@
     transform: translateX(-50%) translateY(20px);
     width: calc(100% - 24px); max-width: 400px;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: rgba(238,248,242,.97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(0,183,217,.3); border-radius: 14px;
+    /* Was rgba(238,248,242,.97) — green-tinted white from the pre-ExGen
+       palette, plus a teal border. Both missed by the earlier colour sweep
+       (rgba triplets, not the hex values it searched for). */
+    background: rgba(255,255,255,.97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--l2); box-shadow: var(--sh3); border-radius: var(--r-lg);
     padding: 12px 14px 12px 18px; z-index: 8000;
     opacity: 0; pointer-events: none;
     transition: opacity .28s ease, transform .28s cubic-bezier(.22,.61,.36,1);
   }
   .joinCta.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
   .joinCtaTxt {
-    font-family: var(--mono); font-size: 11px; color: var(--t3);
-    letter-spacing: .04em; line-height: 1.45;
+    font-family: var(--font); font-size: var(--fs-xs); color: var(--t2);
+    letter-spacing: 0; line-height: 1.45;
   }
   .joinCtaBtn {
     flex-shrink: 0; height: 44px; padding: 0 20px;
@@ -805,7 +799,7 @@
             <button class="heroMoreLink" id="ctaBtn" aria-haspopup="dialog" aria-controls="sheet">Vad kan ExGen? →</button>
             <a class="demoLink" id="demoBtnLink" href="live-demo.html">▶ Se live-demo</a>
           </div>
-          <p style="font-family:var(--mono);font-size:10.5px;color:var(--t3);letter-spacing:.04em;margin-top:4px">Gratis att starta · inget kort krävs</p>
+          <p class="heroFine">Gratis att starta · inget kort krävs</p>
         </div>
 
       </div>
@@ -847,11 +841,6 @@
         </div>
       </div>
     </div><!-- /heroInner -->
-
-    <div class="scrollHint" aria-hidden="true">
-      <div class="scrollMouse"></div>
-      <span>Scrolla</span>
-    </div>
   </section>
 
   <!-- ═══ STATS ROW ═══ -->
@@ -916,15 +905,15 @@
             <div class="mhpBar"><div class="mhpFill"></div></div>
             <span class="mhpLbl">Fråga 36 / 65</span>
           </div>
-          <p class="mhpQ">Vilket märke anger att korsande väg har väjningsplikt mot dig?</p>
+          <p class="mhpQ">Hur påverkas bromssträckan om du fördubblar hastigheten?</p>
           <div class="mhpOpts">
-            <div class="mhpOpt mhpOk"><span class="mhpLetter">A</span><span>Väjningspliktsmärke (B1)</span></div>
-            <div class="mhpOpt"><span class="mhpLetter">B</span><span>Stopplikt (B2)</span></div>
-            <div class="mhpOpt"><span class="mhpLetter">C</span><span>Varning för vägkorsning</span></div>
+            <div class="mhpOpt"><span class="mhpLetter">A</span><span>Den blir dubbelt så lång</span></div>
+            <div class="mhpOpt mhpOk"><span class="mhpLetter">B</span><span>Den blir fyra gånger så lång</span></div>
+            <div class="mhpOpt"><span class="mhpLetter">C</span><span>Den påverkas inte nämnvärt</span></div>
           </div>
           <div class="mhpExpl">
-            <span class="mhpExplTag">✓ Rätt — AI-förklaring</span>
-            B1 ger dig företräde. Förare på korsande väg måste väja för dig.
+            <span class="mhpExplTag">Rätt — AI-förklaring</span>
+            Bromssträckan ökar med kvadraten på hastigheten. Dubbel hastighet ger fyra gånger så lång bromssträcka.
           </div>
         </div>
         <div class="showcaseBadge">
@@ -1018,8 +1007,9 @@
 
     <!-- ═══ FAQ ═══ -->
     <section class="faq rev" aria-label="Vanliga frågor">
-      <h2 class="secTitle" style="text-align:left;margin-bottom:24px">Vanliga frågor</h2>
+      <h2 class="secTitle">Vanliga frågor</h2>
 
+      <div class="faqList">
       <div class="faqItem">
         <button class="faqQ" type="button" aria-expanded="false" aria-controls="faq-1-answer">
           <span>Är det gratis att använda?</span>
@@ -1067,6 +1057,7 @@
         </button>
         <div class="faqA" id="faq-6-answer" role="region" aria-labelledby="faq-6-answer" hidden>Kvoten återställs automatiskt varje vecka. Du kan också uppgradera till Basic eller Premium när som helst för fler eller obegränsade träningspass.</div>
       </div>
+      </div><!-- /faqList -->
 
     </section>
 
