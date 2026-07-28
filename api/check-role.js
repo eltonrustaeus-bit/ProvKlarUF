@@ -16,15 +16,32 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-// Teacher dashboard is in private demo — locked to a single owner account.
-// Remove this gate (and the isClassAction check below) to open the B2B feature publicly.
-const OWNER_ID = "4a2d4593-16d3-4f9f-bc6c-54c856c21553"; // elton.rustaeus@gmail.com
+// Lärarpanelen är öppen sedan 2026-07-28. Det som hindrar vem som helst från att skapa en
+// klass och samla in elevers provdata är INTE längre en hårdkodad ägar-ID-grind, utan att
+// rollen `teacher` bara kan sättas av en admin (api/admin.js, action "set-role"). Det finns
+// alltså ingen självbetjäning — en lärare måste tilldelas rollen manuellt. Ta inte bort det
+// kravet utan att först ersätta det med något som fyller samma funktion.
 
 // Join codes: no ambiguous chars (0/O/1/I), 6 long
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+// crypto.getRandomValues, inte Math.random(): koden är den enda hemligheten som skyddar en
+// klass från att någon utomstående går med, och Math.random() är en förutsägbar PRNG.
+// Modulo-bias undviks genom att förkasta byte-värden i den ojämna svansen (256 % 32 === 0
+// gör att just 32 tecken råkar gå jämnt ut, men avvisningen står kvar så alfabetet kan
+// ändras utan att införa en tyst snedfördelning).
 function genJoinCode(len = 6) {
+  const n = CODE_ALPHABET.length;
+  const limit = Math.floor(256 / n) * n;
   let out = "";
-  for (let i = 0; i < len; i++) out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  while (out.length < len) {
+    const buf = new Uint8Array(len * 2);
+    crypto.getRandomValues(buf);
+    for (const b of buf) {
+      if (b >= limit) continue;
+      out += CODE_ALPHABET[b % n];
+      if (out.length === len) break;
+    }
+  }
   return out;
 }
 
@@ -285,18 +302,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── Class feature (teacher dashboard + student join) — PRIVATE DEMO ──
-  // Locked to OWNER_ID while in development. 404 hides existence from everyone else.
-  const isClassAction =
-    (action && action.startsWith("teacher_")) ||
-    action === "student_join" ||
-    action === "student_leave" ||
-    action === "student_classes";
-  if (isClassAction && user.id !== OWNER_ID) {
-    return res.status(404).json({ error: "Not found" });
-  }
-
   // ── Teacher dashboard (B2B) ──
+  // Åtkomsten vilar på två oberoende kontroller, båda serversidan: rollen måste vara
+  // teacher/admin (och rollen sätts bara av en admin), OCH varje enskild action verifierar
+  // ägarskap av just den klass den rör. Ingen av dem får tas bort utan den andra.
   if (action && action.startsWith("teacher_")) {
     const role = await getRole(user.id);
     if (role !== "teacher" && role !== "admin") {
@@ -566,6 +575,24 @@ Skriv rapporten enligt formatet.`;
   if (action === "student_join") {
     const code = String(req.body?.code || "").trim().toUpperCase().slice(0, 12);
     if (!code) return res.status(400).json({ error: "Klasskod krävs." });
+
+    // Koden är det enda som skyddar en klass från att någon utomstående går med. Utan tak
+    // går 6-teckenskoder att gissa sig till i stor skala. Räknas per KONTO, inte per IP:
+    // en skolklass sitter typiskt bakom samma NAT, så en IP-baserad gräns hade slagit mot
+    // hela klassen samtidigt som en angripare bara byter nät. Samma atomiska RPC som
+    // landningslägets skydd i api/explain.js.
+    const joinWindow = new Date().toISOString().slice(0, 13); // timme: YYYY-MM-DDTHH
+    try {
+      const { data: rl } = await supabase.rpc("consume_anon_rate", {
+        p_bucket: "join:" + user.id,
+        p_window_key: joinWindow,
+        p_limit: 10,
+      });
+      if (rl && rl.ok === false) {
+        return res.status(429).json({ error: "För många försök. Vänta en stund och försök igen." });
+      }
+    } catch (_) { /* fail-open: en hicka i räknaren ska inte blockera en elev med rätt kod */ }
+
     try {
       const { data: cls } = await supabase
         .from("classes")

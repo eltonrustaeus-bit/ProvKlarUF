@@ -314,7 +314,13 @@
         </div>
       </div>
       <div class="kCardBody">
-        <p class="kHelpText">Har du fått en klasskod av din lärare? Gå med här så kan läraren följa dina framsteg. Du kan lämna en klass när som helst.</p>
+        <p class="kHelpText">Har du fått en klasskod av din lärare? Gå med här så kan läraren följa dina framsteg.</p>
+        <p class="kPrivacyNote" style="margin-top:0;margin-bottom:12px">
+          <strong style="color:var(--t2)">Det här ser läraren om du går med:</strong>
+          din e-postadress, dina prov med datum och resultat, ditt snitt per kurs och vilka
+          områden du har svårast för. Läraren ser <em>inte</em> dina chattar med P.E.R.
+          Du kan lämna klassen när du vill — då slutar läraren se dig direkt.
+        </p>
         <div id="myClasses" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input id="joinCode" type="text" maxlength="12" placeholder="Klasskod (t.ex. K7P2QX)"
@@ -497,13 +503,15 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
   /* Show admin card */
   if(role==="admin") document.getElementById("adminCard").style.display="";
 
-  /* ── CLASS FEATURE — PRIVATE DEMO, owner account only ── */
-  const OWNER_ID="4a2d4593-16d3-4f9f-bc6c-54c856c21553"; // elton.rustaeus@gmail.com
-  const isOwner = user.id===OWNER_ID;
-  if(isOwner){
+  /* ── KLASSER ──
+     Lärarkortet kräver lärarbehörighet (rollen sätts bara av en admin). Elevkortet visas
+     för alla inloggade: vem som helst kan ha fått en klasskod av sin lärare, och utan det
+     kortet finns ingen väg alls att gå med i en klass. Båda ytorna är ändå skyddade
+     serversidan i api/check-role.js — det här styr bara vad som syns. */
+  if(role==="teacher" || role==="admin"){
     document.getElementById("teacherCard").style.display="";
-    document.getElementById("myClassesCard").style.display="";
   }
+  document.getElementById("myClassesCard").style.display="";
 
   /* ── MY CLASSES (student) ── */
   async function callRole(action,body={}){
@@ -568,7 +576,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
 
   document.getElementById("joinBtn")?.addEventListener("click",joinClass);
   document.getElementById("joinCode")?.addEventListener("keydown",e=>{ if(e.key==="Enter") joinClass(); });
-  if(isOwner) loadMyClasses();
+  loadMyClasses();
 
   /* Show upgrade or manage card */
   if(role==="gratis"){
