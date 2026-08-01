@@ -103,19 +103,50 @@ function extractOutputText(data) {
   return typeof out === "string" ? out : null;
 }
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// A single flaky connection used to abort the whole run — a 15-minute, paid
+// measurement thrown away by one UND_ERR_CONNECT_TIMEOUT. Transient transport
+// failures, 429s and 5xx are retried; a 4xx that is not a rate limit is a real
+// request problem and returned immediately. Latency is measured on the attempt
+// that succeeded, so retries do not inflate the timing numbers.
+async function fetchWithRetry(body, timeoutMs, attempts = 3) {
+  let lastErr = null;
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) await sleep(2000 * i);
+    const t0 = Date.now();
+    try {
+      const r = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
+        body,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (r.status === 429 || r.status >= 500) {
+        lastErr = `HTTP ${r.status}`;
+        if (i < attempts - 1) continue;
+      }
+      return { r, latencyMs: Date.now() - t0, retries: i };
+    } catch (e) {
+      lastErr = String((e && e.cause && e.cause.code) || (e && e.message) || e);
+      if (i === attempts - 1) return { r: null, latencyMs: Date.now() - t0, retries: i, transportError: lastErr };
+    }
+  }
+  return { r: null, latencyMs: 0, retries: attempts - 1, transportError: lastErr };
+}
+
 async function callResponses({ model, system, user, format, timeoutMs = 180_000 }) {
-  const t0 = Date.now();
-  const r = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const { r, latencyMs, retries, transportError } = await fetchWithRetry(
+    JSON.stringify({
       model,
       input: [{ role: "system", content: system }, { role: "user", content: user }],
       text: { format },
     }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  const latencyMs = Date.now() - t0;
+    timeoutMs
+  );
+  if (!r) {
+    return { ok: false, latencyMs, usage: emptyUsage(), retries, error: `transport: ${transportError}` };
+  }
   const raw = await r.text();
   let data = null;
   try { data = JSON.parse(raw); } catch { /* handled below */ }
@@ -319,7 +350,25 @@ async function main() {
 
   const t0 = Date.now();
   const records = await pool(jobs, CONCURRENCY, async ({ f, r }) => {
-    const rec = await runOnce(f, r);
+    // One fixture blowing up must not discard the whole paid run.
+    let rec;
+    try {
+      rec = await runOnce(f, r);
+    } catch (e) {
+      console.log(`  ${f.id.padEnd(18)} run ${r}  KRASCHADE: ${String(e)}`);
+      return {
+        fixture: f.id, run: r, course: f.course, profile: null,
+        profileAsExpected: true, isMathAsExpected: true,
+        requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0,
+        structurallyDropped: [], flagged: [],
+        verifierCallOk: false, verifierApproved: 0, verifierRejected: 0,
+        judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0,
+        lowConfidenceDisagreements: 0, disagreements: [],
+        latency: { generateMs: 0, verifyMs: 0, judgeMs: 0 },
+        usage: { generator: emptyUsage(), verifier: emptyUsage(), judge: emptyUsage() },
+        errors: [`crashed: ${String(e)}`],
+      };
+    }
     const keyRate = rec.judged ? fmtPct(rec.keyErrors, rec.judged) : "n/a";
     console.log(
       `  ${rec.fixture.padEnd(18)} run ${r}  ` +
