@@ -236,6 +236,168 @@ async function consumeMockExamQuota(userId, limit, rules) {
 // without an HTTP request, an account or a quota — tests/evals/exam-quality
 // runs the REAL production prompts against different models. Pure: no I/O,
 // no env reads, output depends only on the arguments.
+// ── Request time budget ─────────────────────────────────────────────────────
+// vercel.json pins this function to maxDuration 60, which is also the hard
+// ceiling on the Hobby plan — it cannot be raised without moving to Pro. The
+// old code budgeted 45 s for generation, 30 s for the verifier, then possibly
+// another 45 s + 30 s for a regeneration round: 150 s of timeouts inside a 60 s
+// function. Anything past 60 s is killed by the platform, so the AbortSignals
+// could never fire and the student got a platform 504 instead of an exam.
+//
+// Measured (12 questions, gpt-4o-mini, serial): 25, 27, 29, 30, 32, 33, 38, 47,
+// 67, 70, 70, 82 seconds. The spread is OpenAI-side variance, not payload size —
+// throughput ranged 35-111 tokens/s on near-identical outputs, and splitting
+// into two parallel half-exams measured 0.97x, i.e. no gain.
+//
+// So the budget is enforced here instead: one deadline for the whole request,
+// every downstream call bounded by what is actually left, and generation
+// streamed so that hitting the deadline yields the questions completed so far
+// rather than nothing.
+const FUNCTION_BUDGET_MS = 60_000;      // must match vercel.json maxDuration
+const RESPONSE_RESERVE_MS = 3_000;      // serialising and returning the response
+const VERIFIER_RESERVE_MS = 12_000;     // measured verifier latency 6-19 s
+const MIN_VERIFIER_MS = 8_000;          // below this, skip verification entirely
+const MIN_GENERATION_MS = 15_000;       // below this, do not start a generation
+
+function makeBudget(startedAt) {
+  const deadline = startedAt + FUNCTION_BUDGET_MS - RESPONSE_RESERVE_MS;
+  return {
+    startedAt,
+    deadline,
+    remaining: () => deadline - Date.now(),
+    elapsed: () => Date.now() - startedAt,
+  };
+}
+
+// Turns a truncated structured-output stream into the largest valid exam it
+// contains. Walks the raw text tracking string/escape state so a brace inside a
+// question's text cannot be mistaken for structure, remembers every point where
+// an element of the questions array closed, cuts at the last one, and then
+// closes whatever containers are still open.
+//
+// Exported and pure so it can be tested without touching the network.
+function salvageExamJson(text) {
+  const raw = String(text || "");
+  try {
+    const exam = JSON.parse(raw);
+    return { exam, truncated: false };
+  } catch { /* fall through to salvage */ }
+
+  const stack = [];
+  let inString = false, escaped = false;
+  let questionsDepth = -1;
+  let lastCompleteQuestionEnd = -1;
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+
+    if (ch === "{" || ch === "[") {
+      stack.push(ch);
+      // The array opened immediately after the "questions" key is the one whose
+      // elements we can salvage.
+      if (ch === "[" && questionsDepth === -1 && /"questions"\s*:\s*$/.test(raw.slice(Math.max(0, i - 40), i))) {
+        questionsDepth = stack.length;
+      }
+    } else if (ch === "}" || ch === "]") {
+      stack.pop();
+      if (ch === "}" && questionsDepth !== -1 && stack.length === questionsDepth) {
+        lastCompleteQuestionEnd = i + 1;
+      }
+    }
+  }
+
+  if (lastCompleteQuestionEnd < 0) return { exam: null, truncated: true };
+
+  // Recompute the open containers as of the cut point, then close them.
+  const head = raw.slice(0, lastCompleteQuestionEnd);
+  const open = [];
+  inString = false; escaped = false;
+  for (let i = 0; i < head.length; i++) {
+    const ch = head[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{" || ch === "[") open.push(ch);
+    else if (ch === "}" || ch === "]") open.pop();
+  }
+  const closers = open.reverse().map(c => (c === "{" ? "}" : "]")).join("");
+
+  try {
+    const exam = JSON.parse(head + closers);
+    if (!exam || !Array.isArray(exam.questions) || exam.questions.length === 0) {
+      return { exam: null, truncated: true };
+    }
+    return { exam, truncated: true };
+  } catch {
+    return { exam: null, truncated: true };
+  }
+}
+
+// Streams a generation and stops at `budgetMs`, keeping whatever has arrived.
+// Returns the accumulated text plus whether the stream was cut short; parsing
+// and salvage are left to salvageExamJson so this stays a transport concern.
+async function streamGeneration({ apiKey, payload, budgetMs }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(0, budgetMs));
+  const t0 = Date.now();
+  let text = "";
+  let cutShort = false;
+  let usage = null;
+
+  try {
+    const r = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, stream: true }),
+      signal: controller.signal,
+    });
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      clearTimeout(timer);
+      return { ok: false, status: r.status, details: body.slice(0, 500), latencyMs: Date.now() - t0 };
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    try {
+      for await (const chunk of r.body) {
+        buffer += decoder.decode(chunk, { stream: true });
+        let nl;
+        while ((nl = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, nl);
+          buffer = buffer.slice(nl + 1);
+          if (!line.startsWith("data: ")) continue;
+          const payloadLine = line.slice(6);
+          if (payloadLine === "[DONE]") continue;
+          let ev;
+          try { ev = JSON.parse(payloadLine); } catch { continue; }
+          if (ev.type === "response.output_text.delta" && typeof ev.delta === "string") text += ev.delta;
+          else if (ev.type === "response.completed" && ev.response && ev.response.usage) usage = ev.response.usage;
+        }
+      }
+    } catch (e) {
+      // Abort mid-stream is the expected deadline path, not an error: whatever
+      // arrived before the cut is still usable.
+      if (e && (e.name === "AbortError" || controller.signal.aborted)) cutShort = true;
+      else throw e;
+    }
+  } catch (e) {
+    clearTimeout(timer);
+    if (e && (e.name === "AbortError" || controller.signal.aborted)) {
+      return { ok: true, text, cutShort: true, usage, latencyMs: Date.now() - t0 };
+    }
+    return { ok: false, status: 0, details: String(e), latencyMs: Date.now() - t0 };
+  }
+
+  clearTimeout(timer);
+  return { ok: true, text, cutShort, usage, latencyMs: Date.now() - t0 };
+}
+
 function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText, isMath }) {
   const systemSvBase =
     "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
@@ -360,6 +522,8 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
 }
 
 module.exports = async function handler(req, res) {
+  const budget = makeBudget(Date.now());
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
@@ -434,48 +598,54 @@ module.exports = async function handler(req, res) {
       text: { format: responseFormat }
     };
 
-    const r = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(45_000)
-    });
+    // Leave room for the verifier only while there is enough left to be worth
+    // it; otherwise let generation use the whole remaining budget.
+    const canVerify = budget.remaining() - MIN_GENERATION_MS > MIN_VERIFIER_MS;
+    const generationBudget = budget.remaining() - (canVerify ? VERIFIER_RESERVE_MS : 0);
 
-    const raw = await r.text();
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      return json(res, 500, { ok: false, error: "Non-JSON from OpenAI", status: r.status });
-    }
-    if (!r.ok) return json(res, 500, { ok: false, error: "OpenAI error", status: r.status, details: data });
-
-    const outputText =
-      (Array.isArray(data.output) &&
-        data.output
-          .flatMap(o => (Array.isArray(o.content) ? o.content : []))
-          .find(c => c.type === "output_text")?.text) ||
-      data.output_text ||
-      null;
-
-    let exam;
-    try {
-      exam = JSON.parse(outputText);
-    } catch (e) {
-      return json(res, 500, { ok: false, error: "Could not parse model JSON", details: String(e), outputText });
+    const gen = await streamGeneration({ apiKey, payload, budgetMs: generationBudget });
+    if (!gen.ok) {
+      return json(res, 502, { ok: false, error: "OpenAI error", status: gen.status, details: gen.details });
     }
 
-    if (!exam || !Array.isArray(exam.questions) || exam.questions.length !== numQuestions) {
+    const salvage = salvageExamJson(gen.text);
+    let exam = salvage.exam;
+    const truncated = salvage.truncated;
+
+    if (!exam) {
+      // Nothing usable arrived before the deadline. Say so plainly instead of a
+      // generic 500 — the student can retry with fewer questions and succeed.
+      return json(res, 504, {
+        ok: false,
+        error: "Provet hann inte genereras",
+        message: "Generatorn hann inte färdigt inom tidsgränsen. Försök igen, gärna med färre frågor.",
+        elapsedMs: budget.elapsed(),
+        requested: numQuestions,
+      });
+    }
+
+    if (!Array.isArray(exam.questions) || exam.questions.length === 0) {
+      return json(res, 500, { ok: false, error: "Schema mismatch", exam });
+    }
+    // A complete response must still match the requested count exactly; a
+    // salvaged one is short by construction and that is the point.
+    if (!truncated && exam.questions.length !== numQuestions) {
       return json(res, 500, { ok: false, error: "Schema mismatch", exam });
     }
 
-    // Server-side guard: inga essay + fixa short-regler
+    // Server-side guard: inga essay + fixa short-regler.
+    // On a complete response a malformed question is a contract violation and
+    // still fails loudly. On a salvaged one the tail is expected to be ragged,
+    // so bad questions are dropped rather than discarding the whole exam.
+    const guardFail = (reason, detail) => truncated
+      ? null
+      : json(res, 500, { ok: false, error: reason, ...detail });
+    const keptQuestions = [];
     for (const q of exam.questions) {
       if (q?.type !== "mc" && q?.type !== "short") {
-        return json(res, 500, { ok: false, error: "Invalid question type returned", got: q?.type });
+        const bail = guardFail("Invalid question type returned", { got: q?.type });
+        if (bail) return bail;
+        continue;
       }
 
       if (q.type === "short") {
@@ -483,16 +653,33 @@ module.exports = async function handler(req, res) {
         q.options = [];
         q.correct_index = -1;
         if (!q.scoring_rubric || !Array.isArray(q.scoring_rubric.parts)) {
-          return json(res, 500, { ok: false, error: "Missing scoring_rubric on short question", question: q });
+          const bail = guardFail("Missing scoring_rubric on short question", { question: q });
+          if (bail) return bail;
+          continue;
         }
       } else {
         if (!Array.isArray(q.options) || q.options.length < 3) {
-          return json(res, 500, { ok: false, error: "MC options invalid", question: q });
+          const bail = guardFail("MC options invalid", { question: q });
+          if (bail) return bail;
+          continue;
         }
         if (!Number.isInteger(q.correct_index) || q.correct_index < 0 || q.correct_index >= q.options.length) {
-          return json(res, 500, { ok: false, error: "MC correct_index invalid", question: q });
+          const bail = guardFail("MC correct_index invalid", { question: q });
+          if (bail) return bail;
+          continue;
         }
       }
+      keptQuestions.push(q);
+    }
+    exam.questions = keptQuestions;
+    if (exam.questions.length === 0) {
+      return json(res, 504, {
+        ok: false,
+        error: "Provet hann inte genereras",
+        message: "Generatorn hann inte färdigt inom tidsgränsen. Försök igen, gärna med färre frågor.",
+        elapsedMs: budget.elapsed(),
+        requested: numQuestions,
+      });
     }
 
     // ── STRUCTURAL GATE (subject-agnostic, deterministic) ─────────────────
@@ -503,7 +690,19 @@ module.exports = async function handler(req, res) {
     // ── VERIFIER PASS (separate role — checks, never fixes) ───────────────
     const verifier = require("./_verifier");
     let verifierOutcome = { checked: 0, approved: 0, rejected: 0, callOk: false };
-    if (exam.questions.length > 0) {
+    // Verification is skipped when there is no longer time for it. Shipping
+    // gate-only questions is the same fail-open posture the verifier already
+    // had on a network error, and it is strictly better than letting the
+    // platform kill the function and return nothing.
+    let verifierSkipped = false;
+    if (exam.questions.length > 0 && budget.remaining() < MIN_VERIFIER_MS) {
+      verifierSkipped = true;
+      for (const q of exam.questions) {
+        q.validation_status = "gate_only";
+        q.confidence_score = null;
+        q.detected_issues = [];
+      }
+    } else if (exam.questions.length > 0) {
       const v1 = await verifier.verifyQuestions(exam.questions, { apiKey, model, subjectProfile, lang });
       verifierOutcome.callOk = v1.callOk;
       if (v1.callOk) {
@@ -523,7 +722,15 @@ module.exports = async function handler(req, res) {
         // rejected (mirrors the existing >30%-flagged retry threshold below) —
         // never loop, never regenerate per-question (cost + spec §13 says no
         // unbounded regeneration loops).
-        if (rejectedIds.length > 0 && rejectedIds.length / exam.questions.length > 0.3) {
+        //
+        // The regeneration round needs a full generation AND a second
+        // verification. Starting it without that much budget left was the one
+        // path that guaranteed a platform timeout: a 45 s call begun at t=50 s
+        // inside a 60 s function could not finish, and the student got a 504
+        // instead of the round-1 questions that were already verified and ready
+        // to ship.
+        const canRegenerate = budget.remaining() > MIN_GENERATION_MS + MIN_VERIFIER_MS;
+        if (rejectedIds.length > 0 && rejectedIds.length / exam.questions.length > 0.3 && canRegenerate) {
           // Round-1 structurally-gated questions, kept aside so that if
           // regeneration fails for any reason we can still fall back to just
           // the subset that DID pass verification — never ship a question the
@@ -541,7 +748,7 @@ module.exports = async function handler(req, res) {
             method: "POST",
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(45_000)
+            signal: AbortSignal.timeout(Math.max(0, budget.remaining() - MIN_VERIFIER_MS))
           });
           const raw2 = await r2.text();
           let data2; try { data2 = JSON.parse(raw2); } catch { data2 = null; }
@@ -627,6 +834,10 @@ module.exports = async function handler(req, res) {
       event: "exam_quality_gate",
       subjectProfile,
       numRequested: numQuestions,
+      truncated,
+      verifierSkipped,
+      elapsedMs: budget.elapsed(),
+      generationMs: gen.latencyMs,
       generatorModel: model,
       verifierModel: verifier.verifierModel(model),
       structurallyDropped: gate.dropped.length,
@@ -658,6 +869,10 @@ module.exports = async function handler(req, res) {
       meta: {
         isMath,
         subjectProfile,
+        truncated,
+        verifierSkipped,
+        requested: numQuestions,
+        elapsedMs: budget.elapsed(),
         gate: { profile: subjectProfile, dropped: gate.dropped.length, flagged: gate.flagged.length },
         verifier: verifierOutcome,
         model,
@@ -683,3 +898,6 @@ module.exports = async function handler(req, res) {
 module.exports.buildExamPrompts = buildExamPrompts;
 module.exports.buildMockExamSchema = buildMockExamSchema;
 module.exports.looksLikeMath = looksLikeMath;
+module.exports.salvageExamJson = salvageExamJson;   // pure — unit-tested
+module.exports.makeBudget = makeBudget;             // pure — unit-tested
+module.exports.streamGeneration = streamGeneration; // transport — exercised by the eval
