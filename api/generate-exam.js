@@ -274,67 +274,11 @@ async function consumeMockExamQuota(userId, limit, rules) {
   };
 }
 
-module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
-  }
-
-  const user = await requireAuth(req);
-  if (!user) return json(res, 401, { ok: false, error: "Unauthorized" });
-
-  const rules = await loadCentralRules();
-  const role = rules.normalizeRole(await loadUserRole(user.id));
-  const mockLimit = rules.getFeatureLimit(role, "mockExam");
-  const entitlements = rules.getEntitlementSnapshot(role);
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY" });
-
-  let parsed;
-  try {
-    parsed = await readJsonBody(req);
-  } catch (e) {
-    return json(res, 400, { ok: false, error: "Invalid JSON", details: String(e) });
-  }
-
-  const lang = asEnum(parsed.lang, ["sv", "en"], "sv");
-  const level = asEnum(parsed.level, ["E", "C", "A"], "C");
-  const qType = asEnum(parsed.qType, ["mix", "mc", "short"], "mix");
-  const course = safeString(parsed.course, 200);
-  const pastedText = safeString(parsed.pastedText, 3000);
-
-  const numQuestionsRaw = toInt(parsed.numQuestions, 12);
-  const numQuestions = Math.min(20, Math.max(3, numQuestionsRaw));
-
-  if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
-
-  let quota;
-  try {
-    quota = await consumeMockExamQuota(user.id, mockLimit, rules);
-  } catch (e) {
-    return json(res, 500, {
-      ok: false,
-      error: "mock_quota_unavailable",
-      message: "Mockprovskvoten kunde inte kontrolleras. Kör Supabase-migrationen innan den här versionen deployas.",
-      details: e.details || String(e)
-    });
-  }
-
-  if (!quota.ok) {
-    return json(res, 429, {
-      ok: false,
-      error: "Quota exceeded",
-      count: quota.count,
-      limit: quota.limit,
-      period: quota.period
-    });
-  }
-
-  const isMath = looksLikeMath(course, pastedText);
-  const model = pickModel({ isMath });
-  const responseFormat = buildMockExamSchema(numQuestions);
-
+// Prompt construction, extracted from the handler so it can be exercised
+// without an HTTP request, an account or a quota — tests/evals/exam-quality
+// runs the REAL production prompts against different models. Pure: no I/O,
+// no env reads, output depends only on the arguments.
+function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText, isMath }) {
   const systemSvBase =
     "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
     "Du MÅSTE följa JSON-schemat exakt och bara returnera JSON. " +
@@ -454,12 +398,80 @@ module.exports = async function handler(req, res) {
     pastedText
   ].filter(Boolean).join("\n");
 
+  return { systemPrompt, userPrompt: lang === "sv" ? userSv : userEn };
+}
+
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return json(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  const user = await requireAuth(req);
+  if (!user) return json(res, 401, { ok: false, error: "Unauthorized" });
+
+  const rules = await loadCentralRules();
+  const role = rules.normalizeRole(await loadUserRole(user.id));
+  const mockLimit = rules.getFeatureLimit(role, "mockExam");
+  const entitlements = rules.getEntitlementSnapshot(role);
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return json(res, 500, { ok: false, error: "Missing OPENAI_API_KEY" });
+
+  let parsed;
+  try {
+    parsed = await readJsonBody(req);
+  } catch (e) {
+    return json(res, 400, { ok: false, error: "Invalid JSON", details: String(e) });
+  }
+
+  const lang = asEnum(parsed.lang, ["sv", "en"], "sv");
+  const level = asEnum(parsed.level, ["E", "C", "A"], "C");
+  const qType = asEnum(parsed.qType, ["mix", "mc", "short"], "mix");
+  const course = safeString(parsed.course, 200);
+  const pastedText = safeString(parsed.pastedText, 3000);
+
+  const numQuestionsRaw = toInt(parsed.numQuestions, 12);
+  const numQuestions = Math.min(20, Math.max(3, numQuestionsRaw));
+
+  if (!pastedText.trim()) return json(res, 400, { ok: false, error: "Missing pastedText" });
+
+  let quota;
+  try {
+    quota = await consumeMockExamQuota(user.id, mockLimit, rules);
+  } catch (e) {
+    return json(res, 500, {
+      ok: false,
+      error: "mock_quota_unavailable",
+      message: "Mockprovskvoten kunde inte kontrolleras. Kör Supabase-migrationen innan den här versionen deployas.",
+      details: e.details || String(e)
+    });
+  }
+
+  if (!quota.ok) {
+    return json(res, 429, {
+      ok: false,
+      error: "Quota exceeded",
+      count: quota.count,
+      limit: quota.limit,
+      period: quota.period
+    });
+  }
+
+  const isMath = looksLikeMath(course, pastedText);
+  const model = pickModel({ isMath });
+  const responseFormat = buildMockExamSchema(numQuestions);
+
+  const { systemPrompt, userPrompt } = buildExamPrompts({
+    lang, level, course, qType, numQuestions, pastedText, isMath
+  });
+
   try {
     const payload = {
       model,
       input: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: lang === "sv" ? userSv : userEn }
+        { role: "user", content: userPrompt }
       ],
       text: { format: responseFormat }
     };
@@ -657,6 +669,8 @@ module.exports = async function handler(req, res) {
       event: "exam_quality_gate",
       subjectProfile,
       numRequested: numQuestions,
+      generatorModel: model,
+      verifierModel: verifier.verifierModel(model),
       structurallyDropped: gate.dropped.length,
       structurallyFlagged: gate.flagged.length,
       verifierChecked: verifierOutcome.checked,
@@ -704,3 +718,10 @@ module.exports = async function handler(req, res) {
     return json(res, 500, { ok: false, error: "Server error", details: String(e) });
   }
 };
+
+// Named exports hang off the handler function (Vercel resolves module.exports
+// itself as the handler). Exposed so tests/evals can drive the real prompt and
+// schema without an HTTP request.
+module.exports.buildExamPrompts = buildExamPrompts;
+module.exports.buildMockExamSchema = buildMockExamSchema;
+module.exports.looksLikeMath = looksLikeMath;

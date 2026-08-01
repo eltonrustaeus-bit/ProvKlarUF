@@ -70,6 +70,48 @@ function decideApproval(r, thresholds) {
   return true;
 }
 
+// The verifier is a SECOND OPINION, so it must be allowed to run on a different
+// model than the generator. Running both roles on the same weights reproduces the
+// same blind spots: api/hp.js:571 records that gpt-4o-mini reliably mislabels
+// correct_index on quantitative items while writing a correct explanation — a
+// same-model reviewer agrees with that mistake. Falls back to the generator's
+// model so behaviour is unchanged until the env var is set.
+function verifierModel(generatorModel) {
+  return process.env.OPENAI_VERIFIER_MODEL || generatorModel;
+}
+
+// Subject-specific review instructions. The base prompt already covers every
+// subject (factual errors, multiple valid answers, fabricated terms, absurd
+// distractors, points/difficulty mismatch); these add what a reviewer of THAT
+// subject would check that a generic reviewer would not. Costs ~40 tokens per
+// call. A profile with no entry simply gets the base prompt.
+const SUBJECT_HINTS = {
+  law: {
+    sv: "Ämnesspecifikt för juridik: kontrollera att brottsrubriceringar, lagrum och straffskalor är verkliga och korrekt återgivna, att uppsåt/oaktsamhet inte blandas ihop, och att föråldrad terminologi inte används som huvudterm.",
+    en: "Law-specific: verify crime categories, statutory references, and sentencing ranges are real and correctly stated, that intent/negligence aren't conflated, and that obsolete terminology isn't used as the primary term.",
+  },
+  mathematics: {
+    sv: "Ämnesspecifikt för matematik: räkna igenom varje uppgift själv INNAN du bedömer den. Kontrollera att correct_index pekar på det alternativ som din egen uträkning ger, och att slutsvaret i model_answer stämmer med samma alternativ — en korrekt förklaring kombinerad med fel index är det vanligaste felet och ska ge approved=false. Kontrollera även att enheter och avrundning är konsekventa.",
+    en: "Maths-specific: solve every task yourself BEFORE judging it. Verify that correct_index points at the option your own computation yields, and that the final answer in model_answer matches that same option — a correct explanation combined with a wrong index is the most common failure and must give approved=false. Also check that units and rounding are consistent.",
+  },
+  natural_sciences: {
+    sv: "Ämnesspecifikt för naturvetenskap: kontrollera att enheter, storheter och storleksordningar är korrekta och konsekventa, att formler återges rätt, att kemiska formler och reaktionsformler är balanserade, och att begrepp från fysik, kemi och biologi inte blandas ihop. Räkna igenom uppgifter som kräver beräkning.",
+    en: "Science-specific: verify that units, quantities and orders of magnitude are correct and consistent, that formulas are stated correctly, that chemical formulas and reaction equations are balanced, and that physics, chemistry and biology concepts aren't conflated. Work through any task requiring calculation.",
+  },
+  social_sciences: {
+    sv: "Ämnesspecifikt för samhällsorienterande ämnen: kontrollera att årtal, personer, händelseförlopp, institutioner och siffror är verkliga och korrekt återgivna. Var särskilt uppmärksam på påhittade källor, citat och statistik. Tolknings- och värderingsfrågor har ofta flera rimliga svar — en sådan fråga ska vara kortsvar, inte flerval, och ska annars ge approved=false.",
+    en: "Social-studies-specific: verify that dates, people, sequences of events, institutions and figures are real and correctly stated. Watch especially for fabricated sources, quotations and statistics. Interpretive or evaluative questions often have several reasonable answers — such a question must be short-answer, not multiple choice, and otherwise gives approved=false.",
+  },
+  languages: {
+    sv: "Ämnesspecifikt för språk: kontrollera att målspråket är grammatiskt korrekt, att stavning och diakritiska tecken stämmer, och att inget distraktoralternativ råkar vara en lika godtagbar översättning, böjning eller synonym som facit. Idiomatiska uttryck har ofta fler än ett korrekt svar — då är frågan flertydig.",
+    en: "Language-specific: verify that the target language is grammatically correct, that spelling and diacritics are right, and that no distractor happens to be an equally acceptable translation, inflection or synonym as the answer key. Idiomatic expressions often have more than one correct answer — that makes the question ambiguous.",
+  },
+  programming: {
+    sv: "Ämnesspecifikt för programmering: kontrollera att kod i frågan och i alternativen är syntaktiskt giltig i det angivna språket, och att den påstådda utdatan är vad koden faktiskt producerar — spåra igenom den rad för rad. Var uppmärksam på nollindexering, off-by-one och att språkversionens beteende stämmer.",
+    en: "Programming-specific: verify that code in the question and in the options is syntactically valid in the stated language, and that the claimed output is what the code actually produces — trace through it line by line. Watch for zero-indexing, off-by-one errors, and language-version-specific behaviour.",
+  },
+};
+
 function buildVerifierPrompt(lang, subjectProfile) {
   const base = lang === "sv"
     ? "Du är en oberoende ämnesgranskare — INTE samma roll som skapade frågorna. " +
@@ -84,11 +126,8 @@ function buildVerifierPrompt(lang, subjectProfile) {
       "term/category/citation, distractors that are absurd or give away the answer through phrasing, points that don't " +
       "match the question's scope, or a difficulty that doesn't match cognitive_level. " +
       "required_changes must be empty only if the question can be shown to a student exactly as-is.";
-  const profileHint = subjectProfile === "law"
-    ? (lang === "sv"
-      ? " Ämnesspecifikt för juridik: kontrollera att brottsrubriceringar, lagrum och straffskalor är verkliga och korrekt återgivna, att uppsåt/oaktsamhet inte blandas ihop, och att föråldrad terminologi inte används som huvudterm."
-      : " Law-specific: verify crime categories, statutory references, and sentencing ranges are real and correctly stated, that intent/negligence aren't conflated, and that obsolete terminology isn't used as the primary term.")
-    : "";
+  const hint = SUBJECT_HINTS[subjectProfile];
+  const profileHint = hint ? " " + (lang === "sv" ? hint.sv : hint.en) : "";
   return base + profileHint;
 }
 
@@ -117,12 +156,14 @@ async function verifyQuestions(questions, opts) {
     source_references: q.source_references,
   }));
 
+  const reviewModel = verifierModel(model);
+
   try {
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model,
+        model: reviewModel,
         input: [
           { role: "system", content: buildVerifierPrompt(lang, subjectProfile) },
           { role: "user", content: JSON.stringify(items) }
@@ -131,19 +172,20 @@ async function verifyQuestions(questions, opts) {
       }),
       signal: AbortSignal.timeout(30_000)
     });
-    if (!r.ok) return { perQuestion: new Map(), callOk: false };
+    const failed = { perQuestion: new Map(), callOk: false, model: reviewModel };
+    if (!r.ok) return failed;
     const raw = await r.text();
     let data;
-    try { data = JSON.parse(raw); } catch { return { perQuestion: new Map(), callOk: false }; }
+    try { data = JSON.parse(raw); } catch { return failed; }
     const outputText = extractOutputText(data);
-    if (!outputText) return { perQuestion: new Map(), callOk: false };
+    if (!outputText) return failed;
     let parsed;
-    try { parsed = JSON.parse(outputText); } catch { return { perQuestion: new Map(), callOk: false }; }
+    try { parsed = JSON.parse(outputText); } catch { return failed; }
     const perQuestion = new Map();
     for (const res of (parsed.results || [])) perQuestion.set(String(res.id), res);
-    return { perQuestion, callOk: true };
+    return { perQuestion, callOk: true, model: reviewModel };
   } catch {
-    return { perQuestion: new Map(), callOk: false };
+    return { perQuestion: new Map(), callOk: false, model: reviewModel };
   }
 }
 
@@ -151,6 +193,8 @@ module.exports = {
   buildVerifierSchema,
   decideApproval,
   buildVerifierPrompt,
+  verifierModel,
   verifyQuestions,
+  SUBJECT_HINTS,
   DEFAULT_THRESHOLDS,
 };

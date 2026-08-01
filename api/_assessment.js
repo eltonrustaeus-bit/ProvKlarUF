@@ -134,7 +134,106 @@ function generalQualityIssues(q) {
   if (/(system prompt|json schema|correct_index|as an ai|internal use)/i.test(String(q.question || ""))) {
     issues.push("leaked_instructions");
   }
+
+  // ── Item-writing flaws that apply to EVERY subject ────────────────────────
+  // Both are non-blocking: they describe a weak question, not an unanswerable
+  // one, and dropping them would shrink exams for a stylistic reason. They are
+  // surfaced in the gate log and to the verifier instead.
+  if (type === "mc") {
+    const opts = Array.isArray(q.options) ? q.options : [];
+    // "Alla av ovanstående" / "none of the above" — a well-documented flaw:
+    // it tests reading of the option list rather than the subject.
+    if (opts.some(o => CATCH_ALL_OPTION.test(String(o || "").trim()))) {
+      issues.push("catch_all_option");
+    }
+    // The longest option being the key is the classic test-wise giveaway: a
+    // student who knows nothing can score above chance by picking the longest.
+    const ci = q.correct_index;
+    if (Number.isInteger(ci) && ci >= 0 && ci < opts.length && opts.length >= 3) {
+      const lens = opts.map(o => String(o || "").trim().length);
+      const keyLen = lens[ci];
+      const others = lens.filter((_, i) => i !== ci);
+      const longestOther = Math.max(...others);
+      if (keyLen >= longestOther * 1.5 && keyLen - longestOther >= 25) {
+        issues.push("longest_option_is_answer");
+      }
+    }
+  }
   return issues;
+}
+
+// Matches an option whose whole text is a catch-all rather than a real answer.
+const CATCH_ALL_OPTION =
+  /^(alla|inga|inget|ingen|båda|samtliga)\s+(av\s+)?(ovanstående|ovan|dessa|alternativen)\b|^(all|none|both)\s+of\s+the\s+above\b/i;
+
+// ── Quantity parsing (shared by the science overlay) ────────────────────────
+// Splits "9,81 m/s^2" into { value: 9.81, unit: "m/s^2" }. Returns null when the
+// option is not a quantity at all (plain prose), so prose options are simply
+// skipped rather than coerced into a misleading number. Deliberately stricter
+// than the maths overlay's bare-number parse: in science two options can share
+// a number while meaning different things ("5 J" vs "5 N"), so the unit must
+// match too before anything is called ambiguous.
+function parseQuantity(raw) {
+  const s = String(raw == null ? "" : raw).trim();
+  const m = s.match(/^([+-]?\d+(?:[.,]\d+)?)\s*(.*)$/);
+  if (!m) return null;
+  const value = Number(m[1].replace(",", "."));
+  if (!Number.isFinite(value)) return null;
+  const unit = m[2]
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/\*/g, "")
+    .replace(/\^/g, "");
+  return { value, unit };
+}
+
+// Normalisation for the languages overlay. Collapses whitespace and strips
+// wrapping quotes plus trailing sentence punctuation — differences that carry
+// no meaning in a vocabulary or grammar item. Diacritics and letter case are
+// deliberately PRESERVED: in a language test "el niño" vs "el nino" is a real
+// spelling distinction and a legitimate distractor pair, so folding them
+// together would drop valid questions.
+function normalizeLanguageOption(raw) {
+  return String(raw == null ? "" : raw)
+    .trim()
+    .replace(/^["'«»„“”‚‘’]+|["'«»„“”‚‘’]+$/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/[.!?;:,]+$/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+// Pulls out anything that is plausibly code: fenced blocks and inline backtick
+// spans. Only these are bracket-checked — prose routinely contains a lone
+// parenthesis and must never be treated as broken code.
+function extractCodeSpans(text) {
+  const s = String(text == null ? "" : text);
+  const spans = [];
+  const fenced = s.match(/```[\s\S]*?```/g) || [];
+  for (const f of fenced) spans.push(f.replace(/^```[^\n]*\n?/, "").replace(/```$/, ""));
+  const stripped = s.replace(/```[\s\S]*?```/g, " ");
+  const inline = stripped.match(/`[^`\n]+`/g) || [];
+  for (const i of inline) spans.push(i.slice(1, -1));
+  return spans;
+}
+
+// True when (), [] or {} are unbalanced. String and char literals are removed
+// first so that print("(") does not read as unbalanced. Still a heuristic —
+// which is why the caller flags rather than drops.
+function hasUnbalancedDelimiters(code) {
+  const src = String(code || "")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/'(?:\\.|[^'\\])*'/g, "''");
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  const stack = [];
+  for (const ch of src) {
+    if (ch === "(" || ch === "[" || ch === "{") stack.push(ch);
+    else if (pairs[ch]) {
+      if (stack.pop() !== pairs[ch]) return true;
+    }
+  }
+  return stack.length > 0;
 }
 
 // ── Profile registry (general core + optional per-subject overlay) ───────────
@@ -171,10 +270,72 @@ const PROFILES = {
       return issues;
     },
   },
-  languages: { key: "languages", allowedTypes: ["mc", "short"], extraIssues: () => [] },
-  natural_sciences: { key: "natural_sciences", allowedTypes: ["mc", "short"], extraIssues: () => [] },
-  social_sciences: { key: "social_sciences", allowedTypes: ["mc", "short"], extraIssues: () => [] },
-  programming: { key: "programming", allowedTypes: ["mc", "short"], extraIssues: () => [] },
+  languages: {
+    key: "languages", allowedTypes: ["mc", "short"],
+    extraIssues(q) {
+      const issues = [];
+      // Two options that differ only in wrapping quotes, spacing or trailing
+      // punctuation are the same answer — the item has two correct choices.
+      // Case and diacritics are NOT folded (see normalizeLanguageOption).
+      if (q.type === "mc" && Array.isArray(q.options)) {
+        const norm = q.options.map(normalizeLanguageOption).filter(Boolean);
+        if (norm.length >= 2 && new Set(norm).size !== norm.length) {
+          issues.push("language_options_equivalent");
+        }
+      }
+      return issues;
+    },
+  },
+  natural_sciences: {
+    key: "natural_sciences", allowedTypes: ["mc", "short"],
+    extraIssues(q) {
+      const issues = [];
+      // Same value AND same unit in two options ("5,0 N" vs "5 N") → ambiguous.
+      // Options that aren't quantities are skipped, so a prose item is never
+      // affected. Requires the unit to match, unlike the maths overlay.
+      if (q.type === "mc" && Array.isArray(q.options)) {
+        const quantities = q.options.map(parseQuantity).filter(Boolean);
+        const keys = quantities.map(x => `${x.value}|${x.unit}`);
+        if (keys.length >= 2 && new Set(keys).size !== keys.length) {
+          issues.push("science_options_quantitatively_equal");
+        }
+      }
+      return issues;
+    },
+  },
+  social_sciences: {
+    key: "social_sciences", allowedTypes: ["mc", "short"],
+    extraIssues(q) {
+      const issues = [];
+      // Same over-categorical risk as law: social science answers are rarely
+      // absolute, so "alltid/aldrig/endast" usually makes a second option
+      // defensible. Non-blocking, exactly as in the law profile.
+      if (q.type === "mc" && /\balltid\b|\baldrig\b|\bendast\b/i.test(String(q.question || ""))) {
+        issues.push("so_categorical_wording");
+      }
+      // A date past next year stated as historical fact is a fabrication tell.
+      // Non-blocking, because economics and politics legitimately discuss
+      // forecasts — this surfaces the question for review, never drops it.
+      const haystack = [String(q.question || ""), ...(Array.isArray(q.options) ? q.options.map(String) : [])].join(" \n ");
+      const maxPlausibleYear = new Date().getFullYear() + 1;
+      const years = (haystack.match(/\b(1[0-9]{3}|2[0-9]{3})\b/g) || []).map(Number);
+      if (years.some(y => y > maxPlausibleYear)) issues.push("so_implausible_year");
+      return issues;
+    },
+  },
+  programming: {
+    key: "programming", allowedTypes: ["mc", "short"],
+    extraIssues(q) {
+      const issues = [];
+      // Only backticked/fenced spans are inspected, and the balance check is a
+      // heuristic (see hasUnbalancedDelimiters) — hence non-blocking. The
+      // verifier's programming hint does the real "does this code run" work.
+      const texts = [String(q.question || ""), ...(Array.isArray(q.options) ? q.options.map(String) : [])];
+      const spans = texts.flatMap(extractCodeSpans);
+      if (spans.some(hasUnbalancedDelimiters)) issues.push("programming_unbalanced_code");
+      return issues;
+    },
+  },
 };
 function getProfile(key) { return PROFILES[key] || PROFILES.generic; }
 
@@ -184,9 +345,17 @@ const BLOCKING = new Set([
   "empty_option", "duplicate_options", "answer_key_out_of_range",
   "open_question_ungradeable", "leaked_instructions", "math_options_numerically_equal",
   "cognitive_level_missing", "scoring_rubric_missing_for_open", "law_deprecated_terminology",
+  "science_options_quantitatively_equal", "language_options_equivalent",
 ]);
-// Non-blocking issues are flagged (soft warnings) but the question is kept:
-//   law_categorical_wording — surfaced to reviewers/logs, not auto-dropped.
+// Non-blocking issues are flagged (soft warnings) but the question is kept —
+// they describe a weak or suspicious question, not an unanswerable one, and
+// dropping them would shrink the exam the student asked for:
+//   law_categorical_wording        — over-categorical single-answer wording
+//   so_categorical_wording         — same, in social studies
+//   so_implausible_year            — date past next year (forecast, or fabricated)
+//   programming_unbalanced_code    — bracket heuristic, verifier decides
+//   catch_all_option               — "alla av ovanstående"-style option
+//   longest_option_is_answer       — the key is conspicuously the longest choice
 
 // Gate an exam. Keeps only questions safe to show; signs their answer keys.
 function gateExam(exam, opts) {
@@ -224,6 +393,10 @@ module.exports = {
   getProfile,
   PROFILES,
   generalQualityIssues,
+  parseQuantity,
+  normalizeLanguageOption,
+  extractCodeSpans,
+  hasUnbalancedDelimiters,
   gateExam,
   signAnswerKey,
   verifyAnswerKey,
