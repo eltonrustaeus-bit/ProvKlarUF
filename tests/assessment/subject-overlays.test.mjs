@@ -147,6 +147,62 @@ check("maths still drops numerically equal options", (() => {
   return !kept(q, "mathematics");
 })());
 
+// ── regression: word options in a maths exam must survive ──────────────────
+// Number("") is 0, so the previous parse read every prose option as the number
+// zero and dropped the question for having "identical numbers". Measured effect
+// on a real Matematik 2b generation: 8 of 12 questions dropped, 0 delivered.
+check("maths KEEPS a method-name question (all options are words)", (() => {
+  const q = mc({
+    question: "Vilken metod används för att lösa x² - 6x + 8 = 0?",
+    options: ["Nollproduktmetoden", "pq-formeln", "Diskriminanten", "Kvadratkomplettering"],
+    correct_index: 1,
+  });
+  return kept(q, "mathematics");
+})());
+
+check("maths KEEPS a concept question about the discriminant", (() => {
+  const q = mc({
+    question: "Vad betyder det om diskriminanten är negativ?",
+    options: ["Två reella lösningar", "En dubbelrot", "Ingen reell lösning"],
+    correct_index: 2,
+  });
+  return kept(q, "mathematics");
+})());
+
+check("maths KEEPS compound numeric options ('0 och 4' vs '2 och 4')", (() => {
+  const q = mc({ options: ["0 och 4", "2 och 4", "0 och 2", "4 och 6"], correct_index: 0 });
+  return kept(q, "mathematics");
+})());
+
+check("maths KEEPS equation options", (() => {
+  const q = mc({
+    options: ["x² - 13x + 40 = 0", "x² + 13x = 40", "x² - 26x + 40 = 0"],
+    correct_index: 0,
+  });
+  return kept(q, "mathematics");
+})());
+
+check("maths still drops '5 cm' against '5,0 cm'", (() => {
+  const q = mc({ options: ["5 cm", "5,0 cm", "8 cm"], correct_index: 2 });
+  return !kept(q, "mathematics");
+})());
+
+check("maths KEEPS same number with different units (5 cm vs 5 m)", (() => {
+  const q = mc({ options: ["5 cm", "5 m", "5 km"], correct_index: 0 });
+  return kept(q, "mathematics");
+})());
+
+check("maths still drops 'x = 4' against '4'", (() => {
+  const q = mc({ options: ["x = 4", "4", "9"], correct_index: 2 });
+  return !kept(q, "mathematics");
+})());
+
+check("parseMathValue returns null for prose", A.parseMathValue("Nollproduktmetoden") === null);
+check("parseMathValue returns null for compound answers", A.parseMathValue("0 och 4") === null);
+check("parseMathValue returns null for an expression", A.parseMathValue("x² - 13x + 40 = 0") === null);
+check("parseMathValue equates 4 and 4.0", A.parseMathValue("4") === A.parseMathValue("4.0"));
+check("parseMathValue separates units", A.parseMathValue("5 cm") !== A.parseMathValue("5 m"));
+
 check("law still drops deprecated terminology", (() => {
   const q = mc({ question: "Vad är snatteri?", options: ["a", "b", "c"] });
   return !kept(q, "law");

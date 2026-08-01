@@ -290,6 +290,29 @@ function parseQuantity(raw) {
   return { value, unit };
 }
 
+// Parses an option as a single mathematical value, or returns null when it is
+// not one. Replaces `Number(String(o).replace(/[^0-9.,\-]/g, ""))`, which read
+// every prose option as the number 0 — because Number("") is 0, not NaN — so a
+// question with word options ("Nollproduktmetoden", "Diskriminanten",
+// "Kvadratkomplettering") looked like three identical numbers and was dropped.
+// That deleted exactly the concept and reasoning questions the maths prompt asks
+// for, and could empty a whole exam: measured 8 of 12 questions dropped, 0
+// delivered, endpoint returning 502.
+//
+// Only a bare number, optionally with a single trailing unit and optionally
+// written as "x = 4", is comparable. Anything compound ("0 och 4"), any
+// expression ("x² - 13x + 40 = 0") and all prose return null and are skipped.
+// The case the rule exists for — "4" against "4.0" — still resolves.
+function parseMathValue(raw) {
+  let s = String(raw == null ? "" : raw).trim().toLowerCase();
+  if (!/\d/.test(s)) return null;
+  s = s.replace(/^[a-zà-ÿ]\s*=\s*/, "");
+  const m = s.match(/^([+-]?\d+(?:[.,]\d+)?)\s*([^\s]*)$/);
+  if (!m) return null;
+  const unit = m[2].replace(/[.,;:]+$/, "");
+  return `${Number(m[1].replace(",", "."))}|${unit}`;
+}
+
 // Normalisation for the languages overlay. Collapses whitespace and strips
 // wrapping quotes plus trailing sentence punctuation — differences that carry
 // no meaning in a vocabulary or grammar item. Diacritics and letter case are
@@ -345,11 +368,11 @@ const PROFILES = {
     key: "mathematics", allowedTypes: ["mc", "short"],
     extraIssues(q) {
       const issues = [];
-      // two MC options that are the SAME number (e.g. "4" and "4.0") → ambiguous
+      // two MC options that are the SAME number (e.g. "4" and "4.0") → ambiguous.
+      // Options that are not single values (prose, "0 och 4", expressions) are
+      // skipped rather than coerced — see parseMathValue.
       if (q.type === "mc" && Array.isArray(q.options)) {
-        const vals = q.options
-          .map(o => Number(String(o).replace(/[^0-9.,\-]/g, "").replace(",", ".")))
-          .filter(v => Number.isFinite(v));
+        const vals = q.options.map(parseMathValue).filter(v => v !== null);
         if (vals.length >= 2 && new Set(vals).size !== vals.length) {
           issues.push("math_options_numerically_equal");
         }
@@ -496,6 +519,7 @@ module.exports = {
   PROFILES,
   generalQualityIssues,
   parseQuantity,
+  parseMathValue,
   normalizeLanguageOption,
   extractCodeSpans,
   hasUnbalancedDelimiters,
