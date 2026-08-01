@@ -25,3 +25,6 @@ ruvector.db
 *.rvf.lock
 
 .env*
+
+# eval output (regenerated, not source of truth)
+tests/evals/exam-quality/results/
