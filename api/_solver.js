@@ -64,9 +64,15 @@ function buildSolverSchema(n) {
           items: {
             type: "object",
             additionalProperties: false,
-            required: ["id", "index", "confidence", "reason"],
+            // Field order matters: structured output is generated in this
+            // order, so the model must commit to a true/false judgement on
+            // every option BEFORE it names an index. Asking for the index first
+            // let it pick an answer and never audit the rest — which is exactly
+            // why it never once reported an ambiguous question.
+            required: ["id", "option_verdicts", "index", "confidence", "reason"],
             properties: {
               id: { type: "string" },
+              option_verdicts: { type: "array", items: { type: "boolean" }, maxItems: 6 },
               index: { type: "integer", minimum: -2 },
               confidence: { type: "number" },
               reason: { type: "string" },
@@ -82,7 +88,12 @@ function buildSolverPrompt(lang, subjectProfile) {
   const base = lang === "sv"
     ? "Du är en ämnesexpert som LÖSER provfrågor. Du får kursmaterialet och ett antal flervalsfrågor. " +
       "Du får INTE se något facit — lös varje fråga helt själv. " +
-      "Returnera det 0-baserade indexet för det alternativ du kommer fram till. " +
+      "Arbeta i två steg för varje fråga. " +
+      "STEG 1 — option_verdicts: gå igenom alternativen i tur och ordning och avgör för VART OCH ETT, oberoende av de andra, " +
+      "om det ensamt är ett korrekt svar på frågan (true) eller inte (false). Listan ska ha exakt lika många värden som frågan har alternativ, i samma ordning. " +
+      "Ett alternativ är true bara om det fullt ut besvarar frågan så som den är ställd — inte om det bara är närbesläktat, delvis rätt eller 'också sant men inte det efterfrågade'. " +
+      "Om två alternativ båda helt uppfyller frågan ska BÅDA vara true. Ljug inte för att få exakt ett true. " +
+      "STEG 2 — index: det 0-baserade indexet för det alternativ du kommer fram till. " +
       "Räkna igenom varje beräkning noga och spåra igenom eventuell kod rad för rad innan du svarar. " +
       "Returnera -1 om INGET enskilt alternativ är entydigt korrekt — alltså om flera alternativ är lika rätt, eller om inget av dem är rätt. " +
       "Returnera -2 om frågan inte går att avgöra utifrån materialet och alternativen du fått, till exempel om den bygger på en del av materialet du inte ser. " +
@@ -90,7 +101,12 @@ function buildSolverPrompt(lang, subjectProfile) {
       "reason: en mening om hur du kom fram till svaret."
     : "You are a subject expert who SOLVES exam questions. You get the course material and a number of multiple-choice questions. " +
       "You do NOT get to see any answer key — solve each question entirely yourself. " +
-      "Return the 0-based index of the option you arrive at. " +
+      "Work in two steps for each question. " +
+      "STEP 1 — option_verdicts: go through the options in order and decide for EACH ONE, independently of the others, " +
+      "whether it alone is a correct answer to the question (true) or not (false). The list must hold exactly as many values as the question has options, in the same order. " +
+      "An option is true only if it fully answers the question as asked — not if it is merely related, partly right, or 'also true but not what was asked'. " +
+      "If two options both fully satisfy the question, BOTH must be true. Do not distort a verdict to end up with exactly one true. " +
+      "STEP 2 — index: the 0-based index of the option you arrive at. " +
       "Work through every calculation carefully and trace through any code line by line before answering. " +
       "Return -1 if NO single option is unambiguously correct — that is, if several are equally right, or none of them is. " +
       "Return -2 if the question cannot be decided from the material and options you were given, for instance if it relies on part of the material you cannot see. " +
@@ -144,6 +160,31 @@ function decideKeep(verdict, question, opts) {
 
   if (idx === CANNOT_JUDGE) return { keep: true, reason: "solver_cannot_judge" };
   if (idx === NO_SINGLE_ANSWER) return { keep: false, reason: "solver_no_single_answer" };
+
+  // Ambiguity is computed from the solver's own per-option judgements rather
+  // than trusting it to remember to report it. On the previous prompt the
+  // solver returned -1 exactly zero times across 143 questions while the gpt-5
+  // judge found four ambiguous ones — it was picking an option and moving on.
+  // Deriving the verdict here removes that dependency: if the solver itself
+  // says two options are correct, the question has two correct answers whether
+  // or not it draws the conclusion.
+  //
+  // Guarded by a length match, so a malformed or truncated verdict list is
+  // ignored rather than allowed to delete questions.
+  const verdicts = Array.isArray(verdict.option_verdicts) ? verdict.option_verdicts : null;
+  const optionCount = Array.isArray(question.options) ? question.options.length : 0;
+  if (verdicts && optionCount > 0 && verdicts.length === optionCount) {
+    const trueCount = verdicts.filter(Boolean).length;
+    if (trueCount > 1) return { keep: false, reason: "solver_multiple_correct_options" };
+    if (trueCount === 0) return { keep: false, reason: "solver_no_correct_option" };
+    // Exactly one option was judged correct. That verdict is a better signal
+    // than the separately generated index, so it decides.
+    const onlyTrue = verdicts.findIndex(Boolean);
+    if (onlyTrue !== question.correct_index) {
+      return { keep: false, reason: "solver_disagrees_on_key" };
+    }
+    return { keep: true, reason: "solver_agrees" };
+  }
   if (!Number.isInteger(idx) || idx < 0) return { keep: true, reason: "solver_invalid_index" };
 
   if (idx === question.correct_index) return { keep: true, reason: "solver_agrees" };
