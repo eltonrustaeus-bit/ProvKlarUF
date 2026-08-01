@@ -415,6 +415,19 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     "9) Om type=='short': scoring_rubric.parts ska bryta ner poängen i konkreta delmoment (t.ex. 'Definition: 1p', 'Villkor: 2p') som tillsammans summerar till points. full_score_requirements ska säga EXAKT vad som krävs för full poäng — fråga aldrig i hemlighet efter mer än vad question-texten bad om. accepted_answers ska lista alternativa godtagbara formuleringar. " +
     "10) Om type=='mc': scoring_rubric ska ändå finnas i svaret men med tom parts-array, full_score_requirements='' , partial_credit_notes=''. " +
     "11) estimated_answer_length ska matcha vad points faktiskt kräver — en 1-poängsfråga ska inte kräva 'long_paragraph'. " +
+    "12) ENTYDIGHET (viktigast av allt för flervalsfrågor): exakt ETT alternativ ska vara korrekt. " +
+    "Varje övrigt alternativ MÅSTE vara definitivt FELAKTIGT — inte bara sämre, mindre lämpligt, ofullständigt eller mindre vanligt. " +
+    "Innan du skriver klart en fråga: gå igenom vart och ett av de felaktiga alternativen och kontrollera att det finns ett konkret skäl att förkasta det. " +
+    "Om du inte kan formulera det skälet är alternativet inte en distraktor utan ett andra rätt svar — gör om frågan. " +
+    "13) Ställ ALDRIG en fråga där materialet stöder flera alternativ samtidigt. Vanliga fällor att undvika: " +
+    "(a) 'Vilken metod kan användas för att...' när materialet beskriver flera fungerande metoder — fråga i stället efter resultatet, eller lås frågan till en specifik metod. " +
+    "(b) 'Vilken faktor/vilket begrepp tillhör kategorin X?' när materialet räknar upp flera i samma kategori. " +
+    "(c) Ordningsfrågor som 'den första/andra faktorn' när ordningen inte är definierad. " +
+    "(d) Villkorsfrågor där flera värden uppfyller villkoret — ange villkoret så att exakt ett alternativ passar. " +
+    "(e) Alternativ som är logiska följder av varandra, t.ex. 'x > 10' och 'x != 10' när x är större än 10. " +
+    "Fråga hellre efter ett beräknat värde, ett exakt begrepp eller en konkret konsekvens än efter 'vilket av dessa stämmer'. " +
+    "14) RÄKNA IGENOM varje beräkning innan du sätter correct_index, och kontrollera att slutsvaret i model_answer pekar på exakt det alternativet. " +
+    "En korrekt förklaring med fel markerat alternativ är det allvarligaste felet ett prov kan innehålla. " +
     cognitiveVerbHint("sv") + " ";
 
   const systemSvMath =
@@ -454,6 +467,19 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     "9) If type=='short': scoring_rubric.parts must break down the points into concrete sub-components (e.g. 'Definition: 1p', 'Conditions: 2p') that sum to points. full_score_requirements must state EXACTLY what is required for full marks — never secretly ask for more than what the question text requested. accepted_answers must list alternative acceptable phrasings. " +
     "10) If type=='mc': scoring_rubric must still be present in the response but with an empty parts array, full_score_requirements='', partial_credit_notes=''. " +
     "11) estimated_answer_length must match what the points actually require — a 1-point question should not require 'long_paragraph'. " +
+    "12) UNAMBIGUITY (the single most important rule for multiple choice): exactly ONE option must be correct. " +
+    "Every other option MUST be definitively WRONG — not merely worse, less suitable, incomplete or less common. " +
+    "Before finishing a question, go through each incorrect option and check that there is a concrete reason to reject it. " +
+    "If you cannot state that reason, the option is not a distractor but a second correct answer — rewrite the question. " +
+    "13) NEVER ask a question the material supports several answers to. Common traps to avoid: " +
+    "(a) 'Which method can be used to...' when the material describes several working methods — ask for the result instead, or pin the question to one method. " +
+    "(b) 'Which factor/concept belongs to category X?' when the material lists several in that category. " +
+    "(c) Ordering questions such as 'the first/second factor' when no order is defined. " +
+    "(d) Condition questions where several values satisfy the condition — state the condition so exactly one option fits. " +
+    "(e) Options that logically follow from one another, e.g. 'x > 10' and 'x != 10' when x is greater than 10. " +
+    "Prefer asking for a computed value, an exact term or a concrete consequence over 'which of these is true'. " +
+    "14) WORK THROUGH every calculation before setting correct_index, and verify that the final answer in model_answer points at exactly that option. " +
+    "A correct explanation with the wrong option marked is the most serious error an exam can contain. " +
     cognitiveVerbHint("en") + " ";
 
   const systemEnMath =

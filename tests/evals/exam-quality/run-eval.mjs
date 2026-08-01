@@ -29,7 +29,12 @@ import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { FIXTURES } from "./fixtures.mjs";
+// FIXTURE_SET=long swaps in the long-form set: same six subjects, same
+// expected profiles, but material at the length of real pasted lesson notes.
+// Everything else is held constant so the only variable is how much the
+// student pasted.
+const FIXTURE_SET = process.env.FIXTURE_SET === "long" ? "./fixtures-long.mjs" : "./fixtures.mjs";
+const { FIXTURES } = await import(FIXTURE_SET);
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -156,10 +161,15 @@ async function callResponses({ model, system, user, format, timeoutMs = 180_000 
   const text = extractOutputText(data);
   if (!text) return { ok: false, latencyMs, usage: readUsage(data), error: "no output_text" };
   let parsed = null;
-  try { parsed = JSON.parse(text); } catch (e) {
-    return { ok: false, latencyMs, usage: readUsage(data), error: `unparseable JSON: ${String(e)}` };
-  }
-  return { ok: true, latencyMs, usage: readUsage(data), parsed };
+  let parseError = null;
+  try { parsed = JSON.parse(text); } catch (e) { parseError = String(e); }
+  // `text` is returned even when it does not parse: the generation path feeds it
+  // through the production salvage parser instead of treating it as a failure,
+  // which is what api/generate-exam.js does since the deadline work. Without
+  // this the eval reported a hard failure where production would have shipped a
+  // shortened exam, understating how robust the endpoint actually is.
+  return { ok: parsed !== null, latencyMs, usage: readUsage(data), parsed, text, parseError,
+           error: parseError ? `unparseable JSON: ${parseError}` : null };
 }
 
 // ── Independent judge ───────────────────────────────────────────────────────
@@ -223,10 +233,10 @@ async function runOnce(fixture, runIndex) {
   const rec = {
     fixture: fixture.id, run: runIndex, course: fixture.course,
     profile: null, profileAsExpected: null, isMath: null, isMathAsExpected: null,
-    requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0,
+    requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0, truncated: false,
     structurallyDropped: [], flagged: [],
     verifierCallOk: false, verifierApproved: 0, verifierRejected: 0,
-    judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0, lowConfidenceDisagreements: 0,
+    judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0, ambiguous: 0, lowConfidenceDisagreements: 0,
     disagreements: [],
     latency: { generateMs: 0, verifyMs: 0, judgeMs: 0 },
     usage: { generator: emptyUsage(), verifier: emptyUsage(), judge: emptyUsage() },
@@ -251,9 +261,15 @@ async function runOnce(fixture, runIndex) {
   });
   rec.latency.generateMs = gen.latencyMs;
   rec.usage.generator = gen.usage;
-  if (!gen.ok) { rec.errors.push(`generate: ${gen.error}`); return rec; }
+  if (!gen.text) { rec.errors.push(`generate: ${gen.error || "no output"}`); return rec; }
 
-  const exam = gen.parsed;
+  // Same parser production uses, so a ragged response is measured the way a
+  // student would actually experience it: a shorter exam, not an error.
+  const salvage = G.salvageExamJson(gen.text);
+  const exam = salvage.exam;
+  rec.truncated = salvage.truncated;
+  if (!exam) { rec.errors.push(`generate: nothing salvageable (${gen.error || "truncated"})`); return rec; }
+  if (salvage.truncated) rec.errors.push("räddat partiellt svar (produktionen hade levererat förkortat prov)");
   rec.generated = Array.isArray(exam.questions) ? exam.questions.length : 0;
 
   const gate = A.gateExam(exam, { profile, secret: "eval-secret" });
@@ -306,7 +322,17 @@ async function runOnce(fixture, runIndex) {
       modelAnswer: q.model_answer,
     };
     rec.disagreements.push(entry);
-    if (Number(verdict.confidence) >= JUDGE_CONFIDENCE_FLOOR) rec.keyErrors++;
+    // Three distinct outcomes, and conflating them undercounted defects badly.
+    //
+    // index === -1 means the judge is saying "no single option is correct" —
+    // either none of them works, or several are equally right. It reports LOW
+    // confidence there because it cannot pick one, not because it doubts the
+    // question is broken. Gating that behind JUDGE_CONFIDENCE_FLOOR hid the
+    // dominant defect: on the long-form fixtures 9 of 12 disagreements were
+    // this shape and none of them counted. An ambiguous question is a defect
+    // whatever the judge's confidence, so it is counted on its own.
+    if (verdict.index === -1) rec.ambiguous++;
+    else if (Number(verdict.confidence) >= JUDGE_CONFIDENCE_FLOOR) rec.keyErrors++;
     else rec.lowConfidenceDisagreements++;
   }
 
@@ -362,19 +388,20 @@ async function main() {
         requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0,
         structurallyDropped: [], flagged: [],
         verifierCallOk: false, verifierApproved: 0, verifierRejected: 0,
-        judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0,
+        judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0, ambiguous: 0,
         lowConfidenceDisagreements: 0, disagreements: [],
         latency: { generateMs: 0, verifyMs: 0, judgeMs: 0 },
         usage: { generator: emptyUsage(), verifier: emptyUsage(), judge: emptyUsage() },
         errors: [`crashed: ${String(e)}`],
       };
     }
-    const keyRate = rec.judged ? fmtPct(rec.keyErrors, rec.judged) : "n/a";
+    const defects = rec.keyErrors + rec.ambiguous;
+    const keyRate = rec.judged ? fmtPct(defects, rec.judged) : "n/a";
     console.log(
       `  ${rec.fixture.padEnd(18)} run ${r}  ` +
       `levererat ${String(rec.delivered).padStart(2)}/${rec.requested}  ` +
       `granskare avslog ${String(rec.verifierRejected).padStart(2)}  ` +
-      `facitfel ${String(rec.keyErrors).padStart(2)}/${String(rec.judged).padStart(2)} (${keyRate})` +
+      `defekta ${String(defects).padStart(2)}/${String(rec.judged).padStart(2)} (${keyRate})` +
       (rec.errors.length ? `  [${rec.errors.join("; ")}]` : "")
     );
     return rec;
@@ -392,6 +419,7 @@ async function main() {
     verifierRejected: sum(r => r.verifierRejected),
     judged: sum(r => r.judged),
     keyErrors: sum(r => r.keyErrors),
+    ambiguous: sum(r => r.ambiguous),
     lowConfidenceDisagreements: sum(r => r.lowConfidenceDisagreements),
   };
   const genUsage = emptyUsage(); const judgeUsage = emptyUsage();
@@ -409,6 +437,7 @@ async function main() {
     const rs = records.filter(r => r.fixture === f.id);
     const judged = rs.reduce((n, r) => n + r.judged, 0);
     const keyErrors = rs.reduce((n, r) => n + r.keyErrors, 0);
+    const ambiguous = rs.reduce((n, r) => n + r.ambiguous, 0);
     return {
       id: f.id,
       profile: rs[0] ? rs[0].profile : null,
@@ -417,8 +446,9 @@ async function main() {
       delivered: rs.reduce((n, r) => n + r.delivered, 0),
       requested: rs.reduce((n, r) => n + r.requested, 0),
       verifierRejected: rs.reduce((n, r) => n + r.verifierRejected, 0),
-      judged, keyErrors,
-      keyErrorRate: pct(keyErrors, judged),
+      judged, keyErrors, ambiguous,
+      defects: keyErrors + ambiguous,
+      defectRate: pct(keyErrors + ambiguous, judged),
     };
   });
 
@@ -429,8 +459,11 @@ async function main() {
   console.log(`  Levererat / begärt        ${totals.delivered}/${totals.requested}  (${fmtPct(totals.delivered, totals.requested)})`);
   console.log(`  Struktur-grinden kastade  ${totals.generated - totals.afterGate}`);
   console.log(`  Granskaren avslog         ${totals.verifierRejected}`);
-  console.log(`  FACITFEL (hög konfidens)  ${totals.keyErrors}/${totals.judged}  (${fmtPct(totals.keyErrors, totals.judged)})   <-- huvudmåttet`);
-  console.log(`  Oense, låg konfidens      ${totals.lowConfidenceDisagreements}  (granska för hand)`);
+  const defects = totals.keyErrors + totals.ambiguous;
+  console.log(`  DEFEKTA FRÅGOR            ${defects}/${totals.judged}  (${fmtPct(defects, totals.judged)})   <-- huvudmåttet`);
+  console.log(`    varav fel facit         ${totals.keyErrors}  (domaren valde ett annat alternativ, hög konfidens)`);
+  console.log(`    varav flertydiga        ${totals.ambiguous}  (inget ENTYDIGT rätt alternativ — flera stämmer, eller inget)`);
+  console.log(`  Oense, låg konfidens      ${totals.lowConfidenceDisagreements}  (granska för hand, ej räknat som defekt)`);
   console.log(`  Genereringslatens         p50 ${percentile(genLatencies, 0.5)} ms   p95 ${percentile(genLatencies, 0.95)} ms`);
   if (percentile(genLatencies, 0.95) > 45_000) {
     console.log(`  ** VARNING: p95 över produktionens 45 s timeout i generate-exam.js **`);
@@ -446,7 +479,7 @@ async function main() {
     console.log(
       `    ${p.id.padEnd(18)} ${String(p.profile).padEnd(17)} ` +
       `levererat ${p.delivered}/${p.requested}  avslag ${String(p.verifierRejected).padStart(2)}  ` +
-      `facitfel ${p.keyErrors}/${p.judged} (${p.keyErrorRate.toFixed(1)}%)${warn}`
+      `defekta ${p.defects}/${p.judged} (${p.defectRate.toFixed(1)}%)  [fel facit ${p.keyErrors}, flertydiga ${p.ambiguous}]${warn}`
     );
   }
 
