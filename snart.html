@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ExGen — snart tillbaka</title>
+<meta name="description" content="ExGen bygger om. Vi är tillbaka inom kort." />
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --a:#00768F; --teal:#00B7D9; --mint:#76D76A;
+    --t:#1B2430; --t2:#4A5567; --t3:#667085;
+    --bg:#F7F9FB; --s:#ffffff; --l:#E4E7EC;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--t);
+    font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased; display:grid; place-items:center; padding:24px;
+    position:relative; overflow:hidden;
+  }
+  /* Samma rutnät och glöd som introskärmen, så sidan känns som ExGen och inte som ett driftfel */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(0,183,217,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,183,217,.06) 1px,transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 45%,#000,transparent);
+    mask-image:radial-gradient(ellipse 70% 70% at 50% 45%,#000,transparent);
+  }
+  .orb{
+    position:fixed; width:520px; height:520px; top:50%; left:50%;
+    margin:-260px 0 0 -260px; pointer-events:none; z-index:0;
+    background:radial-gradient(circle,rgba(0,183,217,.14) 0%,transparent 65%);
+    filter:blur(60px); animation:drift 9s ease-in-out infinite;
+  }
+  @keyframes drift{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-16px) scale(1.05)}}
+
+  .card{position:relative; z-index:1; width:min(520px,100%); text-align:center}
+  .logo{height:34px; width:auto; display:block; margin:0 auto 28px}
+  .eyebrow{
+    font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--a); margin-bottom:14px;
+  }
+  h1{
+    font-size:clamp(30px,6vw,42px); font-weight:700; letter-spacing:-.035em;
+    line-height:1.12; margin:0 0 18px;
+  }
+  .lead{font-size:16.5px; line-height:1.7; color:var(--t2); margin:0 0 14px}
+  .sub{font-size:15px; line-height:1.7; color:var(--t3); margin:0}
+  .rule{
+    width:60px; height:1px; margin:32px auto;
+    background:linear-gradient(90deg,transparent,rgba(0,183,217,.45),transparent);
+  }
+  .dots{display:flex; gap:7px; justify-content:center; margin-bottom:22px}
+  .dot{width:5px; height:5px; border-radius:50%; background:rgba(0,183,217,.35); animation:pulse 1.6s ease-in-out infinite}
+  .dot:nth-child(2){animation-delay:.28s}
+  .dot:nth-child(3){animation-delay:.56s}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
+  .foot{font-family:'DM Mono',monospace; font-size:10.5px; color:var(--t3); letter-spacing:.02em; line-height:1.7}
+  .foot a{color:var(--t3)}
+  .foot a:hover{color:var(--a)}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="orb" aria-hidden="true"></div>
+
+<main class="card">
+  <img class="logo" src="/image/exgen-logo.png" alt="ExGen" />
+
+  <div class="eyebrow">Snart tillbaka</div>
+
+  <h1>Vi bygger om.</h1>
+
+  <p class="lead">ExGen är stängt en kort stund medan vi gör något betydligt vassare av det.</p>
+
+  <p class="sub">När vi öppnar igen ska du slippa gissa vad du ska plugga på. Det är allt vi säger så länge.</p>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <div class="dots" aria-hidden="true">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+  </div>
+
+  <p class="foot">
+    Har du redan ett konto ligger allt kvar orört.<br>
+    <a href="/integritetspolicy.html">Integritetspolicy</a>
+  </p>
+</main>
+
+</body>
+</html>
