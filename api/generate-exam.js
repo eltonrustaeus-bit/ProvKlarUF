@@ -255,7 +255,13 @@ async function consumeMockExamQuota(userId, limit, rules) {
 // rather than nothing.
 const FUNCTION_BUDGET_MS = 60_000;      // must match vercel.json maxDuration
 const RESPONSE_RESERVE_MS = 3_000;      // serialising and returning the response
-const VERIFIER_RESERVE_MS = 12_000;     // measured verifier latency 6-19 s
+// Reserved for the verifier and the solver, which run concurrently. Measured
+// together on the long-form fixtures: 10.8-20.3 s, against 6-19 s for the
+// verifier alone — the solver adds only a few seconds because it runs in
+// parallel, but the ceiling moved, so the reserve has to move with it. A
+// generation that gets squeezed by this degrades into a shortened exam via the
+// salvage path, which is much better than the function being killed outright.
+const VERIFIER_RESERVE_MS = 21_000;
 const MIN_VERIFIER_MS = 8_000;          // below this, skip verification entirely
 const MIN_GENERATION_MS = 15_000;       // below this, do not start a generation
 
@@ -715,7 +721,9 @@ module.exports = async function handler(req, res) {
 
     // ── VERIFIER PASS (separate role — checks, never fixes) ───────────────
     const verifier = require("./_verifier");
+    const solver = require("./_solver");
     let verifierOutcome = { checked: 0, approved: 0, rejected: 0, callOk: false };
+    let solverOutcome = { checked: 0, rejected: 0, callOk: false, model: null, reasons: {} };
     // Verification is skipped when there is no longer time for it. Shipping
     // gate-only questions is the same fail-open posture the verifier already
     // had on a network error, and it is strictly better than letting the
@@ -729,7 +737,21 @@ module.exports = async function handler(req, res) {
         q.detected_issues = [];
       }
     } else if (exam.questions.length > 0) {
-      const v1 = await verifier.verifyQuestions(exam.questions, { apiKey, model, subjectProfile, lang });
+      // The verifier judges the question; the solver answers it. They are
+      // independent of one another and both read the same gated questions, so
+      // running them concurrently makes wall time the max of the two rather
+      // than their sum — which is what lets a third call fit inside the 60 s
+      // function budget at all.
+      const [v1, s1] = await Promise.all([
+        verifier.verifyQuestions(exam.questions, { apiKey, model, subjectProfile, lang }),
+        solver.solveQuestions(exam.questions, {
+          apiKey, model, subjectProfile, lang, pastedText,
+          material: pastedText,
+          timeoutMs: Math.max(1000, budget.remaining() - RESPONSE_RESERVE_MS),
+        }),
+      ]);
+      solverOutcome.callOk = s1.callOk;
+      solverOutcome.model = s1.model;
       verifierOutcome.callOk = v1.callOk;
       if (v1.callOk) {
         const approvedIds = new Set();
@@ -737,7 +759,23 @@ module.exports = async function handler(req, res) {
         for (const q of exam.questions) {
           const vres = v1.perQuestion.get(String(q.id));
           verifierOutcome.checked++;
-          if (vres && verifier.decideApproval(vres)) { approvedIds.add(String(q.id)); verifierOutcome.approved++; }
+          const verifierOk = !!(vres && verifier.decideApproval(vres));
+          // A question ships only if BOTH roles clear it. The solver fails open
+          // as a whole (callOk:false means it is not consulted at all), but when
+          // it did run, a question it could not answer the same way as the key
+          // is not one to put in front of a student.
+          let solverOk = true;
+          if (s1.callOk && q.type === "mc") {
+            const decision = solver.decideKeep(s1.perQuestion.get(String(q.id)), q);
+            solverOk = decision.keep;
+            solverOutcome.checked++;
+            if (!decision.keep) {
+              solverOutcome.rejected++;
+              solverOutcome.reasons[decision.reason] = (solverOutcome.reasons[decision.reason] || 0) + 1;
+              q.detected_issues = [...(q.detected_issues || []), decision.reason];
+            }
+          }
+          if (verifierOk && solverOk) { approvedIds.add(String(q.id)); verifierOutcome.approved++; }
           else { rejectedIds.push(String(q.id)); verifierOutcome.rejected++; }
         }
         // Tracks whichever verifier result map is currently authoritative for
@@ -866,6 +904,11 @@ module.exports = async function handler(req, res) {
       generationMs: gen.latencyMs,
       generatorModel: model,
       verifierModel: verifier.verifierModel(model),
+      solverModel: solverOutcome.model,
+      solverCallOk: solverOutcome.callOk,
+      solverChecked: solverOutcome.checked,
+      solverRejected: solverOutcome.rejected,
+      solverReasons: solverOutcome.reasons,
       structurallyDropped: gate.dropped.length,
       structurallyFlagged: gate.flagged.length,
       verifierChecked: verifierOutcome.checked,
@@ -901,6 +944,7 @@ module.exports = async function handler(req, res) {
         elapsedMs: budget.elapsed(),
         gate: { profile: subjectProfile, dropped: gate.dropped.length, flagged: gate.flagged.length },
         verifier: verifierOutcome,
+        solver: solverOutcome,
         model,
         entitlements,
         quota: {

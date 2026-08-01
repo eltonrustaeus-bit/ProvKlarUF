@@ -41,6 +41,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..", "..");
 const A = require(join(root, "api", "_assessment.js"));
 const V = require(join(root, "api", "_verifier.js"));
+const S = require(join(root, "api", "_solver.js"));
 const G = require(join(root, "api", "generate-exam.js"));
 
 const API_KEY = process.env.OPENAI_API_KEY;
@@ -57,6 +58,11 @@ const NUM_QUESTIONS = Number(process.env.NUM_QUESTIONS || 12);
 const CONCURRENCY = Number(process.env.CONCURRENCY || 3);
 const OUT_DIR = process.env.OUT_DIR || join(here, "results");
 const JUDGE_CONFIDENCE_FLOOR = 0.8;
+// SOLVER=off measures the pipeline without the independent solve pass, which is
+// how every earlier run in this repo was produced. Default on, mirroring
+// production once this ships.
+const SOLVER_ENABLED = process.env.SOLVER !== "off";
+const SOLVER_MODEL = process.env.SOLVER_MODEL || "";
 
 const selected = process.env.FIXTURES
   ? FIXTURES.filter(f => process.env.FIXTURES.split(",").map(s => s.trim()).includes(f.id))
@@ -236,6 +242,7 @@ async function runOnce(fixture, runIndex) {
     requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0, truncated: false,
     structurallyDropped: [], flagged: [],
     verifierCallOk: false, verifierApproved: 0, verifierRejected: 0,
+    solverCallOk: false, solverModel: null, solverChecked: 0, solverRejected: 0, solverReasons: {},
     judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0, ambiguous: 0, lowConfidenceDisagreements: 0,
     disagreements: [],
     latency: { generateMs: 0, verifyMs: 0, judgeMs: 0 },
@@ -281,9 +288,23 @@ async function runOnce(fixture, runIndex) {
   // exactly the production knob this eval exists to evaluate.
   const prevVerifierEnv = process.env.OPENAI_VERIFIER_MODEL;
   process.env.OPENAI_VERIFIER_MODEL = VERIFIER_MODEL;
+  const prevSolverEnv = process.env.OPENAI_SOLVER_MODEL;
+  if (SOLVER_MODEL) process.env.OPENAI_SOLVER_MODEL = SOLVER_MODEL;
   const tVerify = Date.now();
-  const v = await V.verifyQuestions(gate.questions, { apiKey: API_KEY, model: GEN_MODEL, subjectProfile: profile, lang: "sv" });
+  // Mirrors production: the two roles run concurrently, so the measured cost of
+  // adding the solver is the extra wall time over the verifier alone, not the
+  // solver's own latency.
+  const [v, sv] = await Promise.all([
+    V.verifyQuestions(gate.questions, { apiKey: API_KEY, model: GEN_MODEL, subjectProfile: profile, lang: "sv" }),
+    SOLVER_ENABLED
+      ? S.solveQuestions(gate.questions, { apiKey: API_KEY, model: GEN_MODEL, subjectProfile: profile, lang: "sv", material: fixture.material })
+      : Promise.resolve({ perQuestion: new Map(), callOk: false, solved: 0, model: null }),
+  ]);
   rec.latency.verifyMs = Date.now() - tVerify;
+  rec.solverCallOk = sv.callOk;
+  rec.solverModel = sv.model;
+  if (prevSolverEnv === undefined) delete process.env.OPENAI_SOLVER_MODEL;
+  else process.env.OPENAI_SOLVER_MODEL = prevSolverEnv;
   if (prevVerifierEnv === undefined) delete process.env.OPENAI_VERIFIER_MODEL;
   else process.env.OPENAI_VERIFIER_MODEL = prevVerifierEnv;
 
@@ -292,7 +313,18 @@ async function runOnce(fixture, runIndex) {
   if (v.callOk) {
     for (const q of gate.questions) {
       const r = v.perQuestion.get(String(q.id));
-      if (r && V.decideApproval(r)) { approved.push(q); rec.verifierApproved++; }
+      const verifierOk = !!(r && V.decideApproval(r));
+      let solverOk = true;
+      if (sv.callOk && q.type === "mc") {
+        const d = S.decideKeep(sv.perQuestion.get(String(q.id)), q);
+        solverOk = d.keep;
+        rec.solverChecked++;
+        if (!d.keep) {
+          rec.solverRejected++;
+          rec.solverReasons[d.reason] = (rec.solverReasons[d.reason] || 0) + 1;
+        }
+      }
+      if (verifierOk && solverOk) { approved.push(q); rec.verifierApproved++; }
       else rec.verifierRejected++;
     }
   } else {
@@ -371,6 +403,7 @@ async function main() {
   console.log(`  generator : ${GEN_MODEL}${PRICING[GEN_MODEL] ? "" : "  (unpriced — cost will read 0)"}`);
   console.log(`  verifier  : ${VERIFIER_MODEL}${VERIFIER_MODEL === GEN_MODEL ? "  (same as generator — today's production)" : ""}`);
   console.log(`  judge     : ${JUDGE_MODEL}`);
+  console.log(`  solver    : ${SOLVER_ENABLED ? (SOLVER_MODEL || GEN_MODEL) : "AV"}`);
   console.log(`  fixtures  : ${selected.map(f => f.id).join(", ")}`);
   console.log(`  runs      : ${RUNS} x ${selected.length} = ${jobs.length} exams of ${NUM_QUESTIONS} questions\n`);
 
@@ -388,6 +421,7 @@ async function main() {
         requested: NUM_QUESTIONS, generated: 0, afterGate: 0, delivered: 0,
         structurallyDropped: [], flagged: [],
         verifierCallOk: false, verifierApproved: 0, verifierRejected: 0,
+        solverCallOk: false, solverModel: null, solverChecked: 0, solverRejected: 0, solverReasons: {},
         judgeCallOk: false, judged: 0, judgeAgreed: 0, keyErrors: 0, ambiguous: 0,
         lowConfidenceDisagreements: 0, disagreements: [],
         latency: { generateMs: 0, verifyMs: 0, judgeMs: 0 },
@@ -417,6 +451,8 @@ async function main() {
     afterGate: sum(r => r.afterGate),
     delivered: sum(r => r.delivered),
     verifierRejected: sum(r => r.verifierRejected),
+    solverRejected: sum(r => r.solverRejected),
+    solverChecked: sum(r => r.solverChecked),
     judged: sum(r => r.judged),
     keyErrors: sum(r => r.keyErrors),
     ambiguous: sum(r => r.ambiguous),
@@ -458,7 +494,7 @@ async function main() {
   console.log(`\n── Resultat ──────────────────────────────────────────────`);
   console.log(`  Levererat / begärt        ${totals.delivered}/${totals.requested}  (${fmtPct(totals.delivered, totals.requested)})`);
   console.log(`  Struktur-grinden kastade  ${totals.generated - totals.afterGate}`);
-  console.log(`  Granskaren avslog         ${totals.verifierRejected}`);
+  console.log(`  Granskaren avslog         ${totals.verifierRejected}  (varav lösaren fällde ${totals.solverRejected} av ${totals.solverChecked} kontrollerade)`);
   const defects = totals.keyErrors + totals.ambiguous;
   console.log(`  DEFEKTA FRÅGOR            ${defects}/${totals.judged}  (${fmtPct(defects, totals.judged)})   <-- huvudmåttet`);
   console.log(`    varav fel facit         ${totals.keyErrors}  (domaren valde ett annat alternativ, hög konfidens)`);
