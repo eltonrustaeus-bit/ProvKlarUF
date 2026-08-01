@@ -1343,7 +1343,10 @@
       var s = document.createElement('style');
       s.id = 'pvStyles';
       s.textContent = [
-        '#pvModal{position:fixed;inset:0;z-index:10000;background:rgba(3,8,6,.82);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);display:none;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease}',
+        /* z-index sits above .loader/.pageLoader (12000 in style.css): the dialog
+           now opens while that loader is still fading, and at 10000 the loader
+           orb painted straight through the login card. */
+        '#pvModal{position:fixed;inset:0;z-index:13000;background:rgba(3,8,6,.82);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);display:none;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease}',
         '#pvModal.pv-on{opacity:1}',
         '#pvCard{position:relative;background:linear-gradient(180deg,#ffffff,var(--s2,#f8fafc));border:1px solid rgba(0,183,217,.18);border-radius:18px;width:min(412px,100%);overflow:hidden;box-shadow:0 30px 80px -20px rgba(14,27,42,.35);transform:translateY(16px) scale(.96);transition:transform .26s cubic-bezier(.22,.61,.36,1)}',
         '#pvModal.pv-on #pvCard{transform:none}',
@@ -1453,6 +1456,15 @@
 
     function openModal(view) {
       if (isLoggedIn()) return;
+      /* Gated pages call this during DOMContentLoaded, while the intro splash
+         still owns the screen. Cut the splash short — asking someone to log in
+         and then hiding the dialog behind a 4s brand animation reads as a bug. */
+      if (window.exgenSkipSplash) window.exgenSkipSplash();
+      /* Same reasoning for the page loader: once we are asking the visitor to
+         log in, a "loading" spinner behind the dialog is noise. Both class
+         names are applied because pages use either .loader or .pageLoader. */
+      var ldr = document.getElementById('pageLoader') || document.querySelector('.loader');
+      if (ldr) { ldr.classList.add('done'); ldr.classList.add('out'); }
       buildModal();
       _open = true;
       var el = document.getElementById('pvModal');
@@ -1499,8 +1511,11 @@
       supaPost('signup', { email: email, password: pass }).then(function(d) {
         if (d.access_token) {
           saveSession(d); closeModal();
-          if (window.showWelcome) window.showWelcome(email);
-          setTimeout(pvAfterAuth, 2600);
+          /* Hand the welcome animation to the destination page instead of
+             playing it here and then throwing it away in the navigation —
+             same pattern korkortet.html already uses. Saves 2.6s of dead wait. */
+          if (window.triggerWelcome) window.triggerWelcome(email);
+          pvAfterAuth();
         } else {
           errEl.style.color = 'var(--a,#00768F)';
           errEl.textContent = 'Bekräfta din e-post och logga sedan in!';
@@ -1522,8 +1537,8 @@
       btn.disabled = true; btn.textContent = 'Loggar in…';
       supaPost('token?grant_type=password', { email: email, password: pass }).then(function(d) {
         saveSession(d); closeModal();
-        if (window.showWelcome) window.showWelcome(email);
-        setTimeout(function() { location.reload(); }, 2600);
+        if (window.triggerWelcome) window.triggerWelcome(email);
+        location.reload();
       }).catch(function(e) {
         errEl.textContent = e.message || 'Fel e-post eller lösenord.';
         btn.disabled = false; btn.textContent = 'Logga in';
