@@ -34,9 +34,12 @@ const CASES = [
   { name: "programmering med 'funktion'", course: "Programmering 1",
     material: "Funktioner definieras med def och returnerar med return.",
     expectMath: false, expectProfile: "programming" },
+  // social_sciences, not generic: "Företagsekonomi" contains "ekonomi", which is
+  // a social-studies keyword, and that overlay only adds non-blocking flags. The
+  // bug being pinned here is the maths verdict, not the profile.
   { name: "företagsekonomi med likhetstecken", course: "Företagsekonomi 1",
     material: "Vinst = intäkt minus kostnad per styck.",
-    expectMath: false, expectProfile: "generic" },
+    expectMath: false, expectProfile: "social_sciences" },
   { name: "religionskunskap, ren prosa", course: "Religionskunskap 1",
     material: "Buddhismens fyra ädla sanningar beskriver lidandets orsak.",
     expectMath: false, expectProfile: "social_sciences" },

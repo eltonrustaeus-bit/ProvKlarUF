@@ -41,14 +41,12 @@ function verifyAnswerKey(q, sig, secret) {
 }
 
 // ── Subject detection ───────────────────────────────────────────────────────
+//
+// Mathematics is NOT in this table. It is scored by mathHits() below, and
+// generate-exam.js's looksLikeMath() now delegates to detectSubjectProfile(),
+// so the generator's MATH MODE and this file's mathematics overlay can no
+// longer disagree — they read the same number.
 const SUBJECT_KEYWORDS = {
-  // Kept in step with MATH_TERMS in generate-exam.js: a course the generator
-  // treats as mathematics must also reach the mathematics profile here, or the
-  // math-specific gate check never runs on it.
-  mathematics: ["matematik", "math", "algebra", "ekvation", "olikhet", "funktion", "derivat",
-    "integral", "geometri", "trigonometri", "sinus", "cosinus", "tangens", "vektor",
-    "komplexa tal", "diskret matematik", "logaritm", "exponentialfunktion",
-    "sannolikhet", "statistik", "bråk", "procent", "polynom"],
   law: ["juridik", "juridisk", "rätts", "lag ", "lagen", "brottsbalk", "åtal",
     "straffrätt", "avtalsrätt", "domstol", "paragraf", "§", "rättskälla"],
   languages: ["engelska", "english", "spanska", "franska", "tyska", "grammatik",
@@ -84,16 +82,120 @@ const COGNITIVE_VERBS = {
 // profile — mirrors NON_MATH_FUNKTION in generate-exam.js.
 const NON_MATH_FUNKTION = /funktions(nedsättning|förmåga|hinder|variation)/gi;
 
-function detectSubjectProfile(course, pastedText) {
-  const s = `${String(course || "")}\n${String(pastedText || "")}`
-    .toLowerCase()
-    .replace(NON_MATH_FUNKTION, " ");
-  let best = "generic", bestHits = 0;
+// ── Mathematics evidence (moved here from generate-exam.js) ─────────────────
+// Two tiers, as established 2026-07-28: terms distinctive enough that no
+// ordinary Swedish word contains them are matched anywhere, so compounds like
+// "andragradsekvationer" are caught; terms that also occur in everyday Swedish
+// are matched at word start only, so "log" cannot pull in biologi/psykologi.
+// Strong: a word containing one of these is about mathematics and essentially
+// nothing else, so one occurrence is enough on its own. Matched anywhere, which
+// is what makes the Swedish compounds work (andragradsEKVATIONer).
+const MATH_TERMS_STRONG = [
+  "matematik", "algebra", "ekvation", "olikhet", "polynom", "logaritm",
+  "derivat", "integral", "geometri", "trigonometri", "cosinus", "tangens",
+  "vektor", "sannolikhet", "parabel", "kvadrat",
+  "komplexa tal", "diskret matematik", "exponentialfunktion",
+];
+// Weak: real mathematical vocabulary that is also ordinary Swedish or belongs to
+// other subjects just as much. "funktion" has to be matched anywhere so that
+// andragradsfunktion counts, but it is the everyday word for a function in
+// programming too; "procent" and "statistik" appear in any social-studies text.
+// One of these alone is not a subject — it needs corroboration.
+const MATH_TERMS_WEAK_ANYWHERE = ["funktion"];
+const MATH_TERMS_WEAK_WORD_START = [
+  "math", "potens", "exponent", "sinus", "statistik", "bråk", "procent", "linjär",
+];
+const MATH_RE_STRONG = new RegExp(`(?:${MATH_TERMS_STRONG.join("|")})`, "gi");
+const MATH_RE_WEAK_ANYWHERE = new RegExp(`(?:${MATH_TERMS_WEAK_ANYWHERE.join("|")})`, "gi");
+const MATH_RE_WEAK_WORD = new RegExp(`\\b(?:${MATH_TERMS_WEAK_WORD_START.join("|")})`, "gi");
+const STRONG_TERM_WEIGHT = 2;
+
+// Notation is evidence too, but it must be LOCAL. The rule this replaces tested
+// /[=<>]/ and /[xyz]/ against the whole document independently, so an equals
+// sign in one paragraph and any word containing x, y or z in another satisfied
+// it — "Vinst = intäkt minus kostnad per styck." read as mathematics. Each
+// pattern below requires the symbol and the variable to sit together.
+const MATH_NOTATION = [
+  /\bf\s*\(\s*x\s*\)/i,          // f(x)
+  /[√∫∑]/,                        // root, integral, sum
+  /[a-z]\s*\^\s*\d/i,            // x^2
+  /[a-z][²³]/i,                  // x², y³
+  /\bln\b/i,                     // natural log
+  /\b\d+\s*\/\s*\d+\b/,          // a fraction written 3/4
+  // A coefficient bound to a variable (6x) — but only next to an operator.
+  // Without that anchor this matches the level letter in every Swedish course
+  // code: "Historia 1b", "Samhällskunskap 1b", "Matematik 2b" all end in
+  // digit+letter, so every such course scored a maths notation hit.
+  /\d[a-z]\s*[-+*/=^]|[-+*/=(]\s*\d[a-z]\b/i,
+  /\b[a-z]\s*=\s*[-+]?\s*[\da-z]/i, // x = 4, y = kx + m (single-letter left side)
+];
+
+// Counts distinct pieces of mathematics evidence in a text. Distinct, not total
+// occurrences: a text repeating "ekvation" twenty times is one kind of evidence,
+// and letting repetition inflate the score would reintroduce the single-signal
+// problem in another form.
+function mathHits(text) {
+  const s = String(text || "").toLowerCase().replace(NON_MATH_FUNKTION, " ");
+  const strong = new Set();
+  const weak = new Set();
+  for (const m of s.matchAll(MATH_RE_STRONG)) strong.add(m[0]);
+  for (const m of s.matchAll(MATH_RE_WEAK_ANYWHERE)) weak.add(m[0]);
+  for (const m of s.matchAll(MATH_RE_WEAK_WORD)) weak.add(m[0]);
+  for (const re of MATH_NOTATION) if (re.test(s)) weak.add(re.source);
+  return STRONG_TERM_WEIGHT * strong.size + weak.size;
+}
+
+// A keyword in the course title is far stronger evidence than the same keyword
+// somewhere in two thousand words of pasted notes: the student chose the title
+// to say what the exam is about.
+const COURSE_WEIGHT = 3;
+// With no course-title signal at all, a specialist profile needs more than one
+// stray keyword. "97 procent av befolkningen" in a history text is not maths.
+const MIN_MATERIAL_EVIDENCE = 2;
+
+// A keyword written with a trailing space in SUBJECT_KEYWORDS means "this word
+// on its own" — the space was standing in for a word boundary. Plain substring
+// matching broke that: "lag " matched "aktiebolag ", routing an entrepreneurship
+// text to the law profile. Anything without a trailing space keeps substring
+// matching, which is what lets "lagen" and "rätts" catch Swedish compounds.
+function keywordMatches(text, keyword) {
+  if (!keyword.endsWith(" ")) return text.includes(keyword);
+  const bare = keyword.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`\\b${bare}\\b`, "i").test(text);
+}
+
+function subjectScores(course, pastedText) {
+  const c = String(course || "").toLowerCase().replace(NON_MATH_FUNKTION, " ");
+  const m = String(pastedText || "").toLowerCase().replace(NON_MATH_FUNKTION, " ");
+  const scores = {};
   for (const [key, kws] of Object.entries(SUBJECT_KEYWORDS)) {
-    const hits = kws.reduce((n, k) => n + (s.includes(k) ? 1 : 0), 0);
-    if (hits > bestHits) { best = key; bestHits = hits; }
+    scores[key] = {
+      course: kws.reduce((n, k) => n + (keywordMatches(c, k) ? 1 : 0), 0),
+      material: kws.reduce((n, k) => n + (keywordMatches(m, k) ? 1 : 0), 0),
+    };
   }
-  return best;
+  scores.mathematics = { course: mathHits(c), material: mathHits(m) };
+  for (const s of Object.values(scores)) s.total = COURSE_WEIGHT * s.course + s.material;
+  return scores;
+}
+
+function detectSubjectProfile(course, pastedText) {
+  const scores = subjectScores(course, pastedText);
+  const ranked = Object.entries(scores)
+    .map(([key, s]) => ({ key, courseHits: s.course, total: s.total }))
+    .filter(x => x.total > 0)
+    .sort((a, b) => b.total - a.total || b.courseHits - a.courseHits);
+  if (!ranked.length) return "generic";
+
+  const top = ranked[0];
+  // Weak evidence stays generic rather than picking a specialist overlay whose
+  // blocking rules would then apply to a subject they were never written for.
+  if (top.courseHits === 0 && top.total < MIN_MATERIAL_EVIDENCE) return "generic";
+  // A genuine tie used to be decided by key order in SUBJECT_KEYWORDS, which
+  // handed every 1-1 tie to mathematics. Stay generic instead.
+  const second = ranked[1];
+  if (second && second.total === top.total && second.courseHits === top.courseHits) return "generic";
+  return top.key;
 }
 
 // ── General (subject-agnostic) quality checks ───────────────────────────────

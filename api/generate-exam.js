@@ -41,57 +41,15 @@ function toInt(x, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-// Two tiers, because the old flat substring test was wrong in both directions.
-//
-// It used "log", which matched biologi / psykologi / sociologi / teknologi —
-// those courses were routed to the math model and got the math rules applied.
-// Anchoring everything at a word boundary fixes that but breaks Swedish
-// compounds: "andragradsekvationer" would no longer be seen as maths.
-//
-// So: terms distinctive enough that no ordinary word contains them are matched
-// anywhere (which covers compounds), and terms that also occur in everyday
-// Swedish are matched at word start only.
-const MATH_TERMS_ANYWHERE = [
-  "matematik", "algebra", "ekvation", "olikhet", "polynom", "logaritm",
-  "derivat", "integral", "geometri", "trigonometri", "cosinus", "tangens",
-  "vektor", "sannolikhet", "parabel", "kvadrat", "funktion",
-  "komplexa tal", "diskret matematik"
-];
-const MATH_TERMS_WORD_START = [
-  "math", "potens", "exponent", "sinus", "statistik", "bråk", "procent", "linjär"
-];
-
-// "funktion" is in the anywhere-list so that andragradsfunktion/exponentialfunktion
-// are caught, but Vård och omsorg has real courses built on the same stem. Those
-// are not maths and must not be pulled into math mode.
-// Global: a course title can carry two of these ("Funktionsförmåga och
-// funktionsnedsättning"), and a non-global replace would leave the second one.
-const NON_MATH_FUNKTION = /funktions(nedsättning|förmåga|hinder|variation)/gi;
-
-const MATH_RE_ANYWHERE = new RegExp(`(?:${MATH_TERMS_ANYWHERE.join("|")})`, "i");
-const MATH_RE_WORD = new RegExp(`\\b(?:${MATH_TERMS_WORD_START.join("|")})`, "i");
-
+// Maths detection lives in _assessment.js and is shared with the gate. It used
+// to be duplicated here, and the two copies could disagree: this file decided
+// MATH MODE while _assessment.js decided which overlay to gate with. The old
+// rule also fired on a single word — "97 procent av befolkningen" put a
+// Historia 1b exam into MATH MODE ("70–80 % beräkning och problemlösning"),
+// and a lone "=" anywhere plus any word containing x, y or z did the same to
+// Företagsekonomi. One detector, one answer.
 function looksLikeMath(course, pastedText) {
-  const c = String(course || "");
-  const t = String(pastedText || "");
-  let s = (c + "\n" + t).toLowerCase();
-
-  // Remove the welfare-sector compounds before testing, so they cannot satisfy
-  // the "funktion" term while still letting a real maths term in the same text win.
-  s = s.replace(NON_MATH_FUNKTION, " ");
-
-  if (MATH_RE_ANYWHERE.test(s)) return true;
-  if (MATH_RE_WORD.test(s)) return true;
-  if (/\bln\b/.test(s)) return true;
-  if (s.includes("f(x)")) return true;
-
-  if (/[=<>]/.test(s) && /[xyz]/.test(s)) return true;
-  if (/\b\d+\s*\/\s*\d+\b/.test(s)) return true; // bråk
-  if (/[a-z]\s*\^\s*\d/.test(s)) return true; // x^2
-  if (/[√]/.test(s)) return true;
-  if (/\bf\(\s*x\s*\)/.test(s)) return true;
-
-  return false;
+  return assessment.detectSubjectProfile(course, pastedText) === "mathematics";
 }
 
 function pickModel({ isMath }) {

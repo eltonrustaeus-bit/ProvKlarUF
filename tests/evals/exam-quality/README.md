@@ -82,11 +82,16 @@ The verifier's own token use is **not** captured — `verifyQuestions()` does no
 return it — so the printed cost is the generator's only. Do not read it as the
 total.
 
-## Known finding: subject routing is wrong before any model is swapped
+## First finding: subject routing was wrong before any model was swapped
 
-`check-detection.mjs` currently fails 7 of 15 cases. A course is routed to the
-maths system prompt (`MATTE-LÄGE`: "70–80 % beräkning och problemlösning") and
-to the maths gate overlay on evidence this weak:
+Found by `check-detection.mjs` on its first run — 7 of 15 cases misrouted, at no
+API cost. **Fixed**; the report is green and the cases are now permanent
+regression tests in `tests/assessment/subject-routing.test.mjs` (45 real Swedish
+course names). Kept here because it is the reason the eval exists.
+
+A course was routed to the maths system prompt (`MATTE-LÄGE`: "70–80 %
+beräkning och problemlösning") and to the maths gate overlay on evidence this
+weak:
 
 | Case | What triggers it |
 |---|---|
@@ -109,11 +114,30 @@ so one word out of two thousand decides. The 2026-07-28 work fixed false
 positives coming from *course titles* (`log` matching biologi/psykologi); it did
 not address the material.
 
-**Consequence for this eval:** a misrouted fixture is measured against the wrong
-prompt and the wrong overlay, so its numbers are not comparable. `run-eval.mjs`
-therefore refuses to finish clean while any fixture is misrouted. Fix the
-routing before spending money on model comparison.
+A fourth defect surfaced while fixing the first three: the coefficient pattern
+`\d[a-z]` matched the level letter in every Swedish course code, so "Historia
+**1b**" scored a maths-notation hit on the title itself. And `"lag "` in the law
+keyword list was substring-matched, so "aktiebo**lag** " routed an
+entrepreneurship text to the law profile.
 
-The positive controls all pass — maths reached via course title, via a Swedish
-compound (`andragradsekvationen`), and via unambiguous material — so a fix has a
-clear regression net to hold on to.
+**How it was fixed.** `looksLikeMath()` no longer has its own copy of the
+detector — it delegates to `detectSubjectProfile()`, so the generator's MATH
+MODE and the gate's overlay read the same number and cannot disagree. Inside
+`_assessment.js`:
+
+- the course title is weighted 3×, the pasted material 1× — the student chose
+  the title to say what the exam is about;
+- maths terms are split by strength: `ekvation`, `sannolikhet`, `derivat` and
+  the like count double and stand alone, while `procent`, `statistik` and
+  `funktion` need corroboration;
+- notation must be local — `\d[a-z]` requires an adjacent operator, and the old
+  "any `=` plus any x/y/z in the document" rule is gone;
+- a specialist profile with no course-title signal needs more than one keyword,
+  and a genuine tie returns `generic` instead of letting object key order pick
+  (which used to hand every 1–1 tie to mathematics);
+- keywords written with a trailing space match on a word boundary.
+
+**Consequence for this eval:** a misrouted fixture would be measured against the
+wrong prompt and the wrong overlay, so its numbers would not be comparable.
+`run-eval.mjs` refuses to finish clean while any fixture is misrouted, and
+`check-detection.mjs` is the free pre-flight for that.
