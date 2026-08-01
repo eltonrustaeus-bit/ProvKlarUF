@@ -1853,13 +1853,16 @@
 
       var email = jwtEmail(token);
 
-      /* Supabase creates the user itself on this path, so api/signup.js never
-         runs and nothing would send the welcome mail. The endpoint is
-         idempotent and answers whether this was a first sign-in, which also
-         decides how the animation greets them. */
-      fetch('/api/oauth-complete', {
+      /* Supabase creates the user itself on this path, so the signup branch
+         never runs and nothing would send the welcome mail. This is the same
+         endpoint rather than a route of its own: the project sits at Vercel's
+         12-function limit, and a thirteenth broke deployment outright. The
+         call is idempotent and answers whether this was a first sign-in,
+         which also decides how the animation greets them. */
+      fetch('/api/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ op: 'oauth' })
       }).then(function(r) { return r.json(); })
         .then(function(d) { onReady(function() { if (window.showWelcome) window.showWelcome(email, !!(d && d.isNew)); }); })
         .catch(function() { onReady(function() { if (window.showWelcome) window.showWelcome(email, false); }); });

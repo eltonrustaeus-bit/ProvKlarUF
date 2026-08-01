@@ -1,9 +1,8 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { requireAuth } from "./_auth.js";
 
-// Exported so api/oauth-complete.js can reuse the exact same welcome mail
-// rather than keeping a second copy that drifts out of sync.
-export function escapeHtml(str) {
+function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -18,7 +17,7 @@ export function escapeHtml(str) {
    UI since 2026-07-28, and advertising it would sell something nobody can
    reach. Palette is the current light ExGen brand (exgen-tokens.css), not the
    dark green one the product carried under the ProviaAI name. */
-export function buildWelcomeHtml(email) {
+function buildWelcomeHtml(email) {
   /* Number and text sit in separate cells rather than inline spans so a step
      that wraps to a second line stays indented under its own text instead of
      sliding back under the number. */
@@ -125,8 +124,106 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function sendMail(payload) {
+  return fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+function adminNoticeHtml(email, userId, via) {
+  return `
+    <div style="font-family:sans-serif;max-width:480px">
+      <h2 style="color:#00768F;margin:0 0 16px">Ny registrering</h2>
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="padding:6px 0;color:#666">Email</td><td><b>${escapeHtml(email)}</b></td></tr>
+        <tr><td style="padding:6px 0;color:#666">Anv\u00e4ndar-ID</td><td style="font-size:12px;font-family:monospace">${escapeHtml(userId)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666">Roll</td><td><b>gratis</b></td></tr>
+        <tr><td style="padding:6px 0;color:#666">Via</td><td><b>${escapeHtml(via)}</b></td></tr>
+        <tr><td style="padding:6px 0;color:#666">Registrerad</td><td>${new Date().toLocaleString("sv-SE", { timeZone: "Europe/Stockholm" })}</td></tr>
+      </table>
+    </div>
+  `;
+}
+
+/* OAuth (Google) completion — reached as POST /api/signup with { op: "oauth" }
+ * and a Bearer token, not as its own route.
+ *
+ * It lived in api/oauth-complete.js first, which pushed the project to 13
+ * serverless functions and broke deployment: the Hobby plan allows 12, and the
+ * build failed at "Deploying outputs" with everything else already compiled.
+ * Folding it in here keeps the count at 12 and puts it next to the welcome mail
+ * it shares.
+ *
+ * Supabase creates the user itself on the OAuth path, so the signup branch
+ * below never runs and nothing would send the welcome mail or notify the admin.
+ * profiles.welcome_sent_at is the idempotency guard: the row already exists by
+ * the time we run (the on_auth_user_created trigger inserts it with
+ * approved = true), so a null timestamp is what marks a first sign-in. That
+ * column is service-role only \u2014 profiles has no UPDATE policy \u2014 so a client
+ * cannot clear it to look new again.
+ */
+async function completeOAuth(req, res) {
+  const user = await requireAuth(req, res);
+  if (!user) return;                       // requireAuth already answered 401
+
+  const email = user.email || "";
+
+  const { data: profile, error: readErr } = await supabase
+    .from("profiles")
+    .select("welcome_sent_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (readErr) return res.status(500).json({ error: "Kunde inte l\u00e4sa profilen." });
+
+  if (!profile) {
+    // The trigger should have made this. If it somehow did not, create it the
+    // same way rather than failing the sign-in.
+    await supabase.from("profiles").insert([{ id: user.id, approved: true, role: "gratis" }]);
+  } else if (profile.welcome_sent_at) {
+    return res.status(200).json({ isNew: false });
+  }
+
+  /* Claim the slot before sending: two tabs returning from Google at once
+     would otherwise both read null and both send. */
+  const { data: claimed } = await supabase
+    .from("profiles")
+    .update({ welcome_sent_at: new Date().toISOString() })
+    .eq("id", user.id)
+    .is("welcome_sent_at", null)
+    .select("id");
+
+  if (!claimed || !claimed.length) return res.status(200).json({ isNew: false });
+
+  try {
+    await sendMail({
+      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      to: email,
+      subject: `V\u00e4lkommen till ${BRAND_NAME}!`,
+      html: buildWelcomeHtml(email)
+    });
+    await sendMail({
+      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      to: "elton.rustaeus@gmail.com",
+      subject: `Ny anv\u00e4ndare p\u00e5 ${BRAND_NAME} \u2014 ${escapeHtml(email)}`,
+      html: adminNoticeHtml(email, user.id, "Google")
+    });
+  } catch (e) {
+    // Email failure never blocks the sign-in.
+  }
+
+  return res.status(200).json({ isNew: true });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+
+  if ((req.body || {}).op === "oauth") return completeOAuth(req, res);
 
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: "Missing email or password" });
@@ -154,48 +251,33 @@ export default async function handler(req, res) {
   const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: emailStr, password });
   if (signInError) return res.status(400).json({ error: signInError.message });
 
-  // Send notification to admin (server-side, guaranteed)
+  // Send notification to admin (server-side, guaranteed). Same helpers the
+  // OAuth branch uses, so the two paths cannot drift apart.
   try {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: `${BRAND_NAME} <noreply@proviaai.se>`,
-        to: "elton.rustaeus@gmail.com",
-        subject: `Ny användare på ${BRAND_NAME} — ${escapeHtml(email)}`,
-        html: `
-          <div style="font-family:sans-serif;max-width:480px">
-            <h2 style="color:#1bff8c;margin:0 0 16px">Ny registrering</h2>
-            <table style="width:100%;border-collapse:collapse">
-              <tr><td style="padding:6px 0;color:#666">Email</td><td><b>${escapeHtml(email)}</b></td></tr>
-              <tr><td style="padding:6px 0;color:#666">Användar-ID</td><td style="font-size:12px;font-family:monospace">${escapeHtml(userData.user.id)}</td></tr>
-              <tr><td style="padding:6px 0;color:#666">Roll</td><td><b>gratis</b></td></tr>
-              <tr><td style="padding:6px 0;color:#666">Registrerad</td><td>${new Date().toLocaleString("sv-SE", { timeZone: "Europe/Stockholm" })}</td></tr>
-            </table>
-          </div>
-        `
-      })
+    await sendMail({
+      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      to: "elton.rustaeus@gmail.com",
+      subject: `Ny anv\u00e4ndare p\u00e5 ${BRAND_NAME} \u2014 ${escapeHtml(email)}`,
+      html: adminNoticeHtml(email, userData.user.id, "E-post")
     });
     // Send welcome email to the new user
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: `${BRAND_NAME} <noreply@proviaai.se>`,
-        to: email,
-        subject: `Välkommen till ${BRAND_NAME}!`,
-        html: buildWelcomeHtml(email)
-      })
+    await sendMail({
+      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      to: email,
+      subject: `V\u00e4lkommen till ${BRAND_NAME}!`,
+      html: buildWelcomeHtml(email)
     });
   } catch (e) {
     // Email failure never blocks signup
   }
+
+  /* Mark the welcome as sent so linking a Google identity to this address
+     later does not trigger a second one from the OAuth branch. */
+  await supabase
+    .from("profiles")
+    .update({ welcome_sent_at: new Date().toISOString() })
+    .eq("id", userData.user.id)
+    .is("welcome_sent_at", null);
 
   return res.status(200).json({ session: signInData.session, user: signInData.user });
 }
