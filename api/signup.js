@@ -10,131 +10,105 @@ function escapeHtml(str) {
     .replace(/'/g, "&#x27;");
 }
 
+/* Plan rows mirror api/_provia-rules.js — the email is the first thing a new
+   user reads, so a stale quota here is a promise the product does not keep.
+   Körkortsteorin is deliberately absent: the module has been hidden from the
+   UI since 2026-07-28, and advertising it would sell something nobody can
+   reach. Palette is the current light ExGen brand (exgen-tokens.css), not the
+   dark green one the product carried under the ProviaAI name. */
 function buildWelcomeHtml(email) {
+  /* Number and text sit in separate cells rather than inline spans so a step
+     that wraps to a second line stays indented under its own text instead of
+     sliding back under the number. */
+  const step = (n, text, last) => `
+            <tr>
+              <td style="padding:13px 0${last ? "" : ";border-bottom:1px solid #EEF1F4"}">
+                <table cellpadding="0" cellspacing="0"><tr>
+                  <td width="34" valign="top" style="width:34px">
+                    <span style="display:inline-block;width:22px;height:22px;background:#00768F;color:#ffffff;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700">${n}</span>
+                  </td>
+                  <td valign="top" style="color:#1B2430;font-size:14px;line-height:1.5">${text}</td>
+                </tr></table>
+              </td>
+            </tr>`;
+
+  const plan = (name, price, features, opts = {}) => `
+            <tr>
+              <td style="padding:13px 15px;background:${opts.highlight ? "#F4FBFD" : "#FFFFFF"};border:1px solid ${opts.highlight ? "rgba(0,183,217,.35)" : "#E4E7EC"};${opts.radius || ""}${opts.joined ? "border-bottom:none;" : ""}">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td>
+                      <span style="font-size:13px;font-weight:700;color:${opts.highlight ? "#00768F" : "#1B2430"}">${name}</span>
+                      ${opts.note ? `<span style="font-size:12px;color:#667085;margin-left:8px">${opts.note}</span>` : ""}
+                    </td>
+                    <td align="right">
+                      <span style="font-size:14px;font-weight:700;color:#1B2430">${price}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding-top:8px;font-size:13px;color:#667085;line-height:1.5">${features}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>`;
+
+  const perMonth = '<span style="font-size:11px;font-weight:400;color:#667085">/mån</span>';
+
   return `<!DOCTYPE html>
 <html lang="sv">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#08100d;font-family:'DM Sans',Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#08100d;padding:40px 16px">
+<body style="margin:0;padding:0;background:#F8FAFC;font-family:Inter,'DM Sans',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;padding:40px 16px">
     <tr><td align="center">
-      <table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
+      <table width="100%" style="max-width:520px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:10px;overflow:hidden">
 
         <!-- Header -->
-        <tr><td style="background:#0a130d;padding:28px 32px;border-bottom:1px solid rgba(27,255,140,.12)">
-          <span style="font-size:20px;font-weight:700;color:#1bff8c;letter-spacing:-0.3px">${BRAND_NAME}</span>
+        <tr><td style="padding:0"><div style="height:3px;background:linear-gradient(90deg,#00B7D9,#76D76A);font-size:0;line-height:0">&nbsp;</div></td></tr>
+        <tr><td style="padding:26px 32px 22px;border-bottom:1px solid #EEF1F4">
+          <span style="font-size:20px;font-weight:800;color:#1B2430;letter-spacing:-0.4px">${BRAND_NAME}</span>
         </td></tr>
 
         <!-- Hero -->
-        <tr><td style="padding:36px 32px 24px">
-          <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:#e8f5ee;line-height:1.25">Ditt konto är redo. Nu kör vi.</h1>
-          <p style="margin:0;font-size:15px;color:#a8c4b4;line-height:1.65">${BRAND_NAME} anpassar träningen efter <em>dina</em> svagheter — inte ett generiskt prov som alla andra gör. Ju mer du tränar, desto smartare blir systemet.</p>
+        <tr><td style="padding:32px 32px 22px">
+          <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:#1B2430;line-height:1.25">Ditt konto är redo. Nu kör vi.</h1>
+          <p style="margin:0;font-size:15px;color:#667085;line-height:1.65">${BRAND_NAME} bygger provet ur <em>ditt eget</em> material och sparar exakt vilka begrepp du tappar poäng på. Ju mer du tränar, desto bättre träffar nästa prov.</p>
         </td></tr>
 
         <!-- Steps -->
-        <tr><td style="padding:0 32px 28px">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td style="padding:13px 0;border-bottom:1px solid rgba(27,255,140,.08)">
-                <span style="display:inline-block;width:22px;height:22px;background:#1bff8c;color:#08100d;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:12px;vertical-align:middle">1</span>
-                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Klistra in ditt kursmaterial — få ett prov på nivå E, C eller A</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:13px 0;border-bottom:1px solid rgba(27,255,140,.08)">
-                <span style="display:inline-block;width:22px;height:22px;background:#1bff8c;color:#08100d;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:12px;vertical-align:middle">2</span>
-                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Skriv provet — varje fråga rättas med poäng, feedback och modellsvar</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:13px 0">
-                <span style="display:inline-block;width:22px;height:22px;background:#1bff8c;color:#08100d;border-radius:50%;text-align:center;line-height:22px;font-size:11px;font-weight:700;margin-right:12px;vertical-align:middle">3</span>
-                <span style="color:#e8f5ee;font-size:14px;vertical-align:middle">Se vad du missar — och lär dig varför svaret är fel</span>
-              </td>
-            </tr>
+        <tr><td style="padding:0 32px 26px">
+          <table width="100%" cellpadding="0" cellspacing="0">${
+            step(1, "Klistra in ditt kursmaterial — få ett prov på nivå E, C eller A") +
+            step(2, "Skriv provet — varje fråga rättas med poäng, motivering och modellsvar") +
+            step(3, "Se i felbanken vilket begrepp som återkommer — och träna på just det", true)
+          }
           </table>
         </td></tr>
 
         <!-- Primary CTA -->
-        <tr><td style="padding:0 32px 36px">
-          <a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
+        <tr><td style="padding:0 32px 34px">
+          <a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#00768F;color:#ffffff;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none">Starta ditt första prov →</a>
         </td></tr>
 
         <!-- Pricing section -->
-        <tr><td style="padding:28px 32px;background:#0a130d;border-top:1px solid rgba(27,255,140,.12)">
-          <p style="margin:0 0 18px;font-size:13px;font-weight:700;color:#6b8f7c;text-transform:uppercase;letter-spacing:0.8px">Vad ingår i ditt konto?</p>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <!-- Gratis row -->
-            <tr>
-              <td style="padding:12px 14px;background:#111a15;border-radius:5px 5px 0 0;border:1px solid rgba(27,255,140,.18);border-bottom:none">
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td>
-                      <span style="font-size:13px;font-weight:700;color:#1bff8c">Gratis</span>
-                      <span style="font-size:12px;color:#6b8f7c;margin-left:8px">— du är här nu</span>
-                    </td>
-                    <td align="right">
-                      <span style="font-size:14px;font-weight:700;color:#e8f5ee">0 kr</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      10 kursfrågor/dag &nbsp;·&nbsp; 2 AI-mockprov/vecka &nbsp;·&nbsp; 5 P.E.R/vecka
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <!-- Basic row -->
-            <tr>
-              <td style="padding:12px 14px;background:#111a15;border:1px solid rgba(27,255,140,.12);border-bottom:none">
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td>
-                      <span style="font-size:13px;font-weight:700;color:#e8f5ee">Basic</span>
-                    </td>
-                    <td align="right">
-                      <span style="font-size:14px;font-weight:700;color:#e8f5ee">29 kr<span style="font-size:11px;font-weight:400;color:#6b8f7c">/mån</span></span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      30 prov/mån &nbsp;·&nbsp; fota anteckningar &nbsp;·&nbsp; historik &nbsp;·&nbsp; P.E.R 5/dag
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            <!-- Premium row -->
-            <tr>
-              <td style="padding:12px 14px;background:#0e1c12;border-radius:0 0 5px 5px;border:1px solid rgba(27,255,140,.35)">
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td>
-                      <span style="font-size:13px;font-weight:700;color:#1bff8c">Premium</span>
-                      <span style="display:inline-block;font-size:10px;font-weight:700;color:#08100d;background:#1bff8c;padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:middle">BÄST VÄRDE</span>
-                    </td>
-                    <td align="right">
-                      <span style="font-size:14px;font-weight:700;color:#e8f5ee">79 kr<span style="font-size:11px;font-weight:400;color:#6b8f7c">/mån</span></span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" style="padding-top:8px;font-size:13px;color:#a8c4b4;line-height:1.5">
-                      Obegränsat allt &nbsp;·&nbsp; Förbättringscoach &nbsp;·&nbsp; P.E.R obegränsat
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
+        <tr><td style="padding:26px 32px;background:#F8FAFC;border-top:1px solid #EEF1F4">
+          <p style="margin:0 0 16px;font-size:12px;font-weight:700;color:#667085;text-transform:uppercase;letter-spacing:0.8px">Vad ingår i ditt konto?</p>
+          <table width="100%" cellpadding="0" cellspacing="0">${
+            plan("Gratis", "0 kr", "3 mockprov/vecka &nbsp;·&nbsp; rättning med modellsvar &nbsp;·&nbsp; P.E.R 5/vecka",
+                 { note: "— du är här nu", radius: "border-radius:8px 8px 0 0;", joined: true }) +
+            plan("Basic", `29 kr${perMonth}`, "30 prov/mån &nbsp;·&nbsp; fota anteckningar &nbsp;·&nbsp; historik och synk &nbsp;·&nbsp; P.E.R 5/dag",
+                 { joined: true }) +
+            plan("Premium", `79 kr${perMonth}`, "Obegränsat med prov &nbsp;·&nbsp; felbank och AI-coach &nbsp;·&nbsp; lärarrapport &nbsp;·&nbsp; P.E.R obegränsat",
+                 { highlight: true, radius: "border-radius:0 0 8px 8px;" })
+          }
           </table>
-          <!-- Upgrade CTA -->
           <div style="margin-top:18px;text-align:center">
-            <a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
+            <a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(0,183,217,.45);color:#00768F;font-size:14px;font-weight:600;padding:11px 24px;border-radius:8px;text-decoration:none">Se alla planer</a>
           </div>
         </td></tr>
 
         <!-- Footer -->
-        <tr><td style="padding:18px 32px;border-top:1px solid rgba(27,255,140,.08)">
-          <p style="margin:0;font-size:12px;color:#6b8f7c;line-height:1.5">Registrerad med <b style="color:#a8c4b4">${email}</b>. Frågor? Svara på det här mejlet.</p>
+        <tr><td style="padding:18px 32px;border-top:1px solid #EEF1F4">
+          <p style="margin:0;font-size:12px;color:#667085;line-height:1.5">Registrerad med <b style="color:#1B2430">${escapeHtml(email)}</b>. Frågor? Svara på det här mejlet.</p>
         </td></tr>
 
       </table>

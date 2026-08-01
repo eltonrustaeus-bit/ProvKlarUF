@@ -173,7 +173,13 @@
   <div class="wrap">
     <nav class="topNav">
       <div class="xg-brand-name" style="display:flex;align-items:center;gap:6px"><img src="image/exgen-logo.png" alt="ExGen" style="height:18px;width:auto"> · Lärare</div>
-      <a class="btn ghost" href="/app.html">← Appen</a>
+      <div style="display:flex;gap:8px;align-items:center">
+        <a class="btn ghost" href="/app.html">← Appen</a>
+        <!-- data-pv-auth opens the shared modal while logged out; shared.js
+             relabels .xg-login-btn to "Mitt konto" once a session exists. This
+             page previously had no login control of any kind. -->
+        <a class="btn ghost xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
+      </div>
     </nav>
 
     <header class="pageHero">
@@ -184,6 +190,16 @@
     </header>
 
     <div class="statusBar" id="statusBar"></div>
+
+    <!-- Logged-out state. The page used to show only a status line saying
+         "log in with your teacher account" with nothing to click. -->
+    <section class="kCard" id="authGate" style="display:none;text-align:center;padding:36px 24px">
+      <div class="kCardTitle" style="margin-bottom:6px">Logga in med ditt lärarkonto</div>
+      <p style="font-size:14px;color:var(--t2);line-height:1.65;margin:0 auto 20px;max-width:420px">
+        Lärarpanelen visar dina klasser och var eleverna står. Du behöver ett konto med lärarroll — kontakta oss om du har ett elevkonto och ska ha lärarbehörighet.
+      </p>
+      <button class="btn" type="button" data-pv-auth="login" style="height:44px;padding:0 28px">Logga in →</button>
+    </section>
 
     <main id="main">
       <section class="kCard">
@@ -605,7 +621,7 @@ async function init(){
   if(!session){
     who.textContent='Inte inloggad';
     document.getElementById('main').style.display='none';
-    showStatus('Logga in med ditt lärarkonto för att se panelen.','warn');
+    document.getElementById('authGate').style.display='';
     return;
   }
 

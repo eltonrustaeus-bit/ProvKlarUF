@@ -1419,7 +1419,14 @@
             + '<div class="pv-fl"><label class="pv-la" for="pvLP">Lösenord</label><input class="pv-in" id="pvLP" type="password" placeholder="Ditt lösenord" autocomplete="current-password"></div>'
             + '<button class="pv-pm" id="pvLBtn" type="button">Logga in</button>'
             + '<div class="pv-er" id="pvLE2"></div>'
+            + '<div class="pv-tg" style="margin-top:10px"><button id="pvToForgot" type="button">Glömt lösenordet?</button></div>'
             + '<div class="pv-tg">Ny här? <button id="pvLBk" type="button">Skapa konto</button></div>'
+          + '</div>'
+          + '<div id="pvVF" class="pv-vw">'
+            + '<div class="pv-fl"><label class="pv-la" for="pvFE">E-post</label><input class="pv-in" id="pvFE" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
+            + '<button class="pv-pm" id="pvFBtn" type="button">Skicka återställningslänk</button>'
+            + '<div class="pv-er" id="pvFE2"></div>'
+            + '<div class="pv-tg"><button id="pvFBk" type="button">Tillbaka till inloggning</button></div>'
           + '</div>'
         + '</div>'
       + '</div>';
@@ -1432,26 +1439,35 @@
       document.getElementById('pvToLog').onclick = function() { switchView('login'); };
       document.getElementById('pvRBk').onclick = function() { switchView('login'); };
       document.getElementById('pvLBk').onclick = function() { switchView('register'); };
+      document.getElementById('pvToForgot').onclick = function() { switchView('forgot'); };
+      document.getElementById('pvFBk').onclick = function() { switchView('login'); };
       document.getElementById('pvRBtn').onclick = doRegister;
       document.getElementById('pvLBtn').onclick = doLogin;
+      document.getElementById('pvFBtn').onclick = doForgot;
       document.getElementById('pvRP').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });
       document.getElementById('pvLP').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+      document.getElementById('pvFE').addEventListener('keydown', function(e) { if (e.key === 'Enter') doForgot(); });
     }
 
     function switchView(view) {
       _view = view;
-      var map = { welcome:'pvVW', register:'pvVR', login:'pvVL' };
+      var map = { welcome:'pvVW', register:'pvVR', login:'pvVL', forgot:'pvVF' };
       Object.keys(map).forEach(function(k) {
         var el = document.getElementById(map[k]);
         if (el) el.classList.toggle('pv-vx', k === view);
       });
-      var titles = { welcome:'Skapa konto', register:'Skapa konto', login:'Logga in' };
-      var subs = { welcome:'GRATIS ATT STARTA · INGET KORT KRÄVS', register:'GRATIS ATT STARTA · INGET KORT KRÄVS', login:'VÄLKOMMEN TILLBAKA' };
+      var titles = { welcome:'Skapa konto', register:'Skapa konto', login:'Logga in', forgot:'Återställ lösenord' };
+      var subs = { welcome:'GRATIS ATT STARTA · INGET KORT KRÄVS', register:'GRATIS ATT STARTA · INGET KORT KRÄVS', login:'VÄLKOMMEN TILLBAKA', forgot:'VI MEJLAR EN LÄNK' };
       var ti = document.getElementById('pvTi'); if (ti) ti.textContent = titles[view] || '';
       var sb = document.getElementById('pvSb'); if (sb) sb.textContent = subs[view] || '';
-      var focusMap = { register:'pvRE', login:'pvLE' };
+      var focusMap = { register:'pvRE', login:'pvLE', forgot:'pvFE' };
       if (focusMap[view]) setTimeout(function() { var inp = document.getElementById(focusMap[view]); if (inp) inp.focus(); }, 60);
-      ['pvRE2','pvLE2'].forEach(function(id) { var e = document.getElementById(id); if (e) e.textContent = ''; });
+      /* Reset every error slot, including its colour: doForgot and doRegister
+         reuse these for success messages and repaint them accent-coloured. */
+      ['pvRE2','pvLE2','pvFE2'].forEach(function(id) {
+        var e = document.getElementById(id);
+        if (e) { e.textContent = ''; e.style.color = ''; }
+      });
     }
 
     function openModal(view) {
@@ -1508,9 +1524,24 @@
       if (!email || !pass) { errEl.textContent = 'Fyll i e-post och lösenord.'; return; }
       if (pass.length < 8) { errEl.textContent = 'Lösenordet måste vara minst 8 tecken.'; return; }
       btn.disabled = true; btn.textContent = 'Skapar konto…';
-      supaPost('signup', { email: email, password: pass }).then(function(d) {
-        if (d.access_token) {
-          saveSession(d); closeModal();
+      /* Registration goes through /api/signup, not Supabase's /auth/v1/signup
+         directly. That endpoint is what the in-page forms in app.html,
+         förbättring.html and korkortet.html already use, and it is the only
+         path that confirms the address, sends the welcome mail and notifies
+         the admin. Calling Supabase raw from here meant a user who signed up
+         from the landing page silently got none of that. */
+      fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: pass })
+      }).then(function(r) {
+        return r.json().then(function(d) {
+          if (!r.ok) throw new Error(d.error || 'Registrering misslyckades.');
+          return d;
+        });
+      }).then(function(d) {
+        if (d.session && d.session.access_token) {
+          saveSession(d.session); closeModal();
           /* Hand the welcome animation to the destination page instead of
              playing it here and then throwing it away in the navigation —
              same pattern korkortet.html already uses. Saves 2.6s of dead wait. */
@@ -1518,12 +1549,33 @@
           pvAfterAuth();
         } else {
           errEl.style.color = 'var(--a,#00768F)';
-          errEl.textContent = 'Bekräfta din e-post och logga sedan in!';
+          errEl.textContent = 'Kontot är skapat — logga in för att komma igång.';
           btn.disabled = false; btn.textContent = 'Skapa konto';
         }
       }).catch(function(e) {
         errEl.style.color = ''; errEl.textContent = e.message || 'Fel — försök igen.';
         btn.disabled = false; btn.textContent = 'Skapa konto';
+      });
+    }
+
+    function doForgot() {
+      var email = (document.getElementById('pvFE').value || '').trim();
+      var errEl = document.getElementById('pvFE2');
+      var btn   = document.getElementById('pvFBtn');
+      errEl.style.color = ''; errEl.textContent = '';
+      if (!email) { errEl.textContent = 'Fyll i din e-post.'; return; }
+      btn.disabled = true; btn.textContent = 'Skickar…';
+      var redirect = location.origin + '/aterstall.html';
+      supaPost('recover?redirect_to=' + encodeURIComponent(redirect), { email: email }).then(function() {
+        /* Supabase answers 200 whether or not the address exists, and the
+           wording keeps it that way — confirming which addresses have
+           accounts would hand out a user list to anyone who asks. */
+        errEl.style.color = 'var(--a,#00768F)';
+        errEl.textContent = 'Kolla mejlen. Finns adressen hos oss ligger en återställningslänk där om en minut.';
+        btn.textContent = 'Länk skickad';
+      }).catch(function(e) {
+        errEl.textContent = e.message || 'Kunde inte skicka länken. Försök igen.';
+        btn.disabled = false; btn.textContent = 'Skicka återställningslänk';
       });
     }
 
