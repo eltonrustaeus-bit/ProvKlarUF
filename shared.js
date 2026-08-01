@@ -1487,8 +1487,12 @@
     /* Google's four-colour mark, inlined. A remote <img> would be one more
        request in front of the login box and would break behind a school
        network that blocks Google's CDN but not the sign-in itself. */
+    /* data-module="google" hands visibility to js/exgen-modules.js, the same
+       switch that hides körkortsteorin and HP. The button and its divider stay
+       out of the DOM's painted output until that flag is turned on, which
+       happens the day the Google provider is enabled in Supabase. */
     function googleBtn(id) {
-      return '<button class="pv-go" id="' + id + '" type="button">'
+      return '<button class="pv-go" id="' + id + '" type="button" data-module="google">'
         + '<svg viewBox="0 0 48 48" aria-hidden="true">'
           + '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
           + '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
@@ -1541,7 +1545,7 @@
              worked in whichever field had a hand-wired keydown listener. */
           + '<div id="pvVR" class="pv-vw">'
             + googleBtn('pvGoR')
-            + '<div class="pv-dv">eller med e-post</div>'
+            + '<div class="pv-dv" data-module="google">eller med e-post</div>'
             + '<form id="pvFormR" novalidate>'
             + '<div class="pv-fl"><label class="pv-la" for="pvRE">E-post</label><input class="pv-in" id="pvRE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
             + '<div class="pv-fl"><label class="pv-la" for="pvRP">Lösenord</label><input class="pv-in" id="pvRP" name="password" type="password" placeholder="Minst 8 tecken" autocomplete="new-password"></div>'
@@ -1552,7 +1556,7 @@
           + '</form></div>'
           + '<div id="pvVL" class="pv-vw">'
             + googleBtn('pvGoL')
-            + '<div class="pv-dv">eller med e-post</div>'
+            + '<div class="pv-dv" data-module="google">eller med e-post</div>'
             + '<form id="pvFormL" novalidate>'
             + '<div class="pv-fl"><label class="pv-la" for="pvLE">E-post</label><input class="pv-in" id="pvLE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
             + '<div class="pv-fl"><label class="pv-la" for="pvLP">Lösenord</label><input class="pv-in" id="pvLP" name="password" type="password" placeholder="Ditt lösenord" autocomplete="current-password"></div>'
@@ -1789,7 +1793,19 @@
       if (h.indexOf('access_token') === -1 && h.indexOf('error') === -1) return;
 
       var q = new URLSearchParams(h.replace(/^#/, ''));
-      if (q.get('type') === 'recovery') return;   // aterstall.html owns that one
+
+      /* Password recovery belongs to aterstall.html. Supabase only honours a
+         redirect_to that is on the project's allowed-redirect list; anything
+         else silently falls back to the Site URL, which drops the user on the
+         landing page holding a recovery token nothing acts on — the reset just
+         appears broken. Forwarding the fragment ourselves makes the link work
+         wherever it lands, with no dashboard configuration required. */
+      if (q.get('type') === 'recovery') {
+        if (!/aterstall\.html$/i.test(location.pathname)) {
+          location.replace('/aterstall.html' + h);
+        }
+        return;
+      }
 
       /* Get the token out of the address bar before anything else: it grants
          access to the account, and leaving it in history or in a copied link
