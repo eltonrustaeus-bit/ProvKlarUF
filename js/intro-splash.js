@@ -4,6 +4,15 @@
      Logo alltid synlig, 4.5s premium reveal
   ══════════════════════════════════════ */
 
+  /* Signed-in users skip the brand reveal entirely. They have seen it, and a
+     4s animation in front of the tool they open every day is friction rather
+     than branding. Reads the Supabase session key directly, the same way
+     shared.js and js/hp-app.js already do. */
+  try {
+    var sess = JSON.parse(localStorage.getItem('sb-mnmotdluigzeehdjbhbu-auth-token') || '{}');
+    if (sess && sess.access_token) return;
+  } catch (_) { /* unreadable storage → treat as signed out and show splash */ }
+
   /* Show the branded splash once per browser session — not on every internal
      navigation. Returning before any DOM/style injection means repeat page
      loads reveal content instantly with no hidden-content window. */
@@ -13,10 +22,15 @@
   } catch (_) { /* sessionStorage blocked → fall through and show splash */ }
 
   /* ── Block body, but NOT the splash ── */
+  /* #pvModal (shared.js login dialog) is exempt too: a gated page opens it
+     during DOMContentLoaded, and without this exemption the login box sat
+     behind the splash at opacity 0 for the full ~4.9s reveal. It renders at
+     z-index 10000, above the splash, so it is visible the moment it opens. */
   var blockSt = document.createElement('style');
   blockSt.textContent =
     'body>*{opacity:0!important;pointer-events:none!important}' +
-    '#piSplash{opacity:1!important;pointer-events:auto!important}';
+    '#piSplash{opacity:1!important;pointer-events:auto!important}' +
+    '#pvModal{opacity:1!important;pointer-events:auto!important}';
   document.head.appendChild(blockSt);
 
   /* ── All CSS ── */
@@ -206,7 +220,22 @@
     }, reduced ? 60 : 950);
   }
 
-  var pgLoaded = false, minDone = false, splashEl = null;
+  var pgLoaded = false, minDone = false, splashEl = null, skipped = false;
+
+  /* ── Abort hook ──
+     A gated page (app, förbättring, körkortet, hp) opens the login dialog
+     during DOMContentLoaded. Sitting through the full branded reveal before
+     being allowed to log in reads as the page being broken, so any caller
+     that needs the user's attention now can cut the splash short. The brand
+     moment is kept for ordinary first visits to the landing page. */
+  function skipSplash() {
+    if (skipped) return;
+    skipped = true;
+    try { blockSt.remove(); } catch (_) {}   /* content visible immediately */
+    if (splashEl) reveal(splashEl);          /* splash fades out underneath */
+    else { try { st.remove(); } catch (_) {} }
+  }
+  window.exgenSkipSplash = skipSplash;
 
   /* Respect prefers-reduced-motion: skip the long branded splash so content
      (which is hidden behind blockSt) is not withheld for ~4s from users who
@@ -224,6 +253,7 @@
   setTimeout(function () { if (splashEl) { reveal(splashEl); } blockSt.remove(); }, SAFETY_DELAY); /* safety */
 
   document.addEventListener('DOMContentLoaded', function () {
+    if (skipped) return;   /* aborted before the overlay existed — build nothing */
     splashEl = build();
   });
 })();

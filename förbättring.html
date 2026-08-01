@@ -356,38 +356,8 @@
 <div id="cursorDot" aria-hidden="true"></div>
 <div id="cursorRing" aria-hidden="true"><div></div></div>
 
-<!-- LOGIN OVERLAY -->
-<div id="loginScreen" class="loginOverlay" style="display:none">
-  <div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
-    <div class="loginTop">
-      <div>
-        <div class="loginTitle" style="display:flex;align-items:center;gap:8px"><img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto"> – Förbättring</div>
-        <div class="loginSub">Logga in för att se din progress</div>
-      </div>
-    </div>
-    <div class="loginBody">
-      <div class="authBlock">
-        <div class="grid2">
-          <div>
-            <label class="fieldLabel" for="fbAuthEmail">E-post</label>
-            <input id="fbAuthEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
-          </div>
-          <div>
-            <label class="fieldLabel" for="fbAuthPass">Lösenord</label>
-            <input id="fbAuthPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
-          </div>
-        </div>
-        <div class="loginBtnRow">
-          <button class="btn btnP" type="button" id="fbSignInBtn">Logga in</button>
-          <button class="btn btnG" type="button" id="fbSignUpBtn">Skapa konto</button>
-          <a class="btn btnG" href="index.html">← Startsidan</a>
-        </div>
-        <div class="loginHint">Logga in för att se din progress. Gratis konto — inget kort krävs.</div>
-      </div>
-      <div id="fbLoginErr" class="loginErr" aria-live="polite"></div>
-    </div>
-  </div>
-</div>
+<!-- Den inbyggda inloggningsrutan är borttagen: shared.js-dialogen är
+     enda inloggnings-UI:t nu, och den enda med lösenordsåterställning. -->
 
   <!-- HEADER -->
   <div class="xg-utility-bar">
@@ -799,55 +769,22 @@
 
     /* ── LOGIN OVERLAY ── */
     function showLoginOverlay(){
-      // Prefer the shared site-wide modal; shared.js is deferred so wait briefly.
+      // shared.js is deferred, so wait briefly for it. If it never arrives the
+      // whole shared layer is missing, so send the visitor to the landing page
+      // rather than leaving them on a gated page with nothing to click.
       if (window.openProviaLogin) { window.openProviaLogin('register'); return; }
       let n=0; const iv=setInterval(()=>{
         if (window.openProviaLogin) { clearInterval(iv); window.openProviaLogin('register'); }
-        else if (++n>50) { clearInterval(iv); const s=$('loginScreen'); if(s){ s.style.display='flex'; document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; } }
+        else if (++n>50) { clearInterval(iv); location.href='index.html'; }
       }, 60);
     }
     function hideLoginOverlay(){
-      const s=$('loginScreen');if(!s)return;
-      s.style.display='none';
       document.documentElement.style.overflow='';
       document.body.style.overflow='';
+      if (window.closeProviaLogin) window.closeProviaLogin();
     }
-    function initLoginOverlay(){
-      if(!db)return;
-      const signIn=async()=>{
-        const email=($('fbAuthEmail')?.value||'').trim(),pass=$('fbAuthPass')?.value||'';
-        if(!email||!pass){if($('fbLoginErr'))$('fbLoginErr').textContent='Fyll i e-post och lösenord.';return;}
-        if($('fbLoginErr'))$('fbLoginErr').textContent='';
-        if($('fbSignInBtn'))$('fbSignInBtn').disabled=true;
-        const{error}=await db.auth.signInWithPassword({email,password:pass});
-        if($('fbSignInBtn'))$('fbSignInBtn').disabled=false;
-        if(error){if($('fbLoginErr'))$('fbLoginErr').textContent=error.message;return;}
-        hideLoginOverlay();
-        if(window.showWelcome)setTimeout(()=>window.showWelcome(email),60);
-        const ok=await gatePage();
-        if(ok&&db){const uid2=await getUserId();if(uid2)await syncFromAccount();renderAll();}
-      };
-      const signUp=async()=>{
-        const email=($('fbAuthEmail')?.value||'').trim(),pass=$('fbAuthPass')?.value||'';
-        if(!email||!pass){if($('fbLoginErr'))$('fbLoginErr').textContent='Fyll i e-post och lösenord.';return;}
-        if($('fbLoginErr'))$('fbLoginErr').textContent='';
-        if($('fbSignUpBtn'))$('fbSignUpBtn').disabled=true;
-        const res=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
-        const body=await res.json();
-        if($('fbSignUpBtn'))$('fbSignUpBtn').disabled=false;
-        if(!res.ok){if($('fbLoginErr'))$('fbLoginErr').textContent=body.error||'Fel vid registrering.';return;}
-        if(body.session){
-          await db.auth.setSession(body.session);
-          hideLoginOverlay();
-          if(window.showWelcome)setTimeout(()=>window.showWelcome(email),60);
-          const ok=await gatePage();
-          if(ok&&db){const uid2=await getUserId();if(uid2)await syncFromAccount();renderAll();}
-        }
-      };
-      $('fbSignInBtn')?.addEventListener('click',signIn);
-      $('fbSignUpBtn')?.addEventListener('click',signUp);
-      $('fbAuthPass')?.addEventListener('keydown',e=>{if(e.key==='Enter')signIn();});
-    }
+    // initLoginOverlay() drev det borttagna inline-formuläret. shared.js
+    // äger inloggning och registrering nu, inklusive återställning.
 
     /* ── ACCESS GATE ── */
     function disablePage(){
@@ -1487,7 +1424,6 @@
     /* ── INIT ── */
     (async()=>{
       applyLang();bindToggles();bindMenu();initReveal();restoreUiState();
-      initLoginOverlay();
       renderAll();
       const ok=await gatePage();
       if(!ok) return;

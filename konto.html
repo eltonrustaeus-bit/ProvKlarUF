@@ -199,7 +199,10 @@
   <div id="authGate">
     <div class="agTitle">Logga in för att se ditt konto</div>
     <div class="agSub">Du behöver vara inloggad för att hantera din prenumeration.</div>
-    <a class="btn btnP" href="app.html" style="height:44px;padding:0 28px">Logga in →</a>
+    <!-- Opens the shared modal in place. This used to link to app.html, which
+         sent someone who asked for their account page to the exam tool and
+         left them there after logging in. -->
+    <button class="btn btnP" type="button" data-pv-auth="login" style="height:44px;padding:0 28px">Logga in →</button>
   </div>
 
   <!-- KONTO CONTENT -->

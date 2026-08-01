@@ -20,6 +20,14 @@
     korkort: false, // Körkortsteorin — korkortet.html + api/check-role.js kk-kvoter
     hp: false,      // Högskoleprovet — provia-hp.html + api/hp.js
     demo: false,    // Live-demo — live-demo.html (marknadsföringsgenomgång, fortfarande körkortsinnehåll)
+
+    /* "Fortsätt med Google" i inloggningsrutan (shared.js). Koden är färdig och
+     * testad, men knappen kan inte fungera förrän Google-providern är påslagen
+     * i Supabase (Authentication → Providers → Google) med ett OAuth-klient-ID
+     * från Google Cloud. En synlig knapp som ger felmeddelande är sämre än
+     * ingen knapp, så den är dold tills dess. Sätt true samma dag providern
+     * aktiveras — inget annat behöver ändras. */
+    google: false,
   };
 
   window.EXGEN_MODULES = MODULES;

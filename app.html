@@ -322,42 +322,6 @@ margin-top:12px;padding-top:12px;border-top:1px solid var(--l);margin-bottom:6px
   #examBody{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 }
 
-/* LOGIN */
-.loginOverlay{
-position:fixed;inset:0;z-index:9999;
-background:var(--bg);
-display:flex;align-items:center;justify-content:center;padding:20px;
-}
-.loginCard{
-width:min(560px,100%);
-background:var(--s);border:1px solid var(--l);border-radius:var(--r);
-box-shadow:var(--sh3);overflow:hidden;
-}
-.loginTop{
-display:flex;gap:14px;align-items:center;
-padding:20px 20px 16px;border-bottom:1px solid var(--l);
-}
-.loginTop img{height:34px;width:auto}
-.loginTitle{
-font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;
-color:var(--t);letter-spacing:-.02em;
-}
-.loginSub{
-font-family:'DM Mono',monospace;font-size:10.5px;
-color:var(--t3);letter-spacing:.06em;text-transform:uppercase;margin-top:3px;
-}
-.loginBody{padding:20px}
-.authBlock{
-border:1px solid var(--l);border-radius:var(--r);
-padding:16px;background:var(--s2);margin-bottom:14px;
-}
-.authBlockTitle{
-font-family:'DM Mono',monospace;font-size:10.5px;font-weight:500;
-color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;
-}
-.loginBtnRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.loginHint{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-top:10px;line-height:1.5}
-.loginErr{font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500;color:var(--danger);margin-top:10px}
 .codeBlock{margin-top:14px}
 details summary.codeToggle{
 font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
@@ -515,40 +479,10 @@ white-space:nowrap;
 <div class="gradingLabel">Rättar<span class="gradingDots"></span></div>
 </div>
 
-<div id="loginScreen" class="loginOverlay" aria-hidden="false">
-<div class="loginCard" role="dialog" aria-modal="true" aria-label="Inloggning">
-<div class="loginTop">
-<div>
-<img src="image/exgen-logo.png" alt="ExGen" id="lockTitle" style="height:28px;width:auto;display:block;margin-bottom:2px">
-<div class="loginSub" id="lockSub">Logga in eller skapa konto</div>
-</div>
-</div>
-<div class="loginBody">
-<div class="authBlock">
-<div class="authBlockTitle" id="authTitle">Logga in / Skapa konto</div>
-<div class="grid2">
-<div>
-<label class="fieldLabel" for="authEmail" id="authEmailLabel">E-post</label>
-<input id="authEmail" type="email" autocomplete="email" placeholder="du@skola.se" />
-</div>
-<div>
-<label class="fieldLabel" for="authPass" id="authPassLabel">Lösenord</label>
-<input id="authPass" type="password" autocomplete="current-password" placeholder="Minst 8 tecken" />
-</div>
-</div>
-<div class="loginBtnRow">
-<button class="btn btnP" type="button" id="signInBtn">Logga in</button>
-<button class="btn btnG" type="button" id="signUpBtn">Skapa konto</button>
-<a class="btn btnG" href="index.html" id="toInfoBtn">Infosidan</a>
-<a class="btn btnG" href="förbättring.html" id="toImproveBtn">Min utveckling</a>
-</div>
-<!-- Login hint uppdateras dynamiskt beroende på roll -->
-<div class="loginHint" id="authHint">Skapa konto för att börja — gratis, inget kort krävs.</div>
-</div>
-<div id="errorMsg" class="loginErr" aria-live="polite"></div>
-</div>
-</div>
-</div>
+<!-- The inline login overlay that used to sit here was removed: shared.js's
+     dialog is the one login UI now, and it is the only one with password
+     reset. Keeping a second copy meant two forms with different validation
+     and different signup endpoints. -->
 
 <div class="xg-utility-bar">
   <div class="xg-utility-wrap">
@@ -871,8 +805,6 @@ let currentRole = localStorage.getItem(LS_ROLE) || "gratis";
 const T = {
 sv:{
   brandTag:"Mockprov · Rättning · Modellsvar",
-  lockSub:"Logga in eller skapa konto",
-  lockLabel:"Åtkomstkod",unlock:"Lås upp",toInfo:"Infosidan",toImprove:"Förbättring",
   m1:"01 — Material",m2:"02 — Inställningar",m3:"03 — Mockprov",m4:"04 — Rättning",
   mImprove:"Min utveckling",mLang:"English",mLogout:"Logga ut",
   step1:"Material",step1Sub:"Klistra in texten du pluggar på — rubriker, definitioner, formler, exempel",
@@ -910,8 +842,6 @@ sv:{
 },
 en:{
   brandTag:"Mock exams · Grading · Model answers",
-  lockSub:"Log in or create account",lockLabel:"Access code",unlock:"Unlock",
-  toInfo:"Info page",toImprove:"Improve",
   m1:"01 — Material",m2:"02 — Settings",m3:"03 — Mock exam",m4:"04 — Grading",
   mImprove:"My progress",mLang:"Svenska",mLogout:"Log out",
   step1:"Material",step1Sub:"Paste the material you're studying — headings, definitions, formulas, examples",
@@ -1056,7 +986,6 @@ function reportErr(err){
   const msg=(err&&(err.stack||err.message))?String(err.stack||err.message):String(err);
   showDebug(msg);
   const s=$("status"); if(s){s.className="stxt bad";s.textContent="JS-fel: se Debug.";}
-  const em=$("errorMsg"); if(em) em.textContent="JS-fel: se Debug.";
 }
 window.addEventListener("error",(e)=>reportErr(e.error||e.message));
 window.addEventListener("unhandledrejection",(e)=>reportErr(e.reason));
@@ -1249,8 +1178,7 @@ function initCourseLibrary(){
 function applyLang(){
   const t=T[LANG];
   const set=(id,val)=>{const el=$(id);if(el)el.textContent=val;};
-  set("brandTag",t.brandTag);set("lockSub",t.lockSub);set("lockLabel",t.lockLabel);
-  set("unlockBtn",t.unlock);set("toInfoBtn",t.toInfo);set("toImproveBtn",t.toImprove);
+  set("brandTag",t.brandTag);
   set("m1",t.m1);set("m2",t.m2);set("m3",t.m3);set("m4",t.m4);
   set("mImprove",t.mImprove);set("mLang",t.mLang);set("mLogout",t.mLogout);set("langPill",LANG.toUpperCase());
   set("tStep1",t.step1);set("tStep1Sub",t.step1Sub);set("tPasteLabel",t.pasteLabel);
@@ -1291,7 +1219,7 @@ function setBusy(isBusy,label){
   if(sw)sw.style.display=isBusy?"inline-flex":"none";
   if(ms&&label)ms.textContent=label;
   const dot=$("sDotMain");if(dot)dot.classList.toggle("ok",!isBusy);
-  ["generateExamBtn","clearBtn","ocrBtn","signInBtn","signUpBtn","unlockBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=isBusy;});
+  ["generateExamBtn","clearBtn","ocrBtn"].forEach(id=>{const el=$(id);if(el)el.disabled=isBusy;});
   const g=$("gradeBtn");if(g)g.disabled=isBusy||!currentExam;
 }
 
@@ -1305,18 +1233,20 @@ function setStatus(txt,kind){ const s=statusEl();if(!s)return;s.className="stxt"
 function setOcrStatus(txt,kind){ const s=ocrStatusEl();if(!s)return;s.className="stxt"+(kind?" "+kind:"");s.textContent=txt||""; }
 function isUnlocked(){ return localStorage.getItem(ACCESS_FLAG_KEY)==="true"; }
 function showLock(){
-  const s=$("loginScreen");
-  const openShared=()=>{ if(s){s.style.display="none";s.setAttribute("aria-hidden","true");} document.documentElement.style.overflow="";document.body.style.overflow=""; window.openProviaLogin('register'); };
-  const openFallback=()=>{ if(!s)return;s.style.display="flex";s.setAttribute("aria-hidden","false");document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden"; };
-  if(window.openProviaLogin){ openShared(); return; }
-  // shared.js is deferred and may not be ready yet — wait briefly for it (same pattern as förbättring.html/korkortet.html) before falling back to the legacy inline overlay.
+  // shared.js is deferred, so it may not have defined the opener yet. If it
+  // never does, the whole shared layer (nav, cookie banner, P.E.R) is missing
+  // too, so send the visitor to the landing page rather than leaving them on
+  // a gated page with nothing to click.
+  if(window.openProviaLogin){ window.openProviaLogin('register'); return; }
   let n=0; const iv=setInterval(()=>{
-    if(window.openProviaLogin){ clearInterval(iv); openShared(); }
-    else if(++n>50){ clearInterval(iv); openFallback(); }
+    if(window.openProviaLogin){ clearInterval(iv); window.openProviaLogin('register'); }
+    else if(++n>50){ clearInterval(iv); location.href="index.html"; }
   },60);
 }
-function hideLock(){ const s=$("loginScreen");if(!s)return;s.style.display="none";s.setAttribute("aria-hidden","true");document.documentElement.style.overflow="";document.body.style.overflow=""; }
-function setLockError(msg){ const em=$("errorMsg");if(em)em.textContent=msg||""; }
+function hideLock(){ document.documentElement.style.overflow="";document.body.style.overflow=""; if(window.closeProviaLogin)window.closeProviaLogin(); }
+// Gate errors ("account pending approval", SDK failures) used to render inside
+// the removed overlay; they surface as a toast now so they are still seen.
+function setLockError(msg){ if(msg&&window.showToast)window.showToast(msg,"bad",5000); }
 async function logout(){
   localStorage.removeItem(ACCESS_FLAG_KEY);
   localStorage.removeItem(LS_ROLE);
@@ -1352,39 +1282,9 @@ async function checkApprovalAndUnlock(session){
   return true;
 }
 
-async function signInEmail(){
-  hideDebug();
-  if(!db){setLockError("Supabase SDK laddades inte eller keys är fel.");return;}
-  const email=($("authEmail")?.value||"").trim(),password=$("authPass")?.value||"";
-  if(!email||!password){setLockError("Fyll i e-post och lösenord.");return;}
-  setBusy(true,"…");
-  try{
-    const{data,error}=await db.auth.signInWithPassword({email,password});
-    if(error){setLockError(error.message);return;}
-    const ok=await checkApprovalAndUnlock(data.session);
-    if(ok){await loadExamsFromAccountToLocal();await ensureUserProfileRow();await refreshQuotaUi();runTrainModeIfRequested();}
-  }finally{setBusy(false);}
-}
-
-async function signUpEmail(){
-  hideDebug();
-  if(!db){setLockError("Supabase SDK laddades inte eller keys är fel.");return;}
-  const email=($("authEmail")?.value||"").trim(),password=$("authPass")?.value||"";
-  if(!email||!password){setLockError("Fyll i e-post och lösenord.");return;}
-  setBusy(true,"…");
-  try{
-    const signupRes=await fetch("/api/signup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,password})});
-    const signupJson=await signupRes.json();
-    if(!signupRes.ok){setLockError(signupJson.error||"Registrering misslyckades.");return;}
-    const session=signupJson.session;
-    if(session){
-      await db.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});
-      const ok=await checkApprovalAndUnlock(session);
-      if(ok){await loadExamsFromAccountToLocal();await refreshQuotaUi();}
-    }
-  }finally{setBusy(false);}
-  runTrainModeIfRequested();
-}
+// signInEmail()/signUpEmail() lived here and drove the removed inline
+// overlay. shared.js's dialog owns both flows now, including the reset
+// path these two never had.
 
 function buildTrainingMaterialFromMistakes(mistakes,pickedIds){
   const src=Array.isArray(mistakes)?mistakes:[],idSet=(Array.isArray(pickedIds)&&pickedIds.length)?new Set(pickedIds.map(x=>String(x))):null;
@@ -1705,14 +1605,6 @@ try{
     }
   });
   onClick("logoutTopBtn",async()=>{await logout();});
-  onClick("signInBtn",async()=>{await signInEmail();});
-  onClick("signUpBtn",async()=>{await signUpEmail();});
-  onKey((e)=>{
-    if(e.key!=="Enter")return;
-    const s=$("loginScreen"),visible=s&&s.style.display!=="none";if(!visible)return;
-    const email=($("authEmail")?.value||"").trim(),pass=$("authPass")?.value||"";
-    if(email&&pass)signInEmail();
-  });
 
   onClick("ocrBtn",async()=>{
     if(currentRole==="gratis"){window.location.href="pricing.html";return;}
@@ -1887,7 +1779,7 @@ try{
   // Floating grade-knapp kör samma som gradeBtn
   onClick("floatingGradeBtn",()=>{const g=$("gradeBtn");if(g&&!g.disabled)g.click();});
 
-  window.addEventListener("hashchange",()=>{const lockVisible=$("loginScreen")&&$("loginScreen").style.display!=="none";if(!lockVisible)runTrainModeIfRequested();});
+  window.addEventListener("hashchange",()=>{if(!document.getElementById("pvModal")||document.getElementById("pvModal").style.display==="none")runTrainModeIfRequested();});
 
   if(db){
     try{

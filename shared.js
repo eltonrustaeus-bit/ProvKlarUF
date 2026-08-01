@@ -36,7 +36,12 @@
       .replace(/>/g, '&gt;');
   }
 
-  function showWelcomeAnim(name) {
+  /* isNew: true after a fresh registration, false for a returning sign-in.
+     Left undefined, it falls back to whether this device has ever held an
+     account. The greeting used to say "Välkommen tillbaka" to anyone whose
+     name could be derived — including someone who registered ten seconds
+     earlier — and plain "Välkommen!" only when it had no name at all. */
+  function showWelcomeAnim(name, isNew) {
     var existing = document.getElementById('proviaWelcome');
     if (existing) existing.remove();
 
@@ -45,6 +50,12 @@
     /* Capitalize first letter */
     if (displayName) displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
+    if (typeof isNew !== 'boolean') {
+      var seen = false;
+      try { seen = localStorage.getItem('exgen_has_account') === '1'; } catch (_) {}
+      isNew = !seen;
+    }
+
     var el = document.createElement('div');
     el.id = 'proviaWelcome';
     el.className = 'welcomeAnim';
@@ -52,7 +63,7 @@
       '<div class="welcomeInner">' +
         '<div class="welcomeOrb"></div>' +
         '<div>' +
-          '<div class="welcomeHi">Välkommen' + (displayName ? ' tillbaka' : '!') + '</div>' +
+          '<div class="welcomeHi">' + (isNew ? 'Välkommen!' : 'Välkommen tillbaka') + '</div>' +
           (displayName ? '<div class="welcomeName">' + esc(displayName) + '</div>' : '') +
         '</div>' +
       '</div>';
@@ -65,23 +76,34 @@
   }
 
   /* Public API — call from login handlers directly */
-  window.showWelcome = function (nameOrEmail) {
-    showWelcomeAnim(nameOrEmail || '');
+  window.showWelcome = function (nameOrEmail, isNew) {
+    showWelcomeAnim(nameOrEmail || '', isNew);
   };
 
-  /* Redirect-based welcome: set flag before location.reload() or navigate */
-  window.triggerWelcome = function (nameOrEmail) {
-    try { sessionStorage.setItem(SS_KEY, nameOrEmail || ''); } catch (_) {}
+  /* Redirect-based welcome: set flag before location.reload() or navigate.
+     Stored as JSON so the new/returning distinction survives the navigation;
+     callers that pass only a name still work and fall back to the device
+     flag on the other side. */
+  window.triggerWelcome = function (nameOrEmail, isNew) {
+    try {
+      sessionStorage.setItem(SS_KEY, JSON.stringify({ n: nameOrEmail || '', new: isNew }));
+    } catch (_) {}
   };
 
   /* On page load: check for pending welcome flag */
   document.addEventListener('DOMContentLoaded', function () {
     try {
-      var name = sessionStorage.getItem(SS_KEY);
-      if (name !== null) {
+      var stored = sessionStorage.getItem(SS_KEY);
+      if (stored !== null) {
         sessionStorage.removeItem(SS_KEY);
+        var name = stored, isNew;
+        /* Plain strings are what triggerWelcome wrote before it carried the
+           new/returning flag — a tab open across the deploy can still hold one. */
+        if (stored && stored.charAt(0) === '{') {
+          try { var p = JSON.parse(stored); name = p.n || ''; isNew = p.new; } catch (_) {}
+        }
         /* Small delay so the page loader has time to fade out first */
-        setTimeout(function () { showWelcomeAnim(name); }, 500);
+        setTimeout(function () { showWelcomeAnim(name, isNew); }, 500);
       }
     } catch (_) {}
   });
@@ -1331,11 +1353,76 @@
     var _view     = 'welcome';
     var _open     = false;
 
+    /* Set the first time an account is created or signed into on this device.
+       Used to decide whether the dialog should open on "Skapa konto" or on
+       "Logga in" — a returning student should not have to click past a signup
+       form every time — and to word the welcome animation honestly. */
+    var SEEN_KEY = 'exgen_has_account';
+    function hasAccountBefore() {
+      try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (_) { return false; }
+    }
+    function rememberAccount() {
+      try { localStorage.setItem(SEEN_KEY, '1'); } catch (_) {}
+    }
+
     function isLoggedIn() {
-      try { var s = JSON.parse(localStorage.getItem(SUPA_LS)||'{}'); return !!(s&&s.access_token); } catch(_) { return false; }
+      try {
+        var s = JSON.parse(localStorage.getItem(SUPA_LS) || '{}');
+        if (!s || !s.access_token) return false;
+        /* An expired access token is still a live session as long as a refresh
+           token is there — supabase-js renews it silently. Only a session that
+           is both expired and unrenewable counts as signed out; treating every
+           expired token as signed out would show "Logga in" to anyone who left
+           a tab open for an hour. */
+        var expired = s.expires_at && Number(s.expires_at) * 1000 <= Date.now();
+        if (expired && !s.refresh_token) return false;
+        return true;
+      } catch (_) { return false; }
     }
     function saveSession(d) {
-      try { localStorage.setItem(SUPA_LS, JSON.stringify(d)); } catch(_) {}
+      try { localStorage.setItem(SUPA_LS, JSON.stringify(d)); } catch (_) {}
+      rememberAccount();
+    }
+
+    /* Reads the email claim out of an access token. JWT payloads are base64url,
+       so the URL-safe characters have to be swapped back and the padding
+       restored before atob will accept them. */
+    function jwtEmail(token) {
+      try {
+        var p = String(token).split('.')[1] || '';
+        p = p.replace(/-/g, '+').replace(/_/g, '/');
+        while (p.length % 4) p += '=';
+        return JSON.parse(decodeURIComponent(escape(atob(p)))).email || '';
+      } catch (_) { return ''; }
+    }
+
+    /* Swedish wording for the errors Supabase answers with in English. The
+       dialog is the first thing a new user meets, and "Invalid login
+       credentials" in the middle of a Swedish page reads as a system error
+       rather than a typo they can fix. Unknown messages fall through to a
+       generic line instead of leaking raw API text. */
+    function svError(raw, fallback) {
+      var m = String(raw || '').toLowerCase();
+      if (!m) return fallback;
+      if (m.indexOf('invalid login credentials') > -1) return 'Fel e-post eller lösenord.';
+      if (m.indexOf('email not confirmed') > -1) return 'Bekräfta din e-post först — kolla mejlen.';
+      if (m.indexOf('already registered') > -1 || m.indexOf('already been registered') > -1) return 'Du har redan ett konto med den adressen.';
+      if (m.indexOf('password should be') > -1 || m.indexOf('password must be') > -1) return 'Lösenordet är för kort — minst 8 tecken.';
+      if (m.indexOf('unable to validate email') > -1 || m.indexOf('invalid email') > -1) return 'E-postadressen ser inte giltig ut.';
+      if (m.indexOf('for security purposes') > -1 || m.indexOf('rate limit') > -1 || m.indexOf('too many') > -1) return 'För många försök. Vänta en stund och prova igen.';
+      if (m.indexOf('failed to fetch') > -1 || m.indexOf('networkerror') > -1 || m.indexOf('load failed') > -1) return 'Ingen kontakt med servern. Kolla nätet och försök igen.';
+      return fallback;
+    }
+
+    /* The header button is rendered before we know anything, so its label has
+       to be corrected once the session state is known — otherwise it can read
+       "Mitt konto" while the login dialog is open on the same screen. */
+    function syncLoginButtons() {
+      var loggedIn = isLoggedIn();
+      var btns = document.querySelectorAll('.xg-login-btn');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].textContent = loggedIn ? 'Mitt konto' : 'Logga in';
+      }
     }
 
     function injectStyles() {
@@ -1343,14 +1430,23 @@
       var s = document.createElement('style');
       s.id = 'pvStyles';
       s.textContent = [
-        '#pvModal{position:fixed;inset:0;z-index:10000;background:rgba(3,8,6,.82);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);display:none;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease}',
+        /* z-index sits above .loader/.pageLoader (12000 in style.css): the dialog
+           now opens while that loader is still fading, and at 10000 the loader
+           orb painted straight through the login card. */
+        /* Scrim is ExGen navy, not the near-black green (rgba(3,8,6,.82)) left
+           over from the dark ProviaAI theme, which read as a murky grey-green
+           haze over a light turquoise site. */
+        '#pvModal{position:fixed;inset:0;z-index:13000;background:rgba(14,27,42,.60);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);display:none;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .22s ease}',
         '#pvModal.pv-on{opacity:1}',
         '#pvCard{position:relative;background:linear-gradient(180deg,#ffffff,var(--s2,#f8fafc));border:1px solid rgba(0,183,217,.18);border-radius:18px;width:min(412px,100%);overflow:hidden;box-shadow:0 30px 80px -20px rgba(14,27,42,.35);transform:translateY(16px) scale(.96);transition:transform .26s cubic-bezier(.22,.61,.36,1)}',
         '#pvModal.pv-on #pvCard{transform:none}',
         '#pvCard::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a,#00768F),transparent);opacity:.7}',
         '.pv-hd{padding:30px 26px 18px;text-align:center;position:relative}',
-        '.pv-cl{position:absolute;top:14px;right:14px;width:30px;height:30px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:none;cursor:pointer;font-size:15px;color:var(--t3,#667085);display:grid;place-items:center;transition:border-color .15s,color .15s,background .15s;line-height:1}',
-        '.pv-cl:hover{border-color:rgba(255,255,255,.28);color:var(--t,#1B2430);background:rgba(255,255,255,.04)}',
+        /* White-on-white borders here were invisible: the close button is drawn
+           on a white card, so it needs dark hairlines, not the light ones the
+           dark theme used. */
+        '.pv-cl{position:absolute;top:14px;right:14px;width:30px;height:30px;border:1px solid rgba(0,0,0,.10);border-radius:9px;background:none;cursor:pointer;font-size:15px;color:var(--t3,#667085);display:grid;place-items:center;transition:border-color .15s,color .15s,background .15s;line-height:1}',
+        '.pv-cl:hover{border-color:rgba(0,0,0,.22);color:var(--t,#1B2430);background:rgba(0,0,0,.04)}',
         '.pv-ti{font-family:"DM Sans",sans-serif;font-weight:700;font-size:23px;color:var(--t,#1B2430);letter-spacing:-.035em;margin-bottom:7px;line-height:1.1}',
         '.pv-sb{font-family:"DM Mono",monospace;font-size:10px;color:var(--a,#00768F);letter-spacing:.14em;min-height:14px;font-weight:500}',
         '.pv-bd{padding:6px 26px 26px}',
@@ -1369,6 +1465,12 @@
         '.pv-se{width:100%;height:48px;background:none;border:1px solid rgba(0,0,0,.14);color:var(--t,#1B2430);border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:"DM Sans",sans-serif;transition:border-color .15s,background .15s,transform .12s;margin-bottom:10px;display:flex;align-items:center;justify-content:center}',
         '.pv-se:hover{border-color:rgba(0,183,217,.4);background:rgba(0,183,217,.05);transform:translateY(-1px)}',
         '.pv-dv{display:flex;align-items:center;gap:10px;margin:4px 0 14px;font-family:"DM Mono",monospace;font-size:10px;color:var(--t3,#667085)}',
+        /* Google's brand guidelines want their mark unmodified on a neutral
+           button, so this one does not take the accent treatment. */
+        '.pv-go{width:100%;height:48px;background:#fff;border:1px solid rgba(0,0,0,.16);color:#1B2430;border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:"DM Sans",sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:border-color .15s,background .15s,transform .12s;margin-bottom:14px}',
+        '.pv-go:hover{border-color:rgba(0,0,0,.3);background:#fafafa;transform:translateY(-1px)}',
+        '.pv-go:disabled{opacity:.5;cursor:not-allowed;transform:none}',
+        '.pv-go svg{width:18px;height:18px;flex-shrink:0}',
         '.pv-dv::before,.pv-dv::after{content:"";flex:1;height:1px;background:rgba(0,0,0,.1)}',
         '.pv-hn{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--t3,#667085);text-align:center;margin-top:14px;letter-spacing:.02em;line-height:1.5}',
         '.pv-er{font-family:"DM Sans",sans-serif;font-size:12.5px;color:var(--danger,#ff6b6b);margin-top:10px;min-height:16px;font-weight:500}',
@@ -1380,6 +1482,40 @@
         '@media(prefers-reduced-motion:reduce){#pvCard,.pv-pm,.pv-se,.pv-vw{transition:none;animation:none}}',
       ].join('');
       document.head.appendChild(s);
+    }
+
+    /* Google's four-colour mark, inlined. A remote <img> would be one more
+       request in front of the login box and would break behind a school
+       network that blocks Google's CDN but not the sign-in itself. */
+    /* data-module="google" hands visibility to js/exgen-modules.js, the same
+       switch that hides körkortsteorin and HP. The button and its divider stay
+       out of the DOM's painted output until that flag is turned on, which
+       happens the day the Google provider is enabled in Supabase. */
+    function googleBtn(id) {
+      return '<button class="pv-go" id="' + id + '" type="button" data-module="google">'
+        + '<svg viewBox="0 0 48 48" aria-hidden="true">'
+          + '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
+          + '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
+          + '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>'
+          + '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
+        + '</svg>'
+        + '<span>Fortsätt med Google</span>'
+      + '</button>';
+    }
+
+    /* Where Google should drop the visitor back. Gated pages set
+       PROVIA_AUTH_REDIRECT to the page they want reached after auth; everyone
+       else comes back to the page they were on. */
+    function authReturnUrl() {
+      var r = window.PROVIA_AUTH_REDIRECT;
+      if (r) return new URL(r, location.href).href;
+      return location.origin + location.pathname;
+    }
+
+    function startGoogle(btn) {
+      if (btn) { btn.disabled = true; btn.querySelector('span').textContent = 'Öppnar Google…'; }
+      location.href = SUPA_URL + '/auth/v1/authorize?provider=google&redirect_to='
+        + encodeURIComponent(authReturnUrl());
     }
 
     function buildModal() {
@@ -1403,21 +1539,38 @@
             + '<div class="pv-dv">eller</div>'
             + '<button class="pv-se" id="pvToLog" type="button">Logga in</button>'
           + '</div>'
+          /* Real <form> elements with named fields and submit buttons. Without
+             them browsers and password managers (Safari, Chrome, 1Password)
+             do not reliably offer to save or fill credentials, and Enter only
+             worked in whichever field had a hand-wired keydown listener. */
           + '<div id="pvVR" class="pv-vw">'
-            + '<div class="pv-fl"><label class="pv-la" for="pvRE">E-post</label><input class="pv-in" id="pvRE" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
-            + '<div class="pv-fl"><label class="pv-la" for="pvRP">Lösenord</label><input class="pv-in" id="pvRP" type="password" placeholder="Minst 8 tecken" autocomplete="new-password"></div>'
-            + '<button class="pv-pm" id="pvRBtn" type="button">Skapa konto</button>'
-            + '<div class="pv-er" id="pvRE2"></div>'
+            + googleBtn('pvGoR')
+            + '<div class="pv-dv" data-module="google">eller med e-post</div>'
+            + '<form id="pvFormR" novalidate>'
+            + '<div class="pv-fl"><label class="pv-la" for="pvRE">E-post</label><input class="pv-in" id="pvRE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
+            + '<div class="pv-fl"><label class="pv-la" for="pvRP">Lösenord</label><input class="pv-in" id="pvRP" name="password" type="password" placeholder="Minst 8 tecken" autocomplete="new-password"></div>'
+            + '<button class="pv-pm" id="pvRBtn" type="submit">Skapa konto</button>'
+            + '<div class="pv-er" id="pvRE2" role="alert" aria-live="polite"></div>'
             + '<div class="pv-tg">Har du redan ett konto? <button id="pvRBk" type="button">Logga in</button></div>'
             + '<div class="pv-hn">Gratis konto — inget kort krävs.</div>'
-          + '</div>'
+          + '</form></div>'
           + '<div id="pvVL" class="pv-vw">'
-            + '<div class="pv-fl"><label class="pv-la" for="pvLE">E-post</label><input class="pv-in" id="pvLE" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
-            + '<div class="pv-fl"><label class="pv-la" for="pvLP">Lösenord</label><input class="pv-in" id="pvLP" type="password" placeholder="Ditt lösenord" autocomplete="current-password"></div>'
-            + '<button class="pv-pm" id="pvLBtn" type="button">Logga in</button>'
-            + '<div class="pv-er" id="pvLE2"></div>'
+            + googleBtn('pvGoL')
+            + '<div class="pv-dv" data-module="google">eller med e-post</div>'
+            + '<form id="pvFormL" novalidate>'
+            + '<div class="pv-fl"><label class="pv-la" for="pvLE">E-post</label><input class="pv-in" id="pvLE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
+            + '<div class="pv-fl"><label class="pv-la" for="pvLP">Lösenord</label><input class="pv-in" id="pvLP" name="password" type="password" placeholder="Ditt lösenord" autocomplete="current-password"></div>'
+            + '<button class="pv-pm" id="pvLBtn" type="submit">Logga in</button>'
+            + '<div class="pv-er" id="pvLE2" role="alert" aria-live="polite"></div>'
+            + '<div class="pv-tg" style="margin-top:10px"><button id="pvToForgot" type="button">Glömt lösenordet?</button></div>'
             + '<div class="pv-tg">Ny här? <button id="pvLBk" type="button">Skapa konto</button></div>'
-          + '</div>'
+          + '</form></div>'
+          + '<div id="pvVF" class="pv-vw"><form id="pvFormF" novalidate>'
+            + '<div class="pv-fl"><label class="pv-la" for="pvFE">E-post</label><input class="pv-in" id="pvFE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
+            + '<button class="pv-pm" id="pvFBtn" type="submit">Skicka återställningslänk</button>'
+            + '<div class="pv-er" id="pvFE2" role="alert" aria-live="polite"></div>'
+            + '<div class="pv-tg"><button id="pvFBk" type="button">Tillbaka till inloggning</button></div>'
+          + '</form></div>'
         + '</div>'
       + '</div>';
       document.body.appendChild(el);
@@ -1429,30 +1582,60 @@
       document.getElementById('pvToLog').onclick = function() { switchView('login'); };
       document.getElementById('pvRBk').onclick = function() { switchView('login'); };
       document.getElementById('pvLBk').onclick = function() { switchView('register'); };
-      document.getElementById('pvRBtn').onclick = doRegister;
-      document.getElementById('pvLBtn').onclick = doLogin;
-      document.getElementById('pvRP').addEventListener('keydown', function(e) { if (e.key === 'Enter') doRegister(); });
-      document.getElementById('pvLP').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+      document.getElementById('pvToForgot').onclick = function() { switchView('forgot'); };
+      document.getElementById('pvFBk').onclick = function() { switchView('login'); };
+      document.getElementById('pvGoR').onclick = function() { startGoogle(this); };
+      document.getElementById('pvGoL').onclick = function() { startGoogle(this); };
+      /* Submit handlers replace the old per-field keydown listeners: the form
+         fires on Enter from any field and on the button, in one place. */
+      var onSubmit = function(formId, fn) {
+        document.getElementById(formId).addEventListener('submit', function(e) { e.preventDefault(); fn(); });
+      };
+      onSubmit('pvFormR', doRegister);
+      onSubmit('pvFormL', doLogin);
+      onSubmit('pvFormF', doForgot);
     }
 
     function switchView(view) {
       _view = view;
-      var map = { welcome:'pvVW', register:'pvVR', login:'pvVL' };
+      var map = { welcome:'pvVW', register:'pvVR', login:'pvVL', forgot:'pvVF' };
       Object.keys(map).forEach(function(k) {
         var el = document.getElementById(map[k]);
         if (el) el.classList.toggle('pv-vx', k === view);
       });
-      var titles = { welcome:'Skapa konto', register:'Skapa konto', login:'Logga in' };
-      var subs = { welcome:'GRATIS ATT STARTA · INGET KORT KRÄVS', register:'GRATIS ATT STARTA · INGET KORT KRÄVS', login:'VÄLKOMMEN TILLBAKA' };
+      var titles = { welcome:'Skapa konto', register:'Skapa konto', login:'Logga in', forgot:'Återställ lösenord' };
+      var subs = { welcome:'GRATIS ATT STARTA · INGET KORT KRÄVS', register:'GRATIS ATT STARTA · INGET KORT KRÄVS', login:'VÄLKOMMEN TILLBAKA', forgot:'VI MEJLAR EN LÄNK' };
       var ti = document.getElementById('pvTi'); if (ti) ti.textContent = titles[view] || '';
       var sb = document.getElementById('pvSb'); if (sb) sb.textContent = subs[view] || '';
-      var focusMap = { register:'pvRE', login:'pvLE' };
+      var focusMap = { register:'pvRE', login:'pvLE', forgot:'pvFE' };
       if (focusMap[view]) setTimeout(function() { var inp = document.getElementById(focusMap[view]); if (inp) inp.focus(); }, 60);
-      ['pvRE2','pvLE2'].forEach(function(id) { var e = document.getElementById(id); if (e) e.textContent = ''; });
+      /* Reset every error slot, including its colour: doForgot and doRegister
+         reuse these for success messages and repaint them accent-coloured. */
+      ['pvRE2','pvLE2','pvFE2'].forEach(function(id) {
+        var e = document.getElementById(id);
+        if (e) { e.textContent = ''; e.style.color = ''; }
+      });
     }
 
     function openModal(view) {
       if (isLoggedIn()) return;
+      /* Every page gate asks for 'register', which is right for a first-time
+         visitor and wrong for everyone else — a returning student had to click
+         past a signup form to reach the login form. Anyone who has had an
+         account on this device gets the login view instead. Explicit choices
+         (the "Skapa konto" buttons inside the dialog) go through switchView
+         and are untouched by this. */
+      if (view === 'register' && hasAccountBefore()) view = 'login';
+      syncLoginButtons();
+      /* Gated pages call this during DOMContentLoaded, while the intro splash
+         still owns the screen. Cut the splash short — asking someone to log in
+         and then hiding the dialog behind a 4s brand animation reads as a bug. */
+      if (window.exgenSkipSplash) window.exgenSkipSplash();
+      /* Same reasoning for the page loader: once we are asking the visitor to
+         log in, a "loading" spinner behind the dialog is noise. Both class
+         names are applied because pages use either .loader or .pageLoader. */
+      var ldr = document.getElementById('pageLoader') || document.querySelector('.loader');
+      if (ldr) { ldr.classList.add('done'); ldr.classList.add('out'); }
       buildModal();
       _open = true;
       var el = document.getElementById('pvModal');
@@ -1496,19 +1679,74 @@
       if (!email || !pass) { errEl.textContent = 'Fyll i e-post och lösenord.'; return; }
       if (pass.length < 8) { errEl.textContent = 'Lösenordet måste vara minst 8 tecken.'; return; }
       btn.disabled = true; btn.textContent = 'Skapar konto…';
-      supaPost('signup', { email: email, password: pass }).then(function(d) {
-        if (d.access_token) {
-          saveSession(d); closeModal();
-          if (window.showWelcome) window.showWelcome(email);
-          setTimeout(pvAfterAuth, 2600);
+      /* Registration goes through /api/signup, not Supabase's /auth/v1/signup
+         directly. That endpoint is what the in-page forms in app.html,
+         förbättring.html and korkortet.html already use, and it is the only
+         path that confirms the address, sends the welcome mail and notifies
+         the admin. Calling Supabase raw from here meant a user who signed up
+         from the landing page silently got none of that. */
+      fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: pass })
+      }).then(function(r) {
+        return r.json().then(function(d) {
+          if (!r.ok) throw new Error(d.error || 'Registrering misslyckades.');
+          return d;
+        });
+      }).then(function(d) {
+        if (d.session && d.session.access_token) {
+          var isNew = !hasAccountBefore();
+          saveSession(d.session); closeModal();
+          /* Hand the welcome animation to the destination page instead of
+             playing it here and then throwing it away in the navigation —
+             same pattern korkortet.html already uses. Saves 2.6s of dead wait. */
+          if (window.triggerWelcome) window.triggerWelcome(email, isNew);
+          pvAfterAuth();
         } else {
           errEl.style.color = 'var(--a,#00768F)';
-          errEl.textContent = 'Bekräfta din e-post och logga sedan in!';
+          errEl.textContent = 'Kontot är skapat — logga in för att komma igång.';
           btn.disabled = false; btn.textContent = 'Skapa konto';
         }
       }).catch(function(e) {
-        errEl.style.color = ''; errEl.textContent = e.message || 'Fel — försök igen.';
         btn.disabled = false; btn.textContent = 'Skapa konto';
+        errEl.style.color = '';
+        /* "Already registered" is not really an error — the person has an
+           account and picked the wrong form. Move them to the login view with
+           the address already filled in rather than making them retype it. */
+        if (/already (been )?registered/i.test(String(e.message || ''))) {
+          switchView('login');
+          var le = document.getElementById('pvLE');
+          if (le) le.value = email;
+          var lp = document.getElementById('pvLP');
+          if (lp) setTimeout(function() { lp.focus(); }, 80);
+          var lerr = document.getElementById('pvLE2');
+          if (lerr) { lerr.style.color = 'var(--a,#00768F)'; lerr.textContent = 'Du har redan ett konto — logga in här.'; }
+          rememberAccount();
+          return;
+        }
+        errEl.textContent = svError(e.message, 'Kunde inte skapa kontot. Försök igen.');
+      });
+    }
+
+    function doForgot() {
+      var email = (document.getElementById('pvFE').value || '').trim();
+      var errEl = document.getElementById('pvFE2');
+      var btn   = document.getElementById('pvFBtn');
+      errEl.style.color = ''; errEl.textContent = '';
+      if (!email) { errEl.textContent = 'Fyll i din e-post.'; return; }
+      btn.disabled = true; btn.textContent = 'Skickar…';
+      var redirect = location.origin + '/aterstall.html';
+      supaPost('recover?redirect_to=' + encodeURIComponent(redirect), { email: email }).then(function() {
+        /* Supabase answers 200 whether or not the address exists, and the
+           wording keeps it that way — confirming which addresses have
+           accounts would hand out a user list to anyone who asks. */
+        errEl.style.color = 'var(--a,#00768F)';
+        errEl.textContent = 'Kolla mejlen. Finns adressen hos oss ligger en återställningslänk där om en minut.';
+        btn.textContent = 'Länk skickad';
+      }).catch(function(e) {
+        errEl.textContent = svError(e.message, 'Kunde inte skicka länken. Försök igen.');
+        btn.disabled = false; btn.textContent = 'Skicka återställningslänk';
       });
     }
 
@@ -1522,10 +1760,10 @@
       btn.disabled = true; btn.textContent = 'Loggar in…';
       supaPost('token?grant_type=password', { email: email, password: pass }).then(function(d) {
         saveSession(d); closeModal();
-        if (window.showWelcome) window.showWelcome(email);
-        setTimeout(function() { location.reload(); }, 2600);
+        if (window.triggerWelcome) window.triggerWelcome(email, false);
+        location.reload();
       }).catch(function(e) {
-        errEl.textContent = e.message || 'Fel e-post eller lösenord.';
+        errEl.textContent = svError(e.message, 'Fel e-post eller lösenord.');
         btn.disabled = false; btn.textContent = 'Logga in';
       });
     }
@@ -1543,27 +1781,109 @@
       openModal(t.getAttribute('data-pv-auth') || 'register');
     });
 
+    /* ── RETURN FROM GOOGLE ──
+       Supabase uses the implicit flow (auth-js defaults to flowType
+       'implicit' and this dialog talks to /auth/v1 over plain REST), so the
+       session comes back in the URL fragment. This runs at script-parse time,
+       before DOMContentLoaded, so the session is in storage by the time each
+       page's own gate calls supabase-js and asks whether anyone is signed in —
+       no reload, no flash of the login box. */
+    (function handleOAuthReturn() {
+      var h = location.hash || '';
+      if (h.indexOf('access_token') === -1 && h.indexOf('error') === -1) return;
+
+      var q = new URLSearchParams(h.replace(/^#/, ''));
+
+      /* Password recovery belongs to aterstall.html. Supabase only honours a
+         redirect_to that is on the project's allowed-redirect list; anything
+         else silently falls back to the Site URL, which drops the user on the
+         landing page holding a recovery token nothing acts on — the reset just
+         appears broken. Forwarding the fragment ourselves makes the link work
+         wherever it lands, with no dashboard configuration required. */
+      if (q.get('type') === 'recovery') {
+        if (!/aterstall\.html$/i.test(location.pathname)) {
+          location.replace('/aterstall.html' + h);
+        }
+        return;
+      }
+
+      /* Get the token out of the address bar before anything else: it grants
+         access to the account, and leaving it in history or in a copied link
+         hands that access to whoever reads it. */
+      function clean() {
+        try { history.replaceState({}, '', location.pathname + location.search); } catch (_) {}
+      }
+      function onReady(fn) {
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+        else fn();
+      }
+
+      var code = q.get('error') || '';
+      var err = q.get('error_description') || code;
+      if (err) {
+        clean();
+        var msg = decodeURIComponent(String(err).replace(/\+/g, ' '));
+        /* The machine-readable code carries the "user backed out" case;
+           the human description says something else entirely ("The user
+           denied the request"), so both have to be checked. */
+        var cancelled = /access_denied/i.test(code) || /denied|cancel/i.test(msg);
+        onReady(function() {
+          openModal('login');
+          var el = document.getElementById('pvLE2');
+          if (!el) return;
+          el.textContent = cancelled
+            ? 'Google-inloggningen avbröts.'
+            : svError(msg, 'Google-inloggningen gick inte igenom. Försök igen.');
+        });
+        return;
+      }
+
+      var token = q.get('access_token');
+      if (!token) return;
+
+      var ttl = Number(q.get('expires_in') || 3600);
+      saveSession({
+        access_token: token,
+        refresh_token: q.get('refresh_token') || '',
+        expires_in: ttl,
+        expires_at: Math.floor(Date.now() / 1000) + ttl,
+        token_type: q.get('token_type') || 'bearer'
+      });
+      clean();
+
+      var email = jwtEmail(token);
+
+      /* Supabase creates the user itself on this path, so api/signup.js never
+         runs and nothing would send the welcome mail. The endpoint is
+         idempotent and answers whether this was a first sign-in, which also
+         decides how the animation greets them. */
+      fetch('/api/oauth-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(d) { onReady(function() { if (window.showWelcome) window.showWelcome(email, !!(d && d.isNew)); }); })
+        .catch(function() { onReady(function() { if (window.showWelcome) window.showWelcome(email, false); }); });
+    })();
+
+    /* Anyone already signed in when this ships has clearly had an account
+       before, so seed the flag rather than showing them a signup form once. */
+    if (isLoggedIn()) rememberAccount();
+
     window.openProviaLogin  = openModal;
     window.closeProviaLogin = closeModal;
-  })();
 
-  /* ── HEADER LOGIN BUTTON — swap label for already-authenticated visitors ── */
-  /* .xg-login-btn is a static "Logga in" link with data-pv-auth="login" (the
-     shared click-gate above already handles logged-out clicks correctly).
-     Reads the same raw localStorage key the auth modal above uses — that
-     helper is scoped inside its own IIFE, so this re-checks directly rather
-     than exporting one, matching how initGlobalNav() does the same thing
-     elsewhere in this file. */
-  document.addEventListener('DOMContentLoaded', function () {
-    var btns = document.querySelectorAll('.xg-login-btn');
-    if (!btns.length) return;
-    var loggedIn = false;
-    try {
-      var s = JSON.parse(localStorage.getItem('sb-mnmotdluigzeehdjbhbu-auth-token') || '{}');
-      loggedIn = !!(s && s.access_token);
-    } catch (_) {}
-    if (!loggedIn) return;
-    btns.forEach(function (btn) { btn.textContent = 'Mitt konto'; });
-  });
+    /* ── HEADER LOGIN BUTTON — label follows the session ──
+       .xg-login-btn is a static "Logga in" link with data-pv-auth="login" (the
+       shared click-gate above already handles logged-out clicks correctly).
+       This used to only ever upgrade the label to "Mitt konto" and never back,
+       so a session that had gone stale left the header claiming an account
+       while the login dialog sat open on the same screen. openModal calls the
+       same helper, which keeps the two in step. */
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', syncLoginButtons);
+    } else {
+      syncLoginButtons();
+    }
+  })();
 
 })();

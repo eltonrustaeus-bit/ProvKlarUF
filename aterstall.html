@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Återställ lösenord – ExGen</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="js/exgen-modules.js"></script>
+<link rel="stylesheet" href="style.css" />
+<!-- Deliberately no js/intro-splash.js: this page is reached from an email
+     link by someone who is locked out, and a 4s brand animation in front of
+     the way back in is the exact friction the splash was hidden behind. -->
+<script src="shared.js" defer></script>
+<style>
+  .rsWrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .rsCard{width:min(420px,100%);background:var(--s);border:1px solid var(--l);
+    border-radius:14px;padding:32px 28px;box-shadow:0 20px 50px -24px rgba(14,27,42,.28)}
+  .rsLogo{height:26px;width:auto;display:block;margin:0 auto 16px}
+  .rsTitle{font-size:21px;font-weight:700;color:var(--t);letter-spacing:-.03em;text-align:center;margin:0 0 6px}
+  .rsSub{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);letter-spacing:.14em;
+    text-transform:uppercase;text-align:center;margin:0 0 24px}
+  .rsField{margin-bottom:14px}
+  .rsLabel{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--t3);letter-spacing:.1em;
+    text-transform:uppercase;display:block;margin-bottom:7px}
+  .rsInput{width:100%;height:48px;padding:0 14px;background:rgba(0,0,0,.035);
+    border:1px solid rgba(0,0,0,.12);border-radius:10px;font-size:14.5px;color:var(--t);
+    font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;
+    transition:border-color .15s,box-shadow .15s}
+  .rsInput:focus{border-color:rgba(0,183,217,.55);box-shadow:0 0 0 3px rgba(0,183,217,.12)}
+  .rsBtn{width:100%;height:50px;background:var(--a);color:#fff;border:none;border-radius:11px;
+    font-weight:700;font-size:15px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;
+    transition:filter .15s,transform .12s}
+  .rsBtn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .rsBtn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .rsMsg{font-size:12.5px;margin-top:12px;min-height:16px;font-weight:500;line-height:1.5}
+  .rsMsg.err{color:#B91C1C}
+  .rsMsg.ok{color:var(--a)}
+  .rsHint{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--t3);text-align:center;
+    margin-top:16px;line-height:1.6}
+  .rsLink{background:none;border:none;color:var(--a);font-weight:600;font-size:13px;cursor:pointer;
+    font-family:'DM Sans',sans-serif;padding:2px 4px}
+  .rsLink:hover{text-decoration:underline}
+  .rsView{display:none}
+  .rsView.on{display:block}
+  /* shared.js mounts the P.E.R assistant on every page it loads. Someone who
+     is locked out of their account has one job here, and a chat bubble is not
+     it — hide it on this page only. */
+  #perWidget{display:none!important}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<main class="rsWrap">
+  <div class="rsCard">
+    <img class="rsLogo" src="image/exgen-logo.png" alt="ExGen">
+
+    <!-- Giltig länk: sätt nytt lösenord -->
+    <div id="rsForm" class="rsView">
+      <h1 class="rsTitle">Välj ett nytt lösenord</h1>
+      <p class="rsSub" id="rsFor">Återställning</p>
+      <div class="rsField">
+        <label class="rsLabel" for="rsPass">Nytt lösenord</label>
+        <input class="rsInput" id="rsPass" type="password" placeholder="Minst 8 tecken" autocomplete="new-password">
+      </div>
+      <div class="rsField">
+        <label class="rsLabel" for="rsPass2">Upprepa lösenordet</label>
+        <input class="rsInput" id="rsPass2" type="password" placeholder="Samma en gång till" autocomplete="new-password">
+      </div>
+      <button class="rsBtn" id="rsSave" type="button">Spara nytt lösenord</button>
+      <div class="rsMsg" id="rsMsg" role="alert" aria-live="polite"></div>
+    </div>
+
+    <!-- Ingen eller utgången länk -->
+    <div id="rsBad" class="rsView">
+      <h1 class="rsTitle">Länken fungerar inte</h1>
+      <p class="rsSub">Utgången eller redan använd</p>
+      <p style="font-size:14px;color:var(--t2);line-height:1.7;text-align:center;margin:0 0 20px" id="rsBadWhy">
+        Återställningslänkar gäller en kort stund och bara en gång. Begär en ny så skickar vi ett nytt mejl.
+      </p>
+      <button class="rsBtn" id="rsAgain" type="button">Begär en ny länk</button>
+      <p class="rsHint"><a href="index.html" style="color:var(--t3)">Tillbaka till startsidan</a></p>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var SUPA_URL  = 'https://mnmotdluigzeehdjbhbu.supabase.co';
+  var SUPA_ANON = 'sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN';
+  var SUPA_LS   = 'sb-mnmotdluigzeehdjbhbu-auth-token';
+
+  var $ = function (id) { return document.getElementById(id); };
+  function view(id) {
+    ['rsForm', 'rsBad'].forEach(function (v) { $(v).classList.toggle('on', v === id); });
+  }
+  function msg(text, kind) {
+    var m = $('rsMsg');
+    m.className = 'rsMsg' + (kind ? ' ' + kind : '');
+    m.textContent = text || '';
+  }
+
+  /* Supabase runs the implicit flow here (auth-js defaults to flowType
+     'implicit', and the modal talks to /auth/v1 over plain REST), so the
+     recovery link arrives as #access_token=…&type=recovery. */
+  var hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+  var token = hash.get('access_token');
+  var type  = hash.get('type');
+  var hashErr = hash.get('error_description') || hash.get('error');
+
+  /* Strip the token out of the address bar before anything else: it grants
+     access to the account, and leaving it in history or in a copied URL
+     hands that access to whoever reads it. */
+  if (location.hash) {
+    try { history.replaceState({}, '', location.pathname + location.search); } catch (_) {}
+  }
+
+  if (token && type === 'recovery') {
+    view('rsForm');
+    /* JWT payloads are base64url, so the URL-safe characters have to be
+       swapped back and the padding restored before atob accepts them. */
+    var email = '';
+    try {
+      var pl = String(token).split('.')[1] || '';
+      pl = pl.replace(/-/g, '+').replace(/_/g, '/');
+      while (pl.length % 4) pl += '=';
+      email = JSON.parse(decodeURIComponent(escape(atob(pl)))).email || '';
+    } catch (_) {}
+    $('rsFor').textContent = email ? 'För ' + email : 'Återställning';
+    setTimeout(function () { $('rsPass').focus(); }, 60);
+  } else {
+    view('rsBad');
+    if (hashErr) $('rsBadWhy').textContent = decodeURIComponent(String(hashErr).replace(/\+/g, ' '));
+  }
+
+  function save() {
+    var p1 = $('rsPass').value || '';
+    var p2 = $('rsPass2').value || '';
+    if (p1.length < 8)  { msg('Lösenordet måste vara minst 8 tecken.', 'err'); return; }
+    if (p1 !== p2)      { msg('Lösenorden är inte lika.', 'err'); return; }
+
+    var btn = $('rsSave');
+    btn.disabled = true; btn.textContent = 'Sparar…';
+    msg('');
+
+    fetch(SUPA_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_ANON,
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ password: p1 })
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(d.msg || d.error_description || d.message || 'Kunde inte spara lösenordet.');
+        return d;
+      });
+    }).then(function (updatedUser) {
+      /* The recovery token is already a full session — sign the user straight
+         in rather than making them type the password they just chose. Shape
+         matches what supabase-js writes to this key, user object included,
+         so the SDK on the next page reads it as its own session. */
+      var ttl = Number(hash.get('expires_in') || 3600);
+      try {
+        localStorage.setItem(SUPA_LS, JSON.stringify({
+          access_token: token,
+          refresh_token: hash.get('refresh_token') || '',
+          expires_in: ttl,
+          expires_at: Math.floor(Date.now() / 1000) + ttl,
+          token_type: 'bearer',
+          user: updatedUser
+        }));
+      } catch (_) {}
+      msg('Klart. Loggar in dig…', 'ok');
+      if (window.triggerWelcome) window.triggerWelcome(email);
+      setTimeout(function () { location.href = 'app.html'; }, 600);
+    }).catch(function (e) {
+      msg(e.message || 'Kunde inte spara lösenordet. Begär en ny länk och försök igen.', 'err');
+      btn.disabled = false; btn.textContent = 'Spara nytt lösenord';
+    });
+  }
+
+  $('rsSave').addEventListener('click', save);
+  $('rsPass2').addEventListener('keydown', function (e) { if (e.key === 'Enter') save(); });
+  $('rsAgain').addEventListener('click', function () {
+    if (window.openProviaLogin) window.openProviaLogin('forgot');
+    else location.href = 'index.html';
+  });
+})();
+</script>
+
+</body>
+</html>
