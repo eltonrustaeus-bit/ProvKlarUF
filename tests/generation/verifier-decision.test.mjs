@@ -39,6 +39,24 @@ check("rejects when ambiguity_score is above threshold", () => {
   assert.equal(V.decideApproval({ ...good, ambiguity_score: 0.6 }), false);
 });
 
+// Pins the tightened ambiguity ceiling. On the long-form eval fixtures, 9 of 12
+// defective questions were "more than one option is correct" — the dominant
+// defect, and exactly what this dimension measures. The old ceiling of 0.35 let
+// them through. Loosening it again should be a deliberate decision with numbers
+// behind it, not an accident, so both sides of the boundary are asserted.
+check("ambiguity ceiling is 0.20: exactly at the limit still approves", () => {
+  assert.equal(V.DEFAULT_THRESHOLDS.maxAmbiguity, 0.20);
+  assert.equal(V.decideApproval({ ...good, ambiguity_score: 0.20 }), true);
+});
+
+check("ambiguity ceiling is 0.20: just above it rejects", () => {
+  assert.equal(V.decideApproval({ ...good, ambiguity_score: 0.25 }), false);
+});
+
+check("a caller can still override the ambiguity ceiling explicitly", () => {
+  assert.equal(V.decideApproval({ ...good, ambiguity_score: 0.30 }, { maxAmbiguity: 0.35 }), true);
+});
+
 check("rejects when source_alignment is below threshold", () => {
   assert.equal(V.decideApproval({ ...good, source_alignment: 0.3 }), false);
 });

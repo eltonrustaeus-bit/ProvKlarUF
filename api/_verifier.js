@@ -46,7 +46,11 @@ function buildVerifierSchema() {
 
 const DEFAULT_THRESHOLDS = {
   minFactualAccuracy: 0.75,
-  maxAmbiguity: 0.35,
+  // Tightened from 0.35. Measured on the long-form eval fixtures: 9 of 12
+  // defective questions were "more than one option is correct" rather than a
+  // wrong answer key — the dominant defect by a wide margin, and precisely what
+  // this dimension exists to catch. 0.35 let them through.
+  maxAmbiguity: 0.20,
   minDifficultyMatch: 0.6,
   minSourceAlignment: 0.6,
   minScoringQuality: 0.6,
