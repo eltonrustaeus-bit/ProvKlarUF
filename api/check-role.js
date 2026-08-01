@@ -4,6 +4,7 @@ import { currentPeriodKey, getEntitlementSnapshot, getFeatureLimit, normalizeRol
 import { clearLongMemory } from "./_per-memory.js";
 import { callAI } from "./_per-core.js";
 import { SITE_ORIGIN } from "./_site.js";
+import { MAINTENANCE, maintenanceAllows } from "./_maintenance.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -144,10 +145,32 @@ async function getStudentSummaries(classId) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+  const action = req.body?.action;
+
+  /* Underhållsgrinden svaras före requireAuth. Med flaggan av måste en utloggad
+     besökare få allow:true direkt — annars skulle varje sidladdning på en
+     normal dag kräva en Supabase-session bara för att få se startsidan. Med
+     flaggan på ger uteblivet token 401, och js/site-gate.js hämtar då sessionen
+     och frågar om igen. */
+  if (action === "maintenance_gate") {
+    if (!MAINTENANCE.enabled) return res.status(200).json({ allow: true });
+
+    const gateUser = await requireAuth(req, res);
+    if (!gateUser) return;                       // requireAuth svarade redan 401
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", gateUser.id)
+      .maybeSingle();
+
+    // Fail closed: kan rollen inte läsas är svaret nej, inte "släpp in".
+    if (error) return res.status(200).json({ allow: false });
+    return res.status(200).json({ allow: maintenanceAllows(data?.role) });
+  }
+
   const user = await requireAuth(req, res);
   if (!user) return;
-
-  const action = req.body?.action;
 
   if (action === "entitlements") {
     try {
