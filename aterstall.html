@@ -120,8 +120,15 @@
 
   if (token && type === 'recovery') {
     view('rsForm');
+    /* JWT payloads are base64url, so the URL-safe characters have to be
+       swapped back and the padding restored before atob accepts them. */
     var email = '';
-    try { email = JSON.parse(atob(token.split('.')[1] || '')).email || ''; } catch (_) {}
+    try {
+      var pl = String(token).split('.')[1] || '';
+      pl = pl.replace(/-/g, '+').replace(/_/g, '/');
+      while (pl.length % 4) pl += '=';
+      email = JSON.parse(decodeURIComponent(escape(atob(pl)))).email || '';
+    } catch (_) {}
     $('rsFor').textContent = email ? 'För ' + email : 'Återställning';
     setTimeout(function () { $('rsPass').focus(); }, 60);
   } else {

@@ -1,7 +1,9 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
 
-function escapeHtml(str) {
+// Exported so api/oauth-complete.js can reuse the exact same welcome mail
+// rather than keeping a second copy that drifts out of sync.
+export function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -16,7 +18,7 @@ function escapeHtml(str) {
    UI since 2026-07-28, and advertising it would sell something nobody can
    reach. Palette is the current light ExGen brand (exgen-tokens.css), not the
    dark green one the product carried under the ProviaAI name. */
-function buildWelcomeHtml(email) {
+export function buildWelcomeHtml(email) {
   /* Number and text sit in separate cells rather than inline spans so a step
      that wraps to a second line stays indented under its own text instead of
      sliding back under the number. */

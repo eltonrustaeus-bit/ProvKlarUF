@@ -1384,6 +1384,18 @@
       rememberAccount();
     }
 
+    /* Reads the email claim out of an access token. JWT payloads are base64url,
+       so the URL-safe characters have to be swapped back and the padding
+       restored before atob will accept them. */
+    function jwtEmail(token) {
+      try {
+        var p = String(token).split('.')[1] || '';
+        p = p.replace(/-/g, '+').replace(/_/g, '/');
+        while (p.length % 4) p += '=';
+        return JSON.parse(decodeURIComponent(escape(atob(p)))).email || '';
+      } catch (_) { return ''; }
+    }
+
     /* Swedish wording for the errors Supabase answers with in English. The
        dialog is the first thing a new user meets, and "Invalid login
        credentials" in the middle of a Swedish page reads as a system error
@@ -1453,6 +1465,12 @@
         '.pv-se{width:100%;height:48px;background:none;border:1px solid rgba(0,0,0,.14);color:var(--t,#1B2430);border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:"DM Sans",sans-serif;transition:border-color .15s,background .15s,transform .12s;margin-bottom:10px;display:flex;align-items:center;justify-content:center}',
         '.pv-se:hover{border-color:rgba(0,183,217,.4);background:rgba(0,183,217,.05);transform:translateY(-1px)}',
         '.pv-dv{display:flex;align-items:center;gap:10px;margin:4px 0 14px;font-family:"DM Mono",monospace;font-size:10px;color:var(--t3,#667085)}',
+        /* Google's brand guidelines want their mark unmodified on a neutral
+           button, so this one does not take the accent treatment. */
+        '.pv-go{width:100%;height:48px;background:#fff;border:1px solid rgba(0,0,0,.16);color:#1B2430;border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:"DM Sans",sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:border-color .15s,background .15s,transform .12s;margin-bottom:14px}',
+        '.pv-go:hover{border-color:rgba(0,0,0,.3);background:#fafafa;transform:translateY(-1px)}',
+        '.pv-go:disabled{opacity:.5;cursor:not-allowed;transform:none}',
+        '.pv-go svg{width:18px;height:18px;flex-shrink:0}',
         '.pv-dv::before,.pv-dv::after{content:"";flex:1;height:1px;background:rgba(0,0,0,.1)}',
         '.pv-hn{font-family:"DM Mono",monospace;font-size:10.5px;color:var(--t3,#667085);text-align:center;margin-top:14px;letter-spacing:.02em;line-height:1.5}',
         '.pv-er{font-family:"DM Sans",sans-serif;font-size:12.5px;color:var(--danger,#ff6b6b);margin-top:10px;min-height:16px;font-weight:500}',
@@ -1464,6 +1482,36 @@
         '@media(prefers-reduced-motion:reduce){#pvCard,.pv-pm,.pv-se,.pv-vw{transition:none;animation:none}}',
       ].join('');
       document.head.appendChild(s);
+    }
+
+    /* Google's four-colour mark, inlined. A remote <img> would be one more
+       request in front of the login box and would break behind a school
+       network that blocks Google's CDN but not the sign-in itself. */
+    function googleBtn(id) {
+      return '<button class="pv-go" id="' + id + '" type="button">'
+        + '<svg viewBox="0 0 48 48" aria-hidden="true">'
+          + '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
+          + '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
+          + '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>'
+          + '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
+        + '</svg>'
+        + '<span>Fortsätt med Google</span>'
+      + '</button>';
+    }
+
+    /* Where Google should drop the visitor back. Gated pages set
+       PROVIA_AUTH_REDIRECT to the page they want reached after auth; everyone
+       else comes back to the page they were on. */
+    function authReturnUrl() {
+      var r = window.PROVIA_AUTH_REDIRECT;
+      if (r) return new URL(r, location.href).href;
+      return location.origin + location.pathname;
+    }
+
+    function startGoogle(btn) {
+      if (btn) { btn.disabled = true; btn.querySelector('span').textContent = 'Öppnar Google…'; }
+      location.href = SUPA_URL + '/auth/v1/authorize?provider=google&redirect_to='
+        + encodeURIComponent(authReturnUrl());
     }
 
     function buildModal() {
@@ -1491,7 +1539,10 @@
              them browsers and password managers (Safari, Chrome, 1Password)
              do not reliably offer to save or fill credentials, and Enter only
              worked in whichever field had a hand-wired keydown listener. */
-          + '<div id="pvVR" class="pv-vw"><form id="pvFormR" novalidate>'
+          + '<div id="pvVR" class="pv-vw">'
+            + googleBtn('pvGoR')
+            + '<div class="pv-dv">eller med e-post</div>'
+            + '<form id="pvFormR" novalidate>'
             + '<div class="pv-fl"><label class="pv-la" for="pvRE">E-post</label><input class="pv-in" id="pvRE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
             + '<div class="pv-fl"><label class="pv-la" for="pvRP">Lösenord</label><input class="pv-in" id="pvRP" name="password" type="password" placeholder="Minst 8 tecken" autocomplete="new-password"></div>'
             + '<button class="pv-pm" id="pvRBtn" type="submit">Skapa konto</button>'
@@ -1499,7 +1550,10 @@
             + '<div class="pv-tg">Har du redan ett konto? <button id="pvRBk" type="button">Logga in</button></div>'
             + '<div class="pv-hn">Gratis konto — inget kort krävs.</div>'
           + '</form></div>'
-          + '<div id="pvVL" class="pv-vw"><form id="pvFormL" novalidate>'
+          + '<div id="pvVL" class="pv-vw">'
+            + googleBtn('pvGoL')
+            + '<div class="pv-dv">eller med e-post</div>'
+            + '<form id="pvFormL" novalidate>'
             + '<div class="pv-fl"><label class="pv-la" for="pvLE">E-post</label><input class="pv-in" id="pvLE" name="email" type="email" placeholder="du@exempel.se" autocomplete="email"></div>'
             + '<div class="pv-fl"><label class="pv-la" for="pvLP">Lösenord</label><input class="pv-in" id="pvLP" name="password" type="password" placeholder="Ditt lösenord" autocomplete="current-password"></div>'
             + '<button class="pv-pm" id="pvLBtn" type="submit">Logga in</button>'
@@ -1526,6 +1580,8 @@
       document.getElementById('pvLBk').onclick = function() { switchView('register'); };
       document.getElementById('pvToForgot').onclick = function() { switchView('forgot'); };
       document.getElementById('pvFBk').onclick = function() { switchView('login'); };
+      document.getElementById('pvGoR').onclick = function() { startGoogle(this); };
+      document.getElementById('pvGoL').onclick = function() { startGoogle(this); };
       /* Submit handlers replace the old per-field keydown listeners: the form
          fires on Enter from any field and on the button, in one place. */
       var onSubmit = function(formId, fn) {
@@ -1720,6 +1776,78 @@
       e.preventDefault();
       openModal(t.getAttribute('data-pv-auth') || 'register');
     });
+
+    /* ── RETURN FROM GOOGLE ──
+       Supabase uses the implicit flow (auth-js defaults to flowType
+       'implicit' and this dialog talks to /auth/v1 over plain REST), so the
+       session comes back in the URL fragment. This runs at script-parse time,
+       before DOMContentLoaded, so the session is in storage by the time each
+       page's own gate calls supabase-js and asks whether anyone is signed in —
+       no reload, no flash of the login box. */
+    (function handleOAuthReturn() {
+      var h = location.hash || '';
+      if (h.indexOf('access_token') === -1 && h.indexOf('error') === -1) return;
+
+      var q = new URLSearchParams(h.replace(/^#/, ''));
+      if (q.get('type') === 'recovery') return;   // aterstall.html owns that one
+
+      /* Get the token out of the address bar before anything else: it grants
+         access to the account, and leaving it in history or in a copied link
+         hands that access to whoever reads it. */
+      function clean() {
+        try { history.replaceState({}, '', location.pathname + location.search); } catch (_) {}
+      }
+      function onReady(fn) {
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+        else fn();
+      }
+
+      var code = q.get('error') || '';
+      var err = q.get('error_description') || code;
+      if (err) {
+        clean();
+        var msg = decodeURIComponent(String(err).replace(/\+/g, ' '));
+        /* The machine-readable code carries the "user backed out" case;
+           the human description says something else entirely ("The user
+           denied the request"), so both have to be checked. */
+        var cancelled = /access_denied/i.test(code) || /denied|cancel/i.test(msg);
+        onReady(function() {
+          openModal('login');
+          var el = document.getElementById('pvLE2');
+          if (!el) return;
+          el.textContent = cancelled
+            ? 'Google-inloggningen avbröts.'
+            : svError(msg, 'Google-inloggningen gick inte igenom. Försök igen.');
+        });
+        return;
+      }
+
+      var token = q.get('access_token');
+      if (!token) return;
+
+      var ttl = Number(q.get('expires_in') || 3600);
+      saveSession({
+        access_token: token,
+        refresh_token: q.get('refresh_token') || '',
+        expires_in: ttl,
+        expires_at: Math.floor(Date.now() / 1000) + ttl,
+        token_type: q.get('token_type') || 'bearer'
+      });
+      clean();
+
+      var email = jwtEmail(token);
+
+      /* Supabase creates the user itself on this path, so api/signup.js never
+         runs and nothing would send the welcome mail. The endpoint is
+         idempotent and answers whether this was a first sign-in, which also
+         decides how the animation greets them. */
+      fetch('/api/oauth-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(d) { onReady(function() { if (window.showWelcome) window.showWelcome(email, !!(d && d.isNew)); }); })
+        .catch(function() { onReady(function() { if (window.showWelcome) window.showWelcome(email, false); }); });
+    })();
 
     /* Anyone already signed in when this ships has clearly had an account
        before, so seed the flag rather than showing them a signup form once. */
