@@ -420,41 +420,11 @@ select option { background: var(--s); color: var(--t); }
 }
 
 /* ── LOGIN ── */
-.loginOverlay {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center; padding: 20px;
-}
-.loginCard {
-  width: min(560px, 100%);
-  background: var(--s); border: 1px solid var(--l); border-radius: var(--r);
-  box-shadow: var(--sh3); overflow: hidden;
-}
-.loginTop {
-  display: flex; gap: 14px; align-items: center;
-  padding: 20px 20px 16px; border-bottom: 1px solid var(--l);
-}
-.loginTop img { height: 34px; width: auto; }
-.loginTitle {
-  font-family: var(--font); font-weight: 700; font-size: 16px;
-  color: var(--t); letter-spacing: -.02em;
-}
-.loginSub {
-  font-family: var(--mono); font-size: 10.5px;
-  color: var(--t3); letter-spacing: .06em; text-transform: uppercase; margin-top: 3px;
-}
-.loginBody { padding: 20px; }
-.authBlock {
-  border: 1px solid var(--l); border-radius: var(--r);
-  padding: 16px; background: var(--s2); margin-bottom: 14px;
-}
-.authBlockTitle {
-  font-family: var(--mono); font-size: 10.5px; font-weight: 500;
-  color: var(--t3); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px;
-}
-.loginBtnRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.loginHint { font-family: var(--mono); font-size: 11px; color: var(--t3); margin-top: 10px; line-height: 1.5; }
-.loginErr { font-family: var(--mono); font-size: 11.5px; font-weight: 500; color: var(--danger); margin-top: 10px; }
+/* The .loginOverlay/.loginCard/.authBlock rules that lived here styled the
+   per-page inline login forms in app.html, förbättring.html and
+   korkortet.html. Those were removed in favour of the single shared dialog
+   in shared.js, which carries its own styles, so nothing referenced these
+   any more. */
 
 /* ── QUOTA BANNER ── */
 .quotaBanner {
