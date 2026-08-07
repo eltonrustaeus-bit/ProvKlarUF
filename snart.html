@@ -66,6 +66,38 @@
   .foot{font-family:'DM Mono',monospace; font-size:10.5px; color:var(--t3); letter-spacing:.02em; line-height:1.7}
   .foot a{color:var(--t3)}
   .foot a:hover{color:var(--a)}
+
+  /* ── Kodinsläpp ────────────────────────────────────────────────────────
+     Diskret punkt i hörnet. Den ska vara lätt att hitta för den som vet att
+     den finns och lätt att förbise för alla andra — därför ingen text och
+     ingen ram förrän man rör vid den. Träffytan är 44x44 så att den går att
+     träffa med tummen på en telefon, trots att pricken bara är 8px. */
+  .keyDot{position:fixed; right:14px; bottom:14px; width:44px; height:44px;
+    display:grid; place-items:center; border:0; background:none; cursor:pointer;
+    padding:0; z-index:20; -webkit-tap-highlight-color:transparent}
+  .keyDot::before{content:""; width:8px; height:8px; border-radius:50%;
+    background:var(--t3); opacity:.32; transition:opacity .18s, transform .18s}
+  .keyDot:hover::before,.keyDot:focus-visible::before{opacity:.9; transform:scale(1.25)}
+  .keyDot:focus-visible{outline:2px solid var(--a); outline-offset:-8px; border-radius:50%}
+
+  .keyBox{position:fixed; right:14px; bottom:66px; z-index:21; display:none;
+    background:var(--s); border:1px solid var(--l); border-radius:14px;
+    padding:14px; box-shadow:0 16px 40px rgba(14,27,42,.16); width:min(232px,calc(100vw - 28px))}
+  .keyBox.on{display:block}
+  .keyLbl{font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--t3); display:block; margin-bottom:8px}
+  .keyRow{display:flex; gap:7px}
+  /* inputmode=numeric ger sifferknappsatsen direkt på mobil */
+  .keyIn{flex:1; min-width:0; height:42px; padding:0 12px; border:1px solid var(--l);
+    border-radius:10px; font-family:'DM Mono',monospace; font-size:16px; color:var(--t);
+    letter-spacing:.16em; outline:none; background:var(--bg); width:100%}
+  .keyIn:focus{border-color:var(--a); box-shadow:0 0 0 3px rgba(0,118,143,.10)}
+  .keyGo{height:42px; padding:0 15px; border:0; border-radius:10px; background:var(--a);
+    color:#fff; font-family:'DM Sans',sans-serif; font-weight:600; font-size:14px; cursor:pointer}
+  .keyGo:disabled{opacity:.45; cursor:not-allowed}
+  .keyMsg{font-family:'DM Mono',monospace; font-size:10px; color:#B91C1C;
+    margin:8px 0 0; min-height:13px; line-height:1.5}
+
   @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -95,6 +127,96 @@
     <a href="/integritetspolicy.html">Integritetspolicy</a>
   </p>
 </main>
+
+<!-- Kodinsläpp under ombyggnaden. Tas bort tillsammans med grinden när sajten
+     öppnas för alla — se api/_maintenance.js. -->
+<button class="keyDot" id="keyDot" type="button" aria-label="Ange kod"
+        aria-expanded="false" aria-controls="keyBox"></button>
+
+<div class="keyBox" id="keyBox" role="dialog" aria-label="Ange kod">
+  <label class="keyLbl" for="keyIn">Kod</label>
+  <div class="keyRow">
+    <input class="keyIn" id="keyIn" type="text" inputmode="numeric" autocomplete="off"
+           enterkeyhint="go" maxlength="12" placeholder="——————" aria-describedby="keyMsg">
+    <button class="keyGo" id="keyGo" type="button">Gå in</button>
+  </div>
+  <p class="keyMsg" id="keyMsg" role="alert" aria-live="polite"></p>
+</div>
+
+<script>
+(function () {
+  /* Koden jämförs på servern mot ACCESS_CODE (api/check-role.js) och står
+     ingenstans i den här filen — repot är publikt. Det som sparas här är bara
+     det användaren skrev in; det öppnar ingenting av sig själv, utan skickas
+     med vid varje sidladdning och prövas om. */
+  var PASS_KEY = "exgen_gate_pass";
+  var BACK_KEY = "exgen_gate_back";
+
+  var dot = document.getElementById("keyDot");
+  var box = document.getElementById("keyBox");
+  var inp = document.getElementById("keyIn");
+  var go  = document.getElementById("keyGo");
+  var msg = document.getElementById("keyMsg");
+
+  function open(on) {
+    box.classList.toggle("on", on);
+    dot.setAttribute("aria-expanded", on ? "true" : "false");
+    if (on) setTimeout(function () { inp.focus(); }, 40);
+  }
+
+  dot.addEventListener("click", function () { open(!box.classList.contains("on")); });
+
+  // Klick utanför stänger. Utan detta blir rutan kvar över sidan på mobil.
+  document.addEventListener("click", function (e) {
+    if (!box.classList.contains("on")) return;
+    if (box.contains(e.target) || dot.contains(e.target)) return;
+    open(false);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.classList.contains("on")) open(false);
+  });
+
+  function submit() {
+    var code = (inp.value || "").trim();
+    if (!code) { inp.focus(); return; }
+    go.disabled = true;
+    msg.textContent = "";
+
+    fetch("/api/check-role", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "maintenance_gate", code: code })
+    }).then(function (r) {
+      // 401 betyder "ingen giltig inloggning" — med fel kod är det samma sak
+      // som fel kod, så behandla det som ett nej i stället för som ett fel.
+      if (r.status === 401) return { allow: false };
+      if (!r.ok) throw new Error("http " + r.status);
+      return r.json();
+    }).then(function (d) {
+      if (!d || d.allow !== true) {
+        go.disabled = false;
+        msg.textContent = "Fel kod.";
+        inp.select();
+        return;
+      }
+      try { localStorage.setItem(PASS_KEY, code); } catch (_) {}
+      var back = "/";
+      try { back = localStorage.getItem(BACK_KEY) || "/"; localStorage.removeItem(BACK_KEY); } catch (_) {}
+      // Aldrig tillbaka hit — det hade blivit en loop.
+      if (/snart\.html/i.test(back)) back = "/";
+      location.replace(back);
+    }).catch(function () {
+      go.disabled = false;
+      msg.textContent = "Ingen kontakt. Försök igen.";
+    });
+  }
+
+  go.addEventListener("click", submit);
+  inp.addEventListener("keydown", function (e) { if (e.key === "Enter") submit(); });
+  inp.addEventListener("input", function () { msg.textContent = ""; });
+})();
+</script>
 
 </body>
 </html>
