@@ -1,4 +1,12 @@
 // Browser smoke test for the exam UI fixes (app.html), run in real chromium.
+//
+// OBS (2026-08-07): det här testet driver renderExam() i den GAMLA wizarden,
+// som sedan den P.E.R-ledda provskaparen infördes ligger bakom `hidden`. Den
+// koden körs fortfarande — runGenerate anropar renderExam, som sätter
+// currentExam och P.E.R-kontexten — så kontrollerna nedan bevakar verklig
+// logik. Men de säger ingenting om vad en ELEV ser; det gör
+// tests/frontend/exam-flow.regression.mjs och exam-flow.viewports.mjs.
+//
 // Verifies the visual invariants unit tests can't:
 //   1. No internal metadata (ID:/Typ:) leaks to the student
 //   2. qMeta shows "Fråga N av M · X poäng"
