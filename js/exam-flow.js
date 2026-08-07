@@ -504,10 +504,28 @@
       if (STOP.indexOf(w) !== -1) return;
       freq[w] = (freq[w] || 0) + 1;
     });
-    return Object.keys(freq)
+    var all = Object.keys(freq);
+
+    // Ord som återkommer är den starkaste signalen och kommer först.
+    var repeated = all
       .filter(function (w) { return freq[w] >= 2; })
-      .sort(function (a, b) { return freq[b] - freq[a]; })
-      .slice(0, 6);
+      .sort(function (a, b) { return freq[b] - freq[a]; });
+
+    /* En kort inklistring — några meningar från en anteckning — innehåller
+       ofta varje begrepp exakt en gång. Med enbart återkomstregeln blev raden
+       då tom och föll tillbaka på ett teckenantal, vilket sett från elevens
+       håll ser ut som att ingenting lästes. Mätt på produktionssajten:
+       "Cellandning sker i mitokondrien. Glykolysen ger 2 ATP…" gav noll
+       begrepp. Fyll därför på med de längsta orden — fortfarande elevens egna
+       ord, bara valda på särprägel i stället för på upprepning. */
+    if (repeated.length < 3) {
+      var byLength = all
+        .filter(function (w) { return repeated.indexOf(w) === -1 && w.length >= 7; })
+        .sort(function (a, b) { return b.length - a.length; });
+      repeated = repeated.concat(byLength);
+    }
+
+    return repeated.slice(0, 6);
   }
 
   function stepMaterial() {

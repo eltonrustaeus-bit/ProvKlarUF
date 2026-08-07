@@ -1,45 +1,44 @@
-// UI regression: #perWidget (the P.E.R chat bubble) must never geometrically
-// overlap exam content (.qBox / .floatingGradeBar) at any of the required
-// mobile widths, and must shrink out of the way when an answer field
-// (.answerTa) is focused.
+// UI-regression: P.E.R-bubblan (#perWidget) får aldrig täcka provinnehåll på
+// mobil, och den fasta botten-navigeringen i provet får aldrig hamna under den.
 //
-// Background: Task 8 added a focusin/focusout listener in shared.js that adds
-// a `per-minimized` class to #perWidget when an answer field is focused at
-// window.innerWidth <= 480, plus CSS that scales the widget to invisible/
-// non-interactive while that class is present. This test drives a real
-// Chromium page load of app.html and checks actual rendered geometry.
+// Invarianten är densamma som när det här testet skrevs; ytan den mäter mot är
+// inte det. Fram till 2026-08-07 renderades provet av den fyrstegs-wizarden i
+// app.html (.qBox, #floatingGradeBar, .answerTa), och shared.js krympte
+// bubblan via klassen `per-minimized` när ett svarsfält fick fokus vid
+// innerWidth <= 480. Wizarden ligger nu kvar bakom `hidden` som motor — inga av
+// dess element är synliga för en elev — så ett test mot dem bevisar ingenting.
 //
-// Real-page notes (found while writing this test, see task-9-report.md):
-//  - renderExam() is a plain top-level `function renderExam(exam){...}`
-//    declaration inside app.html's non-module <script> block, so it is a
-//    genuine global (window.renderExam) reachable from page.evaluate() —
-//    the starter code's assumption held. Likewise window.setWizardStep is
-//    global. The real UI flow (see app.html) calls
-//    `renderExam(...); setWizardStep(2);` after a successful generation, so
-//    this test mirrors that: setWizardStep(2) is required, otherwise the
-//    #exam section stays in its default `.collapsed` state (max-height:0)
-//    and .qBox bounding boxes would be near-zero-height, making the overlap
-//    assertion trivially (and meaninglessly) pass.
-//  - app.html is gated behind a Supabase-session check on boot; with no
-//    session (as here, loaded standalone via file://) it calls showLock(),
-//    which opens shared.js's #pvModal auth/paywall modal and autofocuses its
-//    email input (#pvRE). shared.js's mobile-focus rule treats *any*
-//    focused <input> (not just .answerTa) as reason to minimize #perWidget,
-//    so without dismissing this unrelated modal first, #perWidget starts
-//    every test already minimized — masking the very thing under test. The
-//    modal is closed via the public window.closeProviaLogin() (exposed by
-//    shared.js) before assertions run, matching how this repo avoids real
-//    backend/auth round-trips in UI tests (see grade-hang.test.mjs).
+// Den P.E.R-ledda provskaparen (js/exam-flow.js) löser samma problem på ett
+// annat sätt, efter att bubblan mättes ligga ovanpå sista raden i ett
+// svarsalternativ vid 390px: under provet är den flytande bubblan HELT dold
+// (`body.xf-in-exam #perWidget { display:none }`) och ingången är i stället
+// `.xf-ask` inne i provarket. Öppnas panelen därifrån sätter flödet
+// `body.xf-per-open`, som släpper fram widgeten lyft ovanför `.xf-exam-nav`.
 //
-// Usage:  node tests/frontend/per-mobile.test.mjs   (exit 0 = pass)
+// Testet bevisar därför tre saker per bredd:
+//   1. Bubblan är osynlig medan provet pågår
+//   2. Öppnas den via .xf-ask syns den, och överlappar varken arkets innehåll
+//      eller botten-navigeringen
+//   3. Vid frågebyte går den tillbaka i sitt gömda läge
+//
+// Fristående — använder repots egen playwright-dep. Hoppas över (exit 0) om
+// chromium saknas.
 
-import { chromium } from "playwright";
-import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, resolve } from "node:path";
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const appPath = "file://" + join(here, "..", "..", "app.html");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+let chromium;
+try {
+  ({ chromium } = await import(ROOT + "/node_modules/playwright/index.mjs"));
+} catch {
+  console.log("  SKIP  playwright saknas");
+  process.exit(0);
+}
 
 const WIDTHS = [320, 375, 390, 430];
 let failures = 0;
@@ -51,74 +50,124 @@ function rectsOverlap(a, b) {
     a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
+// Provet måste laddas över http, inte file://, eftersom js/site-gate.js och
+// motorn båda talar med /api.
+const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
+const server = http.createServer((req, res) => {
+  let p = decodeURIComponent(req.url.split("?")[0]);
+  if (p === "/") p = "/app.html";
+  const f = path.join(ROOT, p);
+  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
+  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
+  res.end(fs.readFileSync(f));
+});
+const PORT = 5310;
+await new Promise((r) => server.listen(PORT, r));
+
+const EXAM = {
+  title: "Prov", level: "C",
+  questions: [
+    { id: "q1", type: "mc", points: 2, question: "Var i cellen sker citronsyracykeln?",
+      options: ["I cytoplasman", "I mitokondriens matrix", "I cellkärnan", "I ribosomen"],
+      correct_index: 1, topic: "Cellandning", cognitive_level: "förstå",
+      source_references: ["s.4"], model_answer: "Matrix.",
+      scoring_rubric: { parts: [], full_score_requirements: "", partial_credit_notes: "" } },
+    { id: "q2", type: "short", points: 4,
+      question: "En idrottare springer ett långlopp. Förklara varför musklerna övergår till mjölksyrajäsning och vad det innebär för ATP-utbytet.",
+      options: [], correct_index: -1, topic: "Jäsning", cognitive_level: "tillämpa",
+      source_references: ["s.7"], model_answer: "Vid syrebrist…",
+      scoring_rubric: { parts: [{ description: "Orsak", points: 2 }], full_score_requirements: "", partial_credit_notes: "" } }
+  ]
+};
+
+async function toExam(page) {
+  await page.goto(`http://localhost:${PORT}/app.html`, { waitUntil: "networkidle" });
+  await page.waitForSelector("#xf .xf-screen.on", { timeout: 10000 });
+  await page.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary");
+  await page.waitForTimeout(200);
+  await page.fill("#xf .xf-screen[data-screen='subject'] .xf-input", "Biologi 1");
+  await page.click("#xf .xf-screen[data-screen='subject'] .xf-btn.primary");
+  await page.waitForTimeout(200);
+  await page.click("#xf .xf-screen[data-screen='aim'] .xf-btn.primary");
+  await page.waitForTimeout(200);
+  await page.fill("#xf .xf-screen[data-screen='material'] .xf-area",
+    "Cellandning sker i mitokondrien. Glykolysen ger 2 ATP. Citronsyracykeln sker i matrix. Elektrontransportkedjan kräver syre. Jäsning ger bara 2 ATP per glukos vid syrebrist i muskeln.");
+  await page.waitForTimeout(150);
+  await page.click("#xf .xf-screen[data-screen='material'] .xf-btn.primary");
+  await page.waitForTimeout(200);
+  await page.click("#xf .xf-screen[data-screen='contract'] .xf-btn.primary");
+  await page.waitForSelector(".xf-exam.on", { timeout: 12000 });
+  await page.waitForTimeout(400);
+}
+
 async function run() {
   const browser = await chromium.launch();
+
   for (const width of WIDTHS) {
-    const page = await browser.newPage({ viewport: { width, height: 700 } });
-    await page.goto(appPath);
-    await page.waitForSelector("#perWidget");
+    const ctx = await browser.newContext({ viewport: { width, height: 700 } });
+    const page = await ctx.newPage();
 
-    // Dismiss the unrelated auth/paywall modal that auto-opens (and
-    // autofocuses an <input>) on this unauthenticated page load — see
-    // header comment. Give the async boot's Supabase session check a
-    // moment to run first.
-    await page.waitForTimeout(400);
-    await page.evaluate(() => {
-      if (window.closeProviaLogin) window.closeProviaLogin();
-      if (document.activeElement) document.activeElement.blur();
+    await page.route("**/api/check-role", (r) => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
+    await page.route("**/api/generate-exam", (r) => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM)), meta: { quota: { enforced: false } } } }));
+    await page.route("**/auth/v1/**", (r) => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
+    await page.route("**/rest/v1/**", (r) => r.fulfill({ json: [] }));
+    await page.addInitScript(() => {
+      const exp = Math.floor(Date.now() / 1000) + 7200;
+      localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({
+        access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp,
+        token_type: "bearer", user: { id: "u1", email: "t@t.se" }
+      }));
+      localStorage.setItem("proviaai_role", "premium");
+      localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
     });
-    await page.waitForTimeout(250);
-
-    // Render a fake exam directly through the page's own renderExam() +
-    // setWizardStep(), matching how app.html renders a real generated exam
-    // (see generateExamBtn handler) — avoids needing a live OpenAI/Supabase
-    // round trip in a UI test.
-    assert.equal(await page.evaluate(() => typeof window.renderExam), "function", "window.renderExam must be reachable");
-    await page.evaluate(() => {
-      window.renderExam({
-        level: "C",
-        questions: [
-          { id: "1", type: "mc", question: "Fråga?", options: ["A", "B", "C"], correct_index: 0, points: 1 },
-          { id: "2", type: "short", question: "Förklara.", options: [], correct_index: -1, points: 3 },
-        ],
-      });
-      window.setWizardStep(2);
-    });
-    await page.waitForSelector(".qBox");
 
     try {
-      const widgetBox = await page.locator("#perWidget").boundingBox();
-      assert.ok(widgetBox && widgetBox.width > 0, "#perWidget should be visible (non-minimized) with no field focused");
-      const qBoxes = await page.locator(".qBox").all();
-      assert.ok(qBoxes.length > 0, "fake exam should have rendered .qBox elements");
-      for (const qBox of qBoxes) {
-        const qBoxRect = await qBox.boundingBox();
-        assert.ok(qBoxRect && qBoxRect.height > 0, ".qBox should have real rendered height (exam section must not be collapsed)");
-        assert.equal(rectsOverlap(widgetBox, qBoxRect), false, `#perWidget overlaps a .qBox at ${width}px`);
-      }
-      const gradeBar = await page.locator("#floatingGradeBar").boundingBox();
-      assert.equal(rectsOverlap(widgetBox, gradeBar), false, `#perWidget overlaps .floatingGradeBar at ${width}px`);
-      ok(`no overlap at ${width}px`);
-    } catch (e) { fail(`no overlap at ${width}px`, e); }
+      await toExam(page);
 
-    if (width <= 480) {
-      try {
-        await page.locator(".answerTa").first().focus();
-        await page.waitForTimeout(200); // CSS transition
-        const minimized = await page.locator("#perWidget").evaluate(el => el.classList.contains("per-minimized"));
-        assert.equal(minimized, true, "widget should shrink on answer-field focus");
-        const shrunkBox = await page.locator("#perWidget").boundingBox();
-        assert.ok(shrunkBox.width < 1 && shrunkBox.height < 1, "shrunk widget should be effectively zero-size (non-interactive)");
-        ok(`widget shrinks on textarea focus at ${width}px`);
-      } catch (e) { fail(`widget shrinks on textarea focus at ${width}px`, e); }
+      // 1. Dold medan provet pågår
+      const hidden = await page.evaluate(() => getComputedStyle(document.querySelector("#perWidget")).display === "none");
+      if (!hidden) throw new Error("#perWidget är synlig under provet");
+      ok(`bubblan är dold under provet vid ${width}px`);
+
+      // 2. Öppnad via .xf-ask: syns, men överlappar inget
+      await page.click(".xf-ask");
+      await page.waitForTimeout(350);
+
+      const widgetBox = await page.locator("#perWidget").boundingBox();
+      if (!widgetBox || widgetBox.width < 1) throw new Error("#perWidget syns inte efter .xf-ask");
+
+      const nav = await page.locator(".xf-exam-nav").boundingBox();
+      if (rectsOverlap(widgetBox, nav)) throw new Error(`bubblan täcker .xf-exam-nav vid ${width}px`);
+
+      // Arkets faktiska innehåll — alternativen och svarsfältet är det eleven
+      // måste kunna läsa och träffa.
+      const targets = await page.locator(".xf-mc-opt, .xf-answer, .xf-q-text").all();
+      if (!targets.length) throw new Error("hittade inget provinnehåll att mäta mot");
+      for (const t of targets) {
+        const box = await t.boundingBox();
+        if (!box || box.height <= 0) continue;
+        if (rectsOverlap(widgetBox, box)) throw new Error(`bubblan täcker provinnehåll vid ${width}px`);
+      }
+      ok(`öppnad bubbla överlappar varken ark eller nav vid ${width}px`);
+
+      // 3. Frågebyte gömmer den igen
+      await page.click(".xf-exam-nav .xf-btn.primary");
+      await page.waitForTimeout(350);
+      const hiddenAgain = await page.evaluate(() => getComputedStyle(document.querySelector("#perWidget")).display === "none");
+      if (!hiddenAgain) throw new Error("bubblan låg kvar synlig efter frågebyte");
+      ok(`bubblan göms igen vid frågebyte vid ${width}px`);
+    } catch (e) {
+      fail(`P.E.R-bubblan vid ${width}px`, e);
     }
 
-    await page.close();
+    await ctx.close();
   }
+
   await browser.close();
+  server.close();
 }
 
 run().then(() => {
-  console.log(`\n${failures === 0 ? "Alla" : failures + " av"} kontroller klara.`);
+  console.log(`\n${failures === 0 ? "Alla" : failures + " misslyckade"} kontroller klara.`);
   if (failures > 0) process.exit(1);
 });
