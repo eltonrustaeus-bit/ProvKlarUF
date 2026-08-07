@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
+  <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. -->
+  <link rel="stylesheet" href="exgen-ui.css" />
   <script src="shared.js" defer></script>
   <style>
   /* ── LÄRARPANEL — matches konto.html design system ── */
@@ -183,10 +185,18 @@
       </div>
     </nav>
 
+    <!-- Samma form som provskaparen och de andra sidorna: orben och rösten i
+         stället för en egen rubrikvärld. Texten är beskrivande och inte en
+         slogan, så den får stå — en lärare som kommer hit första gången
+         behöver veta vad panelen gör. -->
     <header class="pageHero">
-      <div class="xg-eyebrow">Lärarpanel · För skolor & gymnasiet</div>
-      <h1 class="xg-h1">Lärar-dashboard</h1>
-      <p class="xg-sub">Skapa klasser, dela klasskoden med dina elever och följ deras framsteg i skolarbetet — mockprov på egna ämnen, svaga begrepp och aktivitet.</p>
+      <div class="xf-per">
+        <div class="xf-orb" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0">
+          <h1 class="xf-say">Lärarpanelen.</h1>
+          <p class="xf-sub">Skapa klasser, dela klasskoden med dina elever och följ deras framsteg — mockprov på egna ämnen, svaga begrepp och aktivitet.</p>
+        </div>
+      </div>
       <div class="whoLabel" id="whoLabel">Laddar…</div>
     </header>
 

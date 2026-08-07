@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
+  <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. -->
+  <link rel="stylesheet" href="exgen-ui.css" />
   <script src="shared.js" defer></script>
   <style>
   /* ── KONTO PAGE ── */
@@ -209,9 +211,17 @@
   <!-- KONTO CONTENT -->
   <div id="kontoContent" style="display:none">
 
+    <!-- Sidans <h1>. Rubriken var tidigare en <div>, så konto.html hade noll
+         exponerade h1 — sidan saknade helt namn för en skärmläsare.
+         Underraden är P.E.R:s, satt av setKontoVoice() ur historiken. -->
     <div class="kontoHero">
-      <div class="kontoEye">Mitt konto</div>
-      <div class="kontoTitle" id="kontoName">Ditt konto</div>
+      <div class="xf-per">
+        <div class="xf-orb" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0">
+          <h1 class="xf-say" id="kontoName">Ditt konto</h1>
+          <p class="xf-sub" id="kontoSub">&nbsp;</p>
+        </div>
+      </div>
       <div class="kontoEmail" id="kontoEmail"></div>
     </div>
 
@@ -464,6 +474,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
   const name=email.split("@")[0];
   document.getElementById("kontoEmail").textContent=email;
   document.getElementById("kontoName").textContent=name.charAt(0).toUpperCase()+name.slice(1)+"s konto";
+  setKontoVoice();
 
   async function loadEntitlements(){
     try{
@@ -657,5 +668,38 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
 </script>
 
 <!-- VISITOR BOTTOM NAV -->
+<script>
+(function () {
+  /* P.E.R:s underrad på kontosidan. Säger vad kontot faktiskt använts till,
+     räknat ur proviaai_history — samma nyckel som appen, förbättringssidan och
+     prissidan redan skriver till. Inga anrop, ingen ny lagring. */
+  window.setKontoVoice = function () {
+    var el = document.getElementById("kontoSub");
+    if (!el) return;
+    var hist = [];
+    try { var v = JSON.parse(localStorage.getItem("proviaai_history") || "[]"); if (Array.isArray(v)) hist = v; } catch (_) {}
+
+    if (!hist.length) {
+      el.textContent = "Inget prov gjort än. Börja i Mockprov så börjar det här fyllas.";
+      return;
+    }
+
+    var first = Math.min.apply(null, hist.map(function (x) { return Number(x.ts) || Date.now(); }));
+    var days = Math.max(1, Math.round((Date.now() - first) / 86400000));
+    var age = days < 14 ? days + (days === 1 ? " dag" : " dagar")
+            : days < 60 ? Math.round(days / 7) + " veckor"
+            : Math.round(days / 30) + " månader";
+
+    var recent = hist.slice(-5);
+    var avg = Math.round(recent.reduce(function (a, x) { return a + (Number(x.percent) || 0); }, 0) / recent.length);
+
+    el.textContent = hist.length + (hist.length === 1 ? " prov" : " prov") + " på " + age +
+      ". Du ligger på " + avg + " % över dina senaste " + recent.length + ".";
+  };
+  // Kör direkt också, ifall kontouppgifterna redan hunnit renderas.
+  if (document.readyState !== "loading") window.setKontoVoice();
+  else document.addEventListener("DOMContentLoaded", window.setKontoVoice);
+})();
+</script>
 </body>
 </html>
