@@ -286,6 +286,16 @@ module.exports = async function handler(req, res) {
               : pts === maxP
                 ? "Correct."
                 : "Incorrect.";
+        } else if (correctIndex >= 0) {
+          // Facit finns, eleven svarade inte. Den här grenen delade tidigare
+          // text med fallet nedan, så en elev som hoppade över en flervalsfråga
+          // fick beskedet att provets facit saknades — systemet skyllde sitt
+          // eget fel för något eleven själv valde att lämna blankt.
+          pts = 0;
+          fb =
+            lang === "sv"
+              ? "Obesvarad. Rätt svar var " + String.fromCharCode(65 + correctIndex) + "."
+              : "Not answered. The correct answer was " + String.fromCharCode(65 + correctIndex) + ".";
         } else {
           pts = 0;
           fb =

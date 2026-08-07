@@ -720,6 +720,18 @@
       S.submitting = false;
       saveDraft();
       openExam();
+
+      /* Kvalitetskontrollen i generate-exam.js sorterar bort frågor den inte
+         litar på, och gör det tyst: ett prov på tolv frågor kan landa på sju.
+         Mätt skarpt mot gpt-4o-mini underkände verifieraren tre av sex. Utan
+         det här beskedet ser eleven bara att kontraktet lovade ett antal och
+         provet visar ett annat, vilket läser som en bugg i stället för som
+         kvalitetsarbete. */
+      var got = S.exam.questions.length;
+      if (got < S.num) {
+        nudge("Jag skrev " + S.num + " frågor men kastade " + (S.num - got) +
+              " som inte höll måttet. Du får " + got + " — hellre färre och rätt.", true);
+      }
     }).catch(function (e) {
       /* generate() går via runGenerate i app.html. postJson kastar aldrig, men
          kvotkontrollen på vägen dit gör det: checkQuota → getUserId →
@@ -984,10 +996,14 @@
   /* Tre regler, alla utlösta av något som hänt. Ingen timer som bara går,
      ingen slumpad peppning. Max tre gånger, aldrig tätare än 45 sekunder. */
 
-  function nudge(text) {
-    if (S.nudges >= MAX_NUDGES) return;
-    if (Date.now() - S.lastNudge < NUDGE_GAP_MS) return;
-    S.nudges++;
+  /* system:true för besked som inte är coachning utan fakta om provet — de får
+     inte tystas av inpasskvoten, för då blir de aldrig sagda. */
+  function nudge(text, system) {
+    if (!system) {
+      if (S.nudges >= MAX_NUDGES) return;
+      if (Date.now() - S.lastNudge < NUDGE_GAP_MS) return;
+      S.nudges++;
+    }
     S.lastNudge = Date.now();
     UI.nudgeText.textContent = text;
     UI.nudge.classList.add("on");
@@ -1251,7 +1267,13 @@
       it.appendChild(head);
 
       if (q.question) it.appendChild(el("div", "xf-item-q", q.question));
-      if (item.feedback) it.appendChild(el("div", "xf-item-fb", item.feedback));
+
+      /* Modellen inleder ofta sin återkoppling med "Poäng: 0/1." — samma
+         siffra som redan står i rubriken en rad ovanför. Prefixet stryks här
+         i stället för i prompten, eftersom grade.js svarar likadant till den
+         gamla vyn och till lärarrapporten, som båda saknar den rubriken. */
+      var fb = String(item.feedback || "").replace(/^\s*Poäng:\s*\d+\s*\/\s*\d+\.?\s*/i, "");
+      if (fb) it.appendChild(el("div", "xf-item-fb", fb));
 
       if (item.model_answer) {
         var mo = el("div", "xf-item-model");
