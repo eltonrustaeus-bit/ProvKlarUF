@@ -22,6 +22,8 @@
   <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. -->
   <link rel="stylesheet" href="exgen-ui.css" />
   <script src="shared.js" defer></script>
+  <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
+  <script src="js/exgen-shell.js" defer></script>
   <style>
   /* ── PRICING-SPECIFIC ── */
 
@@ -441,15 +443,6 @@
 window.addEventListener("load", () => setTimeout(() => document.getElementById("ldr").classList.add("out"), 160));
 
 /* THEME */
-/* MENU */
-const mBtn = document.getElementById("mBtn");
-const drop = document.getElementById("drop");
-let ct;
-function openDrop(){ clearTimeout(ct); drop.classList.remove("off"); drop.style.display="block"; requestAnimationFrame(()=>drop.classList.add("on")); mBtn.setAttribute("aria-expanded","true"); }
-function closeDrop(){ mBtn.setAttribute("aria-expanded","false"); drop.classList.remove("on"); drop.classList.add("off"); clearTimeout(ct); ct=setTimeout(()=>{drop.classList.remove("off");drop.style.display="none";},120); }
-mBtn.addEventListener("click", e=>{e.stopPropagation(); drop.classList.contains("on")?closeDrop():openDrop();});
-document.addEventListener("click", e=>{if(!drop.classList.contains("on"))return; if(!drop.contains(e.target)&&!mBtn.contains(e.target))closeDrop();});
-document.addEventListener("keydown", e=>{if(e.key==="Escape")closeDrop();});
 
 /* FAQ TOGGLE */
 document.querySelectorAll("[data-faq]").forEach(btn => {

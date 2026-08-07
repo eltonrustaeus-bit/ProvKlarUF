@@ -1,60 +1,71 @@
 /* exgen-shell.js — beteendet i det delade sidhuvudet.
  *
- * Just nu bara mobilmenyn. Markupen (xg-header, .mWrap, .drop) ligger i
- * exgen-shell.css; det här är knappen som öppnar den.
+ * Just nu bara mobilmenyn. Markupen (xg-header, .mWrap/.menuWrap, panelen)
+ * ligger i exgen-shell.css och i sidorna; det här är knappen som öppnar den.
  *
- * Skälet till att det blev en fil: bindningen fanns redan inline på index,
- * pricing och konto i tre identiska kopior, och app/förbättring har en fjärde
- * variant under id:t menuBtn. integritetspolicy hade ingen alls — sidan saknade
- * navigering helt under 720px, eftersom .hNav döljs där och det gamla
- * sidhuvudet aldrig fick någon hamburgare. En sjätte inline-kopia hade löst
- * den buggen och gjort driften värre.
+ * Skälet till att det blev en fil: bindningen fanns i fem kopior av tre olika
+ * implementationer.
  *
- * De fem andra sidorna har INTE migrerats hit. Det är en separat ändring som
- * rör fungerande sidor, och den hör inte hemma i en buggfix. Se PR-texten.
+ *   index, pricing, konto  — #mBtn + #drop, inline, identiska
+ *   förbättring            — #menuBtn + #menu, samma algoritm, andra id:n
+ *   integritetspolicy      — ingen alls; sidan saknade navigering under 720px
  *
- * Tar båda id-konventionerna så att en sida kan flyttas hit utan att först
- * döpas om. Gör ingenting om knappen eller panelen saknas.
+ * app.html är INTE migrerad hit. Den kör en fjärde variant med is-open och
+ * openMenuAnimated()/closeMenuAnimated() — en annan animation, inte samma
+ * kod med andra namn. Att dra in den hade ändrat hur menyn rör sig där.
+ *
+ * Filen tar båda id-konventionerna så att en sida kan flyttas hit utan att
+ * först döpas om, och gör ingenting om knappen eller panelen saknas.
+ *
+ * Att stänga menyn när man klickar en länk i den kom från förbättring.html och
+ * gäller nu alla sidor. Länken navigerar ändå; att lämna panelen öppen bakom
+ * sig var en skillnad utan avsikt.
  */
 (function () {
   "use strict";
 
   var btn = document.getElementById("mBtn") || document.getElementById("menuBtn");
-  var drop = document.getElementById("drop");
-  if (!btn || !drop) return;
+  var panel = document.getElementById("drop") || document.getElementById("menu");
+  if (!btn || !panel) return;
 
   var closeTimer;
 
   function open() {
     clearTimeout(closeTimer);
-    drop.classList.remove("off");
-    drop.style.display = "block";
-    requestAnimationFrame(function () { drop.classList.add("on"); });
+    panel.classList.remove("off");
+    panel.style.display = "block";
+    requestAnimationFrame(function () { panel.classList.add("on"); });
     btn.setAttribute("aria-expanded", "true");
   }
 
   function close() {
+    if (!panel.classList.contains("on")) return;
     btn.setAttribute("aria-expanded", "false");
-    drop.classList.remove("on");
-    drop.classList.add("off");
+    panel.classList.remove("on");
+    panel.classList.add("off");
     clearTimeout(closeTimer);
     closeTimer = setTimeout(function () {
-      drop.classList.remove("off");
-      drop.style.display = "none";
+      panel.classList.remove("off");
+      panel.style.display = "none";
     }, 120);
   }
 
   btn.addEventListener("click", function (e) {
     e.stopPropagation();
-    drop.classList.contains("on") ? close() : open();
+    panel.classList.contains("on") ? close() : open();
   });
 
   document.addEventListener("click", function (e) {
-    if (!drop.classList.contains("on")) return;
-    if (!drop.contains(e.target) && !btn.contains(e.target)) close();
+    if (!panel.classList.contains("on")) return;
+    if (!panel.contains(e.target) && !btn.contains(e.target)) close();
   });
 
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") close();
+  });
+
+  /* Klick på en länk i panelen navigerar — låt inte panelen stå kvar öppen. */
+  panel.addEventListener("click", function (e) {
+    if (e.target.closest("a")) setTimeout(close, 80);
   });
 })();

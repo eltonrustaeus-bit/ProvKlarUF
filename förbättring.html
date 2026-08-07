@@ -322,6 +322,8 @@
     .coachBox{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   </style>
   <script src="shared.js" defer></script>
+  <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
+  <script src="js/exgen-shell.js" defer></script>
 
 </head>
 
@@ -1375,18 +1377,6 @@
       });
     }
 
-    /* ── MENU ── */
-    function bindMenu(){
-      const menuBtn=$('menuBtn'),menu=$('menu');if(!menuBtn||!menu)return;
-      let ct;
-      function openMenu(){clearTimeout(ct);menu.classList.remove('off');menu.style.display='block';requestAnimationFrame(()=>menu.classList.add('on'));menuBtn.setAttribute('aria-expanded','true');}
-      function closeMenu(){if(!menu.classList.contains('on'))return;menuBtn.setAttribute('aria-expanded','false');menu.classList.remove('on');menu.classList.add('off');clearTimeout(ct);ct=setTimeout(()=>{menu.classList.remove('off');menu.style.display='none';},120);}
-      menuBtn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('on')?closeMenu():openMenu();});
-      document.addEventListener('click',e=>{if(!menu.classList.contains('on'))return;if(!menu.contains(e.target)&&!menuBtn.contains(e.target))closeMenu();});
-      document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
-      /* Close menu when clicking any link inside it */
-      menu.addEventListener('click',e=>{if(e.target.closest('a'))setTimeout(closeMenu,80);});
-    }
 
     /* ── REVEAL ── */
     function initReveal(){
@@ -1399,7 +1389,7 @@
 
     /* ── INIT ── */
     (async()=>{
-      applyLang();bindToggles();bindMenu();initReveal();restoreUiState();
+      applyLang();bindToggles();initReveal();restoreUiState();
       renderAll();
       const ok=await gatePage();
       if(!ok) return;
