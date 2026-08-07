@@ -14,7 +14,9 @@
 <link rel="stylesheet" href="style.css" />
 <!-- Formtokens: radie, avstånd, typsnitt, rörelse. Enbart :root-variabler. -->
 <link rel="stylesheet" href="exgen-tokens.css" />
+<link rel="stylesheet" href="exgen-shell.css" />
 <script src="shared.js" defer></script>
+<script src="js/exgen-shell.js" defer></script>
 <style>
 .policyWrap{max-width:740px;margin:0 auto;padding:40px 20px 80px}
 .policyWrap h1{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-.04em;color:var(--t);margin-bottom:8px}
@@ -40,24 +42,49 @@
 </head>
 <body>
 
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <span class="exgenMark" aria-hidden="true">Ex</span>
+<div class="xg-utility-bar">
+  <div class="xg-utility-wrap">
+    <a class="xg-utility-badge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive">
+      <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="12" height="12" alt="">
+      <span>Backed by UngDrive</span>
+    </a>
+    <div class="xg-utility-right">
+      <span class="xg-utility-disclaimer">Studiestöd &mdash; ingen officiell betygssättning</span>
+      <a href="integritetspolicy.html" aria-current="page">Integritetspolicy</a>
+    </div>
+  </div>
+</div>
+<header class="xg-header">
+  <div class="xg-header-wrap">
+    <a class="xg-brand" href="index.html">
+      <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
       <div>
-        <div class="bName">ExGen</div>
-        <div class="bTag">Studieplattform för skolan</div>
+        <div class="xg-brand-tag">Studieplattform för skolan</div>
       </div>
     </a>
     <div class="hR">
-      <nav class="hNav" aria-label="Huvudnavigation">
-        <a class="hNavLink" href="index.html">Hem</a>
-        <a data-module="korkort" class="hNavLink" href="korkortet.html">Körkortsteorin</a>
-        <a class="hNavLink" href="app.html">Mockprov</a>
-        <a class="hNavLink" href="förbättring.html">Min utveckling</a>
-        <a class="hNavLink" href="pricing.html">Priser</a>
-        <a class="hNavLink" href="konto.html">Konto</a>
+      <nav class="xg-nav" aria-label="Huvudnavigation">
+        <a class="xg-nav-link" href="index.html">Hem</a>
+        <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
+        <a class="xg-nav-link" href="app.html">Mockprov</a>
+        <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
+        <a class="xg-nav-link" href="pricing.html">Priser</a>
+        <a class="xg-nav-link" href="konto.html">Konto</a>
       </nav>
+      <a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
+      <div class="mWrap">
+        <button class="mBtn" id="mBtn" type="button" aria-label="Meny" aria-expanded="false">
+          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
+        </button>
+        <div class="drop" id="drop">
+          <a class="ddi" href="index.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></span><span>Hem</span><span class="dpill">Start</span></a>
+          <a data-module="korkort" class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a)">Träna</span></a>
+          <a class="ddi" href="app.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Mockprov</span><span class="dpill">AI</span></a>
+          <a class="ddi" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Priser</span><span class="dpill" style="color:var(--a)">29/79</span></a>
+          <a class="ddi" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span>Min utveckling</span><span class="dpill">Coach</span></a>
+          <a class="ddi" href="konto.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Konto</span></a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
