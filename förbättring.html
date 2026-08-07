@@ -99,41 +99,8 @@
     }
     .howTo strong{color:var(--t);font-weight:600}
 
-    /* ── NAV RAIL ── */
-    .navRail{
-      display:flex;gap:2px;padding:3px;background:var(--s);
-      border:1px solid var(--l);border-radius:var(--r);
-      margin-bottom:24px;overflow-x:auto;
-      scrollbar-width:none;-webkit-overflow-scrolling:touch;
-    }
-    .navRail::-webkit-scrollbar{display:none}
     /* P.E.R:s röst kommer från exgen-ui.css (.xf-per/.xf-orb/.xf-say/.xf-sub).
        Sidan hade en egen kopia här tills det delade lagret bröts ut. */
-
-    .navBtn{
-      flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:2px;
-      padding:10px 6px;border-radius:var(--r2);border:1px solid transparent;background:transparent;
-      cursor:pointer;font-family:var(--font);transition:all .15s ease;
-      touch-action:manipulation;white-space:nowrap;
-    }
-    .navBtn:hover{background:var(--s2);border-color:var(--l)}
-    .navBtn.active{background:var(--a-dim);border-color:var(--a-border)}
-    .navBtnIcon{font-size:15px;line-height:1}
-    .navBtnNum{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--a2);letter-spacing:.06em}
-    .navBtnLabel{font-size:11.5px;font-weight:600;color:var(--t2);transition:color .15s ease}
-    .navBtn:hover .navBtnLabel,.navBtn.active .navBtnLabel{color:var(--t)}
-    @media(max-width:600px){
-      .navRail{gap:1px;padding:2px}
-      .navBtn{padding:8px 4px;min-width:52px}
-      .navBtnIcon{font-size:14px}
-      .navBtnNum{display:none}
-      .navBtnLabel{font-size:10px}
-    }
-    @media(max-width:420px){
-      .navBtnLabel{font-size:9px}
-      .navBtn{min-width:44px;padding:10px 6px}
-      .navBtnIcon{font-size:16px}
-    }
 
     /* ── SECTIONS ── */
     .section{
@@ -447,34 +414,9 @@
       <div id="howToText"><strong>Så här:</strong> Synka dina prov → öppna en sektion → träna dina svagaste punkter direkt.</div>
     </div>
 
-    <!-- NAV RAIL -->
-    <nav class="navRail reveal" id="quickNav">
-      <button class="navBtn" type="button" data-open="#examSection" id="navExams">
-        <span class="navBtnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.12em" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 11h6M9 15h6"/></svg></span>
-        <span class="navBtnNum">01</span>
-        <span class="navBtnLabel" id="navExamsLabel">Prov</span>
-      </button>
-      <button class="navBtn" type="button" data-open="#coachSection" id="navCoach">
-        <span class="navBtnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.12em" aria-hidden="true"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 3v4"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12.5" r="1.2" fill="currentColor" stroke="none"/></svg></span>
-        <span class="navBtnNum">02</span>
-        <span class="navBtnLabel" id="navCoachLabel">Coach</span>
-      </button>
-      <button class="navBtn" type="button" data-open="#reportSection" id="navReport">
-        <span class="navBtnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.12em" aria-hidden="true"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><path d="M9 12h6M9 16h4"/></svg></span>
-        <span class="navBtnNum">03</span>
-        <span class="navBtnLabel" id="navReportLabel">Rapport</span>
-      </button>
-      <button class="navBtn" type="button" data-open="#trainSection" id="navReady">
-        <span class="navBtnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.12em" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor" stroke="none"/></svg></span>
-        <span class="navBtnNum">04</span>
-        <span class="navBtnLabel" id="navReadyLabel">Träna</span>
-      </button>
-      <button class="navBtn" type="button" data-open="#mistakeSection" id="navMistakes">
-        <span class="navBtnIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:-0.12em" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
-        <span class="navBtnNum">05</span>
-        <span class="navBtnLabel" id="navMistakesLabel">Felbank</span>
-      </button>
-    </nav>
+    <!-- Ikonraden som låg här (01-05) öppnade exakt samma fem sektioner som
+         listan nedan. Två navigeringar för samma sak, staplade på varandra.
+         Sektionsrubrikerna är kvar och gör hela jobbet. -->
 
     <!-- SECTION 01 – PROV -->
     <div class="section collapsed reveal" id="examSection">
@@ -718,7 +660,6 @@
         reportGenerating:'Skapar rapport…',reportError:'Kunde inte skapa rapport.',
         reportCreate:'Skapa rapport',reportCopy:'Kopiera',reportCopied:'Kopierad ✓',reportBasedOn:n=>`${n} prov`,
         chartTitle:'Resultatutveckling',
-        navExamsLabel:'Prov',navCoachLabel:'Coach',navReportLabel:'Rapport',navReadyLabel:'Träna',navMistakesLabel:'Felbank',
         syncingLabel:'Synkar…',syncDone:'Synkat',
       },
       en:{
@@ -753,7 +694,6 @@
         reportGenerating:'Generating…',reportError:'Could not generate report.',
         reportCreate:'Generate report',reportCopy:'Copy',reportCopied:'Copied ✓',reportBasedOn:n=>`${n} exams`,
         chartTitle:'Progress over time',
-        navExamsLabel:'Exams',navCoachLabel:'Coach',navReportLabel:'Report',navReadyLabel:'Train',navMistakesLabel:'Mistakes',
         syncingLabel:'Syncing…',syncDone:'Synced',
       }
     };
@@ -947,9 +887,6 @@
       $('footerText').textContent=t.footer;$('langLabel').textContent=t.english;$('langPill').textContent=LANG.toUpperCase();
       $('examListTitle').textContent=t.examListTitle;$('examListSub').textContent=t.examListSub;
       $('courseFilterLabel').textContent=t.course;$('showModeLabel').textContent=t.show;$('syncBtnLabel').textContent=t.sync;
-      $('navExamsLabel').textContent=t.navExamsLabel;$('navCoachLabel').textContent=t.navCoachLabel;
-      $('navReportLabel').textContent=t.navReportLabel;$('navReadyLabel').textContent=t.navReadyLabel;$('navMistakesLabel').textContent=t.navMistakesLabel;
-      [["navExams",t.navExamsLabel],["navCoach",t.navCoachLabel],["navReport",t.navReportLabel],["navReady",t.navReadyLabel],["navMistakes",t.navMistakesLabel]].forEach(([id,label],i)=>{const el=$(id);if(el)el.setAttribute("aria-label",(LANG==='sv'?'Steg':'Step')+' '+(i+1)+': '+label);});
       if($('chartTitle'))$('chartTitle').textContent=t.chartTitle;
     }
     $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
@@ -1435,9 +1372,6 @@
     function bindToggles(){
       document.querySelectorAll('.sHead[data-toggle]').forEach(head=>{
         head.addEventListener('click',()=>{const sel=head.getAttribute('data-toggle');if(sel)toggleSection(sel);});
-      });
-      document.querySelectorAll('#quickNav [data-open]').forEach(btn=>{
-        btn.addEventListener('click',()=>{const sel=btn.getAttribute('data-open');if(sel)openSection(sel);});
       });
     }
 
