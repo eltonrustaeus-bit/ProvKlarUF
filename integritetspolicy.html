@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<!-- Formtokens: radie, avstånd, typsnitt, rörelse. Enbart :root-variabler. -->
+<link rel="stylesheet" href="exgen-tokens.css" />
 <script src="shared.js" defer></script>
 <style>
 .policyWrap{max-width:740px;margin:0 auto;padding:40px 20px 80px}
@@ -28,10 +30,10 @@
 .cookieTable th{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);letter-spacing:.06em;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--l)}
 .cookieTable td{padding:9px 10px;border-bottom:1px solid var(--l);color:var(--t2);vertical-align:top}
 .cookieTable tr:last-child td{border-bottom:none}
-.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500}
+.pill{display:inline-block;padding:2px 8px;border-radius:var(--exgen-radius-pill);font-family:'DM Mono',monospace;font-size:10px;font-weight:500}
 .pill.nec{background:rgba(0,183,217,.1);color:var(--a);border:1px solid rgba(0,183,217,.25)}
 .pill.func{background:rgba(244,200,66,.08);color:#f4c842;border:1px solid rgba(244,200,66,.2)}
-.resetBtn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:none;border:1px solid var(--l2);border-radius:8px;color:var(--t2);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;margin-top:4px}
+.resetBtn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;background:none;border:1px solid var(--l2);border-radius:var(--exgen-radius-md);color:var(--t2);font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;margin-top:4px}
 .resetBtn:hover{border-color:var(--a);color:var(--a)}
 </style>
 

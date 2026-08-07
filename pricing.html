@@ -38,7 +38,7 @@
   /* PLAN CARD */
   .planCard{
     background:var(--s);border:1px solid var(--l);
-    border-radius:var(--r);padding:22px;
+    border-radius:var(--exgen-radius-lg);padding:22px;
     position:relative;overflow:hidden;
     transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
     display:flex;flex-direction:column;gap:0;
@@ -56,7 +56,7 @@
     display:inline-flex;align-items:center;gap:5px;
     font-family:var(--font);font-size:var(--fs-xs);font-weight:600;
     color:var(--a);letter-spacing:0;
-    border:1px solid var(--l2);border-radius:var(--r2);padding:2px 8px;
+    border:1px solid var(--l2);border-radius:var(--exgen-radius-pill);padding:2px 8px;
     background:rgba(0,183,217,.06);
     margin-bottom:14px;align-self:flex-start;
   }
@@ -91,7 +91,7 @@
     display:flex;align-items:center;justify-content:center;gap:6px;
     width:100%;min-height:48px;
     font-family:var(--font);font-weight:700;font-size:15px;
-    border-radius:10px;cursor:pointer;
+    border-radius:var(--exgen-radius-md);cursor:pointer;
     border:1px solid var(--a);background:var(--a);color:#fff;
     transition:box-shadow .15s ease,background .15s ease;
     margin-top:auto;
@@ -118,7 +118,7 @@
 
   /* FAQ mini */
   .faqGrid{display:grid;gap:7px;margin-bottom:28px}
-  .faqItem{background:var(--s);border:1px solid var(--l);border-radius:var(--r);overflow:hidden;transition:border-color .15s}
+  .faqItem{background:var(--s);border:1px solid var(--l);border-radius:var(--exgen-radius-lg);overflow:hidden;transition:border-color .15s}
   .faqItem:hover{border-color:var(--l2)}
   .faqQ{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer;user-select:none;transition:background .14s}
   .faqQ:hover{background:var(--a-dim)}
@@ -366,12 +366,12 @@
 
   <!-- MANAGE SUBSCRIPTION -->
   <div id="manageSubSection" style="display:none;margin-bottom:32px" class="rev">
-    <div style="background:var(--s);border:1px solid var(--l2);border-radius:10px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="background:var(--s);border:1px solid var(--l2);border-radius:var(--exgen-radius-lg);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <div>
         <div style="font-family:var(--mono);font-size:10px;color:var(--a);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Din plan</div>
         <div style="font-weight:600;font-size:14px;color:var(--t)">Hantera eller avsluta din prenumeration via säker betalningsportal.</div>
       </div>
-      <button id="manageSubBtn" style="height:38px;padding:0 20px;font-size:13px;font-weight:600;background:transparent;color:var(--t);border:1px solid var(--l2);border-radius:6px;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='rgba(0,183,217,.4)';this.style.color='var(--a)'" onmouseout="this.style.borderColor='var(--l2)';this.style.color='var(--t)'">
+      <button id="manageSubBtn" style="height:38px;padding:0 20px;font-size:13px;font-weight:600;background:transparent;color:var(--t);border:1px solid var(--l2);border-radius:var(--exgen-radius-md);cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='rgba(0,183,217,.4)';this.style.color='var(--a)'" onmouseout="this.style.borderColor='var(--l2)';this.style.color='var(--t)'">
         Hantera prenumeration →
       </button>
     </div>
