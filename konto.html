@@ -470,7 +470,11 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
   const name=email.split("@")[0];
   document.getElementById("kontoEmail").textContent=email;
   document.getElementById("kontoName").textContent=name.charAt(0).toUpperCase()+name.slice(1)+"s konto";
-  setKontoVoice();
+  // Definieras i ett senare <script>-block och fanns alltså inte här. Anropet
+  // kastade ReferenceError, vilket avbröt resten av den här funktionen —
+  // bland annat loadEntitlements(). Blocket sätter själv rösten vid
+  // DOMContentLoaded, så ingenting går förlorat av att hoppa över den här.
+  if (window.setKontoVoice) window.setKontoVoice();
 
   async function loadEntitlements(){
     try{
