@@ -14,7 +14,12 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { FIXTURES } from "./fixtures.mjs";
+// FIXTURE_SET=long swaps in the long-form set: same six subjects, same
+// expected profiles, but material at the length of real pasted lesson notes.
+// Everything else is held constant so the only variable is how much the
+// student pasted.
+const FIXTURE_SET = process.env.FIXTURE_SET === "long" ? "./fixtures-long.mjs" : "./fixtures.mjs";
+const { FIXTURES } = await import(FIXTURE_SET);
 
 const require = createRequire(import.meta.url);
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
