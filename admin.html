@@ -503,17 +503,22 @@ async function loadReports() {
   statusEl.textContent = 'Laddar rapporter…';
   wrapEl.style.display = 'none';
 
-  const { data: session } = await db.auth.getSession();
-  if (!session?.session) return;
+  const { data: { session } } = await db.auth.getSession();
+  const token = session?.access_token;
+  if (!token) return;
 
-  // Fetch all reports with question info
-  const { data, error } = await db
-    .from('question_reports')
-    .select('question_id, reason, created_at, resolved, driving_questions!question_id(id, question, category, report_count)')
-    .eq('resolved', false)
-    .order('created_at', { ascending: false });
+  let data;
+  try {
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'list-reports' })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error || 'Misslyckades');
+    data = json.reports;
+  } catch (e) { statusEl.textContent = 'Fel vid hämtning: ' + e.message; return; }
 
-  if (error) { statusEl.textContent = 'Fel vid hämtning: ' + error.message; return; }
   if (!data || data.length === 0) { statusEl.textContent = 'Inga öppna rapporter.'; return; }
 
   // Group by question_id
@@ -557,13 +562,21 @@ async function loadReports() {
 async function resolveReports(questionId, btn) {
   if (!questionId) return;
   btn.disabled = true; btn.textContent = '…';
-  const { error } = await db
-    .from('question_reports')
-    .update({ resolved: true })
-    .eq('question_id', questionId);
-  if (error) { btn.disabled = false; btn.textContent = '✓ Löst'; alert('Fel: ' + error.message); return; }
-  // Reset count
-  await db.from('driving_questions').update({ report_count: 0 }).eq('id', questionId);
+
+  const { data: { session } } = await db.auth.getSession();
+  const token = session?.access_token;
+  if (!token) { btn.disabled = false; btn.textContent = '✓ Löst'; alert('Inte inloggad'); return; }
+
+  try {
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'resolve-report', questionId })
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error || 'Misslyckades');
+  } catch (e) { btn.disabled = false; btn.textContent = '✓ Löst'; alert('Fel: ' + e.message); return; }
+
   btn.closest('tr').remove();
   const remaining = document.querySelectorAll('#reportsBody tr').length;
   document.getElementById('reportsStatus').textContent = remaining + ' frågor kvar med öppna rapporter';

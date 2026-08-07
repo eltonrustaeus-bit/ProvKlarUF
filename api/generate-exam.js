@@ -54,7 +54,9 @@ function looksLikeMath(course, pastedText) {
 
 function pickModel({ isMath }) {
   const base = process.env.OPENAI_MODEL || "gpt-4o-mini";
-  const math = process.env.OPENAI_MODEL_MATH || base;
+  // OPENAI_MATH_MODEL is the canonical name (matches api/hp.js). OPENAI_MODEL_MATH
+  // kept as a fallback in case it was ever set in an env this repo can't see.
+  const math = process.env.OPENAI_MATH_MODEL || process.env.OPENAI_MODEL_MATH || base;
   return isMath ? math : base;
 }
 
