@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
+  <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. Samma fil som
+       provskaparen bygger av, så sidorna inte glider isär. -->
+  <link rel="stylesheet" href="exgen-ui.css" />
 
   <style>
     /* ── TOKENS — matches style.css's single ExGen palette (Phase 10b) ── */
@@ -104,23 +107,8 @@
       scrollbar-width:none;-webkit-overflow-scrolling:touch;
     }
     .navRail::-webkit-scrollbar{display:none}
-    /* ── P.E.R:s röst ────────────────────────────────────────────────────
-       Samma form som provskaparens öppning i app.html: en liten orb med en
-       andningsring, och en mening i 21–27px i stället för en display-rubrik.
-       Måtten är medvetet identiska med .xf-say/.xf-orb i exam-flow.css — när
-       det delade lagret bryts ut ska de här reglerna ersättas av det, inte
-       leva vidare parallellt. */
-    .pvVoice{display:flex;gap:14px;align-items:flex-start}
-    .pvOrb{flex:none;width:10px;height:10px;margin-top:7px;border-radius:50%;
-      background:var(--a);position:relative}
-    .pvOrb::after{content:"";position:absolute;inset:-6px;border-radius:50%;
-      border:1px solid var(--a);opacity:.3;animation:pvBreathe 3.2s cubic-bezier(.22,.61,.36,1) infinite}
-    @keyframes pvBreathe{0%,100%{transform:scale(.72);opacity:.35}50%{transform:scale(1);opacity:0}}
-    .pvSaid{flex:1;min-width:0}
-    .pvSay{font-size:clamp(21px,4.4vw,27px);line-height:1.25;letter-spacing:-.02em;
-      font-weight:600;color:var(--t);margin:0}
-    .pvSub{font-size:15.5px;line-height:1.65;color:var(--t3);margin:10px 0 0}
-    @media(prefers-reduced-motion:reduce){.pvOrb::after{animation:none}}
+    /* P.E.R:s röst kommer från exgen-ui.css (.xf-per/.xf-orb/.xf-say/.xf-sub).
+       Sidan hade en egen kopia här tills det delade lagret bröts ut. */
 
     .navBtn{
       flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -439,11 +427,11 @@
          provskaparen i app.html, samma orb och samma proportioner.
          Texten sätts av setVoice() från historik och felbank. -->
     <div class="hero reveal">
-      <div class="pvVoice">
-        <div class="pvOrb" aria-hidden="true"></div>
-        <div class="pvSaid">
-          <h1 class="pvSay" id="pageTitle">Din utveckling.</h1>
-          <p class="pvSub" id="pageSub">Bygger på prov du rättat i appen.</p>
+      <div class="xf-per">
+        <div class="xf-orb" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0">
+          <h1 class="xf-say" id="pageTitle">Din utveckling.</h1>
+          <p class="xf-sub" id="pageSub">Bygger på prov du rättat i appen.</p>
         </div>
       </div>
       <div class="heroMeta">
