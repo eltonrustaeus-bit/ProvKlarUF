@@ -1,0 +1,1007 @@
+/* exam-flow.css — P.E.R-ledd provskapare.
+ *
+ * En skärm i taget, en handling i taget.
+ *
+ * Ytorna och bläcket hämtas från style.css (--t/--t3/--s/--s2/--l2), inte från
+ * exgen-tokens.css. Skälet är inte stilistiskt: exgen-tokens.css vänder sina
+ * text- och ytvärden i ett @media (prefers-color-scheme: dark), medan style.css
+ * sätter sidans faktiska bakgrund utan något sådant block. I mörkt läge blev
+ * därför bläcket ljust mot en bakgrund som förblev ljus — .xf-note mätte 2,35:1.
+ * style.css-tokens har samma värden i ljust läge och följer den bakgrund som
+ * verkligen ritas, i båda lägena. Formtokens (radie, avstånd, typsnitt, rörelse)
+ * hämtas fortfarande från exgen-tokens.css, de är färgneutrala.
+ *
+ * Råa färgvärden som står kvar, och varför:
+ *   #00768F + rgba(0,118,143,.07/.22/.28) — den AA-säkra teal-accenten. Själva
+ *     hexvärdet finns som style.css --a, men de tre genomskinliga varianterna
+ *     saknar motsvarighet (--a-dim är .08, inte .07). Accenten hålls samlad som
+ *     ett literalvärde hellre än att splittras på en token och tre rgba-rader
+ *     som inte längre syns höra ihop.
+ *   #fff — text ovanpå accentfärg och ovanpå den mörka rättningsytan. Vitt finns
+ *     som --s, men den token betyder "yta", inte "text på färg".
+ *   #E8EEF4 + rgba(232,238,244,.55/.6) — rättningsskärmens ljusa bläck. Den ytan
+ *     är avsiktligt mörk i båda färglägena och kan därför inte hämta sin text ur
+ *     en token som vänder med systemets färgläge.
+ *
+ * Namnrymd: .xf-*  (exam flow). Ingen selektor här rör den gamla wizarden i
+ * app.html — den ligger kvar som motor bakom `hidden` och får inte påverkas.
+ */
+
+/* ── Rot ─────────────────────────────────────────────────────────────────── */
+
+#xf {
+  --xf-measure: 580px;
+  --xf-ink: var(--t);
+  --xf-ink-2: var(--t3);
+  --xf-line: var(--l2);
+  --xf-accent: #00768F;          /* AA-säker teal, samma som style.css --a */
+  --xf-accent-soft: rgba(0, 118, 143, .07);
+  --xf-machine: var(--exgen-navy);
+
+  font-family: var(--exgen-font);
+  color: var(--xf-ink);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Framstegslinje ──────────────────────────────────────────────────────── */
+/* En hårfin linje högst upp i viewporten i stället för numrerade stegpiller.
+   Stegen syns som rörelse, inte som en lista att bocka av. */
+
+.xf-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: transparent;
+  /* Över sidhuvudet (z-index 500) men under cookiebannern och P.E.R. Linjen
+     är sidans enda stegindikator — hamnar den bakom navigeringen finns den
+     i praktiken inte. */
+  z-index: 9400;
+  pointer-events: none;
+}
+
+.xf-progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--exgen-gradient);
+  transition: width var(--exgen-motion-slow) var(--exgen-motion-ease);
+}
+
+/* ── Skärm ───────────────────────────────────────────────────────────────── */
+
+.xf-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(24px, 6vh, 72px) 20px calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.xf-screen.on { display: flex; }
+
+.xf-inner {
+  width: 100%;
+  max-width: var(--xf-measure);
+  /* auto-marginal i stället för justify-content:center. Båda centrerar när
+     innehållet får plats, men centrering klipper toppen när det inte gör det —
+     och resultatskärmen med tolv frågor gör det aldrig. */
+  margin: auto 0;
+}
+
+/* Varje skärm kommer in genom att lyfta sig själv. Kort och en gång — rörelse
+   som säger "ny skärm", inte rörelse som underhållning. */
+.xf-screen.on > .xf-inner {
+  animation: xf-rise var(--exgen-motion-slow) var(--exgen-motion-ease) both;
+}
+
+@keyframes xf-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── P.E.R:s röst ────────────────────────────────────────────────────────── */
+
+.xf-per {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: var(--exgen-space-8);
+}
+
+.xf-orb {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--xf-accent);
+  position: relative;
+}
+
+/* Andningsringen är det enda som rör sig när sidan står still. Den säger att
+   P.E.R är vaken utan att kräva uppmärksamhet. */
+.xf-orb::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--xf-accent);
+  opacity: .3;
+  animation: xf-breathe 3.2s var(--exgen-motion-ease) infinite;
+}
+
+@keyframes xf-breathe {
+  0%, 100% { transform: scale(.72); opacity: .35; }
+  50%      { transform: scale(1);   opacity: 0;   }
+}
+
+.xf-orb.busy::after { animation-duration: 1.1s; }
+
+.xf-say {
+  font-size: clamp(21px, 4.4vw, 27px);
+  line-height: var(--exgen-leading-tight);
+  letter-spacing: var(--exgen-tracking-tight);
+  font-weight: var(--exgen-weight-semibold);
+  margin: 0;
+}
+
+.xf-say em {
+  font-style: normal;
+  color: var(--xf-accent);
+}
+
+.xf-sub {
+  font-size: var(--exgen-text-base);
+  line-height: var(--exgen-leading-relaxed);
+  color: var(--xf-ink-2);
+  margin: 10px 0 0;
+}
+
+/* Skrivmarkören syns bara medan en rad skrivs fram. */
+.xf-say.typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: .95em;
+  margin-left: 3px;
+  vertical-align: -.12em;
+  background: var(--xf-accent);
+  animation: xf-caret .9s steps(1) infinite;
+}
+
+@keyframes xf-caret { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+
+/* ── Etiketter ───────────────────────────────────────────────────────────── */
+
+.xf-eyebrow {
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  margin-bottom: var(--exgen-space-3);
+}
+
+/* ── Val ─────────────────────────────────────────────────────────────────── */
+
+.xf-opts {
+  display: grid;
+  gap: 8px;
+  margin-bottom: var(--exgen-space-6);
+}
+
+.xf-opts.row {
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+@media (max-width: 520px) {
+  .xf-opts.row { grid-auto-flow: row; }
+}
+
+.xf-opt {
+  position: relative;
+  text-align: left;
+  width: 100%;
+  padding: 15px 16px;
+  background: var(--s);
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--exgen-text-base);
+  font-weight: var(--exgen-weight-medium);
+  color: var(--xf-ink);
+  transition: border-color var(--exgen-motion-fast) var(--exgen-motion-ease),
+              background var(--exgen-motion-fast) var(--exgen-motion-ease),
+              transform var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+.xf-opt:hover { border-color: var(--xf-accent); }
+.xf-opt:active { transform: scale(.99); }
+
+.xf-opt.sel {
+  border-color: var(--xf-accent);
+  background: var(--xf-accent-soft);
+}
+
+/* Vald kant markeras på insidan så att raden inte hoppar 1px när den väljs. */
+.xf-opt.sel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--xf-accent);
+}
+
+.xf-opt small {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--exgen-text-xs);
+  font-weight: var(--exgen-weight-regular);
+  color: var(--xf-ink-2);
+  line-height: var(--exgen-leading-normal);
+}
+
+/* ── Chips ───────────────────────────────────────────────────────────────── */
+
+.xf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: var(--exgen-space-4);
+}
+
+.xf-chip {
+  padding: 7px 13px;
+  border-radius: var(--exgen-radius-pill);
+  border: 1px solid var(--xf-line);
+  background: var(--s);
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--xf-ink-2);
+  cursor: pointer;
+  transition: all var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+.xf-chip:hover { border-color: var(--xf-accent); color: var(--xf-ink); }
+
+.xf-chip.sel {
+  border-color: var(--xf-accent);
+  background: var(--xf-accent-soft);
+  color: var(--xf-accent);
+  font-weight: var(--exgen-weight-medium);
+}
+
+/* ── Fält ────────────────────────────────────────────────────────────────── */
+
+.xf-input,
+.xf-area {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: var(--exgen-text-lg);
+  color: var(--xf-ink);
+  background: var(--s);
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-md);
+  padding: 15px 16px;
+  outline: none;
+  transition: border-color var(--exgen-motion-fast) var(--exgen-motion-ease),
+              box-shadow var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+.xf-input:focus,
+.xf-area:focus {
+  border-color: var(--xf-accent);
+  box-shadow: 0 0 0 3px var(--xf-accent-soft);
+}
+
+.xf-area {
+  min-height: 200px;
+  resize: vertical;
+  font-size: var(--exgen-text-base);
+  line-height: var(--exgen-leading-relaxed);
+}
+
+.xf-input::placeholder,
+.xf-area::placeholder { color: var(--xf-ink-2); opacity: .7; }
+
+/* ── Läsraden under materialet ───────────────────────────────────────────── */
+/* Växer medan eleven skriver. Det enda stället där appen visar att den redan
+   arbetar innan man tryckt på något. */
+
+.xf-read {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 20px;
+  margin-top: 12px;
+  font-family: var(--exgen-font-mono);
+  font-size: 11.5px;
+  color: var(--xf-ink-2);
+}
+
+.xf-read b {
+  font-weight: var(--exgen-weight-medium);
+  color: var(--xf-accent);
+}
+
+.xf-term {
+  display: inline-block;
+  animation: xf-rise var(--exgen-motion-normal) var(--exgen-motion-ease) both;
+}
+
+/* ── Kontraktskortet ─────────────────────────────────────────────────────── */
+
+.xf-card {
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-lg);
+  background: var(--s);
+  padding: var(--exgen-space-6);
+  margin-bottom: var(--exgen-space-6);
+}
+
+.xf-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--xf-line);
+}
+
+.xf-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.xf-row:first-child { padding-top: 0; }
+
+.xf-row dt {
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  flex: none;
+}
+
+.xf-row dd {
+  margin: 0;
+  text-align: right;
+  font-size: var(--exgen-text-sm);
+  font-weight: var(--exgen-weight-medium);
+}
+
+.xf-row dd small {
+  display: block;
+  font-weight: var(--exgen-weight-regular);
+  color: var(--xf-ink-2);
+  font-size: var(--exgen-text-xs);
+  margin-top: 2px;
+}
+
+/* ── Knappar ─────────────────────────────────────────────────────────────── */
+
+.xf-act {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.xf-btn {
+  font-family: inherit;
+  font-size: var(--exgen-text-base);
+  font-weight: var(--exgen-weight-semibold);
+  padding: 14px 26px;
+  border-radius: var(--exgen-radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform var(--exgen-motion-fast) var(--exgen-motion-ease),
+              box-shadow var(--exgen-motion-fast) var(--exgen-motion-ease),
+              opacity var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+.xf-btn.primary {
+  background: var(--xf-accent);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0, 118, 143, .22);
+}
+
+.xf-btn.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 118, 143, .28);
+}
+
+.xf-btn.ghost {
+  background: transparent;
+  color: var(--xf-ink-2);
+  border-color: var(--xf-line);
+}
+
+.xf-btn.ghost:hover:not(:disabled) { color: var(--xf-ink); border-color: var(--xf-ink-2); }
+
+.xf-btn.quiet {
+  background: none;
+  border: 0;
+  padding: 14px 4px;
+  color: var(--xf-ink-2);
+  font-weight: var(--exgen-weight-medium);
+  font-size: var(--exgen-text-sm);
+}
+
+.xf-btn.quiet:hover { color: var(--xf-accent); }
+
+.xf-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+.xf-btn:focus-visible,
+.xf-opt:focus-visible,
+.xf-chip:focus-visible {
+  outline: var(--exgen-focus-ring);
+  outline-offset: var(--exgen-focus-offset);
+}
+
+.xf-note {
+  font-size: var(--exgen-text-xs);
+  color: var(--xf-ink-2);
+  margin-top: var(--exgen-space-4);
+  line-height: var(--exgen-leading-normal);
+}
+
+.xf-err {
+  color: var(--exgen-error-text);
+  font-size: var(--exgen-text-sm);
+  margin-top: var(--exgen-space-3);
+  min-height: 18px;
+}
+
+/* ══ PROVLÄGET ═══════════════════════════════════════════════════════════════
+   Provet lämnar appen. Ingen meny, ingen nav, inget varumärke i vägen — bara
+   arket, frågan och klockan. Det är hela poängen med att det ska kännas som ett
+   riktigt prov. */
+
+.xf-exam {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  flex-direction: column;
+  background: var(--s2);
+}
+
+.xf-exam.on { display: flex; }
+
+/* Provet ska lämna appen. Sidhuvudet är sticky med z-index 500 och stack ut
+   genom överlägget; utan de här raderna sitter navigeringen kvar ovanpå arket
+   och det ser ut som en sida bland andra i stället för som ett prov. */
+body.xf-in-exam .xg-header,
+body.xf-in-exam .xg-utility-bar,
+body.xf-in-exam #betaBanner,
+body.xf-in-exam .xg-footer,
+body.xf-grading .xg-header,
+body.xf-grading .xg-utility-bar,
+body.xf-grading #betaBanner,
+body.xf-grading .xg-footer { display: none !important; }
+
+/* Under rättningen finns inget att fråga om — provet är inlämnat och svaren
+   ligger hos servern. P.E.R-bubblan skulle bara ligga och lysa ovanpå den
+   mörka ytan (z-index 9999 mot 70) och inbjuda till en fråga som inte längre
+   kan påverka någonting. */
+body.xf-grading #perWidget { display: none !important; }
+
+/* Stegen är slut när provet börjar; en halvfull linje överst hade bara sagt
+   emot provets egen räknare. */
+body.xf-in-exam .xf-progress,
+body.xf-grading .xf-progress { display: none; }
+
+.xf-exam-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--xf-line);
+  background: var(--s);
+  font-family: var(--exgen-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+}
+
+.xf-exam-dots {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.xf-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--xf-line);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+/* Klickytan ligger i ett pseudoelement, så pricken kan vara 7px medan tummen
+   får något att sikta på — och raden behåller sin höjd, eftersom pseudoelement
+   inte deltar i flexlayouten.
+
+   Två saker styr formen, och båda är mätta, inte gissade.
+
+   Bredden stannar på 12px: exakt prickens delning (7px prick + 5px gap). En
+   bredare yta lägger sig över grannprickens mitt, och eftersom senare syskon
+   målas överst skulle ett träff mitt på pricken aktivera nästa fråga i stället.
+   12px är alltså det bredaste som går utan att en avsiktlig träff hamnar fel.
+
+   Höjden är 44px men växer nedåt från prickens överkant, inte åt båda hållen.
+   Vid 20 frågor på 390px bryts raden i två, med samma 12px mellan raderna. En
+   centrerad 44px-yta lät då undre radens prickar täcka de övres helt — mätt:
+   prick 7–10 gick inte längre att träffa. Nedåt behåller varje prick i övre
+   raden sina 12px runt sin egen mitt, och undre raden får hela ytan. Extraytan
+   hamnar dessutom där tummen faktiskt hamnar när den underskjuter en kontroll
+   högst upp på skärmen. */
+.xf-dot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  margin-left: -6px;
+  top: 0;
+  width: 12px;
+  height: 44px;
+}
+
+.xf-dot.done { background: var(--xf-accent); }
+.xf-dot.here { background: var(--xf-accent); transform: scale(1.55); }
+.xf-dot:hover { opacity: .7; }
+
+/* Arket. Marginalen till vänster är gutter för frågenumret, precis som på ett
+   utskrivet prov. */
+.xf-sheet-wrap {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  /* flex-start, inte standardvärdet stretch: arket ska sluta där innehållet
+     slutar. Med stretch växer det till hela höjden och en fyrraders fråga får
+     ett halvmeterhögt vitt fält under sig. */
+  align-items: flex-start;
+  padding: clamp(20px, 5vh, 56px) 20px 140px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.xf-sheet {
+  width: 100%;
+  max-width: 700px;
+  background: var(--s);
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-lg);
+  padding: clamp(26px, 5vw, 48px);
+  box-shadow: var(--exgen-shadow-md);
+  animation: xf-rise var(--exgen-motion-normal) var(--exgen-motion-ease) both;
+}
+
+.xf-q-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  font-family: var(--exgen-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  padding-bottom: 14px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--xf-line);
+}
+
+.xf-q-pts { color: var(--xf-ink); font-weight: var(--exgen-weight-medium); }
+
+.xf-q-text {
+  font-size: clamp(17px, 3.4vw, 20px);
+  line-height: var(--exgen-leading-relaxed);
+  font-weight: var(--exgen-weight-medium);
+  margin: 0 0 24px;
+  white-space: pre-wrap;
+}
+
+.xf-mc { display: grid; gap: 9px; }
+
+.xf-mc-opt {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 15px 17px;
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-md);
+  background: var(--s);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--exgen-text-base);
+  line-height: var(--exgen-leading-normal);
+  color: var(--xf-ink);
+  transition: all var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+.xf-mc-opt:hover { border-color: var(--xf-accent); }
+
+.xf-mc-opt.sel {
+  border-color: var(--xf-accent);
+  background: var(--xf-accent-soft);
+}
+
+.xf-mc-let {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--xf-line);
+  display: grid;
+  place-items: center;
+  font-family: var(--exgen-font-mono);
+  font-size: 11px;
+  color: var(--xf-ink-2);
+}
+
+.xf-mc-opt.sel .xf-mc-let {
+  background: var(--xf-accent);
+  border-color: var(--xf-accent);
+  color: #fff;
+}
+
+.xf-answer {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 150px;
+  padding: 16px;
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-md);
+  font-family: inherit;
+  font-size: var(--exgen-text-base);
+  line-height: var(--exgen-leading-relaxed);
+  color: var(--xf-ink);
+  background: var(--s);
+  resize: vertical;
+  outline: none;
+}
+
+.xf-answer:focus {
+  border-color: var(--xf-accent);
+  box-shadow: 0 0 0 3px var(--xf-accent-soft);
+}
+
+.xf-ask {
+  position: relative;
+  margin-top: 20px;
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  font-family: var(--exgen-font-mono);
+  font-size: 11px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  cursor: pointer;
+  transition: color var(--exgen-motion-fast) var(--exgen-motion-ease);
+}
+
+/* Raden är 29px hög och det är rätt — den ska vara en viskning under frågan,
+   inte en knapp till. Klickytan växer därför utanför flödet i stället, 7,5px åt
+   vardera hållet in i den luft som redan finns mot svarsfältet och arkets
+   nederkant. Inget flyttar sig. */
+.xf-ask::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
+.xf-ask:hover { color: var(--xf-accent); }
+.xf-ask.used { color: var(--exgen-warning-text); }
+
+/* Navigering ligger fast längst ned — handen ska aldrig behöva leta. */
+/* --xf-kb sätts av js/exam-flow.js från visualViewport och är höjden på det som
+   döljs av det virtuella tangentbordet. Utan det hamnar navigeringen bakom
+   tangentbordet så fort eleven skriver ett kortsvar på mobil, och "Nästa" går
+   inte att nå — window.innerHeight ändras inte när tangentbordet fälls upp. */
+.xf-exam-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--xf-kb, 0px);
+  z-index: 62;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--s) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--xf-line);
+}
+
+/* P.E.R:s inpass under provet. Kommer bara när något faktiskt hänt — aldrig på
+   timer, aldrig som beröm utan orsak. */
+/* Tre saker ligger redan fast i nederkanten på varje sida: P.E.R-bubblan
+   (z-index 9999), cookiebannern (9500) och nu provets navigering. De skulle
+   annars hamna ovanpå varandra just när eleven ska trycka "Nästa".
+   Cookiebannern göms medan provet pågår och kommer tillbaka när det är
+   inlämnat — samtycket skjuts upp, det försvinner inte. */
+body.xf-in-exam #proviaCookieBanner { display: none !important; }
+
+/* Den flytande bubblan är borta under provet. Den låg på 390px rakt över sista
+   raden i ett svarsalternativ, och den behövs inte: ingången till P.E.R under
+   provet är .xf-ask i arket, vid den fråga frågan faktiskt gäller.
+   Öppnas panelen därifrån kommer bubblan tillbaka, men lyft över .xf-exam-nav
+   så att den inte tar samma plats som "Nästa". */
+body.xf-in-exam #perWidget { display: none !important; }
+
+body.xf-in-exam.xf-per-open #perWidget {
+  display: block !important;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.xf-nudge {
+  position: fixed;
+  right: 20px;
+  bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  z-index: 63;
+  max-width: min(320px, calc(100vw - 40px));
+  display: none;
+  gap: 11px;
+  padding: 14px 16px;
+  background: var(--s);
+  border: 1px solid var(--xf-line);
+  border-left: 2px solid var(--xf-accent);
+  border-radius: var(--exgen-radius-md);
+  box-shadow: var(--exgen-shadow-md);
+  font-size: 13.5px;
+  line-height: var(--exgen-leading-normal);
+  animation: xf-rise var(--exgen-motion-normal) var(--exgen-motion-ease) both;
+}
+
+.xf-nudge.on { display: flex; }
+
+.xf-nudge button {
+  background: none;
+  border: 0;
+  color: var(--xf-ink-2);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 0 0 4px;
+  align-self: flex-start;
+}
+
+/* ══ RÄTTNINGEN ══════════════════════════════════════════════════════════════
+   Mörk maskinyta. Bytet från ljus app till mörk yta är signalen att något
+   annat än UI händer nu. Raderna som tickar in är verkliga steg, inte en
+   påhittad förloppsmätare. */
+
+.xf-machine {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 24px;
+  background: var(--xf-machine);
+  color: #E8EEF4;
+}
+
+.xf-machine.on { display: flex; }
+
+.xf-machine .xf-orb {
+  width: 12px;
+  height: 12px;
+  margin: 0 0 32px;
+  background: var(--exgen-teal);
+}
+
+.xf-machine .xf-orb::after { border-color: var(--exgen-teal); }
+
+.xf-log {
+  width: 100%;
+  max-width: 460px;
+  font-family: var(--exgen-font-mono);
+  font-size: 12.5px;
+  line-height: 2.1;
+}
+
+.xf-log div {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  color: rgba(232, 238, 244, .55);
+  animation: xf-rise var(--exgen-motion-normal) var(--exgen-motion-ease) forwards;
+}
+
+.xf-log div.now { color: #fff; }
+.xf-log div i { color: var(--exgen-teal); font-style: normal; }
+
+.xf-pep {
+  margin-top: 36px;
+  font-family: var(--exgen-font);
+  font-size: var(--exgen-text-sm);
+  color: rgba(232, 238, 244, .6);
+  text-align: center;
+  max-width: 400px;
+  min-height: 21px;
+}
+
+/* ── Resultat ────────────────────────────────────────────────────────────── */
+
+.xf-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: var(--exgen-space-6);
+}
+
+.xf-scores.solo { grid-template-columns: 1fr; }
+
+@media (max-width: 460px) { .xf-scores { grid-template-columns: 1fr; } }
+
+.xf-score {
+  border: 1px solid var(--xf-line);
+  border-radius: var(--exgen-radius-lg);
+  padding: 20px;
+  background: var(--s);
+}
+
+.xf-score.lead { border-color: var(--xf-accent); background: var(--xf-accent-soft); }
+
+.xf-score b {
+  display: block;
+  font-size: 34px;
+  font-weight: var(--exgen-weight-bold);
+  letter-spacing: var(--exgen-tracking-tight);
+  line-height: 1.1;
+}
+
+.xf-score span {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+}
+
+.xf-item {
+  border-top: 1px solid var(--xf-line);
+  padding: 20px 0;
+}
+
+.xf-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  margin-bottom: 10px;
+}
+
+.xf-item-head b { color: var(--xf-ink); }
+.xf-item-head b.miss { color: var(--exgen-error-text); }
+.xf-item-head b.full { color: var(--exgen-success-text); }
+
+.xf-item-q {
+  font-size: var(--exgen-text-sm);
+  font-weight: var(--exgen-weight-medium);
+  line-height: var(--exgen-leading-normal);
+  margin-bottom: 10px;
+}
+
+.xf-item-fb {
+  font-size: var(--exgen-text-sm);
+  line-height: var(--exgen-leading-relaxed);
+  color: var(--xf-ink-2);
+}
+
+.xf-item-model {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--exgen-radius-sm);
+  background: var(--s2);
+  font-size: 13.5px;
+  line-height: var(--exgen-leading-relaxed);
+}
+
+.xf-item-model em {
+  display: block;
+  font-style: normal;
+  font-family: var(--exgen-font-mono);
+  font-size: 10px;
+  letter-spacing: var(--exgen-tracking-wide);
+  text-transform: uppercase;
+  color: var(--xf-ink-2);
+  margin-bottom: 6px;
+}
+
+/* Källraden: exakt vilken del av elevens eget material frågan byggde på.
+   Datan finns redan i source_references från generate-exam.js. */
+.xf-src {
+  margin-top: 10px;
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  color: var(--xf-ink-2);
+  line-height: var(--exgen-leading-normal);
+}
+
+.xf-cov {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.xf-cov span {
+  padding: 5px 11px;
+  border-radius: var(--exgen-radius-pill);
+  background: var(--s2);
+  border: 1px solid var(--xf-line);
+  font-family: var(--exgen-font-mono);
+  font-size: 10.5px;
+  color: var(--xf-ink-2);
+}
+
+.xf-cov span.weak {
+  border-color: var(--exgen-warning);
+  color: var(--exgen-warning-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xf-orb::after,
+  .xf-say.typing::after { animation: none !important; }
+  .xf-screen.on > .xf-inner,
+  .xf-sheet,
+  .xf-log div,
+  .xf-nudge { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+  /* Övergångarna hämtar sin längd ur --exgen-motion-*, som exgen-tokens.css
+     redan nollar här — men bara om varje regel råkar använda de tokens. Att
+     säga det rakt ut gör att en framtida rad med en hårdkodad längd inte
+     smyger förbi. */
+  .xf-progress i,
+  .xf-btn,
+  .xf-opt,
+  .xf-chip,
+  .xf-mc-opt,
+  .xf-dot,
+  .xf-input,
+  .xf-area,
+  .xf-answer,
+  .xf-ask,
+  .xf-nudge button { transition: none !important; }
+
+  /* Hovertillstånden flyttar element utan att någon övergång är inblandad, så
+     0ms räddar dem inte — de måste tas bort var för sig. Prickens .here-skalning
+     och klickytornas centrering står kvar: de är tillstånd och geometri, inte
+     rörelse. */
+  .xf-btn.primary:hover:not(:disabled),
+  .xf-opt:active { transform: none !important; }
+}

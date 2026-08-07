@@ -28,3 +28,6 @@ ruvector.db
 
 # eval output (regenerated, not source of truth)
 tests/evals/exam-quality/results/
+
+# Testutdata (skärmbilder, rapporter)
+.test-out/

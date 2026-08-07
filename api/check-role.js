@@ -155,6 +155,25 @@ export default async function handler(req, res) {
   if (action === "maintenance_gate") {
     if (!MAINTENANCE.enabled) return res.status(200).json({ allow: true });
 
+    /* Tillfällig förbikoppling med kod, så att Elton kommer in från vilken
+       enhet som helst under ombyggnaden utan att logga in.
+
+       Koden jämförs HÄR, mot process.env.ACCESS_CODE, och står medvetet inte i
+       någon fil — det här repot är publikt på GitHub, så en kod i js/ eller i
+       _maintenance.js hade varit läsbar för vem som helst. Klienten sparar bara
+       det den fick inskrivet och skickar med det varje gång; den kan inte
+       öppna grinden på egen hand genom att sätta en flagga i localStorage.
+
+       Det gör den ändå inte till ett säkerhetsskydd. Grinden är till för
+       besökare: sidornas HTML och JS är publika filer, och den som redan har
+       ett konto når API:erna direkt. Lägg aldrig något bakom den här koden som
+       inte tål att ses. Ta bort hela grenen när sajten öppnas för alla. */
+    const gateCode = String(req.body?.code || "").trim();
+    const expected = String(process.env.ACCESS_CODE || "").trim();
+    if (gateCode && expected && gateCode === expected) {
+      return res.status(200).json({ allow: true, via: "code" });
+    }
+
     const gateUser = await requireAuth(req, res);
     if (!gateUser) return;                       // requireAuth svarade redan 401
 

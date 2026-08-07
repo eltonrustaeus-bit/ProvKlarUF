@@ -17,6 +17,11 @@
   var HIDE_ID = "_sg";
   var SAFETY_MS = 12000;
   var TARGET = "/snart.html";
+  // Koden som skrevs in på snart.html. Den lagras för att slippa skriva om den
+  // vid varje sidladdning, men den ÖPPNAR ingenting av sig själv: servern
+  // jämför den mot ACCESS_CODE vid varje anrop. Se api/check-role.js.
+  var PASS_KEY = "exgen_gate_pass";
+  var BACK_KEY = "exgen_gate_back";
 
   // Undvik omdirigeringsloop om skriptet råkar hamna på målsidan.
   if (location.pathname.replace(/\/+$/, "") === TARGET.replace(/\/+$/, "")) return;
@@ -34,6 +39,11 @@
   }
 
   function deny() {
+    // Kom eleven hit på väg någonstans, minns vart — snart.html skickar
+    // tillbaka dit när koden godtagits, i stället för till startsidan.
+    try {
+      localStorage.setItem(BACK_KEY, location.pathname + location.search + location.hash);
+    } catch (_) {}
     // replace, inte href: den stängda sidan ska inte ligga kvar i historiken
     // och fånga besökaren i en loop när hen trycker bakåt.
     location.replace(TARGET);
@@ -50,13 +60,20 @@
      till vad grinden finns för. */
   setTimeout(function () { settle(deny); }, SAFETY_MS);
 
+  function storedPass() {
+    try { return localStorage.getItem(PASS_KEY) || ""; } catch (_) { return ""; }
+  }
+
   function ask(authHeader) {
     var headers = { "Content-Type": "application/json" };
     if (authHeader) headers["Authorization"] = authHeader;
+    var body = { action: "maintenance_gate" };
+    var pass = storedPass();
+    if (pass) body.code = pass;
     return fetch("/api/check-role", {
       method: "POST",
       headers: headers,
-      body: JSON.stringify({ action: "maintenance_gate" })
+      body: JSON.stringify(body)
     });
   }
 

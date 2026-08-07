@@ -18,7 +18,9 @@
 <link rel="stylesheet" href="style.css" />
 <link rel="stylesheet" href="exgen-tokens.css" />
 <link rel="stylesheet" href="exgen-shell.css" />
+<link rel="stylesheet" href="exam-flow.css" />
 <script src="shared.js" defer></script>
+<script src="js/exam-flow.js" defer></script>
 <style>
 /* ── APP-SPECIFIC ── */
 
@@ -465,7 +467,9 @@ white-space:nowrap;
 </head>
 <body>
 
-<a href="#main-content" class="skip-link">Hoppa till innehåll</a>
+<!-- Pekar på #xf, inte på #main-content: det senare är den dolda wizarden, och
+     ett tangentbordshopp dit landar i ingenting. -->
+<a href="#xf" class="skip-link">Hoppa till innehåll</a>
 
 <div id="pageLoader" class="pageLoader" aria-hidden="true">
 <div style="display:grid;place-items:center">
@@ -544,7 +548,17 @@ white-space:nowrap;
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
 
-<main class="wrap" id="main-content">
+<!-- Den P.E.R-ledda provskaparen. Ytan bor i js/exam-flow.js; motorn nedanför
+     (kvot, generering, rättning, felbank, persistens) är oförändrad och körs
+     via window.ExGenEngine. -->
+<!-- role="main": sidans enda <main> är den dolda wizarden nedan, så utan detta
+     har sidan ingen huvudlandmark alls. Innehållet byggs av js/exam-flow.js. -->
+<div id="xf" role="main" tabindex="-1"></div>
+
+<!-- MOTOR — den gamla wizarden. Dold, men fortfarande den som gör jobbet:
+     alla funktioner nedan läser och skriver mot de här fälten. Ta inte bort
+     dem utan att först flytta logiken som pekar hit. -->
+<main class="wrap" id="main-content" hidden>
 
 <div class="hero reveal">
 <div class="eyebrow">Provgenererare</div>
@@ -1301,20 +1315,41 @@ function buildTrainingMaterialFromMistakes(mistakes,pickedIds){
   return(LANG==="sv"?hSv:hEn)+blocks;
 }
 
+// Ingången från felbanken: förbättring.html skickar hit med #train.
+//
+// Materialet skrevs tidigare rakt in i wizardens textruta, som eleven såg och
+// kunde scrolla till. Den rutan ligger nu bakom `hidden` — allt som skrivs där
+// är osynligt — så materialet måste också in i den P.E.R-ledda ytan. Fälten
+// nedan sätts ändå, eftersom runGenerate/runGrade läser sitt underlag därifrån
+// och inte från flödet.
 function runTrainModeIfRequested(){
   const hash=(window.location.hash||"").toLowerCase();
   if(hash!=="#train")return;
   const mistakes=lsGetArray(LS_MISTAKES);
-  if(!mistakes.length){setStatus(LANG==="sv"?"Inga misstag sparade ännu. Rätta ett prov först.":"No saved mistakes yet. Grade an exam first.","warn");setWizardStep(3);document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});return;}
+  if(!mistakes.length){
+    // showToast, inte setStatus: statusraden bor i det dolda <main>.
+    const msg=LANG==="sv"?"Inga misstag sparade ännu. Rätta ett prov först.":"No saved mistakes yet. Grade an exam first.";
+    if(window.showToast)window.showToast(msg,"bad",5000);
+    return;
+  }
   const pick=lsGetObj(LS_TRAIN_PICK),pickedIds=Array.isArray(pick?.ids)?pick.ids:[];
   const mat=buildTrainingMaterialFromMistakes(mistakes,pickedIds);
   if(pastedTextEl())pastedTextEl().value=mat;
   try{localStorage.setItem(LS_MATERIAL,mat);}catch{}
   if(qTypeEl())qTypeEl().value="mix";
   if(numQuestionsEl())numQuestionsEl().value="12";
-  setStatus(T[LANG].trainLoaded,"ok");
-  setWizardStep(0);
-  document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+
+  // Kursen tas från felbankens eget val när det finns; annars får flödet gissa
+  // utifrån historiken.
+  const course=String(pick?.course||courseEl()?.value||"").trim();
+
+  // js/exam-flow.js definierar __xfPrefill först i boot(), som väntar in den
+  // här filens motorbrygga. Ordningen är alltså inte given — polla kort.
+  let n=0;
+  const iv=setInterval(()=>{
+    if(typeof window.__xfPrefill==="function"){clearInterval(iv);window.__xfPrefill(mat,course);}
+    else if(++n>100)clearInterval(iv);   // 5 s
+  },50);
 }
 
 async function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(String(fr.result||"")); fr.onerror=()=>reject(new Error("FileReader error")); fr.readAsDataURL(file); }); }
@@ -1323,6 +1358,11 @@ async function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const
 (function(){
   const root=document.createElement("div");root.id="toastRoot";document.body.appendChild(root);
   window.showToast=function(msg,kind,ms){
+    // När den P.E.R-ledda ytan är igång har den sin egen röst för allt som går
+    // bra ("Provet är klart", "Rättning klar") — motorns toaster blir då dubbla
+    // besked med fel ordval, om steg som eleven inte längre ser. Fel släpps
+    // fortfarande igenom: de kan komma från lås och nätverk, inte bara härifrån.
+    if(window.__xfActive && kind!=="bad") return;
     ms=ms||3200;
     const el=document.createElement("div");el.className="toast"+(kind?" "+kind:"");el.textContent=msg;
     root.appendChild(el);
@@ -1622,10 +1662,15 @@ try{
     }catch(e){setBusy(false);setOcrStatus("OCR error.","bad");reportErr(e);}
   });
 
-  onClick("generateExamBtn",async()=>{
+  // Generering och rättning ligger i namngivna funktioner i stället för direkt
+  // i klick-lyssnarna, så att den P.E.R-ledda ytan (js/exam-flow.js) kan köra
+  // exakt samma väg via window.ExGenEngine längst ned i den här filen. Båda
+  // returnerar ett resultatobjekt i stället för att bara måla i DOM:en; den
+  // gamla wizarden bryr sig inte om returvärdet.
+  async function runGenerate(){
     hideDebug();setStatus("");const t=T[LANG];
     const pastedText=(pastedTextEl()?.value||"").trim();
-    if(!pastedText){setStatus(t.needMat,"bad");setWizardStep(0);document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});return;}
+    if(!pastedText){setStatus(t.needMat,"bad");setWizardStep(0);document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});return {ok:false,error:t.needMat};}
 
     // ── QUOTA CHECK (klientside) ──────────────────────────────────────
     const quota = await checkQuota();
@@ -1633,12 +1678,12 @@ try{
       const msg = (ROLE_LIMITS[currentRole]?.period === "week") ? t.quotaHitWeek : t.quotaHitMonth;
       setStatus(msg, "bad");
       await refreshQuotaUi();
-      return;
+      return {ok:false,error:msg,quota:true};
     }
     // ─────────────────────────────────────────────────────────────────
 
     const qType=qTypeEl()?.value||"mix";
-    if(!["mix","mc","short"].includes(qType)){setStatus("Ogiltig frågetyp.","bad");return;}
+    if(!["mix","mc","short"].includes(qType)){setStatus("Ogiltig frågetyp.","bad");return {ok:false,error:"Ogiltig frågetyp."};}
     const payload={lang:LANG,level:levelEl()?.value||"C",course:(courseEl()?.value||"").trim(),qType,pastedText,numQuestions:Number(numQuestionsEl()?.value||12)};
     showSkeleton(Math.min(Number(numQuestionsEl()?.value||12),6));
     const examSec=document.querySelector("#exam");if(examSec){examSec.classList.remove("collapsed");examSec.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -1646,9 +1691,15 @@ try{
     const res=await postJson("/api/generate-exam",payload,{timeoutMs:62000}); // matches 60s server maxDuration
     if(res.status===429&&res.data){
       if(typeof res.data.count==="number")localStorage.setItem(quotaStorageKey(currentRole, await getUserId() || "guest"), String(res.data.count));
-      setBusy(false);setStatus(res.data?.error||t.quotaHitMonth,"bad");await refreshQuotaUi();return;
+      setBusy(false);setStatus(res.data?.error||t.quotaHitMonth,"bad");await refreshQuotaUi();
+      return {ok:false,error:res.data?.message||res.data?.error||t.quotaHitMonth,quota:true};
     }
-    if(!res.ok||!res.data||!res.data.ok){setBusy(false);setStatus(`Error (HTTP ${res.status}).`,"bad");showDebug(res.raw);return;}
+    if(!res.ok||!res.data||!res.data.ok){
+      setBusy(false);setStatus(`Error (HTTP ${res.status}).`,"bad");showDebug(res.raw);
+      // 504 från generate-exam.js bär ett läsbart meddelande om att provet inte
+      // hann byggas — visa det i stället för en HTTP-kod.
+      return {ok:false,error:res.data?.message||res.data?.error||`Provet kunde inte skapas (fel ${res.status}).`};
+    }
     if(res.data.meta&&res.data.meta.entitlements)applyServerEntitlements(res.data.meta.entitlements);
 
     // Servern är auktoritativ när persisted quota är aktiv; localStorage används bara för UI-visning/fallback.
@@ -1670,18 +1721,27 @@ try{
         ?`Besvara alla <strong>${qCount} frågor</strong> och tryck rätta.`
         :`Answer all <strong>${qCount} questions</strong> then grade.`;
     }
-  });
+    return {ok:true,exam:currentExam,meta:res.data.meta||null};
+  }
+  onClick("generateExamBtn",runGenerate);
 
-  onClick("gradeBtn",async()=>{
-    if(isGrading)return; // block duplicate submits while one grading run is active
+  // answersOverride låter den P.E.R-ledda ytan skicka in svar som aldrig
+  // funnits i den dolda wizardens DOM. Utan argument läses de som förut.
+  async function runGrade(answersOverride){
+    if(isGrading)return {ok:false,error:"Rättning pågår redan."};
     hideDebug();const t=T[LANG];
-    if(!currentExam||!Array.isArray(currentExam.questions)||currentExam.questions.length===0){setStatus(t.genFirst,"bad");return;}
-    const answers=[];
-    currentExam.questions.forEach((q,idx)=>{
-      const qid=String(q.id??(idx+1));
-      if(q.type==="mc"){const hidden=document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(hidden?.value||"").trim()});}
-      else{const ta=document.querySelector(`textarea.answerTa[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(ta?.value||"").trim()});}
-    });
+    if(!currentExam||!Array.isArray(currentExam.questions)||currentExam.questions.length===0){setStatus(t.genFirst,"bad");return {ok:false,error:t.genFirst};}
+    let answers;
+    if(Array.isArray(answersOverride)){
+      answers=answersOverride.map(a=>({id:String(a.id),answer:String(a.answer||"").trim()}));
+    }else{
+      answers=[];
+      currentExam.questions.forEach((q,idx)=>{
+        const qid=String(q.id??(idx+1));
+        if(q.type==="mc"){const hidden=document.querySelector(`input.mcAnswer[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(hidden?.value||"").trim()});}
+        else{const ta=document.querySelector(`textarea.answerTa[data-qid="${CSS.escape(qid)}"]`);answers.push({id:qid,answer:(ta?.value||"").trim()});}
+      });
+    }
     const pastedText=(pastedTextEl()?.value||"").trim();
     const payload={lang:LANG,pastedText,questions:currentExam.questions,answers};
     // Persist answers up front so a failed/timed-out grading never loses the user's work.
@@ -1689,14 +1749,16 @@ try{
 
     isGrading=true;
     setBusy(true,t.gradeWorking);setStatus(t.gradeWorking,"");
-    showGradingOverlay();
+    // Den P.E.R-ledda ytan visar sin egen rättningsskärm. Två överlägg ovanpå
+    // varandra hade bara betytt att det översta doldes.
+    if(!answersOverride)showGradingOverlay();
     let res;
     try{
       // Sit just above the 60s server maxDuration (vercel.json) so a server-side
       // error/504 reaches us before the client aborts. grade.js aborts OpenAI at 45s.
       res=await postJson("/api/grade",payload,{timeoutMs:62000});
     }finally{
-      hideGradingOverlay();
+      if(!answersOverride)hideGradingOverlay();
     }
 
     try{
@@ -1708,12 +1770,12 @@ try{
             : (LANG==="sv"?`Rättningen kunde inte slutföras (fel ${res?res.status:0}). Dina svar är sparade — försök igen.`:`Grading could not complete (error ${res?res.status:0}). Your answers are saved — try again.`);
         setStatus(msg,"bad");showToast(msg,"bad");
         if(res&&res.raw)showDebug(res.raw);
-        return; // finally re-enables the button → retry is always available
+        return {ok:false,error:msg}; // finally re-enables the button → retry is always available
       }
       const result=res.data.result;
       if(!result||!Array.isArray(result.per_question)||result.per_question.length===0){
         const msg=LANG==="sv"?"Rättningssvaret var ofullständigt. Dina svar är sparade — försök igen.":"The grading response was incomplete. Your answers are saved — try again.";
-        setStatus(msg,"bad");showToast(msg,"bad");return;
+        setStatus(msg,"bad");showToast(msg,"bad");return {ok:false,error:msg};
       }
       renderResult(result);
       // Post-grading persistence is best-effort — a failure here must not wipe the visible result.
@@ -1724,7 +1786,10 @@ try{
       const history=lsGetArray(LS_HISTORY);history.push(attempt);while(history.length>60)history.shift();lsSet(LS_HISTORY,history);
       lsSet(LS_LAST,{ts,attempt,exam:{title:currentExam.title||"",level:currentExam.level||(levelEl()?.value||"C"),questions:currentExam.questions||[]},result});
       const mistakes=lsGetArray(LS_MISTAKES);
-      const qById=new Map((currentExam.questions||[]).map(q=>[String(q.id??""),q]));
+      // Samma id-fallback som rendering och rättning använder. Med bara String(q.id??"")
+      // kollapsade alla frågor utan id på tom sträng, och felbanken sparade då
+      // fel frågetext och fel elevsvar för var och en av dem.
+      const qById=new Map((currentExam.questions||[]).map((q,idx)=>[String(q.id??(idx+1)),q]));
       const aById=new Map(answers.map(a=>[String(a.id),a.answer]));
       (result.per_question||[]).forEach(item=>{
         const got=Number(item.points||0),m=Number(item.max_points||0);
@@ -1734,14 +1799,17 @@ try{
       try{localStorage.setItem(LS_MATERIAL,pastedText);}catch{}
       try{lsRemove(LS_PENDING_ANSWERS);}catch{}
       setStatus(t.gradeDone,"ok");showToast(t.gradeDone,"ok");setWizardStep(3);
+      return {ok:true,result};
     }catch(err){
       const msg=LANG==="sv"?"Ett fel uppstod efter rättningen. Dina svar är sparade.":"An error occurred after grading. Your answers are saved.";
       setStatus(msg,"bad");showToast(msg,"bad");showDebug(String(err&&err.message||err));
+      return {ok:false,error:msg};
     }finally{
       isGrading=false;
       setBusy(false); // always re-enables gradeBtn (currentExam still set) → retry
     }
-  });
+  }
+  onClick("gradeBtn",()=>runGrade());
 
   onClick("clearBtn", async () => {
     if (!confirm(LANG === "sv"
@@ -1779,6 +1847,59 @@ try{
 
   // Floating grade-knapp kör samma som gradeBtn
   onClick("floatingGradeBtn",()=>{const g=$("gradeBtn");if(g&&!g.disabled)g.click();});
+
+  // ── MOTORBRYGGA ────────────────────────────────────────────────────────
+  // Enda ytan mellan den P.E.R-ledda provskaparen (js/exam-flow.js) och den
+  // här filen. Flödet äger skärmarna; allt som rör kvot, OpenAI, felbank och
+  // Supabase går genom funktionerna nedan och är alltså oförändrat.
+  //
+  // setInputs skriver till den dolda wizardens fält därför att runGenerate/
+  // runGrade läser därifrån — samma fält, samma validering, en väg in.
+  window.ExGenEngine = {
+    ready: true,
+    setInputs({ course, level, qType, num, material }) {
+      if (courseEl()) courseEl().value = String(course || "").trim();
+      if (levelEl()) levelEl().value = ["E","C","A"].includes(level) ? level : "C";
+      if (qTypeEl()) qTypeEl().value = ["mix","mc","short"].includes(qType) ? qType : "mix";
+      if (numQuestionsEl()) numQuestionsEl().value = String(Math.min(20, Math.max(3, Number(num) || 12)));
+      if (pastedTextEl()) pastedTextEl().value = String(material || "");
+      // Kurspickern speglas så att "Ämne/Kurs" stämmer om någon öppnar den
+      // gamla vyn, och så att clearAll() inte skriver tillbaka ett gammalt val.
+      const search = document.getElementById("courseSearch");
+      if (search) search.value = String(course || "").trim();
+    },
+    generate() { return runGenerate(); },
+    grade(answers) { return runGrade(answers); },
+    getExam() { return currentExam; },
+    role() { return currentRole; },
+    /* Återlämnar ett prov till motorn utan att generera om det. Behövs när
+       flödet återupptar ett sparat prov: sidan har laddats om, currentExam är
+       null, och runGrade hade avvisat inlämningen med "Generera ett prov
+       först" — mitt i ett prov eleven redan skrivit klart. Ingen kvot dras,
+       inget OpenAI-anrop görs; det är samma prov, bara tillbaka i minnet. */
+    adoptExam(exam) {
+      if (!exam || !Array.isArray(exam.questions) || !exam.questions.length) return false;
+      currentExam = exam;
+      const g = $("gradeBtn"); if (g) g.disabled = false;
+      return true;
+    },
+    // OCR går via samma endpoint och samma rollspärr som ocrBtn. Returnerar
+    // texten i stället för att skriva den i ett fält — flödet äger sin egen ruta.
+    async ocr(file) {
+      if (currentRole === "gratis") {
+        return { ok: false, error: "OCR ingår i Basic och uppåt.", upgrade: true };
+      }
+      try {
+        const dataUrl = await fileToDataUrl(file);
+        const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
+        if (!res.ok || !res.data || !res.data.ok) return { ok: false, error: "Kunde inte läsa bilden." };
+        return { ok: true, text: String(res.data.text || "").trim() };
+      } catch (e) {
+        reportErr(e);
+        return { ok: false, error: "Kunde inte läsa bilden." };
+      }
+    }
+  };
 
   window.addEventListener("hashchange",()=>{if(!document.getElementById("pvModal")||document.getElementById("pvModal").style.display==="none")runTrainModeIfRequested();});
 
