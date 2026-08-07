@@ -255,6 +255,34 @@ async function consumeMockExamQuota(userId, limit, rules) {
 // every downstream call bounded by what is actually left, and generation
 // streamed so that hitting the deadline yields the questions completed so far
 // rather than nothing.
+// ── FÖRSÖKT OCH FÖRKASTAT: strömma frågorna till eleven (2026-08-07) ────────
+//
+// Idén var att granska i satser MEDAN genereringen pågår, så att granskningens
+// väggtid försvinner in i genereringens väntan och eleven får fråga ett efter
+// tio sekunder i stället för efter femtio. Den byggdes, mättes och togs bort.
+//
+// Vad som stämde: OpenAI-strömmen trickar fint. Första delta efter 1,0 s och
+// hela frågor klara vid 4,3 · 8,6 · 11,4 · 15,3 s och framåt, mätt på tolv
+// frågor mot Biologi 1.
+//
+// Vad som sänkte den: ett samtidigt anrop till api.openai.com köas bakom den
+// öppna strömmen på samma anslutning. Det första granskningsanropet mättes till
+// 30,1 s respektive 51,3 s i stället för 1,0 s, och släpptes först när strömmen
+// tog slut — anrop två och tre därefter tog 1,1 och 1,4 s. Att förvärma poolen
+// med två extra anslutningar före strömmen ändrade ingenting.
+//
+// Följden blev sämre än utgångsläget på varje mått: 43 % levererade frågor mot
+// 78 %, och 62,3 s total tid mot ett tak på 60. Även den avskalade varianten,
+// där bara förloppet strömmades och kvalitetskedjan låg kvar orörd efteråt,
+// gav 53 % och en första fråga efter 48 s — eftersom en fråga inte får visas
+// innan granskaren och lösaren har sagt sitt.
+//
+// Väntetiden domineras alltså av generering (~40 s) plus granskning (~10 s),
+// båda seriella av nödvändighet. Vill någon ta upp tråden igen måste
+// anslutningsköandet lösas först, sannolikt med en egen undici-dispatcher per
+// anrop, och beteendet verifieras på Vercel och inte bara lokalt. De riktiga
+// vägarna runt 60-sekundersgränsen är fortfarande högre maxDuration eller
+// generering i förväg till en frågebank.
 const FUNCTION_BUDGET_MS = 60_000;      // must match vercel.json maxDuration
 const RESPONSE_RESERVE_MS = 3_000;      // serialising and returning the response
 // Reserved for the verifier and the solver, which run concurrently. Measured

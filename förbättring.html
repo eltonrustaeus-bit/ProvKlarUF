@@ -104,6 +104,24 @@
       scrollbar-width:none;-webkit-overflow-scrolling:touch;
     }
     .navRail::-webkit-scrollbar{display:none}
+    /* ── P.E.R:s röst ────────────────────────────────────────────────────
+       Samma form som provskaparens öppning i app.html: en liten orb med en
+       andningsring, och en mening i 21–27px i stället för en display-rubrik.
+       Måtten är medvetet identiska med .xf-say/.xf-orb i exam-flow.css — när
+       det delade lagret bryts ut ska de här reglerna ersättas av det, inte
+       leva vidare parallellt. */
+    .pvVoice{display:flex;gap:14px;align-items:flex-start}
+    .pvOrb{flex:none;width:10px;height:10px;margin-top:7px;border-radius:50%;
+      background:var(--a);position:relative}
+    .pvOrb::after{content:"";position:absolute;inset:-6px;border-radius:50%;
+      border:1px solid var(--a);opacity:.3;animation:pvBreathe 3.2s cubic-bezier(.22,.61,.36,1) infinite}
+    @keyframes pvBreathe{0%,100%{transform:scale(.72);opacity:.35}50%{transform:scale(1);opacity:0}}
+    .pvSaid{flex:1;min-width:0}
+    .pvSay{font-size:clamp(21px,4.4vw,27px);line-height:1.25;letter-spacing:-.02em;
+      font-weight:600;color:var(--t);margin:0}
+    .pvSub{font-size:15.5px;line-height:1.65;color:var(--t3);margin:10px 0 0}
+    @media(prefers-reduced-motion:reduce){.pvOrb::after{animation:none}}
+
     .navBtn{
       flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:2px;
       padding:10px 6px;border-radius:var(--r2);border:1px solid transparent;background:transparent;
@@ -414,11 +432,20 @@
   <!-- MAIN -->
   <main class="wrap" id="main-content">
 
-    <!-- HERO -->
+    <!-- P.E.R:S RÖST
+         Ersätter den gamla marknadsföringsrubriken ("Din progress på ett
+         ställe"). En verktygssida ska öppna med ett faktum om eleven, inte med
+         en slogan som är likadan för varenda besökare — samma öppning som
+         provskaparen i app.html, samma orb och samma proportioner.
+         Texten sätts av setVoice() från historik och felbank. -->
     <div class="hero reveal">
-      <div class="heroEye">Min utveckling</div>
-      <h1 class="heroTitle" id="pageTitle">Din <em>progress</em><br>på ett ställe.</h1>
-      <p class="heroSub" id="pageSub">Bygger på prov du rättat i appen. Synka, analysera och träna det som faktiskt behöver förbättras.</p>
+      <div class="pvVoice">
+        <div class="pvOrb" aria-hidden="true"></div>
+        <div class="pvSaid">
+          <h1 class="pvSay" id="pageTitle">Din utveckling.</h1>
+          <p class="pvSub" id="pageSub">Bygger på prov du rättat i appen.</p>
+        </div>
+      </div>
       <div class="heroMeta">
         <div class="heroStatusWrap">
           <div class="sDot" id="statusDot"></div>
@@ -1255,10 +1282,36 @@
       }catch{}
     }
 
+    /* P.E.R:s öppningsrad. Säger något bara den kan veta om just den här
+       eleven, i stället för en rubrik som är likadan för alla. Bygger på
+       historik och felbank som redan finns i localStorage — inga nya anrop.
+       Det vanligaste begreppet i felbanken plockas ur frågetexterna på samma
+       sätt som materialläsningen i js/exam-flow.js: ord som återkommer. */
+    function setVoice(h,m){
+      const say=$('pageTitle'),sub=$('pageSub');
+      if(!say||!sub)return;
+      if(!h.length){
+        say.textContent='Här samlas det du missar.';
+        sub.textContent='Rätta ett prov i appen så börjar jag hålla räkningen åt dig.';
+        return;
+      }
+      const recent=h.slice(-5);
+      const avg=Math.round(recent.reduce((a,x)=>a+(Number(x.percent)||0),0)/recent.length);
+      say.textContent=`Du har ${m.length} sparade fel.`;
+      // Vanligaste ämnet i felbanken — det är där repetitionen ger mest.
+      const tally={};
+      m.forEach(x=>{const c=String(x.course||'').trim();if(c)tally[c]=(tally[c]||0)+1;});
+      const top=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];
+      sub.textContent = top && tally[top]>1
+        ? `${tally[top]} av dem i ${top}. Du ligger på ${avg} % över dina senaste prov.`
+        : `Du ligger på ${avg} % över dina senaste ${recent.length} prov.`;
+    }
+
     /* ── RENDER ALL ── */
     function renderAll(){
       const t=T[LANG];applyLang();
       const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),last=lsObj(LS_LAST);
+      setVoice(h,m);
       buildCourseOpts(h,m);
       const course=String($('courseFilter')?.value||'').trim();
       if(!h.length){
