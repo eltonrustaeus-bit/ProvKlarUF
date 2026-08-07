@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<!-- Formtokens: radie, avstånd, typsnitt, rörelse. Enbart :root-variabler. -->
+<link rel="stylesheet" href="exgen-tokens.css" />
 <style>
   :root{
     --a:#00768F; --teal:#00B7D9; --mint:#76D76A;
@@ -81,7 +83,7 @@
   .keyDot:focus-visible{outline:2px solid var(--a); outline-offset:-8px; border-radius:50%}
 
   .keyBox{position:fixed; right:14px; bottom:66px; z-index:21; display:none;
-    background:var(--s); border:1px solid var(--l); border-radius:14px;
+    background:var(--s); border:1px solid var(--l); border-radius:var(--exgen-radius-lg);
     padding:14px; box-shadow:0 16px 40px rgba(14,27,42,.16); width:min(232px,calc(100vw - 28px))}
   .keyBox.on{display:block}
   .keyLbl{font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.12em;
@@ -89,10 +91,10 @@
   .keyRow{display:flex; gap:7px}
   /* inputmode=numeric ger sifferknappsatsen direkt på mobil */
   .keyIn{flex:1; min-width:0; height:42px; padding:0 12px; border:1px solid var(--l);
-    border-radius:10px; font-family:'DM Mono',monospace; font-size:16px; color:var(--t);
+    border-radius:var(--exgen-radius-md); font-family:'DM Mono',monospace; font-size:16px; color:var(--t);
     letter-spacing:.16em; outline:none; background:var(--bg); width:100%}
   .keyIn:focus{border-color:var(--a); box-shadow:0 0 0 3px rgba(0,118,143,.10)}
-  .keyGo{height:42px; padding:0 15px; border:0; border-radius:10px; background:var(--a);
+  .keyGo{height:42px; padding:0 15px; border:0; border-radius:var(--exgen-radius-md); background:var(--a);
     color:#fff; font-family:'DM Sans',sans-serif; font-weight:600; font-size:14px; cursor:pointer}
   .keyGo:disabled{opacity:.45; cursor:not-allowed}
   .keyMsg{font-family:'DM Mono',monospace; font-size:10px; color:#B91C1C;

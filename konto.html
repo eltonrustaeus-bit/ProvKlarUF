@@ -35,7 +35,7 @@
   /* Cards */
   .kCard{
     background:var(--s);border:1px solid var(--l);
-    border-radius:10px;margin-bottom:10px;overflow:hidden;
+    border-radius:var(--exgen-radius-lg);margin-bottom:10px;overflow:hidden;
   }
   .kCardHead{
     display:flex;align-items:center;gap:14px;
@@ -53,7 +53,7 @@
     display:inline-flex;align-items:center;gap:6px;
     font-family:var(--mono);font-size:11px;font-weight:500;
     color:var(--a);letter-spacing:.06em;text-transform:uppercase;
-    border:1px solid rgba(0,183,217,.3);border-radius:20px;
+    border:1px solid rgba(0,183,217,.3);border-radius:var(--exgen-radius-pill);
     padding:5px 12px;background:rgba(0,183,217,.07);
   }
   .planBadge.free{color:var(--t3);border-color:var(--l);background:transparent}
@@ -63,8 +63,8 @@
 
   .usageBar{margin-top:14px}
   .usageLabel{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--t3);margin-bottom:6px}
-  .usageTrack{height:4px;background:rgba(0,183,217,.1);border-radius:2px;overflow:hidden}
-  .usageFill{height:100%;background:var(--a);border-radius:2px;transition:width .5s cubic-bezier(.22,.61,.36,1)}
+  .usageTrack{height:4px;background:rgba(0,183,217,.1);border-radius:var(--exgen-radius-pill);overflow:hidden}
+  .usageFill{height:100%;background:var(--a);border-radius:var(--exgen-radius-pill);transition:width .5s cubic-bezier(.22,.61,.36,1)}
 
   .planNote{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:10px}
 
@@ -73,7 +73,7 @@
     display:inline-flex;align-items:center;gap:8px;
     height:40px;padding:0 18px;
     font-family:var(--sans);font-size:13.5px;font-weight:600;
-    letter-spacing:-.01em;border-radius:6px;
+    letter-spacing:-.01em;border-radius:var(--exgen-radius-md);
     cursor:pointer;transition:background .15s,border-color .15s,color .15s;
     text-decoration:none;border:1px solid transparent;
   }
@@ -92,7 +92,7 @@
   .upgradePlans{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   @media(max-width:400px){.upgradePlans{grid-template-columns:1fr}}
   .upgPlan{
-    border:1px solid var(--l);border-radius:8px;
+    border:1px solid var(--l);border-radius:var(--exgen-radius-sm);
     padding:16px;cursor:pointer;
     transition:border-color .18s,background .18s;
     position:relative;
@@ -103,7 +103,7 @@
   .upgPlanPrice{font-weight:700;font-size:22px;color:var(--t);letter-spacing:-.03em;line-height:1}
   .upgPlanPer{font-family:var(--mono);font-size:10px;color:var(--t3)}
   .upgPlanDesc{font-family:var(--mono);font-size:10px;color:var(--t2);margin-top:6px;line-height:1.5}
-  .upgPlanBtn{margin-top:12px;width:100%;height:36px;font-size:13px;font-weight:600;border:none;border-radius:5px;cursor:pointer;transition:background .15s}
+  .upgPlanBtn{margin-top:12px;width:100%;height:36px;font-size:13px;font-weight:600;border:none;border-radius:var(--exgen-radius-md);cursor:pointer;transition:background .15s}
   .upgPlanBtn.primary{background:var(--a);color:#fff}
   .upgPlanBtn.primary:hover{background:var(--a2)}
   .upgPlanBtn.outline{background:transparent;color:var(--t);border:1px solid var(--l2)}
@@ -115,7 +115,7 @@
   /* Status msg */
   #kontoMsg{
     font-family:var(--mono);font-size:12px;
-    padding:10px 14px;border-radius:6px;
+    padding:10px 14px;border-radius:var(--exgen-radius-sm);
     margin-bottom:12px;display:none;
   }
   #kontoMsg.ok{background:rgba(0,183,217,.08);color:var(--a);border:1px solid rgba(0,183,217,.2)}
@@ -127,7 +127,7 @@
   #authGate .agSub{font-size:14px;color:var(--t2);margin-bottom:24px}
 
   /* Loading skeleton */
-  .kSkel{height:16px;background:rgba(0,183,217,.06);border-radius:4px;animation:skel 1.4s ease-in-out infinite}
+  .kSkel{height:16px;background:rgba(0,183,217,.06);border-radius:var(--exgen-radius-sm);animation:skel 1.4s ease-in-out infinite}
   @keyframes skel{0%,100%{opacity:.5}50%{opacity:1}}
   </style>
 
@@ -334,7 +334,7 @@
         <div id="myClasses" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <input id="joinCode" type="text" maxlength="12" placeholder="Klasskod (t.ex. K7P2QX)"
-            style="flex:1;min-width:160px;padding:10px 13px;border-radius:var(--r);border:1px solid var(--l);background:var(--s);color:var(--t);font-family:var(--font);font-size:14px;letter-spacing:.06em;text-transform:uppercase;outline:none" />
+            style="flex:1;min-width:160px;padding:10px 13px;border-radius:var(--exgen-radius-md);border:1px solid var(--l);background:var(--s);color:var(--t);font-family:var(--font);font-size:14px;letter-spacing:.06em;text-transform:uppercase;outline:none" />
           <button class="kBtn kBtnOutline" id="joinBtn">Gå med</button>
         </div>
       </div>
@@ -547,7 +547,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrop()});
     }
     for(const c of classes){
       const row=document.createElement("div");
-      row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--l);border-radius:var(--r);background:var(--s)";
+      row.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--l);border-radius:var(--exgen-radius-sm);background:var(--s)";
       const nm=document.createElement("span");
       nm.style.cssText="font-size:13.5px;color:var(--t);font-weight:500";
       nm.textContent=c.name;
