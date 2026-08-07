@@ -18,13 +18,27 @@
 (function () {
   "use strict";
 
-  var LS_DRAFT = "exgen_flow_draft";
+  /* Utkastet nycklas per användare. En global nyckel räckte inte: på en
+     skoldator eller en familjedator hade nästa elev fått knappen "Fortsätt
+     provet du började" och därmed föregående elevs material, frågor och
+     skrivna svar. uid läggs dessutom i objektet och kontrolleras vid läsning,
+     så att en nyckel som råkar överleva ett kontobyte ändå avvisas. */
+  var LS_DRAFT_BASE = "exgen_flow_draft";
   var LS_HISTORY = "proviaai_history";
   var LS_MISTAKES = "proviaai_mistakes";
+
+  // Ett övergivet utkast slutar vara till hjälp och börjar bli förvirrande.
+  var DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
   var MAX_NUDGES = 3;
   var NUDGE_GAP_MS = 45000;
   var STUCK_MS = 90000;
+
+  // Utkastet sparas vid varje tangenttryck i svarsrutan. Ett 20-frågorsprov
+  // med alternativ och källhänvisningar är tiotals kB, och att serialisera om
+  // allt per tecken märks som hack på en mobil. Frågebyten och flervalsval
+  // sparas fortfarande direkt — det är bara skrivandet som väntar.
+  var DRAFT_DEBOUNCE_MS = 800;
 
   /* Serverns tak på pastedText i api/generate-exam.js. Speglas här så att
      eleven ser gränsen medan hen klistrar in i stället för att upptäcka den
@@ -49,11 +63,34 @@
     } catch (_) { return fallback; }
   }
 
+  /* Returnerar om skrivningen gick igenom. Den gamla versionen svalde
+     QuotaExceededError tyst, vilket bröt löftet att halvfärdiga prov överlever
+     en stängd flik utan att någon fick veta det — och utrymmet är verkligen
+     trångt: proviaai_history (60 poster), proviaai_mistakes (200) och
+     proviaai_last_result (ett helt prov med resultat) delar samma kvot. */
   function lsSet(key, val) {
-    try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) {}
+    try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+    catch (_) { return false; }
+  }
+
+  function lsDel(key) {
+    try { localStorage.removeItem(key); } catch (_) {}
   }
 
   function clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+
+  /* Användar-id läses ur samma Supabase-session som resten av appen. Går det
+     inte att läsa faller vi tillbaka på "anon" — då blir utkastet i praktiken
+     enhetsbundet igen, men bara för den som ändå inte är inloggad och därför
+     inte kan generera något prov. */
+  function uid() {
+    try {
+      var s = JSON.parse(localStorage.getItem("sb-mnmotdluigzeehdjbhbu-auth-token") || "{}");
+      return (s && s.user && s.user.id) ? String(s.user.id) : "anon";
+    } catch (_) { return "anon"; }
+  }
+
+  function draftKey() { return LS_DRAFT_BASE + "_" + uid(); }
 
   // ── Tillstånd ────────────────────────────────────────────────────────────
 
@@ -69,12 +106,16 @@
     idx: 0,
     startedAt: 0,
     nudges: 0,
-    lastNudge: 0
+    lastNudge: 0,
+    generating: false,  // spärr mot dubbel generering (kostar kvot)
+    submitting: false   // spärr mot dubbel inlämning
   };
 
   var UI = {};          // cache av noder
   var typing = null;    // pågående skrivanimation
   var stuckTimer = null;
+  var draftTimer = null;
+  var prevOverflow = null;   // body-overflow som gällde innan vi låste den
 
   // ── Prov-DNA ─────────────────────────────────────────────────────────────
   /* Allt P.E.R "vet sedan tidigare" kommer härifrån: samma historik och
@@ -100,23 +141,23 @@
       if (c && courses.indexOf(c) === -1) courses.push(c);
     }
 
-    // De begrepp eleven faktiskt tappat poäng på, vanligast först.
-    var tally = {};
-    miss.slice(-60).forEach(function (m) {
-      var k = String(m.course || "").trim();
-      if (!k) return;
-      tally[k] = (tally[k] || 0) + 1;
-    });
+    /* Nivåförslag: håller nivån tills resultaten säger något annat. Två prov
+       i RAD över 85 % lyfter, två i rad under 50 % sänker. Ett enstaka bra
+       prov flyttar ingenting — det är brus, inte utveckling.
 
-    // Nivåförslag: håller nivån tills resultaten säger något annat. Två prov
-    // över 85 % lyfter, under 50 % sänker. Ett enstaka bra prov flyttar
-    // ingenting — det är brus, inte utveckling.
+       Regeln såg tidigare på snittet över de fem senaste proven, vilket inte
+       är samma sak och gav fel svar åt båda håll: 40, 40, 40, 100, 100 gav
+       snittet 64 och inget lyft trots två raka toppresultat, medan 80 följt av
+       92 gav snittet 86 och ett lyft trots att bara ett prov nådde gränsen. */
     var lvl = last ? String(last.level || "C") : "C";
-    if (avg != null && recent.length >= 2) {
-      if (avg >= 85 && lvl === "C") lvl = "A";
-      else if (avg >= 85 && lvl === "E") lvl = "C";
-      else if (avg < 50 && lvl === "A") lvl = "C";
-      else if (avg < 50 && lvl === "C") lvl = "E";
+    var lastTwo = hist.slice(-2).map(function (x) { return Number(x.percent) || 0; });
+    if (lastTwo.length === 2) {
+      var bothHigh = lastTwo[0] >= 85 && lastTwo[1] >= 85;
+      var bothLow = lastTwo[0] < 50 && lastTwo[1] < 50;
+      if (bothHigh && lvl === "C") lvl = "A";
+      else if (bothHigh && lvl === "E") lvl = "C";
+      else if (bothLow && lvl === "A") lvl = "C";
+      else if (bothLow && lvl === "C") lvl = "E";
     }
 
     return {
@@ -127,16 +168,6 @@
       level: lvl,
       qType: last ? String(last.qType || "mix") : "mix",
       num: last ? clamp(Number(last.numQuestions) || 12, 3, 20) : 12,
-      weakFor: function (course) {
-        var c = String(course || "").trim().toLowerCase();
-        var out = [];
-        miss.slice(-60).forEach(function (m) {
-          if (String(m.course || "").trim().toLowerCase() !== c) return;
-          var q = String(m.question || "").slice(0, 60);
-          if (q) out.push(q);
-        });
-        return out;
-      },
       missCountFor: function (course) {
         var c = String(course || "").trim().toLowerCase();
         return miss.filter(function (m) {
@@ -193,11 +224,30 @@
   function screen(name) {
     STEPS.forEach(function (s) {
       var n = UI.screens[s];
-      if (n) n.classList.toggle("on", s === name);
+      if (!n) return;
+      var on = s === name;
+      n.classList.toggle("on", on);
+      // display:none räcker för seende, men en skärmläsare som traverserar
+      // DOM:en hittar annars alla sex skärmarnas rubriker på en gång.
+      if (on) n.removeAttribute("aria-hidden");
+      else n.setAttribute("aria-hidden", "true");
     });
     var pct = (STEPS.indexOf(name) / (STEPS.length - 1)) * 100;
     if (UI.bar) UI.bar.style.width = pct + "%";
-    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    // "instant" är ett giltigt ScrollBehavior-värde men aldrig en egenskap på
+    // window, så den gamla feature-detekteringen valde alltid "auto" och gav
+    // en mjuk scroll där en omedelbar var meningen.
+    window.scrollTo({ top: 0, behavior: "instant" });
+
+    /* Flytta fokus till den nya skärmens rubrik. Utan detta blir fokus kvar på
+       knappen eleven just tryckte — en knapp som nu är display:none — och både
+       tangentbord och skärmläsare tappar var de är. Rubriken har tabindex="-1"
+       så att den går att fokusera utan att hamna i tabbordningen. */
+    var sc = UI.screens[name];
+    var head = sc && sc.querySelector(".xf-say");
+    if (head) {
+      try { head.focus({ preventScroll: true }); } catch (_) { head.focus(); }
+    }
   }
 
   /* Varje steg börjar med mount(): den pekar om P.E.R:s röst till skärmen som
@@ -236,8 +286,8 @@
 
     // Ett halvfärdigt prov ska aldrig gå förlorat för att mobilen låste sig
     // eller täckningen försvann på bussen.
-    var draft = lsGet(LS_DRAFT, null);
-    if (draft && draft.exam && Array.isArray(draft.exam.questions) && draft.exam.questions.length) {
+    var draft = readDraft();
+    if (draft) {
       var back = el("button", "xf-btn ghost", "Fortsätt provet du började");
       back.type = "button";
       back.addEventListener("click", function () {
@@ -250,7 +300,15 @@
         S.answers = draft.answers || {};
         S.helped = draft.helped || {};
         S.idx = clamp(Number(draft.idx) || 0, 0, draft.exam.questions.length - 1);
-        openExam();
+        S.submitting = false;
+        // Motorn måste känna till provet igen — den startade om med sidan och
+        // har ingen currentExam att rätta mot.
+        window.ExGenEngine.setInputs({
+          course: S.course, level: S.level, qType: S.qType,
+          num: S.num, material: S.material
+        });
+        window.ExGenEngine.adoptExam(S.exam);
+        openExam(Number(draft.startedAt) || 0);
       });
       act.appendChild(back);
     }
@@ -623,11 +681,23 @@
   // ── Generering ───────────────────────────────────────────────────────────
 
   function build(btn, err) {
+    // Varje generering drar ur elevens kvot. Ett dubbelklick, eller "Gör om"
+    // tryckt två gånger, får inte kosta två prov.
+    if (S.generating) return;
+    S.generating = true;
+
     btn.disabled = true;
     btn.textContent = "Bygger…";
     busy(true);
     err.textContent = "";
     say("Bygger ditt prov.", "Tar oftast under en minut.");
+
+    function done() {
+      S.generating = false;
+      busy(false);
+      btn.disabled = false;
+      btn.textContent = "Skapa provet";
+    }
 
     window.ExGenEngine.setInputs({
       course: S.course, level: S.level, qType: S.qType,
@@ -635,54 +705,130 @@
     });
 
     window.ExGenEngine.generate().then(function (r) {
-      busy(false);
-      btn.disabled = false;
-      btn.textContent = "Skapa provet";
+      done();
       if (!r || !r.ok || !r.exam || !Array.isArray(r.exam.questions) || !r.exam.questions.length) {
         err.textContent = (r && r.error) || "Provet kunde inte byggas. Försök igen.";
         say("Det gick inte den här gången.", "Försök igen, gärna med färre frågor.");
         return;
       }
-      S.exam = r.exam;
+      S.exam = normalizeIds(r.exam);
       S.answers = {};
       S.helped = {};
       S.idx = 0;
       S.nudges = 0;
       S.lastNudge = 0;
+      S.submitting = false;
       saveDraft();
       openExam();
+    }).catch(function (e) {
+      /* generate() går via runGenerate i app.html. postJson kastar aldrig, men
+         kvotkontrollen på vägen dit gör det: checkQuota → getUserId →
+         db.auth.getUser() avvisar när Supabase inte svarar. Utan den här
+         grenen blir knappen kvar på "Bygger…" för alltid, utan felmeddelande. */
+      done();
+      err.textContent = "Något gick fel på vägen. Kontrollera uppkopplingen och försök igen.";
+      say("Det gick inte den här gången.", "Försök igen om en stund.");
+      if (window.console && console.warn) console.warn("[exam-flow] generate:", e);
     });
+  }
+
+  /* Fråge-id kommer ordagrant från modellen och JSON-schemat i
+     api/generate-exam.js kräver ingen unikhet. Två frågor med samma id delade
+     tidigare samma post i S.answers och S.helped: eleven svarade på fråga 4 och
+     såg svaret dyka upp på fråga 9. Normaliseringen sker på plats, på samma
+     objekt som motorn redan håller i currentExam, så att rättningens payload,
+     felbanken och resultatmatchningen ser samma unika id:n. */
+  function normalizeIds(exam) {
+    var seen = {};
+    exam.questions.forEach(function (q, i) {
+      var id = String(q.id != null && String(q.id).trim() ? q.id : i + 1);
+      if (seen[id]) id = id + "-" + (i + 1);
+      seen[id] = true;
+      q.id = id;
+    });
+    return exam;
   }
 
   // ── Provläget ────────────────────────────────────────────────────────────
 
   function qid(q, i) { return String(q.id != null ? q.id : i + 1); }
 
-  function openExam() {
-    S.startedAt = Date.now();
+  /* Låser och låser upp sidans scroll utan att glömma vad som gällde innan.
+     Att alltid återställa till tom sträng raderade ett eventuellt inline-värde
+     som någon annan del av sidan hade satt. */
+  function lockScroll(on) {
+    if (on) {
+      if (prevOverflow === null) prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+    } else if (prevOverflow !== null) {
+      document.body.style.overflow = prevOverflow;
+      prevOverflow = null;
+    }
+  }
+
+  function openExam(resumedAt) {
+    // Vid återupptagning behålls den tid provet redan pågått. Att nollställa
+    // klockan hade dolt att eleven redan suttit en halvtimme och gjort både
+    // tidsangivelsen och tempo-varningen missvisande.
+    S.startedAt = typeof resumedAt === "number" && resumedAt > 0 ? resumedAt : Date.now();
     UI.exam.classList.add("on");
     document.body.classList.add("xf-in-exam");
-    document.body.style.overflow = "hidden";
+    lockScroll(true);
     renderQuestion();
     tick();
+    watchKeyboard(true);
   }
 
   function closeExam() {
     UI.exam.classList.remove("on");
-    document.body.classList.remove("xf-in-exam");
-    document.body.style.overflow = "";
+    document.body.classList.remove("xf-in-exam", "xf-per-open");
+    lockScroll(false);
     clearTimeout(stuckTimer);
+    clearTimeout(UI.nudgeTimer);
+    UI.nudge.classList.remove("on");
     if (UI.clock) clearInterval(UI.clock);
+    watchKeyboard(false);
+  }
+
+  /* Det virtuella tangentbordet på mobil läggs ovanpå sidan utan att ändra
+     window.innerHeight, så .xf-exam-nav (position:fixed; bottom:0) hamnar bakom
+     det så fort eleven skriver ett kortsvar — "Nästa" går inte att nå.
+     visualViewport vet var den synliga ytan faktiskt slutar; skillnaden skickas
+     till CSS som --xf-kb och navigeringen lyfts lika mycket. */
+  function onViewport() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var hidden = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty("--xf-kb", Math.round(hidden) + "px");
+  }
+
+  function watchKeyboard(on) {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    if (on) {
+      vv.addEventListener("resize", onViewport);
+      vv.addEventListener("scroll", onViewport);
+      onViewport();
+    } else {
+      vv.removeEventListener("resize", onViewport);
+      vv.removeEventListener("scroll", onViewport);
+      document.documentElement.style.setProperty("--xf-kb", "0px");
+    }
   }
 
   function tick() {
     if (UI.clock) clearInterval(UI.clock);
     // Klockan räknar uppåt. En nedräkning skapar panik utan att lära någon
     // någonting — men eleven ska ändå se att tiden går.
-    UI.clock = setInterval(function () {
+    function paint() {
       var s = Math.floor((Date.now() - S.startedAt) / 1000);
       UI.time.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
-    }, 1000);
+    }
+    // Rita direkt, inte först vid nästa tick. Vid återupptagning står klockan
+    // annars kvar på 00:00 i upp till en sekund och hoppar sedan till rätt tid,
+    // vilket ser ut som att den nollställdes.
+    paint();
+    UI.clock = setInterval(paint, 1000);
   }
 
   function renderQuestion() {
@@ -691,6 +837,10 @@
     S.idx = i;
     var q = qs[i];
     var id = qid(q, i);
+
+    // P.E.R:s svar gällde föregående fråga. Bubblan går tillbaka i sitt gömda
+    // läge vid frågebyte så att den inte ligger kvar över svarstexten.
+    document.body.classList.remove("xf-per-open");
 
     // Prickraden: hela provets form på en gång, och en genväg till varje fråga.
     UI.dots.innerHTML = "";
@@ -745,7 +895,7 @@
       ta.setAttribute("aria-label", "Svar på fråga " + (i + 1));
       ta.addEventListener("input", function () {
         S.answers[id] = ta.value;
-        saveDraft();
+        saveDraftSoon();
         armStuck();
       });
       sheet.appendChild(ta);
@@ -755,11 +905,15 @@
       S.helped[id] ? "✦ P.E.R hjälpte dig här" : "✦ Fråga P.E.R om den här frågan");
     ask.type = "button";
     ask.addEventListener("click", function () {
+      /* Flaggan sätts bara om panelen faktiskt öppnas. Knappen på P.E.R-bubblan
+         är en växlare: var panelen redan öppen stängde klicket den, och eleven
+         fick ändå avdrag i provsalssiffran — för att ha stängt en panel. Hela
+         tvåpoängsfunktionen står och faller med att den här flaggan är sann. */
+      if (!askPer(q, i)) return;
       S.helped[id] = true;
       ask.className = "xf-ask used";
       ask.textContent = "✦ P.E.R hjälpte dig här";
       saveDraft();
-      askPer(q, i);
     });
     sheet.appendChild(ask);
 
@@ -775,8 +929,13 @@
   }
 
   /* P.E.R får hela frågan som kontext så att svaret handlar om just den, inte
-     om sidan i allmänhet. Samma mekanism som app.html redan använder. */
+     om sidan i allmänhet. Samma mekanism som app.html redan använder.
+     Returnerar om panelen faktiskt öppnades — anroparen sätter hjälpflaggan
+     bara då. */
   function askPer(q, i) {
+    var bubble = document.getElementById("perBubble");
+    if (!bubble) return false;
+
     if (window.setPerContext) {
       window.setPerContext({
         page: "prov",
@@ -791,8 +950,20 @@
         }
       });
     }
-    var bubble = document.getElementById("perBubble");
-    if (bubble) bubble.click();
+
+    // shared.js sätter .per-open på bubblan medan panelen är uppe. Är den redan
+    // öppen finns inget att göra — ett klick hade stängt den i stället.
+    if (bubble.classList.contains("per-open")) {
+      document.body.classList.add("xf-per-open");
+      return true;
+    }
+
+    // Den flytande bubblan är dold under provet (den låg över svarstexten på
+    // mobil). Klassen släpper fram widgeten så att panelen syns; den tas bort
+    // igen vid frågebyte och när provet lämnas.
+    document.body.classList.add("xf-per-open");
+    bubble.click();
+    return true;
   }
 
   function next() {
@@ -849,6 +1020,14 @@
   // ── Inlämning ────────────────────────────────────────────────────────────
 
   function submit() {
+    /* Flervalsklick på sista frågan schemalägger next() om 260 ms, och next()
+       på sista frågan lämnar in. Hann eleven trycka "Lämna in" däremellan kördes
+       submit() två gånger: den andra fick tillbaka "Rättning pågår redan." från
+       motorn, tolkade det som ett rättningsfel och öppnade provet igen — mitt
+       under den första rättningen, som sedan landade bakom provöverlägget. */
+    if (S.submitting) return;
+    S.submitting = true;
+
     var qs = S.exam.questions;
     var blank = qs.filter(function (q, n) {
       return !String(S.answers[qid(q, n)] || "").trim();
@@ -861,6 +1040,7 @@
           : "Du har " + blank + " obesvarade frågor. Lämna in ändå?"
       );
       if (!ok) {
+        S.submitting = false;
         for (var n = 0; n < qs.length; n++) {
           if (!String(S.answers[qid(qs[n], n)] || "").trim()) { S.idx = n; renderQuestion(); return; }
         }
@@ -868,6 +1048,7 @@
       }
     }
 
+    var resumeAt = S.startedAt;
     closeExam();
     machine();
 
@@ -876,22 +1057,33 @@
       return { id: id, answer: String(S.answers[id] || "").trim() };
     });
 
+    // Rättningen föll — lämna tillbaka eleven till provet med svaren kvar i
+    // stället för till en död skärm. S.nudges nollställs så att beskedet om
+    // felet aldrig tystas av inpasskvoten.
+    function backToExam(msg) {
+      stopMachine().then(function () {
+        S.submitting = false;
+        S.nudges = 0;
+        S.lastNudge = 0;
+        openExam(resumeAt);
+        nudge(msg);
+      });
+    }
+
     window.ExGenEngine.grade(answers).then(function (r) {
       if (!r || !r.ok || !r.result) {
-        // Rättningen föll — lämna tillbaka eleven till provet med svaren kvar
-        // i stället för till en död skärm. S.nudges nollställs så att beskedet
-        // om felet aldrig tystas av inpasskvoten.
-        stopMachine().then(function () {
-          S.nudges = 0;
-          S.lastNudge = 0;
-          openExam();
-          nudge((r && r.error) || "Rättningen gick inte igenom. Dina svar är kvar — prova att lämna in igen.");
-        });
+        backToExam((r && r.error) || "Rättningen gick inte igenom. Dina svar är kvar — prova att lämna in igen.");
         return;
       }
       // Rättningen är i hamn: utkastet får försvinna först nu.
-      try { localStorage.removeItem(LS_DRAFT); } catch (_) {}
+      lsDel(draftKey());
       stopMachine().then(function () { stepResult(r.result); });
+    }).catch(function (e) {
+      /* Utan den här grenen blir ett oväntat avslag från motorn en mörk skärm
+         med låst scroll, utan knappar, som bara går att lämna med omladdning —
+         och då är svaren borta. */
+      backToExam("Något gick fel under rättningen. Dina svar är kvar — prova igen.");
+      if (window.console && console.warn) console.warn("[exam-flow] grade:", e);
     });
   }
 
@@ -960,7 +1152,7 @@
         clearInterval(UI.pepTimer);
         UI.machine.classList.remove("on");
         document.body.classList.remove("xf-grading");
-        document.body.style.overflow = "";
+        lockScroll(false);
         done();
       }, left);
     });
@@ -988,22 +1180,31 @@
     var helpedCount = Object.keys(S.helped).length;
     var pct = max > 0 ? Math.round((total / max) * 100) : 0;
 
-    if (helpedCount > 0) {
+    /* Den andra siffran räknas bara som ett eget besked när den skiljer sig.
+       Frågade eleven P.E.R men fick noll poäng på just den frågan är solo lika
+       med total, och att då skriva "utan hjälp hade det blivit" följt av samma
+       tal läser som ett fel. Villkoret är därför helpedPts, inte helpedCount. */
+    var helpMattered = helpedPts > 0;
+
+    if (helpMattered) {
       say("Du fick " + total + " av " + max + ".",
           "Med hjälp på " + helpedCount + (helpedCount === 1 ? " fråga" : " frågor") + ". Utan hjälp hade det blivit " + solo + ".");
+    } else if (helpedCount > 0) {
+      say("Du fick " + total + " av " + max + ".",
+          "Du frågade P.E.R, men poängen är dina — de frågorna gav inget.");
     } else {
       say("Du fick " + total + " av " + max + ".", "Helt på egen hand.");
     }
 
     // Andra kortet visas bara när det säger något nytt. Två identiska siffror
     // bredvid varandra läser som ett fel, inte som ett besked.
-    var scores = el("div", "xf-scores" + (helpedCount ? "" : " solo"));
+    var scores = el("div", "xf-scores" + (helpMattered ? "" : " solo"));
     var s1 = el("div", "xf-score lead");
     s1.appendChild(el("b", null, total + "/" + max));
     s1.appendChild(el("span", null, "Ditt resultat · " + pct + " %"));
     scores.appendChild(s1);
 
-    if (helpedCount) {
+    if (helpMattered) {
       var s2 = el("div", "xf-score");
       s2.appendChild(el("b", null, solo + "/" + max));
       s2.appendChild(el("span", null, "I provsalen · utan hjälp"));
@@ -1073,13 +1274,13 @@
     var act = el("div", "xf-act");
     act.style.marginTop = "28px";
 
+    // En felruta, återanvänd. Att skapa en ny per klick gav tre rader under
+    // varandra efter tre misslyckade försök.
+    var againErr = el("div", "xf-err");
+
     var again = el("button", "xf-btn primary", "Gör om — nya frågor, samma nivå");
     again.type = "button";
-    again.addEventListener("click", function () {
-      var errBox = el("div", "xf-err");
-      act.appendChild(errBox);
-      build(again, errBox);
-    });
+    again.addEventListener("click", function () { build(again, againErr); });
     act.appendChild(again);
 
     var toImprove = el("a", "xf-btn ghost", "Se felbanken");
@@ -1090,10 +1291,15 @@
     fresh.type = "button";
     fresh.addEventListener("click", function () {
       S.exam = null; S.answers = {}; S.helped = {}; S.material = "";
+      S.submitting = false;
+      // Eleven har uttryckligen övergett provet. Låg utkastet kvar erbjöds det
+      // tillbaka vid nästa sidladdning som "Fortsätt provet du började".
+      lsDel(draftKey());
       stepSubject();
     });
     act.appendChild(fresh);
     b.appendChild(act);
+    b.appendChild(againErr);
 
     screen("result");
   }
@@ -1101,13 +1307,49 @@
   // ── Utkast ───────────────────────────────────────────────────────────────
 
   function saveDraft() {
+    clearTimeout(draftTimer);
     if (!S.exam) return;
-    lsSet(LS_DRAFT, {
+    var ok = lsSet(draftKey(), {
       ts: Date.now(),
+      uid: uid(),
+      startedAt: S.startedAt,
       course: S.course, level: S.level, qType: S.qType, num: S.num,
       material: S.material, exam: S.exam,
       answers: S.answers, helped: S.helped, idx: S.idx
     });
+
+    /* Utrymmet tog slut. Att spara utan frågorna är betydligt mindre och räcker
+       för att svaren ska överleva — provet självt går att bygga om, men det
+       eleven har skrivit går inte att återskapa. Först om även det misslyckas
+       får eleven veta att löftet inte håller. */
+    if (!ok) {
+      var slim = lsSet(draftKey(), {
+        ts: Date.now(), uid: uid(), startedAt: S.startedAt,
+        course: S.course, level: S.level, qType: S.qType, num: S.num,
+        answers: S.answers, helped: S.helped, idx: S.idx
+      });
+      if (!slim && !S.warnedStorage) {
+        S.warnedStorage = true;
+        nudge("Minnet i webbläsaren är fullt, så jag kan inte spara provet åt dig. Lämna in innan du stänger fliken.");
+      }
+    }
+  }
+
+  // Skrivande sparas fördröjt; allt annat direkt. Se DRAFT_DEBOUNCE_MS.
+  function saveDraftSoon() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraft, DRAFT_DEBOUNCE_MS);
+  }
+
+  /* Läser utkastet och avvisar det som inte hör hemma: fel användare, för
+     gammalt, eller sparat i det bantade läget utan frågor (då finns inget prov
+     att återuppta). */
+  function readDraft() {
+    var d = lsGet(draftKey(), null);
+    if (!d || !d.exam || !Array.isArray(d.exam.questions) || !d.exam.questions.length) return null;
+    if (String(d.uid || "") !== uid()) return null;
+    if (d.ts && Date.now() - Number(d.ts) > DRAFT_MAX_AGE_MS) { lsDel(draftKey()); return null; }
+    return d;
   }
 
   function backBtn(fn) {
@@ -1125,18 +1367,35 @@
     prog.appendChild(UI.bar);
     root.appendChild(prog);
 
+    /* Sidans enda h1. Skärmarnas egna rubriker är h2 — sex h1 samtidigt i
+       DOM:en (en per flödessteg) gav ingen dokumentstruktur alls. Den här är
+       visuellt dold men läses av skärmläsare och ger sidan ett namn. */
+    var pageTitle = el("h1", null, "Skapa prov");
+    pageTitle.style.cssText =
+      "position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;" +
+      "clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0";
+    root.appendChild(pageTitle);
+
     UI.screens = {};
     STEPS.forEach(function (name) {
       var sc = el("section", "xf-screen");
       sc.dataset.screen = name;
+      sc.setAttribute("aria-hidden", "true");
       var inner = el("div", "xf-inner");
 
       var per = el("div", "xf-per");
       var orb = el("div", "xf-orb");
+      orb.setAttribute("aria-hidden", "true");
       var voice = el("div");
       voice.style.flex = "1";
-      var h = el("h1", "xf-say");
+      var h = el("h2", "xf-say");
+      // Fokuseras vid varje skärmbyte, se screen(). tabindex="-1" gör den
+      // fokuserbar programmatiskt utan att lägga den i tabbordningen.
+      h.tabIndex = -1;
       var sub = el("p", "xf-sub");
+      // Rubriken skrivs fram tecken för tecken. aria-live här hade läst upp
+      // varje delsträng; fokusflytten i screen() annonserar hela raden en gång.
+      sub.setAttribute("aria-live", "polite");
       voice.appendChild(h);
       voice.appendChild(sub);
       per.appendChild(orb);
@@ -1210,16 +1469,52 @@
     document.addEventListener("keydown", function (e) {
       if (!UI.exam.classList.contains("on")) return;
       if (e.target && /^(TEXTAREA|INPUT)$/.test(e.target.tagName)) return;
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      // Utan detta scrollar arket i sidled samtidigt som frågan byts.
+      e.preventDefault();
       if (e.key === "ArrowRight") next();
-      else if (e.key === "ArrowLeft") prev();
+      else prev();
     });
+
+    /* Ingången från felbanken. förbättring.html skickar eleven till
+       app.html#train, och runTrainModeIfRequested() i app.html bygger ihop ett
+       material av de fel eleven valt. Innan flödet fanns skrevs det rakt in i
+       wizardens textruta; nu är den rutan dold, så materialet måste in här i
+       stället. Hoppet går direkt till kontraktet — kurs och material är redan
+       kända, och att fråga om dem igen vore att låtsas. */
+    window.__xfPrefill = function (material, course) {
+      var mat = String(material || "").trim();
+      if (!mat) return false;
+      S.material = mat.slice(0, MATERIAL_MAX);
+      if (course) S.course = String(course).trim();
+      if (!S.course) S.course = dna().courses[0] || "Repetition";
+      var d = dna();
+      S.level = d.level;
+      S.qType = "mix";
+      S.num = clamp(d.num, 3, 20);
+      stepContract();
+      return true;
+    };
   }
 
-  // Motorn bor i app.html och initieras på DOMContentLoaded. Vänta in den
-  // hellre än att gissa ordningen mellan två script-taggar.
+  /* Motorn bor i app.html och initieras på DOMContentLoaded. Vänta in den
+     hellre än att gissa ordningen mellan två script-taggar.
+
+     Kommer den aldrig får eleven INTE en tom sida: den gamla wizarden tas fram
+     ur sitt hidden-läge igen. Den är ful men fungerande, och en fungerande ful
+     sida är oändligt mycket bättre än en vit. */
   function waitForEngine(tries) {
     if (window.ExGenEngine && window.ExGenEngine.ready) { boot(); return; }
-    if (tries > 200) return;   // 10 s — motorn kommer inte, låt sidan vara
+    if (tries > 200) {
+      var main = document.getElementById("main-content");
+      if (main) main.removeAttribute("hidden");
+      var xf = document.getElementById("xf");
+      if (xf) xf.style.display = "none";
+      if (window.console && console.error) {
+        console.error("[exam-flow] ExGenEngine blev aldrig ready — föll tillbaka på wizarden.");
+      }
+      return;
+    }
     setTimeout(function () { waitForEngine(tries + 1); }, 50);
   }
 

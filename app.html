@@ -467,7 +467,9 @@ white-space:nowrap;
 </head>
 <body>
 
-<a href="#main-content" class="skip-link">Hoppa till innehåll</a>
+<!-- Pekar på #xf, inte på #main-content: det senare är den dolda wizarden, och
+     ett tangentbordshopp dit landar i ingenting. -->
+<a href="#xf" class="skip-link">Hoppa till innehåll</a>
 
 <div id="pageLoader" class="pageLoader" aria-hidden="true">
 <div style="display:grid;place-items:center">
@@ -549,7 +551,9 @@ white-space:nowrap;
 <!-- Den P.E.R-ledda provskaparen. Ytan bor i js/exam-flow.js; motorn nedanför
      (kvot, generering, rättning, felbank, persistens) är oförändrad och körs
      via window.ExGenEngine. -->
-<div id="xf"></div>
+<!-- role="main": sidans enda <main> är den dolda wizarden nedan, så utan detta
+     har sidan ingen huvudlandmark alls. Innehållet byggs av js/exam-flow.js. -->
+<div id="xf" role="main" tabindex="-1"></div>
 
 <!-- MOTOR — den gamla wizarden. Dold, men fortfarande den som gör jobbet:
      alla funktioner nedan läser och skriver mot de här fälten. Ta inte bort
@@ -1311,20 +1315,41 @@ function buildTrainingMaterialFromMistakes(mistakes,pickedIds){
   return(LANG==="sv"?hSv:hEn)+blocks;
 }
 
+// Ingången från felbanken: förbättring.html skickar hit med #train.
+//
+// Materialet skrevs tidigare rakt in i wizardens textruta, som eleven såg och
+// kunde scrolla till. Den rutan ligger nu bakom `hidden` — allt som skrivs där
+// är osynligt — så materialet måste också in i den P.E.R-ledda ytan. Fälten
+// nedan sätts ändå, eftersom runGenerate/runGrade läser sitt underlag därifrån
+// och inte från flödet.
 function runTrainModeIfRequested(){
   const hash=(window.location.hash||"").toLowerCase();
   if(hash!=="#train")return;
   const mistakes=lsGetArray(LS_MISTAKES);
-  if(!mistakes.length){setStatus(LANG==="sv"?"Inga misstag sparade ännu. Rätta ett prov först.":"No saved mistakes yet. Grade an exam first.","warn");setWizardStep(3);document.querySelector("#result")?.scrollIntoView({behavior:"smooth"});return;}
+  if(!mistakes.length){
+    // showToast, inte setStatus: statusraden bor i det dolda <main>.
+    const msg=LANG==="sv"?"Inga misstag sparade ännu. Rätta ett prov först.":"No saved mistakes yet. Grade an exam first.";
+    if(window.showToast)window.showToast(msg,"bad",5000);
+    return;
+  }
   const pick=lsGetObj(LS_TRAIN_PICK),pickedIds=Array.isArray(pick?.ids)?pick.ids:[];
   const mat=buildTrainingMaterialFromMistakes(mistakes,pickedIds);
   if(pastedTextEl())pastedTextEl().value=mat;
   try{localStorage.setItem(LS_MATERIAL,mat);}catch{}
   if(qTypeEl())qTypeEl().value="mix";
   if(numQuestionsEl())numQuestionsEl().value="12";
-  setStatus(T[LANG].trainLoaded,"ok");
-  setWizardStep(0);
-  document.querySelector("#material")?.scrollIntoView({behavior:"smooth"});
+
+  // Kursen tas från felbankens eget val när det finns; annars får flödet gissa
+  // utifrån historiken.
+  const course=String(pick?.course||courseEl()?.value||"").trim();
+
+  // js/exam-flow.js definierar __xfPrefill först i boot(), som väntar in den
+  // här filens motorbrygga. Ordningen är alltså inte given — polla kort.
+  let n=0;
+  const iv=setInterval(()=>{
+    if(typeof window.__xfPrefill==="function"){clearInterval(iv);window.__xfPrefill(mat,course);}
+    else if(++n>100)clearInterval(iv);   // 5 s
+  },50);
 }
 
 async function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(String(fr.result||"")); fr.onerror=()=>reject(new Error("FileReader error")); fr.readAsDataURL(file); }); }
@@ -1761,7 +1786,10 @@ try{
       const history=lsGetArray(LS_HISTORY);history.push(attempt);while(history.length>60)history.shift();lsSet(LS_HISTORY,history);
       lsSet(LS_LAST,{ts,attempt,exam:{title:currentExam.title||"",level:currentExam.level||(levelEl()?.value||"C"),questions:currentExam.questions||[]},result});
       const mistakes=lsGetArray(LS_MISTAKES);
-      const qById=new Map((currentExam.questions||[]).map(q=>[String(q.id??""),q]));
+      // Samma id-fallback som rendering och rättning använder. Med bara String(q.id??"")
+      // kollapsade alla frågor utan id på tom sträng, och felbanken sparade då
+      // fel frågetext och fel elevsvar för var och en av dem.
+      const qById=new Map((currentExam.questions||[]).map((q,idx)=>[String(q.id??(idx+1)),q]));
       const aById=new Map(answers.map(a=>[String(a.id),a.answer]));
       (result.per_question||[]).forEach(item=>{
         const got=Number(item.points||0),m=Number(item.max_points||0);
@@ -1844,6 +1872,17 @@ try{
     grade(answers) { return runGrade(answers); },
     getExam() { return currentExam; },
     role() { return currentRole; },
+    /* Återlämnar ett prov till motorn utan att generera om det. Behövs när
+       flödet återupptar ett sparat prov: sidan har laddats om, currentExam är
+       null, och runGrade hade avvisat inlämningen med "Generera ett prov
+       först" — mitt i ett prov eleven redan skrivit klart. Ingen kvot dras,
+       inget OpenAI-anrop görs; det är samma prov, bara tillbaka i minnet. */
+    adoptExam(exam) {
+      if (!exam || !Array.isArray(exam.questions) || !exam.questions.length) return false;
+      currentExam = exam;
+      const g = $("gradeBtn"); if (g) g.disabled = false;
+      return true;
+    },
     // OCR går via samma endpoint och samma rollspärr som ocrBtn. Returnerar
     // texten i stället för att skriva den i ett fält — flödet äger sin egen ruta.
     async ocr(file) {
