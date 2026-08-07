@@ -19,6 +19,8 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="exgen-tokens.css" />
   <link rel="stylesheet" href="exgen-shell.css" />
+  <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. -->
+  <link rel="stylesheet" href="exgen-ui.css" />
   <script src="shared.js" defer></script>
   <style>
   /* ── PRICING-SPECIFIC ── */
@@ -213,11 +215,20 @@
 <main id="main-content">
 <div class="wrap">
 
-  <!-- PAGE HERO -->
+  <!-- P.E.R:S RÖST
+       Ersätter "Enkel prissättning. Ingen bindningstid." — en rubrik som är
+       likadan för varenda besökare och som varje konkurrent också har.
+       En prissida ska svara på "behöver JAG betala?", och det svaret beror på
+       hur mycket eleven faktiskt använt. setPricingVoice() nedan räknar det ur
+       historiken som redan finns. -->
   <div class="pageHero rev">
-    <div class="eyebrow">Priser &amp; Medlemskap</div>
-    <h1 class="pageTitle">Enkel prissättning.<br>Ingen bindningstid.</h1>
-    <p class="pageSub">Välj nivån som passar din provträning. Uppgradera eller avsluta när du vill.</p>
+    <div class="xf-per">
+      <div class="xf-orb" aria-hidden="true"></div>
+      <div style="flex:1;min-width:0">
+        <h1 class="xf-say" id="priceSay">Börja gratis.</h1>
+        <p class="xf-sub" id="priceSub">Uppgradera först när du slår i taket — inte innan.</p>
+      </div>
+    </div>
   </div>
 
   <!-- PLAN CARDS -->
@@ -605,5 +616,82 @@ document.querySelectorAll("[data-faq]").forEach(btn => {
 (function(){var y=document.getElementById('yr');if(y)y.textContent=new Date().getFullYear();})();
 </script>
 <!-- VISITOR BOTTOM NAV -->
+<script>
+(function () {
+  /* Vad sidan säger beror på vad eleven gjort, inte på vad vi vill sälja.
+     Räknar prov ur proviaai_history (samma nyckel som appen och
+     förbättringssidan skriver till) och rollen ur proviaai_role. Inga anrop,
+     ingen ny lagring — och en utloggad besökare får en ärlig rad i stället för
+     en påhittad siffra. */
+  function arr(k) { try { var v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch (_) { return []; } }
+
+  var say = document.getElementById("priceSay");
+  var sub = document.getElementById("priceSub");
+  if (!say || !sub) return;
+
+  var role = "";
+  try { role = String(localStorage.getItem("proviaai_role") || "").trim(); } catch (_) {}
+  var hist = arr("proviaai_history");
+
+  var now = new Date();
+  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  // Måndag som veckostart, svensk konvention.
+  var d = new Date(now); var wd = (d.getDay() + 6) % 7;
+  d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - wd);
+  var weekStart = d.getTime();
+
+  var inMonth = hist.filter(function (x) { return Number(x.ts) >= monthStart; }).length;
+  var inWeek = hist.filter(function (x) { return Number(x.ts) >= weekStart; }).length;
+
+  if (role === "premium") {
+    say.textContent = "Du har Premium.";
+    sub.textContent = inMonth
+      ? inMonth + " prov den här månaden. Inga tak — det är hela poängen med planen."
+      : "Inga tak. Kör så mycket du orkar.";
+  } else if (role === "basic") {
+    say.textContent = "Du har Basic.";
+    sub.textContent = inMonth
+      ? inMonth + " av 30 prov den här månaden." + (inMonth >= 24 ? " Du närmar dig taket." : "")
+      : "30 prov i månaden ingår. Du har inte börjat än den här månaden.";
+  } else if (hist.length) {
+    var left = 3 - inWeek;
+    say.textContent = inWeek + (inWeek === 1 ? " prov den här veckan." : " prov den här veckan.");
+    sub.textContent = left > 0
+      ? "Gratis räcker till 3. Du har " + left + " kvar — ingen anledning att betala än."
+      : "Gratis räcker till 3, så du har slagit i taket. Basic tar bort gränsen för 29 kr.";
+  }
+  // Utloggad eller utan historik: markupens standardtext står kvar.
+
+  /* Markera den plan eleven faktiskt har, och låt rekommendationen följa av
+     användningen i stället för att alltid peka på den dyraste. En badge som
+     säger "Rekommenderas" på Premium medan rösten just sagt att Basic löser
+     problemet säger emot sig själv, och det märks. */
+  var mine = role === "premium" ? "Premium" : role === "basic" ? "Basic" : hist.length ? "Gratis" : "";
+
+  /* "" = ingen åsikt, låt markupens tips stå (gäller besökare utan data).
+     null = vi VET att ingen uppgradering behövs, plocka bort tipset. */
+  var suggest = "";
+  if (role === "basic") suggest = inMonth >= 24 ? "Premium" : null;
+  else if (!role || role === "gratis") {
+    // Utan historik finns inget att gå på — då står markupens Premium-tips kvar.
+    if (hist.length && inWeek >= 3) suggest = "Basic";
+    else if (hist.length) suggest = null;   // under taket: rekommendera ingenting
+  } else if (role === "premium") suggest = null;
+
+  Array.prototype.forEach.call(document.querySelectorAll(".planCard"), function (card) {
+    var name = ((card.querySelector(".planName") || {}).textContent || "").trim();
+    var badge = card.querySelector(".planBadge");
+    if (!badge) return;
+    if (name === mine) { badge.textContent = name + " — din plan"; return; }
+    if (suggest === null) {
+      // Ingen rekommendation gäller — plocka bort den som står i markupen.
+      if (/Rekommenderas/i.test(badge.textContent)) badge.textContent = name;
+      return;
+    }
+    if (suggest && name === suggest) badge.textContent = name + " — rekommenderas för dig";
+    else if (suggest && /Rekommenderas/i.test(badge.textContent)) badge.textContent = name;
+  });
+})();
+</script>
 </body>
 </html>
