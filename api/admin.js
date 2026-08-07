@@ -264,6 +264,44 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, deletedId: questionId });
   }
 
+  /* ── LIST REPORTS ── */
+  if (action === "list-reports") {
+    if (!await requireAdmin(req, res)) return;
+
+    const { data, error } = await supabase
+      .from("question_reports")
+      .select("question_id, reason, created_at, resolved, driving_questions!question_id(id, question, category, report_count)")
+      .eq("resolved", false)
+      .order("created_at", { ascending: false });
+
+    if (error) return res.status(500).json({ ok: false, error: error.message });
+    return res.status(200).json({ ok: true, reports: data });
+  }
+
+  /* ── RESOLVE REPORT ── */
+  if (action === "resolve-report") {
+    if (!await requireAdmin(req, res)) return;
+
+    const { questionId } = req.body || {};
+    const id = Number(questionId);
+    if (!Number.isInteger(id) || id < 1)
+      return res.status(400).json({ ok: false, error: "Invalid questionId" });
+
+    const { error: reportErr } = await supabase
+      .from("question_reports")
+      .update({ resolved: true })
+      .eq("question_id", id);
+    if (reportErr) return res.status(500).json({ ok: false, error: reportErr.message });
+
+    const { error: qErr } = await supabase
+      .from("driving_questions")
+      .update({ report_count: 0 })
+      .eq("id", id);
+    if (qErr) return res.status(500).json({ ok: false, error: qErr.message });
+
+    return res.status(200).json({ ok: true, resolvedId: id });
+  }
+
   /* ── GENERATE IMAGE PROMPT ── */
   if (action === "generate-prompt") {
     if (!await requireAdmin(req, res)) return;

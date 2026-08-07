@@ -38,6 +38,11 @@ async function readRawBody(req) {
 }
 
 // ── Email ──
+// Bounded on purpose. The function has 10 s in total (vercel.json) and an event can send
+// two of these back to back; without a ceiling a slow Resend response eats the budget and
+// the invocation is killed after the role upgrade but before the claim is marked complete.
+const EMAIL_TIMEOUT_MS = 3_000;
+
 async function sendEmail(to, subject, html) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return;
@@ -46,6 +51,7 @@ async function sendEmail(to, subject, html) {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
+      signal: AbortSignal.timeout(EMAIL_TIMEOUT_MS),
     });
   } catch { /* email failure never blocks webhook */ }
 }
@@ -141,6 +147,72 @@ async function getRoleByCustomer(customerId) {
   } catch { return null; }
 }
 
+// ── Idempotency (see supabase/migrations/20260719_stripe_webhook_idempotency.sql) ──
+// Claims event.id before processing, marks it completed afterwards, and releases the
+// claim if processing throws so a genuine Stripe retry can reclaim and reprocess.
+// A COMPLETED row means "fully handled" — a later redelivery short-circuits to a no-op 200.
+//
+// A claim that is neither completed nor released belongs to an invocation that died
+// without raising a catchable error: the 10 s maxDuration in vercel.json, or the platform
+// killing the process. Treating that as "handled" would leave a paying customer
+// un-upgraded forever, since every subsequent redelivery would be waved through. So a
+// stale incomplete claim is retaken instead.
+//
+// The window is long enough that a slow-but-alive invocation is never overtaken by a
+// Stripe retry of the same event (Stripe's first retries arrive within minutes, and it
+// keeps retrying for three days, so a genuinely dead claim is still reprocessed).
+export const STALE_CLAIM_MS = 15 * 60 * 1000;
+
+export async function claimEvent(eventId, supabaseClient = supabase, now = Date.now()) {
+  const { error } = await supabaseClient
+    .from("stripe_webhook_events")
+    .insert({ event_id: eventId });
+  if (!error) return true;
+  if (error.code !== "23505") throw error;
+
+  // The row exists. Whether this is a duplicate or a corpse depends on completed_at.
+  const { data, error: readError } = await supabaseClient
+    .from("stripe_webhook_events")
+    .select("claimed_at, completed_at")
+    .eq("event_id", eventId)
+    .maybeSingle();
+  if (readError) throw readError;
+  if (!data || data.completed_at) return false;
+
+  const staleBefore = new Date(now - STALE_CLAIM_MS).toISOString();
+  if (!(data.claimed_at < staleBefore)) return false; // still in flight elsewhere
+
+  // Retake it. The filters repeat the staleness test so that two Stripe retries racing
+  // on the same dead claim cannot both win — whichever UPDATE lands first moves
+  // claimed_at forward and the other one matches no rows.
+  const { data: retaken, error: retakeError } = await supabaseClient
+    .from("stripe_webhook_events")
+    .update({ claimed_at: new Date(now).toISOString() })
+    .eq("event_id", eventId)
+    .is("completed_at", null)
+    .lt("claimed_at", staleBefore)
+    .select("event_id");
+  if (retakeError) throw retakeError;
+  return Array.isArray(retaken) && retaken.length > 0;
+}
+
+export async function completeEvent(eventId, supabaseClient = supabase, now = Date.now()) {
+  const { error } = await supabaseClient
+    .from("stripe_webhook_events")
+    .update({ completed_at: new Date(now).toISOString() })
+    .eq("event_id", eventId);
+  // Best-effort: the work is already done and the customer is already upgraded. An
+  // unmarked claim goes stale and may be reprocessed once, which costs a duplicate
+  // email — the failure this whole table exists to make rare, not impossible.
+  if (error) console.error("stripe-webhook: could not mark event complete", eventId, error);
+}
+
+async function releaseEvent(eventId) {
+  try {
+    await supabase.from("stripe_webhook_events").delete().eq("event_id", eventId);
+  } catch { /* best-effort — a stuck claim just costs one retry window, not correctness */ }
+}
+
 // ── Handler ──
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
@@ -159,104 +231,123 @@ export default async function handler(req, res) {
   } catch {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
+  if (!event.id) return res.status(400).json({ error: "Missing event id" });
 
-  // ── checkout.session.completed — new purchase ──
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const userId = session.metadata?.supabase_user_id;
-    const plan = session.metadata?.plan;
-    const customerId = session.customer;
-    const userEmail = session.customer_details?.email || session.customer_email || null;
-    const amountKr = session.amount_total != null ? String(Math.round(session.amount_total / 100)) : "—";
-
-    if (!userId || !plan || !PLAN_ROLES[plan]) {
-      console.error("stripe-webhook: missing metadata", { userId, plan });
-      return res.status(200).json({ received: true });
-    }
-
-    if (session.mode === "subscription") {
-      const subscriptionId = session.subscription;
-      const { error } = await supabase.from("profiles").upsert(
-        { id: userId, role: PLAN_ROLES[plan], stripe_customer_id: customerId, stripe_subscription_id: subscriptionId },
-        { onConflict: "id" }
-      );
-      if (error) console.error("stripe-webhook: subscription upsert failed", error);
-
-    } else if (session.mode === "payment" && session.payment_status === "paid") {
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await supabase.from("profiles").upsert(
-        { id: userId, role: PLAN_ROLES[plan], stripe_customer_id: customerId, swish_expires_at: expiresAt },
-        { onConflict: "id" }
-      );
-      if (error) console.error("stripe-webhook: swish upsert failed", error);
-    }
-
-    // Send emails
-    const email = userEmail || await getUserEmail(userId);
-    const planName = PLAN_NAMES[plan] || plan;
-    if (email) {
-      await sendEmail(email, `Betalning bekräftad — ${planName}`, tpl_paymentConfirmed(email, planName, amountKr));
-    }
-    await sendEmail(ADMIN_EMAIL, `Ny betalning — ${planName} (${email || userId})`, tpl_adminNotice("Ny betalning", email || userId, planName, amountKr));
+  let claimed;
+  try {
+    claimed = await claimEvent(event.id);
+  } catch (err) {
+    console.error("stripe-webhook: claim failed", err);
+    return res.status(500).json({ error: "Could not record event" }); // let Stripe retry
+  }
+  if (!claimed) {
+    return res.status(200).json({ received: true, duplicate: true });
   }
 
-  // ── customer.subscription.updated — plan change from portal ──
-  if (event.type === "customer.subscription.updated") {
-    const sub = event.data.object;
-    if (sub.status !== "active") return res.status(200).json({ received: true });
-    const userId = sub.metadata?.supabase_user_id || await getUserIdByCustomer(sub.customer);
-    const plan = sub.metadata?.plan;
-    if (userId && plan && PLAN_ROLES[plan]) {
-      await supabase.from("profiles").update({ role: PLAN_ROLES[plan] }).eq("id", userId);
-    }
-  }
+  try {
+    // ── checkout.session.completed — new purchase ──
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const userId = session.metadata?.supabase_user_id;
+      const plan = session.metadata?.plan;
+      const customerId = session.customer;
+      const userEmail = session.customer_details?.email || session.customer_email || null;
+      const amountKr = session.amount_total != null ? String(Math.round(session.amount_total / 100)) : "—";
 
-  // ── invoice.payment_succeeded — monthly renewal ──
-  if (event.type === "invoice.payment_succeeded") {
-    const invoice = event.data.object;
-    // Skip first payment — checkout.session.completed already covers it
-    if (invoice.billing_reason !== "subscription_cycle") return res.status(200).json({ received: true });
+      if (!userId || !plan || !PLAN_ROLES[plan]) {
+        console.error("stripe-webhook: missing metadata", { userId, plan });
+      } else {
+        if (session.mode === "subscription") {
+          const subscriptionId = session.subscription;
+          const { error } = await supabase.from("profiles").upsert(
+            { id: userId, role: PLAN_ROLES[plan], stripe_customer_id: customerId, stripe_subscription_id: subscriptionId },
+            { onConflict: "id" }
+          );
+          if (error) throw new Error("subscription upsert failed: " + error.message);
+        } else if (session.mode === "payment" && session.payment_status === "paid") {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          const { error } = await supabase.from("profiles").upsert(
+            { id: userId, role: PLAN_ROLES[plan], stripe_customer_id: customerId, swish_expires_at: expiresAt },
+            { onConflict: "id" }
+          );
+          if (error) throw new Error("swish upsert failed: " + error.message);
+        }
 
-    const email = invoice.customer_email;
-    const role = await getRoleByCustomer(invoice.customer);
-    const planName = PLAN_NAMES[role] || "din plan";
-    const amountKr = invoice.amount_paid != null ? String(Math.round(invoice.amount_paid / 100)) : "—";
-
-    if (email) {
-      await sendEmail(email, `Prenumeration förnyad — ${planName}`, tpl_renewalConfirmed(email, planName, amountKr));
-    }
-    await sendEmail(ADMIN_EMAIL, `Förnyelse — ${planName} (${email || invoice.customer})`, tpl_adminNotice("Förnyelse", email || invoice.customer, planName, amountKr));
-  }
-
-  // ── invoice.payment_failed — card declined or expired ──
-  if (event.type === "invoice.payment_failed") {
-    const invoice = event.data.object;
-    const email = invoice.customer_email;
-    const role = await getRoleByCustomer(invoice.customer);
-    const planName = PLAN_NAMES[role] || "din plan";
-
-    if (email) {
-      await sendEmail(email, "Betalning misslyckades — uppdatera ditt kort", tpl_paymentFailed(email, planName));
-    }
-    await sendEmail(ADMIN_EMAIL, `Betalning misslyckades — ${email || invoice.customer}`, tpl_adminNotice("Betalning misslyckades", email || invoice.customer, planName, "—"));
-  }
-
-  // ── customer.subscription.deleted — cancelled or lapsed ──
-  if (event.type === "customer.subscription.deleted") {
-    const sub = event.data.object;
-    const userId = sub.metadata?.supabase_user_id || await getUserIdByCustomer(sub.customer);
-    if (userId) {
-      const { data: prof } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-      const prevPlan = prof?.role || "basic";
-      await supabase.from("profiles")
-        .update({ role: "gratis", stripe_subscription_id: null })
-        .eq("id", userId);
-      const email = await getUserEmail(userId);
-      if (email) {
-        await sendEmail(email, "Prenumeration avslutad", tpl_subscriptionCancelled(PLAN_NAMES[prevPlan] || prevPlan));
+        const email = userEmail || await getUserEmail(userId);
+        const planName = PLAN_NAMES[plan] || plan;
+        if (email) {
+          await sendEmail(email, `Betalning bekräftad — ${planName}`, tpl_paymentConfirmed(email, planName, amountKr));
+        }
+        await sendEmail(ADMIN_EMAIL, `Ny betalning — ${planName} (${email || userId})`, tpl_adminNotice("Ny betalning", email || userId, planName, amountKr));
       }
     }
+
+    // ── customer.subscription.updated — plan change from portal ──
+    if (event.type === "customer.subscription.updated") {
+      const sub = event.data.object;
+      if (sub.status === "active") {
+        const userId = sub.metadata?.supabase_user_id || await getUserIdByCustomer(sub.customer);
+        const plan = sub.metadata?.plan;
+        if (userId && plan && PLAN_ROLES[plan]) {
+          const { error } = await supabase.from("profiles").update({ role: PLAN_ROLES[plan] }).eq("id", userId);
+          if (error) throw new Error("subscription update failed: " + error.message);
+        }
+      }
+    }
+
+    // ── invoice.payment_succeeded — monthly renewal ──
+    if (event.type === "invoice.payment_succeeded") {
+      const invoice = event.data.object;
+      // Skip first payment — checkout.session.completed already covers it
+      if (invoice.billing_reason === "subscription_cycle") {
+        const email = invoice.customer_email;
+        const role = await getRoleByCustomer(invoice.customer);
+        const planName = PLAN_NAMES[role] || "din plan";
+        const amountKr = invoice.amount_paid != null ? String(Math.round(invoice.amount_paid / 100)) : "—";
+
+        if (email) {
+          await sendEmail(email, `Prenumeration förnyad — ${planName}`, tpl_renewalConfirmed(email, planName, amountKr));
+        }
+        await sendEmail(ADMIN_EMAIL, `Förnyelse — ${planName} (${email || invoice.customer})`, tpl_adminNotice("Förnyelse", email || invoice.customer, planName, amountKr));
+      }
+    }
+
+    // ── invoice.payment_failed — card declined or expired ──
+    if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object;
+      const email = invoice.customer_email;
+      const role = await getRoleByCustomer(invoice.customer);
+      const planName = PLAN_NAMES[role] || "din plan";
+
+      if (email) {
+        await sendEmail(email, "Betalning misslyckades — uppdatera ditt kort", tpl_paymentFailed(email, planName));
+      }
+      await sendEmail(ADMIN_EMAIL, `Betalning misslyckades — ${email || invoice.customer}`, tpl_adminNotice("Betalning misslyckades", email || invoice.customer, planName, "—"));
+    }
+
+    // ── customer.subscription.deleted — cancelled or lapsed ──
+    if (event.type === "customer.subscription.deleted") {
+      const sub = event.data.object;
+      const userId = sub.metadata?.supabase_user_id || await getUserIdByCustomer(sub.customer);
+      if (userId) {
+        const { data: prof } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+        const prevPlan = prof?.role || "basic";
+        const { error } = await supabase.from("profiles")
+          .update({ role: "gratis", stripe_subscription_id: null })
+          .eq("id", userId);
+        if (error) throw new Error("cancellation update failed: " + error.message);
+        const email = await getUserEmail(userId);
+        if (email) {
+          await sendEmail(email, "Prenumeration avslutad", tpl_subscriptionCancelled(PLAN_NAMES[prevPlan] || prevPlan));
+        }
+      }
+    }
+  } catch (err) {
+    console.error("stripe-webhook: processing failed, releasing claim for retry", event.id, event.type, err);
+    await releaseEvent(event.id);
+    return res.status(500).json({ error: "Processing failed" }); // Stripe will retry
   }
 
+  await completeEvent(event.id);
   return res.status(200).json({ received: true });
 }
