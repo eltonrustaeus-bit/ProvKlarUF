@@ -37,6 +37,22 @@
      INDEX 2.0 — skolfokus (grundskola + gymnasium)
   ═══════════════════════════════════ */
 
+  /* ── HÖRNRADIER ──
+     Sidan renderade tio olika radier (3, 5, 6, 7, 8, 10, 12, 16, 20, 22 px)
+     medan resten av sajten kör exgen-tokens.css fyra: sm 8, md 12, lg 20,
+     pill 999. Orsaken var två parallella system med kolliderande värden under
+     parallella namn — style.css --r-sm/md/lg är 6/10/16, exgen-radius-sm/md/lg
+     är 8/12/20 — plus ett dussin hårdkodade värden som hörde till varken det
+     ena eller det andra.
+
+     Bindningen här är semantisk, inte numerisk: stora ytor (kort, remsor,
+     FAQ-listan, den fasta CTA-baren) tar lg, klickbara kontroller (knappar,
+     märket) tar md, inre element inuti ett kort (svarsalternativ, förklaring,
+     bokstavsrutan) tar sm, och mätare tar pill. 50%-cirklar, fokusringens 2px
+     och logotypbildens 3px står kvar — de är inte ytor i systemet.
+
+     Färgerna är oberörda. Detta ändrar bara formen på hörnen. */
+
   /* ── HERO ──
      Mobile-first. Every size/space below is set per breakpoint rather than
      scaled from one desktop value: phone gets a tighter type scale, full-
@@ -122,7 +138,7 @@
     height:52px;padding:0 26px;
     font-family:var(--font);font-size:16px;font-weight:600;
     letter-spacing:-.01em;color:#fff;
-    background:var(--a);border:none;border-radius:var(--r-md);
+    background:var(--a);border:none;border-radius:var(--exgen-radius-md);
     text-decoration:none;cursor:pointer;
     transition:background .15s ease,box-shadow .18s ease,transform .12s ease;
   }
@@ -134,7 +150,7 @@
     font-family:var(--font);font-size:16px;font-weight:600;
     color:var(--t);letter-spacing:-.01em;
     background:var(--s);border:1px solid var(--l2);
-    border-radius:var(--r-md);text-decoration:none;
+    border-radius:var(--exgen-radius-md);text-decoration:none;
     transition:border-color .18s,background .18s,transform .12s ease;
   }
   .demoBtn:hover{border-color:var(--l3);background:var(--s2)}
@@ -208,7 +224,7 @@
   /* MOCKPROV STRIP */
   .mockStrip{
     background:var(--s);border:1px solid var(--l2);
-    border-radius:12px;padding:24px 28px;
+    border-radius:var(--exgen-radius-lg);padding:24px 28px;
     display:flex;align-items:center;justify-content:space-between;
     gap:20px;flex-wrap:wrap;
     margin-bottom:0;
@@ -239,7 +255,7 @@
   @media(max-width:600px){.benefits{padding:4px 0 28px}}
   .benefitsCard{
     display:flex;align-items:center;gap:40px;flex-wrap:wrap;
-    background:var(--a);border-radius:16px;
+    background:var(--a);border-radius:var(--exgen-radius-lg);
     padding:32px 36px;box-shadow:0 12px 32px rgba(0,118,143,.28);
     position:relative;overflow:hidden;
   }
@@ -281,7 +297,7 @@
 
   .feat{
     background:var(--s);border:1px solid var(--l);
-    border-radius:12px;padding:24px 22px;
+    border-radius:var(--exgen-radius-lg);padding:24px 22px;
     position:relative;overflow:hidden;
     transition:border-color .2s,transform .22s cubic-bezier(.22,.61,.36,1);
     will-change:transform;
@@ -343,7 +359,7 @@
   /* ── FAQ ── */
   .faq{padding:var(--sp-24) 0}
   @media(max-width:600px){.faq{padding:var(--sp-16) 0}}
-  .faqList{background:var(--s);border:1px solid var(--l2);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
+  .faqList{background:var(--s);border:1px solid var(--l2);border-radius:var(--exgen-radius-lg);overflow:hidden;box-shadow:var(--sh)}
   .faqItem{border-bottom:1px solid var(--l);overflow:hidden;padding:0 var(--sp-6)}
   .faqItem:last-child{border-bottom:none}
   .faqItem.open{background:var(--s2)}
@@ -377,7 +393,7 @@
   @media(max-width:600px){.pricingStrip{padding:0 0 var(--sp-16)}}
   .pCard{
     background:var(--s);border:1px solid var(--l2);box-shadow:var(--sh);
-    border-radius:var(--r-lg);padding:var(--sp-8);
+    border-radius:var(--exgen-radius-lg);padding:var(--sp-8);
     display:flex;align-items:center;justify-content:space-between;
     gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;
   }
@@ -429,13 +445,13 @@
 
   .pvCard{
     background:var(--s);border:1px solid var(--l2);
-    border-radius:var(--r-lg);padding:22px 24px;
+    border-radius:var(--exgen-radius-lg);padding:22px 24px;
     box-shadow:var(--sh3);
   }
 
   .pvProgressRow{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-  .pvProgressBar{flex:1;height:3px;border-radius:999px;background:var(--l);overflow:hidden}
-  .pvProgressFill{height:100%;width:60%;background:var(--a);border-radius:999px}
+  .pvProgressBar{flex:1;height:3px;border-radius:var(--exgen-radius-pill);background:var(--l);overflow:hidden}
+  .pvProgressFill{height:100%;width:60%;background:var(--a);border-radius:var(--exgen-radius-pill)}
   .pvProgressLabel{font-family:var(--font);font-size:12px;color:var(--t3);white-space:nowrap}
 
   .pvQ{font-weight:600;font-size:15px;color:var(--t);line-height:1.5;margin:0 0 14px;letter-spacing:-.01em}
@@ -443,7 +459,7 @@
   .pvOpts{display:grid;gap:8px;margin-bottom:14px}
   .pvOpt{
     display:flex;align-items:center;gap:10px;
-    padding:11px 13px;border-radius:var(--r-sm);
+    padding:11px 13px;border-radius:var(--exgen-radius-sm);
     border:1px solid var(--l);background:var(--s2);
     font-size:13.5px;color:var(--t2);line-height:1.35;
   }
@@ -452,7 +468,7 @@
   }
 
   .pvLetter{
-    width:22px;height:22px;border-radius:5px;
+    width:22px;height:22px;border-radius:var(--exgen-radius-sm);
     display:grid;place-items:center;flex-shrink:0;
     font-family:var(--font);font-size:11px;font-weight:600;
     background:var(--s);border:1px solid var(--l2);color:var(--t3);
@@ -460,7 +476,7 @@
   .pvOpt--correct .pvLetter{background:var(--a);border-color:var(--a);color:#fff}
 
   .pvExpl{
-    padding:12px 14px;border-radius:var(--r-sm);
+    padding:12px 14px;border-radius:var(--exgen-radius-sm);
     border:1px solid var(--l2);background:var(--s2);
     font-size:13px;color:var(--t2);line-height:1.6;
   }
@@ -516,7 +532,7 @@
   .showcaseCard {
     width: 100%;
     background: var(--s); border: 1px solid var(--l2);
-    border-radius: 16px; padding: 22px 24px;
+    border-radius: var(--exgen-radius-lg); padding: 22px 24px;
     box-shadow: 0 4px 24px rgba(0,0,0,.09);
     animation: showcaseFloat 6s 1.5s ease-in-out infinite;
   }
@@ -527,7 +543,7 @@
   @media(prefers-reduced-motion:reduce){ .showcaseCard { animation: none; } }
   .showcaseBadge {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 14px; border-radius: 10px;
+    padding: 8px 14px; border-radius: var(--exgen-radius-md);
     border: 1px solid var(--l); background: var(--s);
     font-family: var(--font); font-size: var(--fs-xs); color: var(--t2); letter-spacing: 0;
   }
@@ -542,7 +558,7 @@
        palette, plus a teal border. Both missed by the earlier colour sweep
        (rgba triplets, not the hex values it searched for). */
     background: rgba(255,255,255,.97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-    border: 1px solid var(--l2); box-shadow: var(--sh3); border-radius: var(--r-lg);
+    border: 1px solid var(--l2); box-shadow: var(--sh3); border-radius: var(--exgen-radius-lg);
     padding: 12px 14px 12px 18px; z-index: 8000;
     opacity: 0; pointer-events: none;
     transition: opacity .28s ease, transform .28s cubic-bezier(.22,.61,.36,1);
@@ -554,7 +570,7 @@
   }
   .joinCtaBtn {
     flex-shrink: 0; height: 44px; padding: 0 20px;
-    background: var(--a); color: #fff; border: none; border-radius: 8px;
+    background: var(--a); color: #fff; border: none; border-radius: var(--exgen-radius-md);
     font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer;
     transition: background .15s ease, transform .12s ease;
     white-space: nowrap;
@@ -956,7 +972,7 @@
   <div style="display:flex;align-items:center;justify-content:center;margin-bottom:12px">
     <a href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive"
        style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;
-              border:1px solid var(--exgen-border,#E4E7EC);border-radius:20px;padding:4px 11px">
+              border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-pill);padding:4px 11px">
       <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="14" height="14"
            style="border-radius:3px;opacity:.85" alt="UngDrive">
       <span style="font:500 10px 'DM Mono',monospace;letter-spacing:.05em">Backed by UngDrive</span>
