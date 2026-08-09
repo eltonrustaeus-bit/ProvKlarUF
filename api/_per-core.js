@@ -124,9 +124,11 @@ export function buildPERSystemPrompt({
       lines.push(`Sidans identifierade svagheter: ${pageContext.weakAreas.join(', ')}`);
     }
     if (pageContext.examState) {
-      const { answered, remaining } = pageContext.examState;
-      if (typeof answered === 'number' || typeof remaining === 'number') {
-        lines.push(`Provstatus: ${answered ?? '?'} besvarade, ${remaining ?? '?'} kvar`);
+      const { answered, remaining, elapsed } = pageContext.examState;
+      if (typeof answered === 'number' || typeof remaining === 'number' || elapsed) {
+        // elapsed räknar UPPÅT från provstart — formuleringen får aldrig antyda tid kvar.
+        const elapsedPart = elapsed ? `, ${elapsed} på provet` : '';
+        lines.push(`Provstatus: ${answered ?? '?'} besvarade, ${remaining ?? '?'} kvar${elapsedPart}`);
       }
     }
   }

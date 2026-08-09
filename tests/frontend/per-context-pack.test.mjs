@@ -87,6 +87,49 @@ const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
   ok("T6c provstatus finns", /Provstatus: 3 besvarade, 2 kvar/.test(r.summary), r.summary);
 }
 
+// ── T7: elapsed når pageContext och summary ────────────────────────────────
+{
+  const r = buildPERContextPack({
+    rawPageContext: {
+      page: "prov",
+      examState: { answered: 3, remaining: 2, elapsed: "12:40" }
+    }
+  });
+  ok("T7a elapsed i pageContext.examState", r.pageContext.examState.elapsed === "12:40",
+     JSON.stringify(r.pageContext.examState));
+  ok("T7b elapsed i sammanfattningen", /Provstatus: 3 besvarade, 2 kvar, 12:40 på provet/.test(r.summary), r.summary);
+  ok("T7c formuleringen antyder inte tid kvar", !/kvar på provet|återstår/.test(r.summary), r.summary);
+}
+
+// ── T8: examState som BARA bär elapsed tappas inte ──────────────────────────
+{
+  const r = buildPERContextPack({
+    rawPageContext: { page: "prov", examState: { elapsed: "05:02" } }
+  });
+  ok("T8a examState sätts trots att answered/remaining saknas", r.pageContext.examState?.elapsed === "05:02",
+     JSON.stringify(r.pageContext.examState));
+  ok("T8b syns i sammanfattningen", /Provstatus: \? besvarade, \? kvar, 05:02 på provet/.test(r.summary), r.summary);
+}
+
+// ── T9: taket på inkommande arraylängd håller output på 24 mål ─────────────
+{
+  // 30 giltiga mål i toppen (fler än 24-taket), sedan 5000 ogiltiga poster
+  // — en konstruerad, mycket lång array som annars skulle tvinga loopen att
+  // iterera hela innan den ger upp.
+  const valid = Array.from({ length: 30 }, (_, n) => ({ id: "q" + n, label: "Fråga " + n }));
+  const invalidPadding = Array.from({ length: 5000 }, () => ({ id: "" }));
+  const r = buildPERContextPack({ rawPageContext: { page: "prov", targets: [...valid, ...invalidPadding] } });
+  ok("T9a fortfarande max 24 mål trots en väldigt lång array", r.pageContext.targets.length === 24,
+     String(r.pageContext.targets?.length));
+
+  // En lång array av enbart ogiltiga poster (längre än scan-taket) ska inte
+  // krascha eller hänga — output blir helt enkelt tomt.
+  const allInvalid = Array.from({ length: 5000 }, () => ({ id: "" }));
+  const r2 = buildPERContextPack({ rawPageContext: { page: "prov", targets: allInvalid } });
+  ok("T9b enbart ogiltiga poster i en lång array ger inga mål", r2.pageContext.targets === undefined,
+     String(r2.pageContext.targets?.length));
+}
+
 console.log(pass.map(p => "  ok  " + p).join("\n"));
 if (fail.length) { console.log(fail.map(f => "  FAIL " + f).join("\n")); }
 console.log(`\n${pass.length} ok, ${fail.length} fail`);

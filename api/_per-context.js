@@ -53,12 +53,22 @@ function cleanMistakes(values) {
 /* Mål som sidan erbjuder P.E.R att skicka eleven till. Bara id, etikett och
    ledtråd — go-funktionen stannar hos klienten och når aldrig hit.
    id:t begränsas hårt eftersom det går ut i prompten och kommer tillbaka som
-   en sträng modellen skrivit: [a-z0-9_-], max 40 tecken, max 24 mål. */
+   en sträng modellen skrivit: [a-z0-9_-], max 40 tecken, max 24 mål.
+
+   Två separata tak, med olika syfte — ta inte bort det ena för att det andra
+   "redan täcker" fallet:
+   - scanLimit (300): hur många poster som ens undersöks. En äkta sida
+     deklarerar aldrig fler än ett fåtal mål, men en konstruerad HTTP-kropp
+     kan skicka en mycket lång array av enbart ogiltiga poster och tvinga
+     loopen att iterera hela innan den ger upp.
+   - 24: hur många GODKÄNDA mål som får nå prompten. */
 function cleanTargets(values) {
   if (!Array.isArray(values)) return [];
   const out = [];
-  for (const raw of values) {
+  const scanLimit = Math.min(values.length, 300);
+  for (let i = 0; i < scanLimit; i++) {
     if (out.length >= 24) break;
+    const raw = values[i];
     if (!raw || typeof raw !== "object") continue;
     const id = String(raw.id || "").trim().toLowerCase();
     if (!/^[a-z0-9_-]{1,40}$/.test(id)) continue;
@@ -150,10 +160,14 @@ export function buildPERContextPack({
     const examState = {
       answered: cleanNumber(raw.examState.answered, 0, 500),
       remaining: cleanNumber(raw.examState.remaining, 0, 500),
+      // Sträng på formen "12:40" — räknar UPPÅT från provstart, inte tid kvar.
+      // Går genom cleanText som allt annat klientinnehåll (BLOCKED_CONTEXT_REGEX gäller).
+      elapsed: cleanText(raw.examState.elapsed, 12) || undefined,
     };
-    if (examState.answered !== undefined || examState.remaining !== undefined) {
+    if (examState.answered !== undefined || examState.remaining !== undefined || examState.elapsed !== undefined) {
       pageContext.examState = examState;
-      summaryLines.push(`Provstatus: ${examState.answered ?? "?"} besvarade, ${examState.remaining ?? "?"} kvar`);
+      const elapsedPart = examState.elapsed ? `, ${examState.elapsed} på provet` : "";
+      summaryLines.push(`Provstatus: ${examState.answered ?? "?"} besvarade, ${examState.remaining ?? "?"} kvar${elapsedPart}`);
     }
   }
 
