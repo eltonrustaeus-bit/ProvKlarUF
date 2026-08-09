@@ -216,6 +216,87 @@ ok("T9b currentQuestion är borta på resultatskärmen", !afterSubmit.currentQue
 ok("T9c examState är borta på resultatskärmen", !afterSubmit.examState, JSON.stringify(afterSubmit.examState));
 ok("T9d targets är borta på resultatskärmen", !afterSubmit.targets, JSON.stringify(afterSubmit.targets));
 
+// ── T10: debouncad publish() återuppväcker inte manifestet (Fynd A) ───────
+// T9 bevisar closeExam() för flervalsfrågor — de publicerar synkront vid
+// varje klick, debouncen (publishSoon, 500ms) berörs aldrig där. Kortsvar
+// publicerar 500ms efter senaste tangenttryck: fyller eleven sista fältet
+// och trycker "Lämna in" direkt hinner closeExam() nollställa manifestet
+// FÖRE den redan schemalagda timern brinner — och timern kör publish() på
+// nytt mot ett S.exam som fortfarande finns kvar, mitt på resultatskärmen.
+// Kräver type:"short"; T9:s type:"mc" kan per konstruktion aldrig fånga det.
+const EXAM_SHORT = {
+  title: "Prov", level: "C",
+  questions: Array.from({ length: 3 }, (_, n) => ({
+    id: "s" + (n + 1), type: "short", points: 2,
+    question: "Kortsvarsfråga " + (n + 1) + " om cellandning",
+    topic: "Cellandning", cognitive_level: "förstå", source_references: ["s.1"],
+    model_answer: "svar", scoring_rubric: { parts: [], full_score_requirements: "", partial_credit_notes: "" }
+  }))
+};
+
+const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+const page2 = await ctx2.newPage();
+await page2.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
+await page2.route("**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM_SHORT)), meta: { quota: { enforced: false } } } }));
+await page2.route("**/api/explain", r => r.fulfill({ json: { ok: true, answer: "Svar." } }));
+await page2.route("**/api/grade", r => r.fulfill({ json: { ok: true, result: {
+  total_points: 6, max_points: 6,
+  per_question: [
+    { id: "s1", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
+    { id: "s2", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
+    { id: "s3", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" }
+  ]
+} } }));
+await page2.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
+await page2.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
+await page2.addInitScript(() => {
+  const exp = Math.floor(Date.now() / 1000) + 7200;
+  localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
+  localStorage.setItem("proviaai_role", "premium");
+  localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
+});
+
+await page2.goto("http://localhost:4611/app.html", { waitUntil: "networkidle" });
+await page2.waitForSelector("#xf .xf-screen.on", { timeout: 8000 });
+await page2.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary"); await page2.waitForTimeout(200);
+await page2.fill("#xf .xf-screen[data-screen='subject'] .xf-input", "Biologi 1");
+await page2.click("#xf .xf-screen[data-screen='subject'] .xf-btn.primary"); await page2.waitForTimeout(200);
+await page2.click("#xf .xf-screen[data-screen='aim'] .xf-btn.primary"); await page2.waitForTimeout(200);
+await page2.fill("#xf .xf-screen[data-screen='material'] .xf-area", "Cellandning sker i mitokondrien. Glykolysen ger 2 ATP. Citronsyracykeln sker i matrix. Elektrontransportkedjan kräver syre.");
+await page2.waitForTimeout(150);
+await page2.click("#xf .xf-screen[data-screen='material'] .xf-btn.primary"); await page2.waitForTimeout(200);
+await page2.click("#xf .xf-screen[data-screen='contract'] .xf-btn.primary");
+await page2.waitForSelector(".xf-exam.on", { timeout: 10000 });
+await page2.waitForTimeout(300);
+
+// Fråga 1 och 2 fylls i och hinner publicera/lugna sig innan vi går vidare —
+// bara sista fältet ska stå i debounce-fönstret när "Lämna in" trycks.
+await page2.fill(".xf-answer", "syre");
+await page2.waitForTimeout(700);
+await page2.click(".xf-dot >> nth=1"); await page2.waitForTimeout(200);
+await page2.fill(".xf-answer", "vatten");
+await page2.waitForTimeout(700);
+
+// Fråga 3 — sista fältet fylls och "Lämna in" trycks OMEDELBART, inom de
+// 500 ms publishSoon debouncar med. Alla tre frågor är besvarade → inget
+// confirm()-block att vänta på.
+await page2.click(".xf-dot >> nth=2"); await page2.waitForTimeout(200);
+await page2.fill(".xf-answer", "syre");
+await page2.click(".xf-exam-nav .xf-btn.primary");
+await page2.waitForSelector("#xf .xf-screen[data-screen='result'].on", { timeout: 15000 });
+// MACHINE_MIN_MS (1400 ms) har redan passerat innan resultatskärmen visas —
+// gott om marginal för att den 500 ms-debouncade timern, om den INTE
+// nollställdes av closeExam(), redan hunnit brinna och återupplivat manifestet.
+await page2.waitForTimeout(200);
+
+const t10ctx = await page2.evaluate(() => window.__perTestCtx());
+const t10sees = await page2.evaluate(() => { var el = document.getElementById("perSees"); return el ? el.textContent : ""; });
+ok("T10a currentQuestion är borta på resultatskärmen (kortsvar, direkt inlämning)", !t10ctx.currentQuestion, JSON.stringify(t10ctx.currentQuestion));
+ok("T10b examState är borta på resultatskärmen (kortsvar, direkt inlämning)", !t10ctx.examState, JSON.stringify(t10ctx.examState));
+ok("T10c perSees ljuger inte uppåt efter att debounce-fönstret passerat", t10sees === "ser: den här sidan", t10sees);
+
+await ctx2.close();
+
 await ctx.close();
 await browser.close();
 server.close();

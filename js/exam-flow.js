@@ -818,6 +818,14 @@
     UI.nudge.classList.remove("on");
     if (UI.clock) clearInterval(UI.clock);
     watchKeyboard(false);
+    /* Fritextsvar publiceras debouncat (publishSoon, 500ms). Skriver eleven
+       klart sista kortsvarsfrågan och trycker "Lämna in" inom den halv-
+       sekunden hinner PER.describe(null) nedan köras först — och sedan
+       brinner den redan schemalagda timern och kör publish() på nytt, mot
+       ett S.exam som fortfarande finns kvar i minnet. Resultatet: manifestet
+       återuppstår på resultatskärmen efter att just ha nollställts. Måste
+       clear:as INNAN describe(null), annars hinner ingenting förhindra den. */
+    clearTimeout(publishTimer);
     /* Manifestet hörde till frågan som stod på skärmen, inte till det som
        kommer efteråt (resultat, eller en helt annan skärm om eleven väljer
        "Nytt ämne"). Utan den här raden stod P.E.R kvar på "fråga 12 av 12"
