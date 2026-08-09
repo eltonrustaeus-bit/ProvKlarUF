@@ -320,7 +320,12 @@ nedanför lämnas orörda.
         }
       }
 
-      /* Elevens snitt ur lokal historik — bara om ingen sida angett något. */
+      /* Elevens snitt ur lokal historik — bara om ingen sida angett något.
+         Tidigare kördes det här blocket alltid och skrev över sidans värde.
+         förbättring.html räknar sitt snitt på historik synkad från servern;
+         localStorage är bara det som råkar ligga kvar i den här webbläsaren.
+         Den mer korrekta källan ska vinna. Beslutat 2026-08-09, avviker
+         medvetet från dagens beteende. */
       if (typeof ctx.userScore !== 'number') {
         try {
           var hist = JSON.parse(localStorage.getItem('proviaai_history') || '[]');
@@ -355,8 +360,13 @@ nedanför lämnas orörda.
 
   /* Testkrok. Exponerar den sammanslagna kontexten så att
      tests/frontend/per-manifest.test.mjs kan läsa exakt det som går ut på
-     nätverket, utan att behöva fånga ett fetch-anrop för varje påstående. */
-  window.__perTestCtx = function() { return getPageContext(); };
+     nätverket, utan att behöva fånga ett fetch-anrop för varje påstående.
+
+     Grindad på localhost: testservern kör där, och inget av detta har någon
+     anledning att nå en riktig besökare. */
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    window.__perTestCtx = function() { return getPageContext(); };
+  }
 ```
 
 - [ ] **Steg 4: Exponera `describe` på `window.PER`**
@@ -821,8 +831,11 @@ Direkt efter `function finalizeMsg(div, text) { … }`-definitionens avslutande
 
 ```js
     /* Testkrok — tests/frontend/per-exam-context.test.mjs matar in svarstexter
-       direkt i stället för att stubba ett helt SSE-flöde per påstående. */
-    window.__perFinalize = finalizeMsg;
+       direkt i stället för att stubba ett helt SSE-flöde per påstående.
+       Grindad på localhost, samma skäl som __perTestCtx i shared.js. */
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      window.__perFinalize = finalizeMsg;
+    }
 ```
 
 - [ ] **Steg 5: Kör testet och se att det passerar**
