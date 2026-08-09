@@ -87,6 +87,20 @@
        skrivyta, så den får kontrollens mått. */
     .xfField > .xf-input{font-size:var(--exgen-text-sm);padding:9px 12px}
     .xfSync{flex:none}
+    /* Åtgärdsraden får sidans bakgrund under sig, annars syns listan igenom
+       när den fastnar överst. */
+    .xfTrainBar{background:var(--exgen-bg,#fff);padding:10px 0;margin-bottom:var(--exgen-space-4)}
+    .xfTrainClear{margin-left:auto}
+    .xfMiss{margin-bottom:var(--exgen-space-5)}
+    .xfMissRow{margin-bottom:0}
+    .xfMissTags{margin:8px 0 0}
+    .xfMissMore{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;padding-left:2px}
+    .xfDisclose{background:none;border:0;padding:0;cursor:pointer;font-family:var(--exgen-font-mono);
+      font-size:10.5px;letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+      color:var(--xf-ink-2);transition:color .18s}
+    .xfDisclose:hover{color:var(--xf-accent)}
+    .xfCached{opacity:.6;text-transform:none;letter-spacing:0}
+    .xfMissDetail{margin-top:10px}
     @media(max-width:520px){.xfFilters{align-items:stretch}.xfSync{width:100%}}
     @media(max-width:600px){main.wrap{padding-bottom:48px}}
 
@@ -550,49 +564,24 @@
     </div>
 
     <!-- SECTION 04 – TRÄNA -->
-    <div class="section collapsed reveal" id="trainSection">
-      <div class="sHead" data-toggle="#trainSection">
-        <div class="sHeadLeft">
-          <span class="sNum">04</span>
-          <div class="sInfo">
-            <div class="sTitle" id="readyTitle">Träna misstag</div>
-            <div class="sDesc" id="readySub">Markera i felbanken, träna exakt det du behöver</div>
-          </div>
-        </div>
-        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      </div>
-      <div class="sDivider"></div>
-      <div class="sBody">
-        <div class="sBodyInner">
-          <div class="trainRow">
-            <button class="btn btnP" id="trainSelectedBtn" type="button">Träna markerade</button>
-            <button class="btn" id="clearSelectionBtn" type="button">Rensa val</button>
-            <span class="selPill" id="selCountPill">0 valda</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- ZON 2 — FELBANK. Kärnan. Åtgärdsraden bodde tidigare i en egen
+         hopfälld sektion OVANFÖR den här, med två knappar och "0 valda" men
+         utan någonting att markera i synfältet. Den hade ingen egen data —
+         den opererar på LS_TRAIN_PICK, som fylls här nere. Nu sitter den
+         ovanpå listan den handlar om. -->
+    <section class="xfZone reveal" id="zonFelbank">
+      <div class="xf-eyebrow" id="mistakesTitle">Felbank</div>
+      <p class="xf-note" id="mistakesSub">Frågor du tappat poäng på · med modellsvar</p>
 
-    <!-- SECTION 05 – FELBANK -->
-    <div class="section collapsed reveal" id="mistakeSection">
-      <div class="sHead" data-toggle="#mistakeSection">
-        <div class="sHeadLeft">
-          <span class="sNum">05</span>
-          <div class="sInfo">
-            <div class="sTitle" id="mistakesTitle">Felbank</div>
-            <div class="sDesc" id="mistakesSub">Frågor du tappat poäng på · med modellsvar</div>
-          </div>
-        </div>
-        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="xf-act xf-act--stick xfTrainBar" id="trainActions">
+        <span class="xf-chip" id="selCountPill">0 valda</span>
+        <button class="xf-btn ghost xfTrainClear" id="clearSelectionBtn" type="button">Rensa val</button>
+        <button class="xf-btn" id="trainSelectedBtn" type="button">Träna markerade</button>
       </div>
-      <div class="sDivider"></div>
-      <div class="sBody">
-        <div class="sBodyInner">
-          <div class="statusText" id="mistakeStatus" aria-live="polite"></div>
-          <div id="mistakeList"></div>
-        </div>
-      </div>
-    </div>
+
+      <div class="statusText" id="mistakeStatus" aria-live="polite"></div>
+      <div id="mistakeList"></div>
+    </section>
 
     </div><!-- /.xf-body -->
     </div><!-- /.xf-measure -->
@@ -666,7 +655,6 @@
         noData:'Ingen provdata hittades. Gör ett prov i appen och tryck Rätta prov.',
         coachTitle:'Coach',coachSub:'AI-analys baserad på din historik och felbank',coachHeader:'Rekommendation',
         lastTitle:'Senaste',trendTitle:'Trend',focusTitle:'Fokus',
-        readyTitle:'Träna misstag',readySub:'Markera i felbanken, träna exakt det du behöver',
         trainSelected:'Träna markerade',clearSel:'Rensa val',
         mistakesTitle:'Felbank',mistakesSub:'Frågor du tappat poäng på · med modellsvar',
         mistakesEmpty:'Felbanken är tom!',mistakesEmptyDesc:'Inga tappade poäng just nu. Fortsätt träna.',
@@ -700,7 +688,6 @@
         noData:'No exam data found. Create an exam in the app and click Grade.',
         coachTitle:'Coach',coachSub:'AI analysis based on your history and mistake library',coachHeader:'Recommendation',
         lastTitle:'Latest',trendTitle:'Trend',focusTitle:'Focus',
-        readyTitle:'Train mistakes',readySub:'Select in the library, train exactly what you need',
         trainSelected:'Train selected',clearSel:'Clear',
         mistakesTitle:'Mistakes',mistakesSub:'Questions where you lost points · with model answers',
         mistakesEmpty:'Library is empty!',mistakesEmptyDesc:'No lost points right now. Keep training.',
@@ -926,7 +913,6 @@
       $('lastTitle').textContent=t.lastTitle;$('trendTitle').textContent=t.trendTitle;$('focusTitle').textContent=t.focusTitle;
       $('reportTitle').textContent=t.reportTitle;$('reportSub').textContent=t.reportSub;
       $('genReportBtn').textContent=t.reportCreate;$('copyReportBtn').textContent=t.reportCopy;
-      $('readyTitle').textContent=t.readyTitle;$('readySub').textContent=t.readySub;
       $('trainSelectedBtn').textContent=t.trainSelected;$('clearSelectionBtn').textContent=t.clearSel;
       $('mistakesTitle').textContent=t.mistakesTitle;$('mistakesSub').textContent=t.mistakesSub;
       $('footerText').textContent=t.footer;$('langLabel').textContent=t.english;$('langPill').textContent=LANG.toUpperCase();
@@ -1110,35 +1096,52 @@
       const grid=document.createElement('div');grid.className='mistakeGrid';
       list.appendChild(grid);
       filtered.slice().sort((a,b)=>Number(b.ts||0)-Number(a.ts||0)).forEach(m=>{
-        const d=document.createElement('div');d.className='mCard';
+        // Raden ÄR markeringen. .xf-opt.sel ritar accentkanten på insidan via
+        // ::before, så raden inte hoppar en pixel när den väljs — kryssrutan
+        // som låg här förut var en andra kontroll för ett tillstånd raden redan
+        // kunde bära.
+        const d=document.createElement('div');d.className='xfMiss';
         const date=new Date(m.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
         const isPicked=pickSet.has(String(m.id)),cKey=tipsCKey(m),hasCached=!!(tc[cKey]);
         const cTag=conceptOf(m),eTags=errorTagsOf(m).slice(0,3);
-        const tagsHtml=(cTag||eTags.length)?`<div class="mTags">${
-          cTag?`<span class="mConcept">${esc(cTag)}</span>`:''
-        }${eTags.map(x=>`<span class="mErr">${esc(errLabel(x))}</span>`).join('')}</div>`:'';
+        const tagsHtml=(cTag||eTags.length)?`<div class="xf-chips xfMissTags">${
+          cTag?`<span class="xf-chip">${esc(cTag)}</span>`:''
+        }${eTags.map(x=>`<span class="xf-chip">${esc(errLabel(x))}</span>`).join('')}</div>`:'';
         d.innerHTML=`
-          <div class="mHeader">
-            <div class="mMeta">${date} · ${esc((m.course||'').trim()||(LANG==='sv'?'ingen kurs':'no course'))}</div>
-            <div class="mScore">${m.points}/${m.max_points}p</div>
-          </div>
-          <div class="mQ">${esc(m.question||'')}</div>
+          <button type="button" class="xf-opt xfMissRow${isPicked?' sel':''}" data-id="${esc(m.id)}"
+                  aria-pressed="${isPicked?'true':'false'}">
+            ${esc(m.question||'')}
+            <small>${date} · ${esc((m.course||'').trim()||(LANG==='sv'?'ingen kurs':'no course'))} · ${m.points}/${m.max_points}p</small>
+          </button>
           ${tagsHtml}
-          <div class="mDiv"></div>
-          <div class="mFL">${LANG==='sv'?'Ditt svar':'Your answer'}</div>
-          <div class="mFV">${esc(m.user_answer||'—')}</div>
-          <div class="mFL">Feedback</div>
-          <div class="mFV">${esc(m.feedback||'—')}</div>
-          <div class="mDiv"></div>
-          <div class="mFL">${LANG==='sv'?'Modellsvar':'Model answer'}</div>
-          <div class="mFV">${esc(m.model_answer||'—')}</div>
-          <div class="mActions">
-            <label class="checkChip"><input type="checkbox" class="pickChk" data-id="${esc(m.id)}" ${isPicked?'checked':''}><span>${t.pick}</span></label>
-            <button class="tinyBtn tinyBtnP doneBtn" type="button">${t.doneBtn}</button>
-            <button class="tinyBtn tipsBtnEl" type="button">${t.smartTips}${hasCached?` <span style="font-size:9px;opacity:.6">${t.smartTipsCached}</span>`:''}</button>
+          <div class="xfMissMore">
+            <button type="button" class="xfDisclose" aria-expanded="false">${LANG==='sv'?'Visa svar':'Show answer'}</button>
+            <button class="xfDisclose doneBtn" type="button">${t.doneBtn}</button>
+            <button class="xfDisclose tipsBtnEl" type="button">${t.smartTips}${hasCached?` <span class="xfCached">${t.smartTipsCached}</span>`:''}</button>
+          </div>
+          <div class="xf-note xfMissDetail" hidden>
+            <div class="mFL">${LANG==='sv'?'Ditt svar':'Your answer'}</div>
+            <div class="mFV">${esc(m.user_answer||'—')}</div>
+            <div class="mFL">Feedback</div>
+            <div class="mFV">${esc(m.feedback||'—')}</div>
+            <div class="mFL">${LANG==='sv'?'Modellsvar':'Model answer'}</div>
+            <div class="mFV">${esc(m.model_answer||'—')}</div>
           </div>
           <div class="tipsBox tipsBoxEl" style="display:none"></div>`;
-        d.querySelector('.pickChk')?.addEventListener('change',()=>togglePickId(m.id));
+
+        // Markering: hela raden.
+        d.querySelector('.xfMissRow')?.addEventListener('click',()=>togglePickId(m.id));
+        // Detaljen: egen kontroll, egen rad under. Ingen stopPropagation
+        // behövs eftersom knapparna ligger utanför .xf-opt, inte inuti den —
+        // en knapp i en knapp är ogiltig HTML och hade dessutom gjort det
+        // omöjligt att gissa vad ett klick gör.
+        const det=d.querySelector('.xfMissDetail'),disc=d.querySelector('.xfDisclose');
+        disc?.addEventListener('click',()=>{
+          const open=det.hasAttribute('hidden');
+          if(open)det.removeAttribute('hidden');else det.setAttribute('hidden','');
+          disc.setAttribute('aria-expanded',open?'true':'false');
+          disc.textContent=open?(LANG==='sv'?'Dölj svar':'Hide answer'):(LANG==='sv'?'Visa svar':'Show answer');
+        });
         d.querySelector('.doneBtn')?.addEventListener('click',()=>{removeMistake(m);setTopStatus(t.removedOne,'ok');renderAll();});
         const tBtn=d.querySelector('.tipsBtnEl'),tBox=d.querySelector('.tipsBoxEl');
         const isTipsVis=()=>tBox.style.display!=='none';

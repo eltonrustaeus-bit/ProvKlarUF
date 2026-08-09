@@ -336,6 +336,14 @@ body.per-focused .xf-orb { --xf-breathe: 2s; }
   flex-wrap: wrap;
 }
 
+/* Åtgärdsraden ska följa med när listan under den är lång. Modifierare, inte
+   en ny primitiv — vokabulären här är avsiktligt arton selektorer kort. */
+.xf-act--stick {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 .xf-btn {
   font-family: inherit;
   font-size: var(--exgen-text-base);

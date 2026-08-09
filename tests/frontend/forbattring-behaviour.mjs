@@ -325,10 +325,16 @@ async function mark(page, id) {
 // kontraktet. Tappar Del B en etikett ur applyLang() faller dess id ur mängden
 // och testet blir rött — vilket är precis det tysta felet som annars bara
 // visar sig som en svensk rad mitt i en engelsk sida.
-// Golvet är MÄTT på dagens sida, inte valt. Sjunker siffran har en etikett
-// tappats ur applyLang() — vilket aldrig ger ett fel, bara en svensk rad mitt i
-// en engelsk sida.
-const LANG_IDS_FLOOR = 30;
+// Golvet är MÄTT, inte valt. Sjunker siffran har en etikett tappats ur
+// applyLang() — vilket aldrig ger ett fel, bara en svensk rad mitt i en engelsk
+// sida.
+//
+// 30 före Del B. 28 sedan zon 2, där readyTitle och readySub togs bort med
+// flit: träningssektionen upphörde som eget område, dess rubrik är numera
+// knappens jobb och dess instruktion ("markera i felbanken") är överflödig när
+// åtgärdsraden sitter i felbanken. Golvet sänks bara tillsammans med en sådan
+// motivering — aldrig för att få en körning grön.
+const LANG_IDS_FLOOR = 28;
 {
   const { ctx, page } = await mk();
   const changed = await page.evaluate(async () => {
