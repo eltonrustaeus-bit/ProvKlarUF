@@ -68,6 +68,26 @@
 
     /* ── MAIN ── */
     main.wrap{padding-top:40px;padding-bottom:80px}
+
+    /* ── ZONER ────────────────────────────────────────────────────────────
+       Sidlokal layoutlim, inte vokabulär. exgen-ui.css:s arton selektorer är
+       avsiktligt korta och ska förbli det; det här är avståndet mellan zonerna
+       och hur en select ställer sig under sin etikett. Inga nya färger, inga
+       nya tokens — allt hämtas ur exgen-tokens.css. */
+    .xfZone{margin-bottom:var(--exgen-space-10)}
+    .xfZone:last-child{margin-bottom:0}
+    .xfZone > .xf-note{margin:-6px 0 0}
+    /* flex-end, inte center: fälten bär sin etikett ovanför sig, så det är
+       underkanterna som ska ligga i linje med knappen — inte mitten. */
+    .xfFilters{align-items:flex-end;margin:var(--exgen-space-6) 0 var(--exgen-space-5)}
+    .xfField{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1 1 140px}
+    .xfField > .xf-eyebrow{margin-bottom:0}
+    /* .xf-input är dimensionerad för materialrutan i provskaparen — 18px text
+       och 15px luft. En kursväljare bredvid en knapp är en kontroll, inte en
+       skrivyta, så den får kontrollens mått. */
+    .xfField > .xf-input{font-size:var(--exgen-text-sm);padding:9px 12px}
+    .xfSync{flex:none}
+    @media(max-width:520px){.xfFilters{align-items:stretch}.xfSync{width:100%}}
     @media(max-width:600px){main.wrap{padding-bottom:48px}}
 
     /* ── HERO ── */
@@ -433,35 +453,30 @@
          Sektionsrubrikerna är kvar och gör hela jobbet. -->
 
     <!-- SECTION 01 – PROV -->
-    <div class="section collapsed reveal" id="examSection">
-      <div class="sHead" data-toggle="#examSection">
-        <div class="sHeadLeft">
-          <span class="sNum">01</span>
-          <div class="sInfo">
-            <div class="sTitle" id="examListTitle">Prov</div>
-            <div class="sDesc" id="examListSub">Filtrera per kurs · klicka för att se felbank</div>
-          </div>
-        </div>
-        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <!-- ZON 1 — PROV. Vägen in. Dess egen undertext säger "klicka för att se
+         felbank", så den matar zon 2; den är inte ett eget mål i sig. -->
+    <section class="xfZone reveal" id="zonProv">
+      <div class="xf-eyebrow" id="examListTitle">Prov</div>
+      <p class="xf-note" id="examListSub">Filtrera per kurs · klicka för att se felbank</p>
+
+      <div class="xf-act xfFilters">
+        <label class="xfField">
+          <span class="xf-eyebrow" id="courseFilterLabel">Kurs</span>
+          <select class="xf-input" id="courseFilter" aria-labelledby="courseFilterLabel"></select>
+        </label>
+        <label class="xfField">
+          <span class="xf-eyebrow" id="showModeLabel">Visa</span>
+          <select class="xf-input" id="showMode" aria-labelledby="showModeLabel">
+            <option value="mistakes" selected>Felbank</option>
+            <option value="all">Alla prov</option>
+          </select>
+        </label>
+        <button class="xf-btn ghost xfSync" id="syncBtn" type="button">↻ <span id="syncBtnLabel">Synka</span></button>
       </div>
-      <div class="sDivider"></div>
-      <div class="sBody">
-        <div class="sBodyInner">
-          <div class="filterRow">
-            <span class="fLabel" id="courseFilterLabel">Kurs</span>
-            <select id="courseFilter" aria-labelledby="courseFilterLabel"></select>
-            <span class="fLabel" id="showModeLabel">Visa</span>
-            <select id="showMode" aria-labelledby="showModeLabel">
-              <option value="mistakes" selected>Felbank</option>
-              <option value="all">Alla prov</option>
-            </select>
-            <button class="btn tinyBtnP" id="syncBtn" type="button" style="margin-left:auto;padding:6px 12px">↻ <span id="syncBtnLabel">Synka</span></button>
-          </div>
-          <div class="statusText" id="examListStatus" aria-live="polite"></div>
-          <div class="dataGrid" id="examList"></div>
-        </div>
-      </div>
-    </div>
+
+      <div class="statusText" id="examListStatus" aria-live="polite"></div>
+      <div class="xf-opts" id="examList"></div>
+    </section>
 
     <!-- SECTION 02 – COACH -->
     <div class="section collapsed reveal" id="coachSection">
@@ -1182,14 +1197,17 @@
       if(!filtered.length){st.textContent=LANG==='sv'?'Inga prov matchar filtret.':'No exams match the filter.';st.className='statusText warn';return;}
       st.textContent=t.showingExams(filtered.length,course);st.className='statusText ok';
       filtered.slice(-12).reverse().forEach(x=>{
-        const d=document.createElement('div');d.className='dataCard';
+        // Hela raden är kontrollen. Tidigare låg en liten "Visa felbank"-knapp
+        // inuti ett kort — två träffytor för en handling, och den lilla var den
+        // som gjorde något.
+        const b=document.createElement('button');b.type='button';b.className='xf-opt';
         const date=new Date(x.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
-        d.innerHTML=`<div class="dLabel">${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}</div><div class="dValue">${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</div><div style="margin-top:9px"><button class="tinyBtn viewBtn" type="button">${LANG==='sv'?'Visa felbank':'Show mistakes'}</button></div>`;
-        d.querySelector('.viewBtn')?.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();openSection('#mistakeSection');});
-        wrap.appendChild(d);
+        b.innerHTML=`${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}<small>${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</small>`;
+        b.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();openSection('#mistakeSection');});
+        wrap.appendChild(b);
       });
       if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
-        const cards=wrap.querySelectorAll(".dataCard");
+        const cards=wrap.querySelectorAll(".xf-opt");
         cards.forEach(function(c,i){
           c.style.opacity="0";c.style.transform="translateY(6px)";
           c.style.transition="opacity .2s ease,transform .2s cubic-bezier(.22,.61,.36,1)";

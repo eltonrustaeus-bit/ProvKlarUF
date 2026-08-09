@@ -287,6 +287,23 @@ async function mark(page, id) {
   const bAll = await page.innerText("body");
   ok("5c biologifrågan syns igen", bAll.includes("mitokondrien"));
   ok("5d mattefrågan är borta", !bAll.includes("Derivatan"));
+
+  // Provlistan är vägen in till felbanken — dess egen undertext lovar "klicka
+  // för att se felbank". Hela raden är kontrollen numera; tidigare låg en liten
+  // knapp inuti ett kort. Att klicka den ska sätta kursfiltret.
+  await page.selectOption("#courseFilter", "");
+  await page.waitForTimeout(500);
+  const rows = page.locator("#examList .xf-opt, #examList .dataCard");
+  if (await rows.count()) {
+    const label = (await rows.first().innerText()).split("\n")[0].trim();
+    await reveal(page, "#examList");
+    await rows.first().click({ force: true });
+    await page.waitForTimeout(600);
+    const val = await page.inputValue("#courseFilter");
+    ok("5e klick på provrad sätter kursfiltret", val === label, `rad "${label}" → filter "${val}"`);
+  } else {
+    ok("5e klick på provrad sätter kursfiltret", false, "inga provrader renderade");
+  }
   await ctx.close();
 }
 
