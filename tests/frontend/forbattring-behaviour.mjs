@@ -164,6 +164,17 @@ async function mark(page, id) {
   ok("0a tre prov synkade", st.hist === 3, JSON.stringify(st));
   ok("0b tre misstag härledda", st.mist === 3, JSON.stringify(st));
   ok("0c felbanken renderar dem", (await page.locator("#mistakeList").innerText()).includes("mitokondrien"));
+
+  // Kolumnen är hela poängen med "samma format som app-sidan". Utan en
+  // kontroll här kan den glida tillbaka till sidans gamla bredd utan att något
+  // annat test märker det.
+  const col = await page.evaluate(() => {
+    const e = document.querySelector(".xf-measure");
+    if (!e) return null;
+    return { w: Math.round(e.getBoundingClientRect().width), token: getComputedStyle(document.documentElement).getPropertyValue("--xf-measure").trim() };
+  });
+  ok("0d innehållet ligger i .xf-measure", !!col, "ingen .xf-measure");
+  ok("0d2 kolumnen är app-sidans 580px", col && col.w === 580, JSON.stringify(col));
   await ctx.close();
 }
 

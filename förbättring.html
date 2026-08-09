@@ -389,6 +389,14 @@
   <!-- MAIN -->
   <main class="wrap" id="main-content">
 
+    <!-- Kolumnen. Samma mått som provskaparen: .xf-inner i exam-flow.css och
+         .xf-measure i exgen-ui.css delar token --xf-measure (580px) och är i
+         övrigt identiska så när som på en vertikal automarginal som bara finns
+         för att centrera en wizardskärm. Vi tar .xf-measure och slipper ladda
+         exam-flow.css, som hade dragit med sig .xf-screen{display:none} och en
+         position:fixed-.xf-exam över hela viewporten på en sida utan prov. -->
+    <div class="xf-measure">
+
     <!-- P.E.R:S RÖST
          Ersätter den gamla marknadsföringsrubriken ("Din progress på ett
          ställe"). En verktygssida ska öppna med ett faktum om eleven, inte med
@@ -410,6 +418,10 @@
         </div>
       </div>
     </div>
+
+    <!-- Kroppen. .xf-body har ingen egen CSS — den är en ren grupperingsdiv
+         också i app.html. Den finns för att strukturen ska vara densamma. -->
+    <div class="xf-body">
 
     <!-- HOW-TO -->
     <div class="howTo reveal" id="howToBanner">
@@ -567,6 +579,8 @@
       </div>
     </div>
 
+    </div><!-- /.xf-body -->
+    </div><!-- /.xf-measure -->
   </main>
 
   <footer class="xg-footer" id="footerText">ExGen är studiestöd och ger ingen officiell betygssättning.</footer>
