@@ -295,6 +295,19 @@ ok("T10a currentQuestion är borta på resultatskärmen (kortsvar, direkt inläm
 ok("T10b examState är borta på resultatskärmen (kortsvar, direkt inlämning)", !t10ctx.examState, JSON.stringify(t10ctx.examState));
 ok("T10c perSees ljuger inte uppåt efter att debounce-fönstret passerat", t10sees === "ser: den här sidan", t10sees);
 
+// ── T11: closeExam() rensar draftTimer, inte bara publishTimer (Fynd 1) ───
+// Samma inlämning som T10 ovan råkar också vara det exakta fönstret för den
+// här buggen: fråga 3 fylls i och "Lämna in" trycks OMEDELBART, så
+// saveDraftSoon() hinner schemalägga en 800ms-timer precis innan closeExam()
+// körs. lsDel(draftKey()) tar bort utkastet så fort den mockade rättningen
+// svarar (nästan direkt) — men maskinytan håller resultatskärmen borta i
+// minst MACHINE_MIN_MS (1400ms, redan passerat här). Rensades inte
+// draftTimer i closeExam() hann den brinna i det fönstret och skriva
+// tillbaka utkastet (S.exam nollställs först vid "Nytt ämne") — eleven
+// erbjuds då "Fortsätt provet du började" för ett prov som redan är rättat.
+const t11draft = await page2.evaluate(() => localStorage.getItem("exgen_flow_draft_u1"));
+ok("T11 utkastet återuppstår inte efter inlämning", t11draft === null, String(t11draft));
+
 await ctx2.close();
 
 await ctx.close();

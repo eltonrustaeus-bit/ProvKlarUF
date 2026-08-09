@@ -826,6 +826,15 @@
        återuppstår på resultatskärmen efter att just ha nollställts. Måste
        clear:as INNAN describe(null), annars hinner ingenting förhindra den. */
     clearTimeout(publishTimer);
+    /* Samma felklass, en rad ovanför löste den för manifestet: saveDraftSoon()
+       (längre ner i filen) har en egen debouncad timer på 800ms. Fyller eleven
+       sista kortsvarsfältet och trycker "Lämna in" hinner den timern schemaläggas
+       precis innan closeExam() körs. lsDel(draftKey()) tar bort utkastet så fort
+       rättningen kommer tillbaka — men saveDraft() bryr sig bara om !S.exam, och
+       S.exam nollställs först vid "Nytt ämne". Otömd brinner draftTimer under
+       maskinytans animation och skriver tillbaka utkastet, så eleven erbjuds
+       "Fortsätt provet du började" för ett prov som redan är rättat.*/
+    clearTimeout(draftTimer);
     /* Manifestet hörde till frågan som stod på skärmen, inte till det som
        kommer efteråt (resultat, eller en helt annan skärm om eleven väljer
        "Nytt ämne"). Utan den här raden stod P.E.R kvar på "fråga 12 av 12"
