@@ -718,6 +718,20 @@
       });
     }
 
+    /* Mål P.E.R kan skicka eleven till inuti sidan. Deklareras separat från
+       datainläsningen nedan: sektionerna finns i markupen från början och ska
+       gå att hoppa till även för en elev som inte hunnit göra ett prov än. */
+    const PER_TARGETS=[
+      { id:'prov',    label:'Prov',          hint:'alla rättade prov',                         go:function(){openSection('#examSection');} },
+      { id:'coach',   label:'Coach',         hint:'personlig studieplan från misstagen',       go:function(){openSection('#coachSection');} },
+      { id:'rapport', label:'Lärarrapport',  hint:'sammanfattning att visa läraren',           go:function(){openSection('#reportSection');} },
+      { id:'trana',   label:'Träna misstag', hint:'nytt prov på det du tappat poäng på',       go:function(){openSection('#trainSection');} },
+      { id:'felbank', label:'Felbank',       hint:'frågor du tappat poäng på, med modellsvar', go:function(){openSection('#mistakeSection');} }
+    ];
+    document.addEventListener('DOMContentLoaded',function(){
+      if(window.setPerContext) window.setPerContext({page:'förbättring',targets:PER_TARGETS});
+    });
+
     /* ── STATUS ── */
     function setTopStatus(text,cls){
       const dot=$('statusDot'),span=$('topStatusText');
@@ -1270,7 +1284,8 @@
           page:'förbättring',
           userScore: avg5 / 100,
           weakAreas: weakAreas,
-          examState: { answered: h.length, remaining: 0 }
+          examState: { answered: h.length, remaining: 0 },
+          targets: PER_TARGETS
         });
       }
 

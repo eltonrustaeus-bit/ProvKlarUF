@@ -94,12 +94,22 @@
   border-radius: 50%;
   border: 1px solid var(--xf-accent);
   opacity: .3;
-  animation: xf-breathe 3.2s var(--exgen-motion-ease) infinite;
+  animation: xf-breathe var(--xf-breathe, 3.2s) var(--exgen-motion-ease) infinite;
 }
 
 @keyframes xf-breathe {
   0%, 100% { transform: scale(.72); opacity: .35; }
   50%      { transform: scale(1);   opacity: 0;   }
+}
+
+/* Snabbare puls när P.E.R har en konkret fråga i fokus. Rörelse som betyder
+   något, inte dekoration. Klassen sätts av perPaintSees() i shared.js. */
+body.per-focused .xf-orb { --xf-breathe: 2s; }
+
+/* exgen-tokens.css nollställer --exgen-motion-* under reduced-motion, men
+   keyframe-varaktigheter går inte genom de tokens. Ringen stoppas här. */
+@media (prefers-reduced-motion: reduce) {
+  .xf-orb::after { animation: none; }
 }
 
 .xf-orb.busy::after { animation-duration: 1.1s; }

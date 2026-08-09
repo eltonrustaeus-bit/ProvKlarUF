@@ -818,6 +818,29 @@
     UI.nudge.classList.remove("on");
     if (UI.clock) clearInterval(UI.clock);
     watchKeyboard(false);
+    /* Fritextsvar publiceras debouncat (publishSoon, 500ms). Skriver eleven
+       klart sista kortsvarsfrågan och trycker "Lämna in" inom den halv-
+       sekunden hinner PER.describe(null) nedan köras först — och sedan
+       brinner den redan schemalagda timern och kör publish() på nytt, mot
+       ett S.exam som fortfarande finns kvar i minnet. Resultatet: manifestet
+       återuppstår på resultatskärmen efter att just ha nollställts. Måste
+       clear:as INNAN describe(null), annars hinner ingenting förhindra den. */
+    clearTimeout(publishTimer);
+    /* Samma felklass, en rad ovanför löste den för manifestet: saveDraftSoon()
+       (längre ner i filen) har en egen debouncad timer på 800ms. Fyller eleven
+       sista kortsvarsfältet och trycker "Lämna in" hinner den timern schemaläggas
+       precis innan closeExam() körs. lsDel(draftKey()) tar bort utkastet så fort
+       rättningen kommer tillbaka — men saveDraft() bryr sig bara om !S.exam, och
+       S.exam nollställs först vid "Nytt ämne". Otömd brinner draftTimer under
+       maskinytans animation och skriver tillbaka utkastet, så eleven erbjuds
+       "Fortsätt provet du började" för ett prov som redan är rättat.*/
+    clearTimeout(draftTimer);
+    /* Manifestet hörde till frågan som stod på skärmen, inte till det som
+       kommer efteråt (resultat, eller en helt annan skärm om eleven väljer
+       "Nytt ämne"). Utan den här raden stod P.E.R kvar på "fråga 12 av 12"
+       mitt på resultatskärmen — exakt den felklass branchen finns för att
+       döda, bara flyttad hit. */
+    if (window.PER && window.PER.describe) window.PER.describe(null);
   }
 
   /* Det virtuella tangentbordet på mobil läggs ovanpå sidan utan att ändra
@@ -859,6 +882,62 @@
     // vilket ser ut som att den nollställdes.
     paint();
     UI.clock = setInterval(paint, 1000);
+  }
+
+  /* Manifestet publiceras vid varje frågebyte, inte bara när hjälpknappen
+     trycks. Före detta såg P.E.R { page: "prov" } och ingenting mer om eleven
+     öppnade bubblan själv — och svarade om fel fråga.
+
+     targets ger P.E.R en väg tillbaka: "ta mig till fråga 7" blir [GOTO:#q7],
+     som shared.js slår upp här och kör med go() nedan. */
+  var publishTimer = null;
+
+  function publish() {
+    if (!window.PER || !window.PER.describe) return;
+    var qs = (S.exam && S.exam.questions) || [];
+    if (!qs.length) return;
+    var i = clamp(S.idx, 0, qs.length - 1);
+    var q = qs[i];
+    if (!q) return;
+    var ans = String(S.answers[qid(q, i)] || "");
+    var answered = 0;
+    qs.forEach(function (qq, n) {
+      if (String(S.answers[qid(qq, n)] || "").trim()) answered++;
+    });
+    window.PER.describe({
+      page: "prov",
+      focus: {
+        kind: "question",
+        number: i + 1,
+        of: qs.length,
+        text: String(q.question || "").slice(0, 400),
+        type: q.type || "short",
+        options: Array.isArray(q.options) ? q.options : [],
+        category: String(q.topic || ""),
+        answer: ans.slice(0, 200),
+        answered: !!ans.trim()
+      },
+      targets: qs.map(function (qq, n) {
+        return {
+          id: "q" + (n + 1),
+          label: "Fråga " + (n + 1),
+          hint: String(qq.question || "").slice(0, 90),
+          go: function () { S.idx = n; renderQuestion(); }
+        };
+      }),
+      state: {
+        answered: answered,
+        remaining: qs.length - answered,
+        elapsed: (UI.time && UI.time.textContent) || ""
+      }
+    });
+  }
+
+  /* Fritextsvar skickas 500 ms efter senaste tangenttryck. Varje tecken hade
+     annars blivit ett nytt manifest. */
+  function publishSoon() {
+    clearTimeout(publishTimer);
+    publishTimer = setTimeout(publish, 500);
   }
 
   function renderQuestion() {
@@ -910,6 +989,7 @@
           btn.classList.add("sel");
           S.answers[id] = letter;
           saveDraft();
+          publish();
           armStuck();
           // Ett flervalssvar är ett avslut — gå vidare av sig själv, men först
           // efter att markeringen hunnit synas.
@@ -926,20 +1006,27 @@
       ta.addEventListener("input", function () {
         S.answers[id] = ta.value;
         saveDraftSoon();
+        publishSoon();
         armStuck();
       });
       sheet.appendChild(ta);
     }
 
+    /* Tillståndsraden (#perSees i shared.js) syns bara vid hover över den
+       flytande bubblan, och bubblan är helt dold under provet — så eleven kan
+       aldrig se den där den skulle betytt något. Knappen är däremot alltid
+       synlig. Den bär därför själv beskedet om vilken fråga P.E.R har: säger
+       den "fråga 7" vet eleven att det är den frågan som gäller utan att
+       behöva fråga. */
     var ask = el("button", "xf-ask" + (S.helped[id] ? " used" : ""),
-      S.helped[id] ? "✦ P.E.R hjälpte dig här" : "✦ Fråga P.E.R om den här frågan");
+      S.helped[id] ? "✦ P.E.R hjälpte dig här" : "✦ Fråga P.E.R om fråga " + (i + 1));
     ask.type = "button";
     ask.addEventListener("click", function () {
       /* Flaggan sätts bara om panelen faktiskt öppnas. Knappen på P.E.R-bubblan
          är en växlare: var panelen redan öppen stängde klicket den, och eleven
          fick ändå avdrag i provsalssiffran — för att ha stängt en panel. Hela
          tvåpoängsfunktionen står och faller med att den här flaggan är sann. */
-      if (!askPer(q, i)) return;
+      if (!askPer()) return;
       S.helped[id] = true;
       ask.className = "xf-ask used";
       ask.textContent = "✦ P.E.R hjälpte dig här";
@@ -956,30 +1043,19 @@
 
     armStuck();
     pace();
+    publish();
   }
 
-  /* P.E.R får hela frågan som kontext så att svaret handlar om just den, inte
-     om sidan i allmänhet. Samma mekanism som app.html redan använder.
+  /* Öppnar P.E.R-panelen åt eleven. Frågekontexten sätts INTE här — publish()
+     skickar redan rätt fråga till manifestet vid varje frågebyte (se ovan).
+     Den här funktionen gör bara knapptrycket verkningsfullt: den släpper fram
+     den annars dolda bubblan under provet och öppnar panelen om den inte
+     redan är öppen.
      Returnerar om panelen faktiskt öppnades — anroparen sätter hjälpflaggan
      bara då. */
-  function askPer(q, i) {
+  function askPer() {
     var bubble = document.getElementById("perBubble");
     if (!bubble) return false;
-
-    if (window.setPerContext) {
-      window.setPerContext({
-        page: "prov",
-        focus: {
-          number: i + 1,
-          text: String(q.question || "").slice(0, 400),
-          type: q.type || "short",
-          options: Array.isArray(q.options) ? q.options : [],
-          points: Number(q.points) || 0,
-          course: S.course,
-          level: S.level
-        }
-      });
-    }
 
     // shared.js sätter .per-open på bubblan medan panelen är uppe. Är den redan
     // öppen finns inget att göra — ett klick hade stängt den i stället.

@@ -114,6 +114,115 @@
   var PER_CORNER_KEY = 'proviaai_per_corner';
   var PER_SIZE_KEY = 'proviaai_per_size';
 
+  /* ── Sidmanifest ──────────────────────────────────────────────────────────
+     Ett kontrakt i stället för åtta gissade nycklar.
+
+     Före detta ropade varje sida setPerContext() med sina egna nyckelnamn och
+     hoppades att getPageContext() råkade känna igen dem. js/exam-flow.js
+     skickade { focus: … }; listan nedan hette currentQuestion. Objektet
+     försvann utan felmeddelande och P.E.R svarade om fel fråga mitt i ett prov.
+
+     Fyra tillåtna toppnycklar, och en okänd nyckel VARNAR i stället för att
+     försvinna. Instansen var focus; klassen är tyst nyckelkassering. */
+  var PER_MANIFEST_KEYS = ['page', 'focus', 'targets', 'state'];
+  var PER_STATE_KEYS = ['answered', 'remaining', 'elapsed'];
+  var _perManifest = null;
+
+  function perWarnKeys(obj, allowed, prefix) {
+    if (!obj) return;
+    Object.keys(obj).forEach(function (k) {
+      if (allowed.indexOf(k) !== -1) return;
+      try { console.warn('[PER] okänd manifestnyckel: ' + prefix + k + ' — ignorerad'); } catch (_) {}
+    });
+  }
+
+  /* go-funktionen stannar på klienten. Servern ser bara id/label/hint. */
+  function perCleanTargets(list) {
+    if (!Array.isArray(list)) return [];
+    var out = [];
+    for (var i = 0; i < list.length && out.length < 24; i++) {
+      var t = list[i];
+      if (!t || typeof t !== 'object') continue;
+      var id = String(t.id || '').trim().toLowerCase();
+      if (!/^[a-z0-9_-]{1,40}$/.test(id)) continue;
+      out.push({
+        id: id,
+        label: String(t.label || id).slice(0, 60),
+        hint: String(t.hint || '').slice(0, 90),
+        go: typeof t.go === 'function' ? t.go : null
+      });
+    }
+    return out;
+  }
+
+  function perDescribe(m) {
+    if (!m || typeof m !== 'object') { _perManifest = null; perPaintSees(); return; }
+    perWarnKeys(m, PER_MANIFEST_KEYS, '');
+    perWarnKeys(m.state, PER_STATE_KEYS, 'state.');
+    var st = null;
+    if (m.state && typeof m.state === 'object') {
+      st = {};
+      if (typeof m.state.answered === 'number') st.answered = m.state.answered;
+      if (typeof m.state.remaining === 'number') st.remaining = m.state.remaining;
+      if (typeof m.state.elapsed === 'string') st.elapsed = m.state.elapsed.slice(0, 12);
+    }
+    _perManifest = {
+      page: typeof m.page === 'string' ? m.page : '',
+      focus: (m.focus && typeof m.focus === 'object') ? m.focus : null,
+      targets: perCleanTargets(m.targets),
+      state: st
+    };
+    if (window.PER && window.PER._resetNudge) window.PER._resetNudge();
+    perPaintSees();
+  }
+
+  function perFindTarget(id) {
+    if (!_perManifest) return null;
+    var want = String(id || '').trim().toLowerCase();
+    for (var i = 0; i < _perManifest.targets.length; i++) {
+      if (_perManifest.targets[i].id === want) return _perManifest.targets[i];
+    }
+    return null;
+  }
+
+  function perStateLine() {
+    var m = _perManifest;
+    if (!m) return 'ser: den här sidan';
+    var parts = [];
+    if (m.focus && m.focus.text && typeof m.focus.number === 'number') {
+      /* körkortet.html skickar number men aldrig of — "fråga 5" är fortfarande
+         sant utan "av 65", till skillnad från att tyst falla tillbaka på
+         "den här sidan" som om P.E.R inte visste vilken fråga det gällde.
+
+         text krävs här också: servern (cleanQuestion i _per-context.js)
+         släpper hela fokus om text saknas, oavsett number. Utan samma krav
+         här kunde raden påstå "ser: fråga 5" om ett focus-objekt som servern
+         redan behandlar som "ingen fråga alls" — klient och server måste
+         vara överens om vad som räknas som fokus. */
+      parts.push(typeof m.focus.of === 'number'
+        ? 'fråga ' + m.focus.number + ' av ' + m.focus.of
+        : 'fråga ' + m.focus.number);
+    } else if (m.focus && m.focus.text) {
+      /* js/hp-app.js skickar varken number eller of, bara text. Frågetexten
+         skrivs aldrig ut rakt av här — den kan vara lång och bubblan är smal
+         — men raden får inte heller ljuga "den här sidan" när P.E.R faktiskt
+         har en fråga i handen. */
+      parts.push('en fråga');
+    }
+    if (m.focus && m.focus.answer) parts.push('ditt svar ' + String(m.focus.answer).slice(0, 24));
+    /* Klockan räknar uppåt från provstart — "kvar" hade varit fel ord. */
+    if (m.state && m.state.elapsed) parts.push(m.state.elapsed + ' på provet');
+    return parts.length ? 'ser: ' + parts.join(' · ') : 'ser: den här sidan';
+  }
+
+  function perPaintSees() {
+    var el = document.getElementById('perSees');
+    if (el) el.textContent = perStateLine();
+    /* Orbens andningsring går snabbare när P.E.R har ett skarpt fokus. */
+    var focused = !!(_perManifest && _perManifest.focus);
+    if (document.body) document.body.classList.toggle('per-focused', focused);
+  }
+
   function getPageContext() {
     try {
       var path = window.location.pathname.toLowerCase();
@@ -126,11 +235,18 @@
 
       var ctx = { page: page };
 
-      /* Optional rich context set by individual pages */
+      /* Äldre fält som ännu inte flyttat in i manifestet. setPerContext skriver
+         fortfarande hit, så sidor som inte migrerats tappar ingenting.
+
+         currentQuestion och examState hör INTE hemma i den här listan längre:
+         setPerContext mappar redan båda in i manifestet (focus/state) några
+         rader ner, och manifestet är den enda som nollställs av
+         PER.describe(null). Läste vi dem härifrån också skulle en gammal
+         fråga leva kvar i _perPageContext efter att manifestet rensats — ett
+         nollställt PER.describe(null) skulle se ut som att den fortfarande
+         visade förra frågan. */
       if (window._perPageContext && typeof window._perPageContext === 'object') {
         var pc = window._perPageContext;
-        if (pc.currentQuestion) ctx.currentQuestion = pc.currentQuestion;
-        if (pc.examState) ctx.examState = pc.examState;
         if (Array.isArray(pc.questions)) ctx.questions = pc.questions;
         if (typeof pc.userScore === 'number') ctx.userScore = pc.userScore;
         if (Array.isArray(pc.weakAreas)) ctx.weakAreas = pc.weakAreas;
@@ -139,15 +255,45 @@
         if (pc.mode) ctx.mode = pc.mode;
       }
 
-      /* User score from localStorage history */
-      try {
-        var hist = JSON.parse(localStorage.getItem('proviaai_history') || '[]');
-        if (Array.isArray(hist) && hist.length) {
-          var last5 = hist.slice(-5);
-          var avg = last5.reduce(function(s, x) { return s + (Number(x.percent) || 0); }, 0) / last5.length;
-          ctx.userScore = avg / 100;
+      /* Manifestet vinner där det säger något — det är den färska sanningen. */
+      var m = _perManifest;
+      if (m) {
+        if (m.page) ctx.page = m.page;
+        if (m.focus && (m.focus.text || typeof m.focus.number === 'number')) {
+          ctx.currentQuestion = {
+            number: m.focus.number,
+            text: m.focus.text,
+            options: m.focus.options,
+            type: m.focus.type,
+            category: m.focus.category,
+            answer: m.focus.answer,
+            answered: !!m.focus.answered
+          };
         }
-      } catch (_) {}
+        if (m.state) ctx.examState = m.state;
+        if (m.targets.length) {
+          ctx.targets = m.targets.map(function (t) {
+            return { id: t.id, label: t.label, hint: t.hint };
+          });
+        }
+      }
+
+      /* Elevens snitt ur lokal historik — bara om ingen sida angett något.
+         Tidigare kördes det här blocket alltid och skrev över sidans värde.
+         förbättring.html räknar sitt snitt på historik synkad från servern;
+         localStorage är bara det som råkar ligga kvar i den här webbläsaren.
+         Den mer korrekta källan ska vinna. Beslutat 2026-08-09, avviker
+         medvetet från dagens beteende. */
+      if (typeof ctx.userScore !== 'number') {
+        try {
+          var hist = JSON.parse(localStorage.getItem('proviaai_history') || '[]');
+          if (Array.isArray(hist) && hist.length) {
+            var last5 = hist.slice(-5);
+            var avg = last5.reduce(function(s, x) { return s + (Number(x.percent) || 0); }, 0) / last5.length;
+            ctx.userScore = avg / 100;
+          }
+        } catch (_) {}
+      }
 
       return ctx;
     } catch (_) {
@@ -155,12 +301,30 @@
     }
   }
 
-  /* Pages call this to inject richer context into the P.E.R widget */
+  /* Bakåtkompatibel ingång. app.html:1474 och förbättring.html:1258 anropar
+     fortfarande denna; den mappar in i manifestet i stället för att ha en egen
+     halv sanning vid sidan om. */
   window.setPerContext = function(ctx) {
     window._perPageContext = ctx || null;
-    if (ctx && window.PER && window.PER._resetNudge) window.PER._resetNudge();
+    if (!ctx) { perDescribe(null); return; }
+    perDescribe({
+      page: ctx.page,
+      focus: ctx.currentQuestion || ctx.focus || null,
+      targets: ctx.targets || [],
+      state: ctx.examState || null
+    });
   };
-  window.clearPerContext = function() { window._perPageContext = null; };
+  window.clearPerContext = function() { window._perPageContext = null; perDescribe(null); };
+
+  /* Testkrok. Exponerar den sammanslagna kontexten så att
+     tests/frontend/per-manifest.test.mjs kan läsa exakt det som går ut på
+     nätverket, utan att behöva fånga ett fetch-anrop för varje påstående.
+
+     Grindad på localhost: testservern kör där, och inget av detta har någon
+     anledning att nå en riktig besökare. */
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    window.__perTestCtx = function() { return getPageContext(); };
+  }
 
   function getContextGreeting() {
     try {
@@ -507,13 +671,61 @@
       };
       if (gotoMatch) {
         var href = gotoMatch[1].trim();
-        var navBtn = document.createElement('a');
-        navBtn.href = href;
-        navBtn.className = 'per-nav-cta';
-        navBtn.textContent = _perNavLabels[href] || 'Gå dit →';
-        navBtn.onclick = function(e) { e.stopPropagation(); };
-        div.appendChild(navBtn);
+        var navBtn = null;
+        if (href.charAt(0) === '#') {
+          /* Mål inuti sidan. Id:t slås upp i sidans egen mållista INNAN knappen
+             ritas — prompten begränsar redan modellen till giltiga id, men det
+             är en instruktion, inte en garanti. Hittas inget id ritas ingen
+             knapp och svarstexten står kvar. location sätts aldrig från
+             modellutdata. */
+          var target = perFindTarget(href.slice(1));
+          if (target) {
+            var targetId = href.slice(1);
+            navBtn = document.createElement('button');
+            navBtn.type = 'button';
+            navBtn.className = 'per-nav-cta';
+            navBtn.textContent = target.label + ' →';
+            navBtn.onclick = function (e) {
+              e.stopPropagation();
+              /* Slå upp id:t på nytt i stället för att lita på closurens
+                 `target` — describe(null) (t.ex. inlämnat prov, "Nytt ämne")
+                 nollställer manifestet men rör aldrig redan ritade knappar.
+                 Håller closuren målet vid liv blir klicket antingen en tyst
+                 no-op (screen har bytts, go() pekar på fel data) eller ett
+                 kastat fel som bara sväljs i konsolen. Slås id:t upp här
+                 dör hela felklassen, inte bara den här instansen. */
+              var fresh = perFindTarget(targetId);
+              if (!fresh || !fresh.go) {
+                navBtn.disabled = true;
+                navBtn.textContent = 'Inte längre tillgänglig';
+                return;
+              }
+              try { fresh.go(); }
+              catch (err) { try { console.warn('[PER] målet kastade: ' + err.message); } catch (_) {} }
+            };
+          }
+        } else if (Object.prototype.hasOwnProperty.call(_perNavLabels, href)) {
+          /* Sidgrenen speglar #id-grenen ovan: href sätts aldrig från
+             modellutdata rakt av, bara mot en känd sida i _perNavLabels.
+             Innan denna kontroll gav t.ex. [GOTO:javascript:alert(1)] en
+             klickbar <a href="javascript:alert(1)">. Saknas href i listan
+             ritas ingen knapp — svarstexten står kvar, precis som när ett
+             #id inte hittas. */
+          navBtn = document.createElement('a');
+          navBtn.href = href;
+          navBtn.className = 'per-nav-cta';
+          navBtn.textContent = _perNavLabels[href];
+          navBtn.onclick = function (e) { e.stopPropagation(); };
+        }
+        if (navBtn) div.appendChild(navBtn);
       }
+    }
+
+    /* Testkrok — tests/frontend/per-exam-context.test.mjs matar in svarstexter
+       direkt i stället för att stubba ett helt SSE-flöde per påstående.
+       Grindad på localhost, samma skäl som __perTestCtx i shared.js. */
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      window.__perFinalize = finalizeMsg;
     }
 
     function addMsg(text, type) {
@@ -810,6 +1022,18 @@
         '.per-chip:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.6)}',
         '.per-nav-cta{display:inline-flex;align-items:center;margin-top:10px;padding:8px 14px;background:none;border:1px solid rgba(0,183,217,.38);color:var(--exgen-text,#1B2430);border-radius:var(--exgen-radius-sm,8px);font-size:12px;font-family:"DM Sans",sans-serif;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}',
         '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
+        /* Tillståndsraden. P.E.R:s förtroendeproblem var inte bara att den
+           kunde ha fel fråga — det var att eleven inte kunde SE att den hade
+           det förrän efter att ha frågat. Raden visar vad P.E.R har i handen
+           innan frågan ställs. Byggs lokalt, inget AI-anrop, ingen kostnad. */
+        '#perSees{position:absolute;bottom:52px;right:0;max-width:280px;padding:6px 10px;border-radius:var(--exgen-radius-sm,8px);background:var(--exgen-navy,#0E1B2A);color:#fff;font-family:"DM Mono",monospace;font-size:10.5px;line-height:1.5;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .15s ease}',
+        '#perBubble:hover ~ #perSees,#perBubble:focus-visible ~ #perSees{opacity:1}',
+        /* Panelen är uppe — då står svaret där, och raden vore i vägen.
+           #perWidget-prefixet höjer specificiteten över hover-regeln ovan så
+           att vinnaren avgörs av vad som är sant (panelen öppen eller inte),
+           inte av vilken ordning reglerna råkar stå i den här arrayen. */
+        '#perWidget #perBubble.per-open ~ #perSees{opacity:0}',
+        '@media(prefers-reduced-motion:reduce){#perSees{transition:none}}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
         '@media(max-width:480px){#perPanel{max-height:70dvh}}',
         /* Re-assert exgen tokens unconditionally (light only, no dark mode
@@ -847,7 +1071,8 @@
         '</div>' +
         '<button id="perBubble" title="Fråga P.E.R" aria-label="Fråga P.E.R">'+
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H9l-4 4V5Z"/></svg>'+
-          '<span>P.E.R</span></button>';
+          '<span>P.E.R</span></button>'+
+          '<div id="perSees" aria-hidden="true">ser: den här sidan</div>';
       document.body.appendChild(widget);
 
       document.getElementById('perBubble').onclick = toggle;
@@ -1130,7 +1355,7 @@
       initWidget();
     }
 
-    return { register: register, send: send, _resetNudge: resetNudge, notifyExamDone: notifyExamDone };
+    return { register: register, send: send, describe: perDescribe, _resetNudge: resetNudge, notifyExamDone: notifyExamDone };
   })();
 
   /* ── GLOBAL BOTTOM NAV (inloggad) ── */
