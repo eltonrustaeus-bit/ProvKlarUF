@@ -861,6 +861,62 @@
     UI.clock = setInterval(paint, 1000);
   }
 
+  /* Manifestet publiceras vid varje frågebyte, inte bara när hjälpknappen
+     trycks. Före detta såg P.E.R { page: "prov" } och ingenting mer om eleven
+     öppnade bubblan själv — och svarade om fel fråga.
+
+     targets ger P.E.R en väg tillbaka: "ta mig till fråga 7" blir [GOTO:#q7],
+     som shared.js slår upp här och kör med go() nedan. */
+  var publishTimer = null;
+
+  function publish() {
+    if (!window.PER || !window.PER.describe) return;
+    var qs = (S.exam && S.exam.questions) || [];
+    if (!qs.length) return;
+    var i = clamp(S.idx, 0, qs.length - 1);
+    var q = qs[i];
+    if (!q) return;
+    var ans = String(S.answers[qid(q, i)] || "");
+    var answered = 0;
+    qs.forEach(function (qq, n) {
+      if (String(S.answers[qid(qq, n)] || "").trim()) answered++;
+    });
+    window.PER.describe({
+      page: "prov",
+      focus: {
+        kind: "question",
+        number: i + 1,
+        of: qs.length,
+        text: String(q.question || "").slice(0, 400),
+        type: q.type || "short",
+        options: Array.isArray(q.options) ? q.options : [],
+        category: String(q.topic || ""),
+        answer: ans.slice(0, 200),
+        answered: !!ans.trim()
+      },
+      targets: qs.map(function (qq, n) {
+        return {
+          id: "q" + (n + 1),
+          label: "Fråga " + (n + 1),
+          hint: String(qq.question || "").slice(0, 90),
+          go: function () { S.idx = n; renderQuestion(); }
+        };
+      }),
+      state: {
+        answered: answered,
+        remaining: qs.length - answered,
+        elapsed: (UI.time && UI.time.textContent) || ""
+      }
+    });
+  }
+
+  /* Fritextsvar skickas 500 ms efter senaste tangenttryck. Varje tecken hade
+     annars blivit ett nytt manifest. */
+  function publishSoon() {
+    clearTimeout(publishTimer);
+    publishTimer = setTimeout(publish, 500);
+  }
+
   function renderQuestion() {
     var qs = S.exam.questions;
     var i = clamp(S.idx, 0, qs.length - 1);
@@ -910,6 +966,7 @@
           btn.classList.add("sel");
           S.answers[id] = letter;
           saveDraft();
+          publish();
           armStuck();
           // Ett flervalssvar är ett avslut — gå vidare av sig själv, men först
           // efter att markeringen hunnit synas.
@@ -926,6 +983,7 @@
       ta.addEventListener("input", function () {
         S.answers[id] = ta.value;
         saveDraftSoon();
+        publishSoon();
         armStuck();
       });
       sheet.appendChild(ta);
@@ -956,6 +1014,7 @@
 
     armStuck();
     pace();
+    publish();
   }
 
   /* P.E.R får hela frågan som kontext så att svaret handlar om just den, inte
@@ -966,20 +1025,9 @@
     var bubble = document.getElementById("perBubble");
     if (!bubble) return false;
 
-    if (window.setPerContext) {
-      window.setPerContext({
-        page: "prov",
-        focus: {
-          number: i + 1,
-          text: String(q.question || "").slice(0, 400),
-          type: q.type || "short",
-          options: Array.isArray(q.options) ? q.options : [],
-          points: Number(q.points) || 0,
-          course: S.course,
-          level: S.level
-        }
-      });
-    }
+    /* Kontexten sätts av publish() vid varje frågebyte, inte här. Att sätta den
+       på nytt just vid knapptrycket var hela orsaken till att eleven kunde
+       öppna bubblan själv och få svar om en annan fråga. */
 
     // shared.js sätter .per-open på bubblan medan panelen är uppe. Är den redan
     // öppen finns inget att göra — ett klick hade stängt den i stället.
