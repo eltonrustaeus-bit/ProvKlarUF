@@ -949,6 +949,12 @@
       list.innerHTML='';
       const course=(courseFilter||'').trim();
       const inCourse=course?mistakes.filter(m=>String(m.course||'').trim()===course):mistakes;
+      // Åtgärdsraden hör till listan. Utan rader finns ingenting att markera,
+      // och "Träna markerade" ovanför ett gratulationsmeddelande erbjuder en
+      // handling som inte går att utföra.
+      const bar=$('trainActions');
+      if(bar)bar.style.display=inCourse.length?'':'none';
+
       if(!inCourse.length){
         st.textContent='';st.className='statusText';
         const es=document.createElement('div');es.className='emptyState';
