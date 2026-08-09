@@ -372,7 +372,7 @@
 
     <!-- HOW-TO -->
     <div class="howTo reveal" id="howToBanner">
-      <div id="howToText"><strong>Så här:</strong> Synka dina prov → öppna en sektion → träna dina svagaste punkter direkt.</div>
+      <div id="howToText"><strong>Så här:</strong> Synka dina prov → markera i felbanken → träna exakt det du missat.</div>
     </div>
 
     <!-- Ikonraden som låg här (01-05) öppnade exakt samma fem sektioner som
@@ -547,7 +547,7 @@
       sv:{
         tag:'Studieplattform för skolan',toApp:'Till appen',reset:'Rensa',sync:'Synka',
         sub:'Bygger på prov du rättat i appen. Synka, analysera och träna det som faktiskt behöver förbättras.',
-        howTo:'<strong>Så här:</strong> Synka dina prov → öppna en sektion → träna dina svagaste punkter direkt.',
+        howTo:'<strong>Så här:</strong> Synka dina prov → markera i felbanken → träna exakt det du missat.',
         noData:'Ingen provdata hittades. Gör ett prov i appen och tryck Rätta prov.',
         coachTitle:'Coach',coachSub:'AI-analys baserad på din historik och felbank',coachHeader:'Rekommendation',
         lastTitle:'Senaste',trendTitle:'Trend',focusTitle:'Fokus',
@@ -580,7 +580,7 @@
       en:{
         tag:'A study platform for school',toApp:'Go to app',reset:'Clear',sync:'Sync',
         sub:'Built from exams you graded in the app. Sync, analyze and train what actually needs work.',
-        howTo:'<strong>How to:</strong> Sync your exams → open a section → train your weakest points directly.',
+        howTo:'<strong>How to:</strong> Sync your exams → mark in the library → train exactly what you missed.',
         noData:'No exam data found. Create an exam in the app and click Grade.',
         coachTitle:'Coach',coachSub:'AI analysis based on your history and mistake library',coachHeader:'Recommendation',
         lastTitle:'Latest',trendTitle:'Trend',focusTitle:'Focus',
@@ -627,7 +627,7 @@
     }
 
     /* Mål P.E.R kan skicka eleven till inuti sidan. Deklareras separat från
-       datainläsningen nedan: sektionerna finns i markupen från början och ska
+       datainläsningen nedan: zonerna finns i markupen från början och ska
        gå att hoppa till även för en elev som inte hunnit göra ett prov än. */
     const PER_TARGETS=[
       { id:'prov',    label:'Prov',          hint:'alla rättade prov',                         go:function(){goZone('#zonProv');} },

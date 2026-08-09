@@ -329,19 +329,27 @@ async function mark(page, id) {
 // applyLang() — vilket aldrig ger ett fel, bara en svensk rad mitt i en engelsk
 // sida.
 //
-// 30 före Del B. 28 sedan zon 2, där readyTitle och readySub togs bort med
-// flit: träningssektionen upphörde som eget område, dess rubrik är numera
-// knappens jobb och dess instruktion ("markera i felbanken") är överflödig när
-// åtgärdsraden sitter i felbanken. Golvet sänks bara tillsammans med en sådan
-// motivering — aldrig för att få en körning grön.
-const LANG_IDS_FLOOR = 28;
+// 30 mätt före Del B. Sedan 28: readyTitle och readySub togs bort med flit i
+// zon 2, eftersom träningssektionen upphörde som eget område. Sedan 32, när
+// ögonblicksbilden slutade bara titta på lövnoder och fick med howToText,
+// courseFilter, resetBtn och toAppBtn — fyra etiketter som bytte språk hela
+// tiden utan att någon mätte det.
+//
+// Golvet flyttas bara tillsammans med en sådan motivering — aldrig för att få
+// en körning grön.
+const LANG_IDS_FLOOR = 32;
 {
   const { ctx, page } = await mk();
   const changed = await page.evaluate(async () => {
+    // Tar med varje id-bärande element som inte innehåller ett ANNAT id — inte
+    // bara lövnoder. howToText har ett <strong> inuti sig och missades helt av
+    // en lövnodsregel, trots att hela dess text byter språk.
     const snap = () => {
       const o = {};
       document.querySelectorAll("[id]").forEach(el => {
-        if (el.children.length === 0) o[el.id] = (el.textContent || "").trim();
+        if (el.querySelector("[id]")) return;
+        const t = (el.textContent || "").trim();
+        if (t.length && t.length < 300) o[el.id] = t;
       });
       return o;
     };
