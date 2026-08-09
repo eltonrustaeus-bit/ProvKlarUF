@@ -100,8 +100,10 @@ async function mk(url) {
   ok("T2c userScore bevaras", typeof t2b.userScore === "number", String(t2b.userScore));
   ok("T2d sidan är förbättring", t2b.page === "förbättring", t2b.page);
 
-  // målet öppnar sektionen
-  await page.evaluate(() => document.querySelector("#mistakeSection").classList.add("collapsed"));
+  // Målet tar eleven till felbanken. Kontrollerade tidigare att #mistakeSection
+  // tappade sin .collapsed — men Del B tog bort dragspelen, så det finns inget
+  // att fälla ut längre. Zonen ligger alltid framme och målet markerar den i
+  // stället, samma .xfZone--flash-mönster som .planCard--flash ovan.
   await page.click("#perBubble");
   await page.evaluate(() => {
     const msgs = document.getElementById("perMessages");
@@ -110,9 +112,9 @@ async function mk(url) {
     window.__perFinalize(div, "Dina misstag ligger i felbanken.\n[GOTO:#felbank]");
   });
   await page.click("#perMessages .per-nav-cta >> nth=-1");
-  await page.waitForTimeout(700);
-  const open = await page.evaluate(() => !document.querySelector("#mistakeSection").classList.contains("collapsed"));
-  ok("T2e målet öppnar sektionen", open === true);
+  await page.waitForTimeout(400);
+  const flashed = await page.evaluate(() => !!document.querySelector("#zonFelbank.xfZone--flash"));
+  ok("T2e målet markerar felbankszonen", flashed === true);
   await ctx.close();
 }
 

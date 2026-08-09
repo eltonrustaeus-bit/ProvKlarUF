@@ -31,7 +31,10 @@ fs.mkdirSync(OUT, { recursive: true });
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
 const { default: sharp } = await import(ROOT + "/node_modules/sharp/lib/index.js");
 
-const PAGES = ["app.html", "pricing.html", "förbättring.html"];
+// index och konto tillkom i Del B: den ändringen rör exgen-ui.css, som varje
+// sida laddar, så "bara förbättringssidan påverkas" är ett påstående som måste
+// mätas och inte resoneras fram.
+const PAGES = ["app.html", "pricing.html", "förbättring.html", "index.html", "konto.html"];
 const VIEWS = [{ name: "desktop", width: 1280, height: 900 }, { name: "mobil", width: 390, height: 844 }];
 
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
@@ -116,6 +119,14 @@ const QUIET = `
   header,.xg-header,.xg-utility-bar{position:static!important}
   .joinCta{display:none!important}
   *,*::before,*::after{animation:none!important;transition:none!important}
+  /* Scroll-reveal. .reveal börjar på opacity:0 och får .rev-visible av en
+     IntersectionObserver först när elementet scrollas in. En helsidesbild
+     scrollar inte, så allt under vikningen fotograferas osynligt — mätt på
+     förbättringssidan, där två hela zoner låg som vit yta i bilden medan de
+     fanns i DOM:en med 580x270 och 580x332 pixlar. Det gör inte bara zonerna
+     omätta, det gör "0 skiljande pixlar" svagare för varje sida som använder
+     .reveal, eftersom osynligt mot osynligt alltid är noll. */
+  .reveal{opacity:1!important;transform:none!important}
 `;
 
 async function shot(port, page, view, tag) {
@@ -134,6 +145,19 @@ async function shot(port, page, view, tag) {
     // instead of real page content — comparing splash-to-splash always
     // yields a 0 diff regardless of what changed underneath.
     sessionStorage.setItem("pi_splash_shown", "1");
+
+    // Utan en session visar shared.js registreringsrutan över hela sidan, och
+    // då fotograferas den i stället för sidan. Det gjorde inte bara
+    // förbättringssidans bilder oanvändbara — det gjorde varje nolla i
+    // tabellen nästan innehållslös, eftersom en inloggningsruta jämfördes med
+    // en inloggningsruta. Rutterna ovan mockar API:erna men shared.js läser
+    // sessionen ur localStorage, inte ur ett svar.
+    const exp = Math.floor(Date.now() / 1000) + 7200;
+    localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({
+      access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp,
+      token_type: "bearer", user: { id: "u1", email: "u1@t.se" },
+    }));
+    localStorage.setItem("proviaai_role", "premium");
   });
   await p.goto(`http://localhost:${port}/${page}`, { waitUntil: "networkidle" });
   await p.addStyleTag({ content: QUIET });
