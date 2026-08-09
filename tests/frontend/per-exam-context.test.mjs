@@ -107,6 +107,73 @@ ok("T4d targets i kroppen utan go", Array.isArray(lastExplain?.pageContext?.targ
 ok("T4e provstatus i kroppen", typeof lastExplain?.pageContext?.examState?.answered === "number",
    JSON.stringify(lastExplain?.pageContext?.examState));
 
+// ── T5: påhittat id ritar ingen knapp ─────────────────────────────────────
+await page.evaluate(() => {
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Här är svaret.\n[GOTO:#finnsinte]");
+});
+const t5 = await page.evaluate(() => {
+  const last = document.querySelectorAll("#perMessages .per-msg");
+  const el = last[last.length - 1];
+  return { html: el.innerHTML, cta: el.querySelectorAll(".per-nav-cta").length };
+});
+ok("T5a ingen knapp för påhittat id", t5.cta === 0, String(t5.cta));
+ok("T5b taggen syns inte i texten", !/GOTO/.test(t5.html), t5.html);
+ok("T5c svarstexten står kvar", /Här är svaret/.test(t5.html));
+
+// ── T6: giltigt id ger en knapp som navigerar ─────────────────────────────
+await page.evaluate(() => {
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Titta på fråga 1 igen.\n[GOTO:#q1]");
+});
+const t6label = await page.evaluate(() => {
+  const ctas = document.querySelectorAll("#perMessages .per-nav-cta");
+  return ctas.length ? ctas[ctas.length - 1].textContent : "";
+});
+ok("T6a knapp med målets etikett", t6label === "Fråga 1 →", t6label);
+await page.click("#perMessages .per-nav-cta >> nth=-1");
+await page.waitForTimeout(300);
+const t6 = await page.evaluate(() => window.__perTestCtx());
+ok("T6b klicket flyttade till fråga 1", t6.currentQuestion?.number === 1, String(t6.currentQuestion?.number));
+
+// ── T7: sidnavigation fungerar som förut ──────────────────────────────────
+await page.evaluate(() => {
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Se planerna.\n[GOTO:pricing.html]");
+});
+const t7 = await page.evaluate(() => {
+  const ctas = document.querySelectorAll("#perMessages .per-nav-cta");
+  const el = ctas[ctas.length - 1];
+  return { tag: el.tagName, href: el.getAttribute("href"), text: el.textContent };
+});
+ok("T7a sidlänk är en <a>", t7.tag === "A", t7.tag);
+ok("T7b rätt href", t7.href === "pricing.html", String(t7.href));
+ok("T7c känd etikett behålls", t7.text === "Se alla priser →", t7.text);
+
+// ── T8: ett mål som kastar dödar inte sidan ───────────────────────────────
+await page.evaluate(() => {
+  window.PER.describe({
+    page: "prov",
+    targets: [{ id: "trasig", label: "Trasigt mål", go: function () { throw new Error("avsiktligt"); } }]
+  });
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Testa detta.\n[GOTO:#trasig]");
+});
+let pageDied = false;
+page.once("pageerror", () => { pageDied = true; });
+await page.click("#perMessages .per-nav-cta >> nth=-1");
+await page.waitForTimeout(300);
+ok("T8a felet fångas, sidan lever", pageDied === false);
+ok("T8b sidan svarar fortfarande", await page.evaluate(() => typeof window.PER?.describe === "function"));
+
 await ctx.close();
 await browser.close();
 server.close();

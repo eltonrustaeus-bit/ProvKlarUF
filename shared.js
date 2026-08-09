@@ -632,13 +632,47 @@
       };
       if (gotoMatch) {
         var href = gotoMatch[1].trim();
-        var navBtn = document.createElement('a');
-        navBtn.href = href;
-        navBtn.className = 'per-nav-cta';
-        navBtn.textContent = _perNavLabels[href] || 'Gå dit →';
-        navBtn.onclick = function(e) { e.stopPropagation(); };
-        div.appendChild(navBtn);
+        var navBtn = null;
+        if (href.charAt(0) === '#') {
+          /* Mål inuti sidan. Id:t slås upp i sidans egen mållista INNAN knappen
+             ritas — prompten begränsar redan modellen till giltiga id, men det
+             är en instruktion, inte en garanti. Hittas inget id ritas ingen
+             knapp och svarstexten står kvar. location sätts aldrig från
+             modellutdata. */
+          var target = perFindTarget(href.slice(1));
+          if (target) {
+            navBtn = document.createElement('button');
+            navBtn.type = 'button';
+            navBtn.className = 'per-nav-cta';
+            navBtn.textContent = target.label + ' →';
+            navBtn.onclick = function (e) {
+              e.stopPropagation();
+              if (!target.go) return;
+              try { target.go(); }
+              catch (err) { try { console.warn('[PER] målet kastade: ' + err.message); } catch (_) {} }
+              /* Frågebyte i provet gömmer panelen igen (exam-flow.js
+                 renderQuestion) — rimligt när eleven själv bläddrar, men inte
+                 när hoppet kom från P.E.R:s eget svar. Ingen effekt utanför
+                 provläget: klassen styrs bara av exam-flow.css där. */
+              try { document.body.classList.add('xf-per-open'); } catch (_) {}
+            };
+          }
+        } else {
+          navBtn = document.createElement('a');
+          navBtn.href = href;
+          navBtn.className = 'per-nav-cta';
+          navBtn.textContent = _perNavLabels[href] || 'Gå dit →';
+          navBtn.onclick = function (e) { e.stopPropagation(); };
+        }
+        if (navBtn) div.appendChild(navBtn);
       }
+    }
+
+    /* Testkrok — tests/frontend/per-exam-context.test.mjs matar in svarstexter
+       direkt i stället för att stubba ett helt SSE-flöde per påstående.
+       Grindad på localhost, samma skäl som __perTestCtx i shared.js. */
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      window.__perFinalize = finalizeMsg;
     }
 
     function addMsg(text, type) {
