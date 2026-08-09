@@ -650,11 +650,6 @@
               if (!target.go) return;
               try { target.go(); }
               catch (err) { try { console.warn('[PER] målet kastade: ' + err.message); } catch (_) {} }
-              /* Frågebyte i provet gömmer panelen igen (exam-flow.js
-                 renderQuestion) — rimligt när eleven själv bläddrar, men inte
-                 när hoppet kom från P.E.R:s eget svar. Ingen effekt utanför
-                 provläget: klassen styrs bara av exam-flow.css där. */
-              try { document.body.classList.add('xf-per-open'); } catch (_) {}
             };
           }
         } else {

@@ -157,6 +157,16 @@ ok("T7b rätt href", t7.href === "pricing.html", String(t7.href));
 ok("T7c känd etikett behålls", t7.text === "Se alla priser →", t7.text);
 
 // ── T8: ett mål som kastar dödar inte sidan ───────────────────────────────
+// T6:s go() bytte fråga, och exam-flow.js (renderQuestion) döljer med rätta
+// P.E.R-panelen vid varje frågebyte — annars låg förra frågans samtal kvar
+// ovanpå den nya. Det betyder att knappen vi ska klicka på nedan är osynlig
+// just nu; utan en explicit öppning hänger Playwright-klicket på en timeout.
+// Vi öppnar den precis som eleven skulle, via hjälpknappen, i stället för
+// att låta produktionskoden hålla panelen öppen åt oss (se task-3-report.md,
+// granskningsfynd 1/2 — den kompensationen hörde inte hemma i shared.js).
+await page.click(".xf-ask");
+await page.waitForTimeout(300);
+
 await page.evaluate(() => {
   window.PER.describe({
     page: "prov",
