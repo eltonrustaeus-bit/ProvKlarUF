@@ -12,9 +12,16 @@ import path from "node:path";
 // om 43 skiljande pixlar betyder en förändring eller bara att sidan andas.
 //
 // Tre kända bruskällor neutraliseras i BÅDA körningarna:
-//   #perWidget      — panelen öppnas på en timer
+//   #perWidget      — panelen öppnas på en timer (se motivering vid QUIET
+//                      nedan för varför hela widgeten döljs, inte bara
+//                      panelen — och vad det kostar: #perSees fotograferas
+//                      aldrig här, täcks i stället av per-manifest.test.mjs)
 //   sticky header   — placeras olika i en helsidesskärmdump
 //   .joinCta        — glider in vid scroll
+//
+// Tillfällig worktree, HTTP-servrar och webbläsare städas alltid via
+// cleanup() — normal retur, kastat fel (try/finally) eller Ctrl-C
+// (SIGINT/SIGTERM). cleanup() är idempotent och kastar aldrig själv.
 //
 // Användning:  node tests/frontend/per-visual.mjs
 
@@ -42,19 +49,74 @@ function serve(root, port) {
 
 // Referensträd: origin/main i en tillfällig worktree.
 const REF = fs.mkdtempSync(path.join(os.tmpdir(), "per-visual-"));
-execSync(`git worktree add --detach "${REF}" origin/main`, { cwd: ROOT, stdio: "pipe" });
 
-const srvNew = await serve(ROOT, 4620);
-const srvRef = await serve(REF, 4621);
+// Städning måste vara idempotent (kan köras flera gånger utan att kasta) och
+// får aldrig ersätta ett ursprungligt fel med ett städfel — varje steg är
+// därför sitt eget try/catch. Täcker tre vägar ut: normal retur, ett kastat
+// fel (try/finally nedan) och Ctrl-C (SIGINT/SIGTERM-hanterarna).
+let worktreeAdded = false;
+let srvNew = null;
+let srvRef = null;
+let browser = null;
+let cleaned = false;
+async function cleanup() {
+  if (cleaned) return;
+  cleaned = true;
+  const warnings = [];
+  if (browser) {
+    try { await browser.close(); } catch (e) { warnings.push(`browser.close: ${e.message}`); }
+  }
+  if (srvNew) {
+    try { srvNew.close(); } catch (e) { warnings.push(`srvNew.close: ${e.message}`); }
+  }
+  if (srvRef) {
+    try { srvRef.close(); } catch (e) { warnings.push(`srvRef.close: ${e.message}`); }
+  }
+  if (worktreeAdded) {
+    try { execSync(`git worktree remove --force "${REF}"`, { cwd: ROOT, stdio: "pipe" }); }
+    catch (e) { warnings.push(`worktree remove: ${e.message}`); }
+  }
+  if (warnings.length) console.error("städning: " + warnings.join(" | "));
+}
 
+let exiting = false;
+async function onSignal(code) {
+  if (exiting) return;
+  exiting = true;
+  await cleanup();
+  process.exit(code);
+}
+process.on("SIGINT", () => onSignal(130));
+process.on("SIGTERM", () => onSignal(143));
+
+// Provades smalare: dölja bara #perPanel + #perNudge i stället för hela
+// #perWidget, så #perBubble och #perSees faktiskt fotograferas. Brusgolvet
+// var 0 på alla sex rader i första körningen — men på en omkörning slog
+// pricing.html/mobil upp till 7794 (delta stannade dock på 0, så det syntes
+// aldrig som ett falskt FAIL, bara som ett höjt golv). Orsak: pricing.html
+// är en isLanding()-sida, och shared.js triggar ett riktigt auto-open
+// ~3500ms efter DOMContentLoaded på förstabesök (ny browser-context här,
+// varje gång "förstabesök"). #perPanel{display:none} döljer panelen, men
+// toggle() byter samtidigt #perBubble.per-open — bubblans bakgrund går från
+// den solida märkesfärgen till vit/kantad — och den färgändringen är INTE
+// täckt av den smala regeln. Beroende på hur lång tid networkidle+setup tar
+// relativt 700ms-väntan hinner den timern ibland trigga innan skottet, ibland
+// inte → precis den flakighet brusgolvsmätningen finns för att fånga.
+// Städade inte bort det med fler overrides (skulle bara flytta problemet) —
+// går tillbaka till att dölja hela #perWidget, vilket var den ursprungliga,
+// beprövat stabila regeln.
+//
+// Konsekvens: #perSees (Task 5) fotograferas fortfarande aldrig av det här
+// instrumentet — display:none på förälder-elementet #perWidget gör att hela
+// undergrenen aldrig renderas, oavsett vad som ändras i den. Det täcks i
+// stället på DOM-/style-nivå av tests/frontend/per-manifest.test.mjs
+// (T8 "raden utan fokus", T9 "raden med fokus", T10 "dold tills man hovrar").
 const QUIET = `
   #perWidget{display:none!important}
   header,.xg-header,.xg-utility-bar{position:static!important}
   .joinCta{display:none!important}
   *,*::before,*::after{animation:none!important;transition:none!important}
 `;
-
-const browser = await chromium.launch();
 
 async function shot(port, page, view, tag) {
   const ctx = await browser.newContext({ viewport: { width: view.width, height: view.height }, deviceScaleFactor: 1 });
@@ -95,23 +157,33 @@ async function diff(a, b) {
   return n;
 }
 
+let bad = 0;
 const rows = [];
-for (const page of PAGES) {
-  for (const view of VIEWS) {
-    const refA = await shot(4621, page, view, "ref-a");
-    const refB = await shot(4621, page, view, "ref-b");
-    const noise = await diff(refA, refB);
-    const now = await shot(4620, page, view, "ny");
-    const delta = await diff(refA, now);
-    rows.push({ page, view: view.name, noise, delta });
+try {
+  execSync(`git worktree add --detach "${REF}" origin/main`, { cwd: ROOT, stdio: "pipe" });
+  worktreeAdded = true;
+
+  srvNew = await serve(ROOT, 4620);
+  srvRef = await serve(REF, 4621);
+  browser = await chromium.launch();
+
+  for (const page of PAGES) {
+    for (const view of VIEWS) {
+      const refA = await shot(4621, page, view, "ref-a");
+      const refB = await shot(4621, page, view, "ref-b");
+      const noise = await diff(refA, refB);
+      const now = await shot(4620, page, view, "ny");
+      const delta = await diff(refA, now);
+      rows.push({ page, view: view.name, noise, delta });
+    }
   }
+} finally {
+  // Om koden ovan kastar ska cleanup() ändå städa allt (worktree, servrar,
+  // browser) — men om SJÄLVA städningen skulle kasta får den aldrig ersätta
+  // ett riktigt fel från try-blocket ovan, därför fångas den separat här.
+  try { await cleanup(); } catch (_) {}
 }
 
-await browser.close();
-srvNew.close(); srvRef.close();
-execSync(`git worktree remove --force "${REF}"`, { cwd: ROOT, stdio: "pipe" });
-
-let bad = 0;
 console.log("sida                  vy        brusgolv   skillnad");
 for (const r of rows) {
   const over = r.delta === -1 || r.delta > r.noise;
