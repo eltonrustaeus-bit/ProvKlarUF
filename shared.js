@@ -114,6 +114,76 @@
   var PER_CORNER_KEY = 'proviaai_per_corner';
   var PER_SIZE_KEY = 'proviaai_per_size';
 
+  /* ── Sidmanifest ──────────────────────────────────────────────────────────
+     Ett kontrakt i stället för åtta gissade nycklar.
+
+     Före detta ropade varje sida setPerContext() med sina egna nyckelnamn och
+     hoppades att getPageContext() råkade känna igen dem. js/exam-flow.js
+     skickade { focus: … }; listan nedan hette currentQuestion. Objektet
+     försvann utan felmeddelande och P.E.R svarade om fel fråga mitt i ett prov.
+
+     Fyra tillåtna toppnycklar, och en okänd nyckel VARNAR i stället för att
+     försvinna. Instansen var focus; klassen är tyst nyckelkassering. */
+  var PER_MANIFEST_KEYS = ['page', 'focus', 'targets', 'state'];
+  var PER_STATE_KEYS = ['answered', 'remaining', 'elapsed'];
+  var _perManifest = null;
+
+  function perWarnKeys(obj, allowed, prefix) {
+    if (!obj) return;
+    Object.keys(obj).forEach(function (k) {
+      if (allowed.indexOf(k) !== -1) return;
+      try { console.warn('[PER] okänd manifestnyckel: ' + prefix + k + ' — ignorerad'); } catch (_) {}
+    });
+  }
+
+  /* go-funktionen stannar på klienten. Servern ser bara id/label/hint. */
+  function perCleanTargets(list) {
+    if (!Array.isArray(list)) return [];
+    var out = [];
+    for (var i = 0; i < list.length && out.length < 24; i++) {
+      var t = list[i];
+      if (!t || typeof t !== 'object') continue;
+      var id = String(t.id || '').trim().toLowerCase();
+      if (!/^[a-z0-9_-]{1,40}$/.test(id)) continue;
+      out.push({
+        id: id,
+        label: String(t.label || id).slice(0, 60),
+        hint: String(t.hint || '').slice(0, 90),
+        go: typeof t.go === 'function' ? t.go : null
+      });
+    }
+    return out;
+  }
+
+  function perDescribe(m) {
+    if (!m || typeof m !== 'object') { _perManifest = null; return; }
+    perWarnKeys(m, PER_MANIFEST_KEYS, '');
+    perWarnKeys(m.state, PER_STATE_KEYS, 'state.');
+    var st = null;
+    if (m.state && typeof m.state === 'object') {
+      st = {};
+      if (typeof m.state.answered === 'number') st.answered = m.state.answered;
+      if (typeof m.state.remaining === 'number') st.remaining = m.state.remaining;
+      if (typeof m.state.elapsed === 'string') st.elapsed = m.state.elapsed.slice(0, 12);
+    }
+    _perManifest = {
+      page: typeof m.page === 'string' ? m.page : '',
+      focus: (m.focus && typeof m.focus === 'object') ? m.focus : null,
+      targets: perCleanTargets(m.targets),
+      state: st
+    };
+    if (window.PER && window.PER._resetNudge) window.PER._resetNudge();
+  }
+
+  function perFindTarget(id) {
+    if (!_perManifest) return null;
+    var want = String(id || '').trim().toLowerCase();
+    for (var i = 0; i < _perManifest.targets.length; i++) {
+      if (_perManifest.targets[i].id === want) return _perManifest.targets[i];
+    }
+    return null;
+  }
+
   function getPageContext() {
     try {
       var path = window.location.pathname.toLowerCase();
@@ -126,11 +196,18 @@
 
       var ctx = { page: page };
 
-      /* Optional rich context set by individual pages */
+      /* Äldre fält som ännu inte flyttat in i manifestet. setPerContext skriver
+         fortfarande hit, så sidor som inte migrerats tappar ingenting.
+
+         currentQuestion och examState hör INTE hemma i den här listan längre:
+         setPerContext mappar redan båda in i manifestet (focus/state) några
+         rader ner, och manifestet är den enda som nollställs av
+         PER.describe(null). Läste vi dem härifrån också skulle en gammal
+         fråga leva kvar i _perPageContext efter att manifestet rensats — ett
+         nollställt PER.describe(null) skulle se ut som att den fortfarande
+         visade förra frågan. */
       if (window._perPageContext && typeof window._perPageContext === 'object') {
         var pc = window._perPageContext;
-        if (pc.currentQuestion) ctx.currentQuestion = pc.currentQuestion;
-        if (pc.examState) ctx.examState = pc.examState;
         if (Array.isArray(pc.questions)) ctx.questions = pc.questions;
         if (typeof pc.userScore === 'number') ctx.userScore = pc.userScore;
         if (Array.isArray(pc.weakAreas)) ctx.weakAreas = pc.weakAreas;
@@ -139,15 +216,45 @@
         if (pc.mode) ctx.mode = pc.mode;
       }
 
-      /* User score from localStorage history */
-      try {
-        var hist = JSON.parse(localStorage.getItem('proviaai_history') || '[]');
-        if (Array.isArray(hist) && hist.length) {
-          var last5 = hist.slice(-5);
-          var avg = last5.reduce(function(s, x) { return s + (Number(x.percent) || 0); }, 0) / last5.length;
-          ctx.userScore = avg / 100;
+      /* Manifestet vinner där det säger något — det är den färska sanningen. */
+      var m = _perManifest;
+      if (m) {
+        if (m.page) ctx.page = m.page;
+        if (m.focus && (m.focus.text || typeof m.focus.number === 'number')) {
+          ctx.currentQuestion = {
+            number: m.focus.number,
+            text: m.focus.text,
+            options: m.focus.options,
+            type: m.focus.type,
+            category: m.focus.category,
+            answer: m.focus.answer,
+            answered: !!m.focus.answered
+          };
         }
-      } catch (_) {}
+        if (m.state) ctx.examState = m.state;
+        if (m.targets.length) {
+          ctx.targets = m.targets.map(function (t) {
+            return { id: t.id, label: t.label, hint: t.hint };
+          });
+        }
+      }
+
+      /* Elevens snitt ur lokal historik — bara om ingen sida angett något.
+         Tidigare kördes det här blocket alltid och skrev över sidans värde.
+         förbättring.html räknar sitt snitt på historik synkad från servern;
+         localStorage är bara det som råkar ligga kvar i den här webbläsaren.
+         Den mer korrekta källan ska vinna. Beslutat 2026-08-09, avviker
+         medvetet från dagens beteende. */
+      if (typeof ctx.userScore !== 'number') {
+        try {
+          var hist = JSON.parse(localStorage.getItem('proviaai_history') || '[]');
+          if (Array.isArray(hist) && hist.length) {
+            var last5 = hist.slice(-5);
+            var avg = last5.reduce(function(s, x) { return s + (Number(x.percent) || 0); }, 0) / last5.length;
+            ctx.userScore = avg / 100;
+          }
+        } catch (_) {}
+      }
 
       return ctx;
     } catch (_) {
@@ -155,12 +262,30 @@
     }
   }
 
-  /* Pages call this to inject richer context into the P.E.R widget */
+  /* Bakåtkompatibel ingång. app.html:1474 och förbättring.html:1258 anropar
+     fortfarande denna; den mappar in i manifestet i stället för att ha en egen
+     halv sanning vid sidan om. */
   window.setPerContext = function(ctx) {
     window._perPageContext = ctx || null;
-    if (ctx && window.PER && window.PER._resetNudge) window.PER._resetNudge();
+    if (!ctx) { perDescribe(null); return; }
+    perDescribe({
+      page: ctx.page,
+      focus: ctx.currentQuestion || ctx.focus || null,
+      targets: ctx.targets || [],
+      state: ctx.examState || null
+    });
   };
-  window.clearPerContext = function() { window._perPageContext = null; };
+  window.clearPerContext = function() { window._perPageContext = null; perDescribe(null); };
+
+  /* Testkrok. Exponerar den sammanslagna kontexten så att
+     tests/frontend/per-manifest.test.mjs kan läsa exakt det som går ut på
+     nätverket, utan att behöva fånga ett fetch-anrop för varje påstående.
+
+     Grindad på localhost: testservern kör där, och inget av detta har någon
+     anledning att nå en riktig besökare. */
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    window.__perTestCtx = function() { return getPageContext(); };
+  }
 
   function getContextGreeting() {
     try {
@@ -1130,7 +1255,7 @@
       initWidget();
     }
 
-    return { register: register, send: send, _resetNudge: resetNudge, notifyExamDone: notifyExamDone };
+    return { register: register, send: send, describe: perDescribe, _resetNudge: resetNudge, notifyExamDone: notifyExamDone };
   })();
 
   /* ── GLOBAL BOTTOM NAV (inloggad) ── */
