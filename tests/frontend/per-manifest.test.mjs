@@ -138,6 +138,35 @@ const t10 = await page.evaluate(() => {
 ok("T10a dold i vila", t10.opacity === "0", t10.opacity);
 ok("T10b fångar inte klick", t10.events === "none", t10.events);
 
+// ── T11: körkortsformen — number utan of ligger inte längre om "den här sidan" ──
+// korkortet.html skickar { currentQuestion: { number, text, … } } utan `of`.
+// Före fixen krävde raden BÅDA number och of, så den här formen visade
+// "ser: den här sidan" trots att P.E.R hade frågan.
+const t11 = await page.evaluate(() => {
+  window.PER.describe({
+    page: "körkortsteorin",
+    focus: { number: 5, text: "Vad gäller vid ett övergångsställe utan trafiksignal?", category: "Trafikregler" },
+    state: { answered: 4, remaining: 60 }
+  });
+  return document.getElementById("perSees")?.textContent;
+});
+ok("T11 raden visar frågenumret utan \"av\"", t11 === "ser: fråga 5", String(t11));
+
+// ── T12: hp-formen — bara text, varken number eller of ────────────────────
+// js/hp-app.js skickar { currentQuestion: { text, delprov, node, … } } utan
+// number/of alls. Raden ska säga något ärligt och kort, aldrig frågetexten
+// rakt av (för lång, bubblan är smal) och aldrig "den här sidan" (P.E.R har
+// faktiskt frågan).
+const t12 = await page.evaluate(() => {
+  window.PER.describe({
+    page: "högskoleprovet",
+    focus: { text: "Vilket ord passar bäst i meningen: Hon kände sig alldeles ___.", delprov: "ORD" }
+  });
+  return document.getElementById("perSees")?.textContent;
+});
+ok("T12a raden är ärlig utan siffra", t12 === "ser: en fråga", String(t12));
+ok("T12b raden skriver aldrig ut frågetexten", !/Vilket ord passar/.test(t12 || ""), String(t12));
+
 await ctx.close();
 await browser.close();
 server.close();

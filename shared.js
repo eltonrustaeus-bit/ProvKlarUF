@@ -189,8 +189,19 @@
     var m = _perManifest;
     if (!m) return 'ser: den här sidan';
     var parts = [];
-    if (m.focus && typeof m.focus.number === 'number' && typeof m.focus.of === 'number') {
-      parts.push('fråga ' + m.focus.number + ' av ' + m.focus.of);
+    if (m.focus && typeof m.focus.number === 'number') {
+      /* körkortet.html skickar number men aldrig of — "fråga 5" är fortfarande
+         sant utan "av 65", till skillnad från att tyst falla tillbaka på
+         "den här sidan" som om P.E.R inte visste vilken fråga det gällde. */
+      parts.push(typeof m.focus.of === 'number'
+        ? 'fråga ' + m.focus.number + ' av ' + m.focus.of
+        : 'fråga ' + m.focus.number);
+    } else if (m.focus && m.focus.text) {
+      /* js/hp-app.js skickar varken number eller of, bara text. Frågetexten
+         skrivs aldrig ut rakt av här — den kan vara lång och bubblan är smal
+         — men raden får inte heller ljuga "den här sidan" när P.E.R faktiskt
+         har en fråga i handen. */
+      parts.push('en fråga');
     }
     if (m.focus && m.focus.answer) parts.push('ditt svar ' + String(m.focus.answer).slice(0, 24));
     /* Klockan räknar uppåt från provstart — "kvar" hade varit fel ord. */
@@ -992,8 +1003,11 @@
            innan frågan ställs. Byggs lokalt, inget AI-anrop, ingen kostnad. */
         '#perSees{position:absolute;bottom:52px;right:0;max-width:280px;padding:6px 10px;border-radius:var(--exgen-radius-sm,8px);background:var(--exgen-navy,#0E1B2A);color:#fff;font-family:"DM Mono",monospace;font-size:10.5px;line-height:1.5;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .15s ease}',
         '#perBubble:hover ~ #perSees,#perBubble:focus-visible ~ #perSees{opacity:1}',
-        /* Panelen är uppe — då står svaret där, och raden vore i vägen. */
-        '#perBubble.per-open ~ #perSees{opacity:0}',
+        /* Panelen är uppe — då står svaret där, och raden vore i vägen.
+           #perWidget-prefixet höjer specificiteten över hover-regeln ovan så
+           att vinnaren avgörs av vad som är sant (panelen öppen eller inte),
+           inte av vilken ordning reglerna råkar stå i den här arrayen. */
+        '#perWidget #perBubble.per-open ~ #perSees{opacity:0}',
         '@media(prefers-reduced-motion:reduce){#perSees{transition:none}}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
         '@media(max-width:480px){#perPanel{max-height:70dvh}}',

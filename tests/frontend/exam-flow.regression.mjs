@@ -303,6 +303,32 @@ async function toExam(page) {
   await ctx.close();
 }
 
+// ── T8: "Fråga P.E.R"-knappen nämner rätt frågenummer ──────────────────────
+// Tillståndsraden (#perSees) syns bara vid hover på en bubbla som är helt dold
+// under provet, så eleven kan aldrig se den där den skulle betytt något.
+// Knappen är alltid synlig — den ska bära beskedet i stället, och bara den,
+// inte det använda tillståndet ("✦ P.E.R hjälpte dig här" ska stå kvar oändrat).
+{
+  const { ctx, page } = await mk();
+  await page.addInitScript(session, "u1");
+  await toExam(page);
+  const q1 = await page.evaluate(() => document.querySelector(".xf-ask")?.textContent);
+  ok("T8a knappen nämner fråga 1", q1 === "✦ Fråga P.E.R om fråga 1", String(q1));
+
+  await page.click(".xf-exam-nav .xf-btn.primary"); await page.waitForTimeout(300); // → fråga 2
+  const q2 = await page.evaluate(() => document.querySelector(".xf-ask")?.textContent);
+  ok("T8b knappen följer med till fråga 2", q2 === "✦ Fråga P.E.R om fråga 2", String(q2));
+
+  await page.click(".xf-ask"); await page.waitForTimeout(400);
+  const used = await page.evaluate(() => ({
+    text: document.querySelector(".xf-ask")?.textContent,
+    cls: document.querySelector(".xf-ask")?.className
+  }));
+  ok("T8c använt tillstånd är oförändrat", used.text === "✦ P.E.R hjälpte dig här" && used.cls === "xf-ask used",
+    JSON.stringify(used));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 
