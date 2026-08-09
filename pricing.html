@@ -54,6 +54,12 @@
   .planCard.featured{border-color:var(--a);box-shadow:var(--sh2)}
   .planCard.featured:hover{box-shadow:var(--sh3)}
 
+  /* Kortet P.E.R just skickade besökaren till. Markeringen bleknar av sig
+     själv — den ska säga "här" en gång, inte bli ett permanent tillstånd.
+     Ingen ny färg: samma accent som resten av sidan, bara som ring. */
+  .planCard--flash { box-shadow: 0 0 0 2px var(--a, #00768F); transition: box-shadow .3s ease; }
+  @media (prefers-reduced-motion: reduce) { .planCard--flash { transition: none; } }
+
   .planBadge{
     display:inline-flex;align-items:center;gap:5px;
     font-family:var(--font);font-size:var(--exgen-text-xs);font-weight:600;
@@ -237,7 +243,7 @@
   <div class="planGrid">
 
     <!-- GRATIS -->
-    <div class="planCard rev d1">
+    <div class="planCard rev d1" id="plan-gratis">
       <span class="planBadge muted">Gratis</span>
       <div class="planName">Gratis</div>
       <div class="planDesc">Prova ExGen utan kostnad.</div>
@@ -265,7 +271,7 @@
     </div>
 
     <!-- BASIC -->
-    <div class="planCard rev d2">
+    <div class="planCard rev d2" id="plan-basic">
       <span class="planBadge muted">Basic</span>
       <div class="planName">Basic</div>
       <div class="planDesc">För stabil och regelbunden provträning.</div>
@@ -293,7 +299,7 @@
     </div>
 
     <!-- PREMIUM -->
-    <div class="planCard featured rev d3">
+    <div class="planCard featured rev d3" id="plan-premium">
       <span class="planBadge">Premium — Rekommenderas</span>
       <div class="planName">Premium</div>
       <div class="planDesc">Maxa resultaten med personlig AI-coach.</div>
@@ -566,6 +572,29 @@ document.querySelectorAll("[data-faq]").forEach(btn => {
     }
   };
 })();
+
+/* Mål P.E.R kan skicka besökaren till inuti prissidan. Utan dem kan den bara
+   svara [GOTO:pricing.html] på "vad kostar Premium" — och besökaren står
+   redan där. shared.js laddas med defer, så window.PER finns när
+   DOMContentLoaded går. */
+document.addEventListener("DOMContentLoaded", function () {
+  if (!window.PER || !window.PER.describe) return;
+  function jump(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("planCard--flash");
+    setTimeout(function () { el.classList.remove("planCard--flash"); }, 1600);
+  }
+  window.PER.describe({
+    page: "prisplan",
+    targets: [
+      { id: "gratis",  label: "Gratis",  hint: "0 kr, 10 kursfrågor per dag",   go: function () { jump("plan-gratis"); } },
+      { id: "basic",   label: "Basic",   hint: "29 kr/mån, 30 prov per månad",  go: function () { jump("plan-basic"); } },
+      { id: "premium", label: "Premium", hint: "felbank, AI-coach, obegränsat", go: function () { jump("plan-premium"); } }
+    ]
+  });
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
