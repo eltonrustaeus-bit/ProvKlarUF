@@ -282,14 +282,21 @@
      filen och skilde sig bara i färg och marginal. De var redan samma
      formspråk; nu står det bara på ett ställe.
 
-     Detta är INTE .xf-eyebrow från exgen-ui.css. Den är mono, 10,5px och
-     versaler — ett annat uttryck. Att byta hit hade ändrat fem etiketter på
-     landningssidan, vilket är ett designbeslut och inte en uppstädning. */
+     Uttrycket är nu .xf-eyebrow från exgen-ui.css — mono, 10,5px, versaler,
+     spärrad. Det var ett öppet designbeslut sedan 8 augusti och togs i Del C:
+     samma ord gör samma jobb på app.html och förbättring.html, och i mono
+     läses etiketten som ram i stället för att konkurrera med rubriken under
+     sig, som den gjorde i samma typsnitt och nästan samma vikt.
+
+     Deklarationerna är skrivna av här och inte ärvda via klassbyte i markupen,
+     eftersom de fem etiketterna bär olika färg och marginal per plats — det är
+     bara typografin som är gemensam. */
   .mockStripEye, .benefitsEye, .secEye, .featLabel, .pEye {
-    font-family:var(--font);
-    font-size:var(--exgen-text-xs);
-    font-weight:600;
-    letter-spacing:0;
+    font-family:var(--exgen-font-mono);
+    font-size:10.5px;
+    font-weight:400;
+    letter-spacing:var(--exgen-tracking-wide);
+    text-transform:uppercase;
   }
   .mockStripEye{color:var(--a);margin-bottom:6px}
   .benefitsEye{color:#fff;margin-bottom:var(--sp-2)}
