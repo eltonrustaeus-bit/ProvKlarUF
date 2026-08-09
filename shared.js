@@ -156,7 +156,7 @@
   }
 
   function perDescribe(m) {
-    if (!m || typeof m !== 'object') { _perManifest = null; return; }
+    if (!m || typeof m !== 'object') { _perManifest = null; perPaintSees(); return; }
     perWarnKeys(m, PER_MANIFEST_KEYS, '');
     perWarnKeys(m.state, PER_STATE_KEYS, 'state.');
     var st = null;
@@ -173,6 +173,7 @@
       state: st
     };
     if (window.PER && window.PER._resetNudge) window.PER._resetNudge();
+    perPaintSees();
   }
 
   function perFindTarget(id) {
@@ -182,6 +183,27 @@
       if (_perManifest.targets[i].id === want) return _perManifest.targets[i];
     }
     return null;
+  }
+
+  function perStateLine() {
+    var m = _perManifest;
+    if (!m) return 'ser: den här sidan';
+    var parts = [];
+    if (m.focus && typeof m.focus.number === 'number' && typeof m.focus.of === 'number') {
+      parts.push('fråga ' + m.focus.number + ' av ' + m.focus.of);
+    }
+    if (m.focus && m.focus.answer) parts.push('ditt svar ' + String(m.focus.answer).slice(0, 24));
+    /* Klockan räknar uppåt från provstart — "kvar" hade varit fel ord. */
+    if (m.state && m.state.elapsed) parts.push(m.state.elapsed + ' på provet');
+    return parts.length ? 'ser: ' + parts.join(' · ') : 'ser: den här sidan';
+  }
+
+  function perPaintSees() {
+    var el = document.getElementById('perSees');
+    if (el) el.textContent = perStateLine();
+    /* Orbens andningsring går snabbare när P.E.R har ett skarpt fokus. */
+    var focused = !!(_perManifest && _perManifest.focus);
+    if (document.body) document.body.classList.toggle('per-focused', focused);
   }
 
   function getPageContext() {
@@ -964,6 +986,15 @@
         '.per-chip:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.6)}',
         '.per-nav-cta{display:inline-flex;align-items:center;margin-top:10px;padding:8px 14px;background:none;border:1px solid rgba(0,183,217,.38);color:var(--exgen-text,#1B2430);border-radius:var(--exgen-radius-sm,8px);font-size:12px;font-family:"DM Sans",sans-serif;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}',
         '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
+        /* Tillståndsraden. P.E.R:s förtroendeproblem var inte bara att den
+           kunde ha fel fråga — det var att eleven inte kunde SE att den hade
+           det förrän efter att ha frågat. Raden visar vad P.E.R har i handen
+           innan frågan ställs. Byggs lokalt, inget AI-anrop, ingen kostnad. */
+        '#perSees{position:absolute;bottom:52px;right:0;max-width:280px;padding:6px 10px;border-radius:var(--exgen-radius-sm,8px);background:var(--exgen-navy,#0E1B2A);color:#fff;font-family:"DM Mono",monospace;font-size:10.5px;line-height:1.5;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .15s ease}',
+        '#perBubble:hover ~ #perSees,#perBubble:focus-visible ~ #perSees{opacity:1}',
+        /* Panelen är uppe — då står svaret där, och raden vore i vägen. */
+        '#perBubble.per-open ~ #perSees{opacity:0}',
+        '@media(prefers-reduced-motion:reduce){#perSees{transition:none}}',
         '@media(max-width:480px){#perPanel{max-height:70vh}}',
         '@media(max-width:480px){#perPanel{max-height:70dvh}}',
         /* Re-assert exgen tokens unconditionally (light only, no dark mode
@@ -1001,7 +1032,8 @@
         '</div>' +
         '<button id="perBubble" title="Fråga P.E.R" aria-label="Fråga P.E.R">'+
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v10H9l-4 4V5Z"/></svg>'+
-          '<span>P.E.R</span></button>';
+          '<span>P.E.R</span></button>'+
+          '<div id="perSees" aria-hidden="true">ser: den här sidan</div>';
       document.body.appendChild(widget);
 
       document.getElementById('perBubble').onclick = toggle;

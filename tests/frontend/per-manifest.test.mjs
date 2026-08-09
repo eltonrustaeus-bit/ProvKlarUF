@@ -112,6 +112,32 @@ ok("T6d currentQuestion når fram", t6.currentQuestion?.number === 1);
 const t7 = await page.evaluate(() => { window.PER.describe(null); return window.__perTestCtx(); });
 ok("T7 manifestet nollställs", !t7.currentQuestion && !t7.targets);
 
+// ── T8: raden utan fokus ──────────────────────────────────────────────────
+const t8 = await page.evaluate(() => {
+  window.PER.describe({ page: "prisplan" });
+  return document.getElementById("perSees")?.textContent;
+});
+ok("T8 raden säger bara sidan", t8 === "ser: den här sidan", String(t8));
+
+// ── T9: raden med fokus ───────────────────────────────────────────────────
+const t9 = await page.evaluate(() => {
+  window.PER.describe({
+    page: "prov",
+    focus: { kind: "question", number: 7, of: 12, text: "Q", answer: "B", answered: true },
+    state: { answered: 5, remaining: 7, elapsed: "12:40" }
+  });
+  return document.getElementById("perSees")?.textContent;
+});
+ok("T9 raden visar fråga, svar och tid", t9 === "ser: fråga 7 av 12 · ditt svar B · 12:40 på provet", String(t9));
+
+// ── T10: raden är dold tills man hovrar ───────────────────────────────────
+const t10 = await page.evaluate(() => {
+  const el = document.getElementById("perSees");
+  return { opacity: getComputedStyle(el).opacity, events: getComputedStyle(el).pointerEvents };
+});
+ok("T10a dold i vila", t10.opacity === "0", t10.opacity);
+ok("T10b fångar inte klick", t10.events === "none", t10.events);
+
 await ctx.close();
 await browser.close();
 server.close();
