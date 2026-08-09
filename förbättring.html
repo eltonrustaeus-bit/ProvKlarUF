@@ -101,6 +101,15 @@
     .xfDisclose:hover{color:var(--xf-accent)}
     .xfCached{opacity:.6;text-transform:none;letter-spacing:0}
     .xfMissDetail{margin-top:10px}
+    .xfCoachAct{margin-top:var(--exgen-space-4)}
+    .xfCoachAct:empty,.xfCoachAct:has(> [style*="display:none"]){margin-top:0}
+    .xfStats{padding-top:var(--exgen-space-4);padding-bottom:var(--exgen-space-4)}
+    .xfReportAct{margin:var(--exgen-space-4) 0}
+    .xfReportWrap{position:relative}
+    /* Zonen P.E.R just skickade eleven till. Säger "här" en gång och bleknar —
+       samma mönster och samma accent som .planCard--flash på prissidan. */
+    .xfZone--flash,.xf-act--stick.xfZone--flash{box-shadow:0 0 0 2px var(--xf-accent);border-radius:var(--exgen-radius-lg);transition:box-shadow .3s ease}
+    @media(prefers-reduced-motion:reduce){.xfZone--flash{transition:none}}
     @media(max-width:520px){.xfFilters{align-items:stretch}.xfSync{width:100%}}
     @media(max-width:600px){main.wrap{padding-bottom:48px}}
 
@@ -142,40 +151,9 @@
       margin-bottom:8px;overflow:hidden;
       transition:border-color .18s ease,background .28s ease;
     }
-    .section:hover{border-color:var(--l2)}
-    .sHead{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:18px 22px;cursor:pointer;user-select:none;
-    }
-    .sHeadLeft{display:flex;align-items:center;gap:14px;min-width:0}
-    .sNum{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--a2);width:24px;text-align:center;flex-shrink:0}
-    .sInfo{min-width:0}
-    .sTitle{font-size:13.5px;font-weight:600;color:var(--t2);letter-spacing:-.01em;transition:color .15s ease}
-    .sDesc{font-size:11.5px;color:var(--t3);margin-top:1px;transition:color .28s ease}
-    .sHead:hover .sTitle{color:var(--t)}
-    .sChev{
-      width:26px;height:26px;display:grid;place-items:center;border-radius:var(--exgen-radius-sm);
-      border:1px solid var(--l);background:var(--s2);flex-shrink:0;
-      transition:all .18s ease;
-    }
-    .sChev svg{transition:transform .2s cubic-bezier(.22,.61,.36,1)}
     .collapsed .sChev svg{transform:rotate(-90deg)}
-    .section:hover .sChev{border-color:var(--l2)}
-    .sDivider{height:1px;background:var(--l);transform-origin:left;transition:transform .22s ease,opacity .22s ease}
     .collapsed .sDivider{transform:scaleX(0);opacity:0}
-    .sBody{
-      padding:0 22px;max-height:4000px;opacity:1;overflow:hidden;
-      transition:max-height .28s cubic-bezier(.22,.61,.36,1),opacity .2s ease,padding .22s ease;
-    }
     .collapsed .sBody{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
-    .sBodyInner{padding:18px 0}
-
-    /* ── FILTER ROW ── */
-    .filterRow{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-      padding:10px 14px;background:var(--s2);border:1px solid var(--l);
-      border-radius:var(--exgen-radius-sm);margin-bottom:14px;
-    }
     .fLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase}
     select{
       padding:6px 28px 6px 10px;border-radius:var(--exgen-radius-md);border:1px solid var(--l);
@@ -187,27 +165,9 @@
     }
     select:focus{border-color:var(--a-border2)}
     select:hover{border-color:var(--l2)}
-
-    /* ── DATA GRID ── */
-    .dataGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
-    .dataCard{
-      background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);
-      padding:14px;transition:all .16s ease;
-    }
-    .dataCard:hover{border-color:var(--l2);box-shadow:var(--sh)}
     .dLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
     .dValue{font-size:13px;font-weight:500;color:var(--t);line-height:1.45}
-
-    /* ── STATS ROW ── */
-    .statsRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-    @media(max-width:560px){.statsRow{grid-template-columns:1fr}}
-    .statBox{background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);padding:14px;transition:background .28s ease,border-color .28s ease}
-    .statLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
-    .statValue{font-size:13px;font-weight:500;color:var(--t);line-height:1.5}
-
-    /* ── COACH BOX ── */
-    .coachBox{background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);padding:18px;margin-bottom:10px;transition:background .28s ease}
-    .coachLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--a2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+    @media(max-width:560px){}
     .coachText{font-size:13px;color:var(--t2);line-height:1.72;white-space:pre-wrap}
 
     /* ── CHART ── */
@@ -216,26 +176,6 @@
 
     /* ── MISTAKE GRID ── */
     .mistakeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
-    .mCard{background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);padding:15px;transition:all .16s ease}
-    .mCard:hover{border-color:var(--l2);box-shadow:var(--sh)}
-    .mHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:11px}
-    .mMeta{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.02em}
-    .mScore{
-      font-family:var(--mono);font-size:11px;font-weight:500;color:var(--warn);
-      padding:2px 8px;border:1px solid rgba(212,160,22,.2);border-radius:var(--exgen-radius-sm);
-      background:rgba(212,160,22,.07);flex-shrink:0;
-    }
-    .mQ{font-size:13px;font-weight:500;color:var(--t);line-height:1.55;margin-bottom:11px}
-    .mTags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
-    .mConcept{
-      font-family:var(--mono);font-size:10px;font-weight:500;color:var(--a2);
-      padding:2px 8px;border:1px solid var(--a-border);border-radius:var(--exgen-radius-sm);
-      background:var(--a-dim);letter-spacing:.02em;
-    }
-    .mErr{
-      font-size:10.5px;font-weight:500;color:var(--t3);
-      padding:2px 8px;border:1px solid var(--l);border-radius:var(--exgen-radius-sm);background:var(--s);
-    }
 
     /* ── CONCEPT BREAKDOWN (level 2 under course) ── */
     .conceptBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
@@ -253,19 +193,8 @@
     .conceptChip.active{background:var(--a-dim);border-color:var(--a-border2);color:var(--a2)}
     .conceptChipN{font-family:var(--mono);font-size:10px;color:var(--t3)}
     .conceptChip.active .conceptChipN{color:var(--a2)}
-    .mDiv{height:1px;background:var(--l);margin:11px 0}
     .mFL{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
     .mFV{font-size:12px;color:var(--t2);line-height:1.6;white-space:pre-wrap;margin-bottom:9px}
-    .mActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px;align-items:center}
-
-    .checkChip{
-      display:inline-flex;align-items:center;gap:6px;padding:5px 9px;
-      border-radius:var(--exgen-radius-pill);border:1px solid var(--l);background:var(--s);
-      cursor:pointer;font-family:var(--font);font-weight:500;font-size:12px;color:var(--t2);
-      transition:all .13s ease;user-select:none;
-    }
-    .checkChip:hover{border-color:var(--l2);color:var(--t)}
-    .checkChip input{width:13px;height:13px;accent-color:var(--a);cursor:pointer}
 
     .tinyBtn{
       display:inline-flex;align-items:center;gap:5px;padding:5px 9px;
@@ -284,9 +213,6 @@
       animation:fadeUp .18s ease;
     }
     @keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-    /* ── REPORT ── */
-    .reportActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
     .reportBox{
       position:relative;background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);
       padding:18px;min-height:130px;
@@ -305,16 +231,6 @@
     .loadSteps{display:flex;flex-direction:column;gap:4px;align-items:center}
     .loadStep{font-family:var(--mono);font-size:11px;color:var(--t3);opacity:0;transform:translateY(3px);transition:all .22s ease}
     .loadStep.on{opacity:1;transform:none;color:var(--t2)}
-
-    /* ── TRAIN ── */
-    .trainRow{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-      padding:14px;background:var(--s2);border:1px solid var(--l);border-radius:var(--exgen-radius-sm);
-    }
-    .selPill{
-      margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:500;
-      color:var(--t3);padding:3px 9px;border:1px solid var(--l);border-radius:var(--exgen-radius-pill);background:var(--s);
-    }
 
     /* ── STATUS ── */
     .statusText{font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:10px}
@@ -336,8 +252,6 @@
     /* ── RESPONSIVE ── */
     @media(max-width:620px){
       .heroTitle{font-size:24px}
-      .sHead{padding:14px}
-      .sBody{padding-left:14px;padding-right:14px}
       .mistakeGrid,.dataGrid{grid-template-columns:1fr}
     }
     @media(prefers-reduced-motion:reduce){
@@ -353,7 +267,6 @@
       #cursorRing.rHov>div{transform:scale(1.57);opacity:.3}
       #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
     }
-    .coachBox{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   </style>
   <script src="shared.js" defer></script>
   <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
@@ -493,77 +406,60 @@
     </section>
 
     <!-- SECTION 02 – COACH -->
-    <div class="section collapsed reveal" id="coachSection">
-      <div class="sHead" data-toggle="#coachSection">
-        <div class="sHeadLeft">
-          <span class="sNum">02</span>
-          <div class="sInfo">
-            <div class="sTitle" id="coachTitle">Coach</div>
-            <div class="sDesc" id="coachSub">AI-analys baserad på din historik och felbank</div>
-          </div>
-        </div>
-        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      </div>
-      <div class="sDivider"></div>
-      <div class="sBody">
-        <div class="sBodyInner">
-          <div class="coachBox">
-            <div class="coachLabel" id="coachHeader">P.E.R · Rekommendation</div>
-            <div class="coachText" id="coachText">—</div>
-            <div style="margin-top:12px">
-              <button class="btn tinyBtnP" id="perCoachBtn" type="button" style="display:none">Hämta P.E.R-analys</button>
-            </div>
-          </div>
-          <div class="statsRow">
-            <div class="statBox"><div class="statLabel" id="lastTitle">Senaste</div><div class="statValue" id="lastText">—</div></div>
-            <div class="statBox"><div class="statLabel" id="trendTitle">Trend</div><div class="statValue" id="trendText">—</div></div>
-            <div class="statBox"><div class="statLabel" id="focusTitle">Fokus</div><div class="statValue" id="focusText">—</div></div>
-          </div>
-          <div class="chartWrap" id="chartWrap" style="display:none">
-            <div class="chartLabel" id="chartTitle">Resultatutveckling</div>
-            <canvas id="progressChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- ZON 3 — COACH. En avläsning, inte en yta man arbetar i. -->
+    <section class="xfZone reveal" id="zonCoach">
+      <div class="xf-eyebrow" id="coachTitle">Coach</div>
+      <p class="xf-note" id="coachSub">AI-analys baserad på din historik och felbank</p>
 
-    <!-- SECTION 03 – RAPPORT -->
-    <div class="section collapsed reveal" id="reportSection">
-      <div class="sHead" data-toggle="#reportSection">
-        <div class="sHeadLeft">
-          <span class="sNum">03</span>
-          <div class="sInfo">
-            <div class="sTitle" id="reportTitle">Lärarrapport</div>
-            <div class="sDesc" id="reportSub">Kräver minst 3 genomförda prov</div>
-          </div>
-        </div>
-        <div class="sChev"><svg width="11" height="7" viewBox="0 0 11 7" fill="none"><path d="M1 1l4.5 5L10 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      </div>
-      <div class="sDivider"></div>
-      <div class="sBody">
-        <div class="sBodyInner">
-          <div class="statusText" id="reportStatus" aria-live="polite"></div>
-          <div class="reportActions">
-            <button class="btn btnP" id="genReportBtn" type="button">Skapa rapport</button>
-            <button class="btn" id="copyReportBtn" type="button" disabled>Kopiera</button>
-            <span class="pill" id="reportPill" style="display:none">—</span>
-          </div>
-          <div style="position:relative">
-            <div class="loadOv" id="reportLoadingOverlay">
-              <div class="spinner"></div>
-              <div class="loadSteps">
-                <div class="loadStep" id="loadStep1">Analyserar historik…</div>
-                <div class="loadStep" id="loadStep2">Identifierar mönster…</div>
-                <div class="loadStep" id="loadStep3">Skriver rapport…</div>
-              </div>
-            </div>
-            <div class="reportBox" id="reportBox">—</div>
-          </div>
+      <div class="xf-card">
+        <div class="xf-eyebrow" id="coachHeader">P.E.R · Rekommendation</div>
+        <div class="coachText" id="coachText">—</div>
+        <div class="xf-act xfCoachAct">
+          <button class="xf-btn ghost" id="perCoachBtn" type="button" style="display:none">Hämta P.E.R-analys</button>
         </div>
       </div>
-    </div>
 
-    <!-- SECTION 04 – TRÄNA -->
+      <!-- Tre nyckeltal som etikett/värde. .xf-row är en dt/dd-rad och är
+           precis vad det här är — inte en generisk flexrad. -->
+      <dl class="xf-card xfStats">
+        <div class="xf-row"><dt id="lastTitle">Senaste</dt><dd id="lastText">—</dd></div>
+        <div class="xf-row"><dt id="trendTitle">Trend</dt><dd id="trendText">—</dd></div>
+        <div class="xf-row"><dt id="focusTitle">Fokus</dt><dd id="focusText">—</dd></div>
+      </dl>
+
+      <div class="xf-card chartWrap" id="chartWrap" style="display:none">
+        <div class="xf-eyebrow" id="chartTitle">Resultatutveckling</div>
+        <canvas id="progressChart"></canvas>
+      </div>
+    </section>
+
+    <!-- ZON 3 — LÄRARRAPPORT. Också en avläsning, men med en knapp. -->
+    <section class="xfZone reveal" id="zonRapport">
+      <div class="xf-eyebrow" id="reportTitle">Lärarrapport</div>
+      <p class="xf-note" id="reportSub">Kräver minst 3 genomförda prov</p>
+
+      <div class="statusText" id="reportStatus" aria-live="polite"></div>
+      <div class="xf-act xfReportAct">
+        <button class="xf-btn" id="genReportBtn" type="button">Skapa rapport</button>
+        <button class="xf-btn ghost" id="copyReportBtn" type="button" disabled>Kopiera</button>
+        <span class="xf-chip" id="reportPill" style="display:none">—</span>
+      </div>
+
+      <div class="xfReportWrap">
+        <!-- Laddningsöverlägget behålls som det är. Det är redan återhållsamt
+             och har ingen motsvarighet i vokabulären att tvinga in sig i. -->
+        <div class="loadOv" id="reportLoadingOverlay">
+          <div class="spinner"></div>
+          <div class="loadSteps">
+            <div class="loadStep" id="loadStep1">Analyserar historik…</div>
+            <div class="loadStep" id="loadStep2">Identifierar mönster…</div>
+            <div class="loadStep" id="loadStep3">Skriver rapport…</div>
+          </div>
+        </div>
+        <div class="xf-card reportBox" id="reportBox">—</div>
+      </div>
+    </section>
+
     <!-- ZON 2 — FELBANK. Kärnan. Åtgärdsraden bodde tidigare i en egen
          hopfälld sektion OVANFÖR den här, med två knappar och "0 valda" men
          utan någonting att markera i synfältet. Den hade ingen egen data —
@@ -597,7 +493,7 @@
     /* ── STORAGE KEYS ── */
     const LS_HISTORY='proviaai_history',LS_MISTAKES='proviaai_mistakes',LS_LAST='proviaai_last_result',
       LS_MATERIAL='proviaai_last_material',LS_CLEAR_TS='proviaai_cleared_ts',
-      LS_TRAIN_PICK='proviaai_train_pick',LS_UI_OPEN='proviaai_ui_open_improve',
+      LS_TRAIN_PICK='proviaai_train_pick',
       LS_USER_NAME_A='proviaai_user_name',LS_USER_NAME_B='proviaai_name',
       LS_SMART_TIPS_CACHE='proviaai_smart_tips_cache',LS_TEACHER_REPORT_CACHE='proviaai_teacher_report_cache',
       LS_PER_COACH_CACHE='proviaai_per_coach_cache';
@@ -716,35 +612,33 @@
       }
     };
 
-    /* ── COLLAPSIBLE ── */
-    function uiState(){return lsObj(LS_UI_OPEN)||{};}
-    function saveUiState(o){lsSet(LS_UI_OPEN,o);}
-    function isOpen(sel){return!document.querySelector(sel)?.classList.contains('collapsed');}
-    function setOpen(sel,open){
-      const el=document.querySelector(sel);if(!el)return;
-      el.classList.toggle('collapsed',!open);
-      const st=uiState();st[sel]=!!open;saveUiState(st);
-    }
-    function toggleSection(sel){setOpen(sel,!isOpen(sel));}
-    function openSection(sel){setOpen(sel,true);document.querySelector(sel)?.scrollIntoView({behavior:'smooth',block:'start'});}
-    function restoreUiState(){
-      const st=uiState();
-      ['#examSection','#coachSection','#reportSection','#trainSection','#mistakeSection'].forEach(sel=>{
-        if(typeof st[sel]==='boolean') document.querySelector(sel)?.classList.toggle('collapsed',!st[sel]);
-      });
+    /* ── ATT HOPPA TILL EN ZON ──
+       Ersätter dragspelen. Inget är hopfällt längre, så det finns inget att
+       öppna — bara att ta sig till, och att säga "här" en gång när man kommit
+       fram. Samma mönster som .planCard--flash på prissidan (Del A): en ring i
+       befintlig accent som bleknar av sig själv, ingen ny färg och inget
+       permanent tillstånd. */
+    function goZone(sel,focusSel){
+      const zone=document.querySelector(sel);if(!zone)return;
+      const mark=(focusSel&&document.querySelector(focusSel))||zone;
+      zone.scrollIntoView({behavior:'smooth',block:'start'});
+      mark.classList.add('xfZone--flash');
+      setTimeout(()=>mark.classList.remove('xfZone--flash'),1600);
     }
 
     /* Mål P.E.R kan skicka eleven till inuti sidan. Deklareras separat från
        datainläsningen nedan: sektionerna finns i markupen från början och ska
        gå att hoppa till även för en elev som inte hunnit göra ett prov än. */
     const PER_TARGETS=[
-      { id:'prov',    label:'Prov',          hint:'alla rättade prov',                         go:function(){openSection('#examSection');} },
-      { id:'coach',   label:'Coach',         hint:'personlig studieplan från misstagen',       go:function(){openSection('#coachSection');} },
-      { id:'rapport', label:'Lärarrapport',  hint:'sammanfattning att visa läraren',           go:function(){openSection('#reportSection');} },
-      { id:'trana',   label:'Träna misstag', hint:'nytt prov på det du tappat poäng på',       go:function(){openSection('#trainSection');} },
-      { id:'felbank', label:'Felbank',       hint:'frågor du tappat poäng på, med modellsvar', go:function(){openSection('#mistakeSection');} }
-    ];
-    document.addEventListener('DOMContentLoaded',function(){
+      { id:'prov',    label:'Prov',          hint:'alla rättade prov',                         go:function(){goZone('#zonProv');} },
+      { id:'coach',   label:'Coach',         hint:'personlig studieplan från misstagen',       go:function(){goZone('#zonCoach');} },
+      { id:'rapport', label:'Lärarrapport',  hint:'sammanfattning att visa läraren',           go:function(){goZone('#zonRapport');} },
+      /* Landar i felbanken med åtgärdsraden markerad. Det är den ändring som
+         gör målet sant: eleven kommer dit markeringen görs, inte till två
+         knappar utan sammanhang. */
+      { id:'trana',   label:'Träna misstag', hint:'nytt prov på det du tappat poäng på',       go:function(){goZone('#zonFelbank','#trainActions');} },
+      { id:'felbank', label:'Felbank',       hint:'frågor du tappat poäng på, med modellsvar', go:function(){goZone('#zonFelbank');} }
+    ];    document.addEventListener('DOMContentLoaded',function(){
       if(window.setPerContext) window.setPerContext({page:'förbättring',targets:PER_TARGETS});
     });
 
@@ -1206,7 +1100,7 @@
         const b=document.createElement('button');b.type='button';b.className='xf-opt';
         const date=new Date(x.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
         b.innerHTML=`${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}<small>${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</small>`;
-        b.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();openSection('#mistakeSection');});
+        b.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();goZone('#zonFelbank');});
         wrap.appendChild(b);
       });
       if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
@@ -1394,8 +1288,8 @@
       }
     });
     $('courseFilter').addEventListener('change',()=>{CONCEPT_FILTER='';renderAll();});
-    $('showMode').addEventListener('change',()=>{openSection($('showMode').value==='all'?'#examSection':'#mistakeSection');});
-    $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();openSection('#examSection');});
+    $('showMode').addEventListener('change',()=>{goZone($('showMode').value==='all'?'#zonProv':'#zonFelbank');});
+    $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();goZone('#zonProv');});
     $('trainSelectedBtn').addEventListener('click',()=>{const p=getPick();if(!p.ids?.length)lsSet(LS_TRAIN_PICK,{ids:[],course:String($('courseFilter')?.value||'')});window.location.href='app.html#train';});
     $('clearSelectionBtn').addEventListener('click',()=>{clearPick();renderAll();});
     $('genReportBtn').addEventListener('click',async()=>await generateReport());
@@ -1421,11 +1315,6 @@
     });
 
     /* ── BIND TOGGLES ── */
-    function bindToggles(){
-      document.querySelectorAll('.sHead[data-toggle]').forEach(head=>{
-        head.addEventListener('click',()=>{const sel=head.getAttribute('data-toggle');if(sel)toggleSection(sel);});
-      });
-    }
 
 
     /* ── REVEAL ── */
@@ -1439,7 +1328,7 @@
 
     /* ── INIT ── */
     (async()=>{
-      applyLang();bindToggles();initReveal();restoreUiState();
+      applyLang();initReveal();
       renderAll();
       const ok=await gatePage();
       if(!ok) return;
