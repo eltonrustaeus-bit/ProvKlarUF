@@ -247,6 +247,11 @@ export default async function handler(req, res) {
     const question = sanitize(String(body.userQuestion || body.topic || ''), 300).trim();
     if (!question) return res.status(400).json({ error: 'No question' });
 
+    // Sidmål (t.ex. prissidans #gratis/#basic/#premium-kort) går genom samma sanering som den
+    // inloggade vägen — cleanTargets i _per-context.js — aldrig råa ur HTTP-kroppen. Landningsläget
+    // är oautentiserat, så pageContext är obetrodd klientdata i ännu högre grad än annars.
+    const { pageContext: landingPageContext } = buildPERContextPack({ rawPageContext: body.pageContext });
+
     // Rate-limit anonymous callers to protect OpenAI spend (no auth on this path)
     const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
     const windowKey = new Date().toISOString().slice(0, 13); // hourly bucket (YYYY-MM-DDTHH)
@@ -263,7 +268,7 @@ export default async function handler(req, res) {
     } catch (_) { /* fail-open: never block a legit visitor on limiter infra hiccup */ }
 
     const msgs = [
-      { role: 'system', content: buildPERLandingPrompt() },
+      { role: 'system', content: buildPERLandingPrompt({ targets: landingPageContext.targets || [] }) },
       { role: 'user', content: question },
     ];
     try {
