@@ -28,12 +28,15 @@ function cleanQuestion(raw, { maxText = 280, includeType = false } = {}) {
   const options = cleanStringList(raw.options, 6, 90);
   const category = cleanText(raw.category || raw.course || raw.subcategory || "", 80);
   const type = includeType ? cleanText(raw.type || raw.question_type || "", 20) : "";
+  const answer = cleanText(raw.answer || "", 200);
   if (number !== undefined) q.number = number;
   if (text) q.text = text;
   if (options.length) q.options = options;
   if (category) q.category = category;
   if (type) q.type = type;
-  return text || options.length || category ? q : null;
+  if (answer) q.answer = answer;
+  if (raw.answered === true) q.answered = true;
+  return text || options.length || category || answer ? q : null;
 }
 
 function cleanMistakes(values) {
@@ -45,6 +48,25 @@ function cleanMistakes(values) {
       category: cleanText(item?.category || item?.course || "", 60),
     }))
     .filter(item => item.question || item.category);
+}
+
+/* Mål som sidan erbjuder P.E.R att skicka eleven till. Bara id, etikett och
+   ledtråd — go-funktionen stannar hos klienten och når aldrig hit.
+   id:t begränsas hårt eftersom det går ut i prompten och kommer tillbaka som
+   en sträng modellen skrivit: [a-z0-9_-], max 40 tecken, max 24 mål. */
+function cleanTargets(values) {
+  if (!Array.isArray(values)) return [];
+  const out = [];
+  for (const raw of values) {
+    if (out.length >= 24) break;
+    if (!raw || typeof raw !== "object") continue;
+    const id = String(raw.id || "").trim().toLowerCase();
+    if (!/^[a-z0-9_-]{1,40}$/.test(id)) continue;
+    const label = cleanText(raw.label || id, 60);
+    if (!label) continue;
+    out.push({ id, label, hint: cleanText(raw.hint, 90) });
+  }
+  return out;
 }
 
 function describePage(page) {
@@ -89,6 +111,7 @@ export function buildPERContextPack({
       `Aktiv fråga: ${currentQuestion.number ? `#${currentQuestion.number} ` : ""}${currentQuestion.text}`.trim()
     );
     if (currentQuestion.category) summaryLines.push(`Aktiv kategori: ${currentQuestion.category}`);
+    if (currentQuestion.answer) summaryLines.push(`Elevens svar: ${currentQuestion.answer}`);
   }
 
   if (Array.isArray(raw.questions)) {
@@ -101,6 +124,12 @@ export function buildPERContextPack({
       pageContext.questions = questions;
       summaryLines.push(`Synliga provfrågor: ${questions.length}`);
     }
+  }
+
+  const targets = cleanTargets(raw.targets);
+  if (targets.length) {
+    pageContext.targets = targets;
+    summaryLines.push(`Mål i sidan: ${targets.map(t => `#${t.id} ${t.label}`).join(" · ")}`);
   }
 
   if (typeof raw.userScore === "number" && Number.isFinite(raw.userScore)) {

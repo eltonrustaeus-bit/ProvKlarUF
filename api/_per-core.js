@@ -104,6 +104,7 @@ export function buildPERSystemPrompt({
         lines.push(q.options.map((o, i) => `${letters[i] || i+1}: ${o}`).join(' | '));
       }
       if (q.category) lines.push(`Kategori: ${q.category}`);
+      if (q.answer) lines.push(`Elevens svar på den frågan: ${q.answer}`);
     }
 
     if (Array.isArray(pageContext.questions) && pageContext.questions.length) {
@@ -269,6 +270,9 @@ Om eleven explicit frågar om att byta sida, hitta en funktion eller gå vidare 
 - [GOTO:konto.html] — om eleven vill hantera konto, avsluta prenumeration
 ${MODULES.korkort ? '- [GOTO:korkortet.html] — om eleven vill börja träna körkortsteorin\n' : ''}- [GOTO:app.html] — om eleven vill göra ett mockprov
 Lägg BARA till GOTO vid tydlig navigation-intent. Aldrig i rena studiesvar.
+${Array.isArray(pageContext?.targets) && pageContext.targets.length ? `
+Vill eleven till en plats PÅ den här sidan — lägg till [GOTO:#id] med ett id ur listan nedan. Skriv aldrig ett id som inte står här:
+${pageContext.targets.map(t => `- #${t.id} — ${t.label}${t.hint ? ` (${t.hint})` : ''}`).join('\n')}` : ''}
 
 ## FELSKYDD
 Hitta aldrig på trafikregler, priser eller statistik. Saknas info — säg det direkt.
