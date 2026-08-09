@@ -167,6 +167,53 @@ const t12 = await page.evaluate(() => {
 ok("T12a raden är ärlig utan siffra", t12 === "ser: en fråga", String(t12));
 ok("T12b raden skriver aldrig ut frågetexten", !/Vilket ord passar/.test(t12 || ""), String(t12));
 
+// ── T13: focus.number utan text ljuger inte uppåt (Fynd E) ────────────────
+// Servern (cleanQuestion i api/_per-context.js) släpper fokus helt om text
+// saknas — oavsett number, options, category eller answer. Utan samma krav
+// här kunde klienten påstå "ser: fråga 5" om ett focus-objekt som servern
+// redan behandlar som "ingen fråga alls": raden och det som faktiskt skickas
+// till modellen skulle säga olika saker. Inte nåbart från körkortet.html
+// eller js/hp-app.js idag (båda skickar alltid text) — men en latent kant
+// som specens feltabell redan sanktionerar "ser: den här sidan" för.
+const t13 = await page.evaluate(() => {
+  window.PER.describe({
+    page: "körkortsteorin",
+    focus: { number: 5 },
+    state: { answered: 4, remaining: 60 }
+  });
+  return document.getElementById("perSees")?.textContent;
+});
+ok("T13 raden ljuger inte uppåt utan text", t13 === "ser: den här sidan", String(t13));
+
+// ── T14: nollställda mål gör en redan ritad knapp obrukbar (Fynd C) ────────
+// finalizeMsg (shared.js) fångade tidigare `target.go` i en closure vid rit-
+// tillfället. describe(null) — eller ett nytt manifest utan målet — rör
+// aldrig DOM:en, så en redan ritad [GOTO:#id]-knapp fortsatte peka på den
+// gamla closuren: antingen en tyst no-op (skärmen bytt, go() hörde till fel
+// data) eller ett kastat fel som bara sväljs i konsolen. Id:t slås nu upp på
+// nytt VID KLICKET i stället för att lita på closuren — försvinner målet ska
+// knappen inte låtsas fungera.
+const t14 = await page.evaluate(() => {
+  window.__t14Calls = 0;
+  window.PER.describe({
+    page: "prov",
+    targets: [{ id: "q1", label: "Fråga 1", go: function () { window.__t14Calls++; } }]
+  });
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Titta på fråga 1.\n[GOTO:#q1]");
+  // Målet försvinner (provet lämnat in, eleven bytt ämne) UTAN att röra
+  // knappen som redan ritats i chatthistoriken.
+  window.PER.describe(null);
+  const ctas = document.querySelectorAll("#perMessages .per-nav-cta");
+  const btn = ctas[ctas.length - 1];
+  btn.click();
+  return { text: btn.textContent, disabled: btn.disabled, calls: window.__t14Calls };
+});
+ok("T14a knappen anropar inte ett försvunnet måls gamla go()", t14.calls === 0, JSON.stringify(t14));
+ok("T14b knappen ger besked i stället för en tyst no-op", t14.disabled === true && /Inte längre tillgänglig/.test(t14.text || ""), JSON.stringify(t14));
+
 await ctx.close();
 await browser.close();
 server.close();

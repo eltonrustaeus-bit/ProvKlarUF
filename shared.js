@@ -189,10 +189,16 @@
     var m = _perManifest;
     if (!m) return 'ser: den här sidan';
     var parts = [];
-    if (m.focus && typeof m.focus.number === 'number') {
+    if (m.focus && m.focus.text && typeof m.focus.number === 'number') {
       /* körkortet.html skickar number men aldrig of — "fråga 5" är fortfarande
          sant utan "av 65", till skillnad från att tyst falla tillbaka på
-         "den här sidan" som om P.E.R inte visste vilken fråga det gällde. */
+         "den här sidan" som om P.E.R inte visste vilken fråga det gällde.
+
+         text krävs här också: servern (cleanQuestion i _per-context.js)
+         släpper hela fokus om text saknas, oavsett number. Utan samma krav
+         här kunde raden påstå "ser: fråga 5" om ett focus-objekt som servern
+         redan behandlar som "ingen fråga alls" — klient och server måste
+         vara överens om vad som räknas som fokus. */
       parts.push(typeof m.focus.of === 'number'
         ? 'fråga ' + m.focus.number + ' av ' + m.focus.of
         : 'fråga ' + m.focus.number);
@@ -674,14 +680,27 @@
              modellutdata. */
           var target = perFindTarget(href.slice(1));
           if (target) {
+            var targetId = href.slice(1);
             navBtn = document.createElement('button');
             navBtn.type = 'button';
             navBtn.className = 'per-nav-cta';
             navBtn.textContent = target.label + ' →';
             navBtn.onclick = function (e) {
               e.stopPropagation();
-              if (!target.go) return;
-              try { target.go(); }
+              /* Slå upp id:t på nytt i stället för att lita på closurens
+                 `target` — describe(null) (t.ex. inlämnat prov, "Nytt ämne")
+                 nollställer manifestet men rör aldrig redan ritade knappar.
+                 Håller closuren målet vid liv blir klicket antingen en tyst
+                 no-op (screen har bytts, go() pekar på fel data) eller ett
+                 kastat fel som bara sväljs i konsolen. Slås id:t upp här
+                 dör hela felklassen, inte bara den här instansen. */
+              var fresh = perFindTarget(targetId);
+              if (!fresh || !fresh.go) {
+                navBtn.disabled = true;
+                navBtn.textContent = 'Inte längre tillgänglig';
+                return;
+              }
+              try { fresh.go(); }
               catch (err) { try { console.warn('[PER] målet kastade: ' + err.message); } catch (_) {} }
             };
           }
