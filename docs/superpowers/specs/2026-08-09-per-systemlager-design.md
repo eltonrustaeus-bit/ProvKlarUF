@@ -62,7 +62,7 @@ window.PER.describe({
   focus:   { kind: "question", number: 7, of: 12,
              text: "…", options: ["…"], answer: "B", answered: true },
   targets: [ { id: "q7", label: "Fråga 7", hint: "Derivata av produkt", go: fn } ],
-  state:   { answered: 5, remaining: 7, timeLeft: "12:40" }
+  state:   { answered: 5, remaining: 7, elapsed: "12:40" }
 });
 ```
 
@@ -77,7 +77,10 @@ Fältkontrakt:
 | `page` | sträng | Vad sidan är. Samma värden som `describePage()` i `api/_per-context.js` redan normaliserar. |
 | `focus` | objekt \| null | Vad eleven tittar på just nu. `kind` säger vad det är (`"question"` är det enda som används i Del A). |
 | `targets` | array | Vart P.E.R kan skicka eleven inuti sidan. Tom array = inga in-sid-hopp. |
-| `state` | objekt | Sammanfattning av läget. Tre tillåtna fält: `answered`, `remaining` (heltal, saneras av befintliga `cleanNumber()`), `timeLeft` (sträng, max 12 tecken). Övriga fält varnar och ignoreras, samma regel som toppnycklarna. Mappas till serverns befintliga `examState`. |
+| `state` | objekt | Sammanfattning av läget. Tre tillåtna fält: `answered`, `remaining` (heltal, saneras av befintliga `cleanNumber()`), `elapsed` (sträng, max 12 tecken). Övriga fält varnar och ignoreras, samma regel som toppnycklarna. Mappas till serverns befintliga `examState`. |
+
+Fältet heter `elapsed`, inte `timeLeft`: provklockan i `js/exam-flow.js:849`
+räknar uppåt från `S.startedAt` och det finns ingen gräns att räkna ned mot.
 
 `focus` mappas till serverns befintliga `currentQuestion` i `getPageContext()`,
 plus två nya fält (`answer`, `answered`). Ingen ny datamodell på servern —
@@ -129,7 +132,7 @@ klick — de är diskreta händelser.
 tangentbordsfokus:
 
 ```
-ser: fråga 7 av 12 · ditt svar B · 12:40 kvar
+ser: fråga 7 av 12 · ditt svar B · 12:40 på provet
 ```
 
 Raden byggs helt lokalt ur senaste manifestet. Inget AI-anrop, ingen kostnad,
@@ -141,8 +144,8 @@ inte visste. Nu är det synligt innan frågan ställs, inte efteråt.
 
 Orbens andningsring (`.xf-orb::after` i `exgen-ui.css`, 3,2 s) får en snabbare
 variant (2,0 s) när `focus` är satt. `@media (prefers-reduced-motion: reduce)`
-nollställer redan `--exgen-motion-*` i `exgen-tokens.css`; keyframe-varaktigheten
-sätts därför via en custom property så att samma block stänger av även denna.
+nollställer inte keyframe-varaktigheter, så ringen får en egen
+`animation: none`-regel i samma mediablock.
 
 ## Filer
 
@@ -153,7 +156,7 @@ sätts därför via en custom property så att samma block stänger av även den
 | `api/_per-context.js` | `cleanQuestion()` får `answer`/`answered`; ny `cleanTargets()`; `targets` med i `summary` |
 | `api/_per-core.js` | `[GOTO:#id]` lärs ut; mållistan injiceras när den finns |
 | `pricing.html` | Måldeklaration per plan (Gratis/Basic/Premium) |
-| `förbättring.html` | Måldeklaration per sektion; ersätter befintligt `setPerContext`-anrop |
+| `förbättring.html` | Måldeklaration per sektion; utökar befintligt `setPerContext`-anrop med `targets` (fältet går genom wrappern, så `userScore`/`weakAreas` fortsätter flöda oförändrat) |
 
 `pricing.html` och `förbättring.html` tas med i Del A trots att deras *utseende*
 hör till B och C. Skälet är att en mekanism med en enda konsument inte går att
