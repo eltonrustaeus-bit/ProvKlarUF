@@ -704,11 +704,17 @@
               catch (err) { try { console.warn('[PER] målet kastade: ' + err.message); } catch (_) {} }
             };
           }
-        } else {
+        } else if (Object.prototype.hasOwnProperty.call(_perNavLabels, href)) {
+          /* Sidgrenen speglar #id-grenen ovan: href sätts aldrig från
+             modellutdata rakt av, bara mot en känd sida i _perNavLabels.
+             Innan denna kontroll gav t.ex. [GOTO:javascript:alert(1)] en
+             klickbar <a href="javascript:alert(1)">. Saknas href i listan
+             ritas ingen knapp — svarstexten står kvar, precis som när ett
+             #id inte hittas. */
           navBtn = document.createElement('a');
           navBtn.href = href;
           navBtn.className = 'per-nav-cta';
-          navBtn.textContent = _perNavLabels[href] || 'Gå dit →';
+          navBtn.textContent = _perNavLabels[href];
           navBtn.onclick = function (e) { e.stopPropagation(); };
         }
         if (navBtn) div.appendChild(navBtn);

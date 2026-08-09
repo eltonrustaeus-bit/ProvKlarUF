@@ -156,6 +156,27 @@ ok("T7a sidlänk är en <a>", t7.tag === "A", t7.tag);
 ok("T7b rätt href", t7.href === "pricing.html", String(t7.href));
 ok("T7c känd etikett behålls", t7.text === "Se alla priser →", t7.text);
 
+// ── T7d/e: okänd href ritar ingen knapp (Fynd 2) ───────────────────────────
+// href-grenen satte tidigare navBtn.href = href rakt av, oavsett om sidan
+// fanns i _perNavLabels — etiketten föll bara tillbaka på 'Gå dit →'. Ett
+// svar med [GOTO:javascript:alert(1)] gav då en klickbar
+// <a href="javascript:alert(1)">. #id-grenen skyddar sig redan genom att slå
+// upp målet innan knappen ritas (T5 ovan); href-grenen ska nu göra detsamma
+// mot _perNavLabels — samma beteende som T5 när ingen knapp ritas alls.
+await page.evaluate(() => {
+  const msgs = document.getElementById("perMessages");
+  const div = document.createElement("div");
+  msgs.appendChild(div);
+  window.__perFinalize(div, "Gör så här.\n[GOTO:javascript:alert(1)]");
+});
+const t7de = await page.evaluate(() => {
+  const msgsEls = document.querySelectorAll("#perMessages .per-msg");
+  const el = msgsEls[msgsEls.length - 1];
+  return { html: el.innerHTML, cta: el.querySelectorAll(".per-nav-cta").length };
+});
+ok("T7d ingen knapp för okänd sida", t7de.cta === 0, String(t7de.cta));
+ok("T7e svarstexten står kvar", /Gör så här/.test(t7de.html), t7de.html);
+
 // ── T8: ett mål som kastar dödar inte sidan ───────────────────────────────
 // T6:s go() bytte fråga, och exam-flow.js (renderQuestion) döljer med rätta
 // P.E.R-panelen vid varje frågebyte — annars låg förra frågans samtal kvar
