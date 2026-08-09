@@ -818,6 +818,12 @@
     UI.nudge.classList.remove("on");
     if (UI.clock) clearInterval(UI.clock);
     watchKeyboard(false);
+    /* Manifestet hörde till frågan som stod på skärmen, inte till det som
+       kommer efteråt (resultat, eller en helt annan skärm om eleven väljer
+       "Nytt ämne"). Utan den här raden stod P.E.R kvar på "fråga 12 av 12"
+       mitt på resultatskärmen — exakt den felklass branchen finns för att
+       döda, bara flyttad hit. */
+    if (window.PER && window.PER.describe) window.PER.describe(null);
   }
 
   /* Det virtuella tangentbordet på mobil läggs ovanpå sidan utan att ändra
@@ -989,15 +995,21 @@
       sheet.appendChild(ta);
     }
 
+    /* Tillståndsraden (#perSees i shared.js) syns bara vid hover över den
+       flytande bubblan, och bubblan är helt dold under provet — så eleven kan
+       aldrig se den där den skulle betytt något. Knappen är däremot alltid
+       synlig. Den bär därför själv beskedet om vilken fråga P.E.R har: säger
+       den "fråga 7" vet eleven att det är den frågan som gäller utan att
+       behöva fråga. */
     var ask = el("button", "xf-ask" + (S.helped[id] ? " used" : ""),
-      S.helped[id] ? "✦ P.E.R hjälpte dig här" : "✦ Fråga P.E.R om den här frågan");
+      S.helped[id] ? "✦ P.E.R hjälpte dig här" : "✦ Fråga P.E.R om fråga " + (i + 1));
     ask.type = "button";
     ask.addEventListener("click", function () {
       /* Flaggan sätts bara om panelen faktiskt öppnas. Knappen på P.E.R-bubblan
          är en växlare: var panelen redan öppen stängde klicket den, och eleven
          fick ändå avdrag i provsalssiffran — för att ha stängt en panel. Hela
          tvåpoängsfunktionen står och faller med att den här flaggan är sann. */
-      if (!askPer(q, i)) return;
+      if (!askPer()) return;
       S.helped[id] = true;
       ask.className = "xf-ask used";
       ask.textContent = "✦ P.E.R hjälpte dig här";
@@ -1017,17 +1029,16 @@
     publish();
   }
 
-  /* P.E.R får hela frågan som kontext så att svaret handlar om just den, inte
-     om sidan i allmänhet. Samma mekanism som app.html redan använder.
+  /* Öppnar P.E.R-panelen åt eleven. Frågekontexten sätts INTE här — publish()
+     skickar redan rätt fråga till manifestet vid varje frågebyte (se ovan).
+     Den här funktionen gör bara knapptrycket verkningsfullt: den släpper fram
+     den annars dolda bubblan under provet och öppnar panelen om den inte
+     redan är öppen.
      Returnerar om panelen faktiskt öppnades — anroparen sätter hjälpflaggan
      bara då. */
-  function askPer(q, i) {
+  function askPer() {
     var bubble = document.getElementById("perBubble");
     if (!bubble) return false;
-
-    /* Kontexten sätts av publish() vid varje frågebyte, inte här. Att sätta den
-       på nytt just vid knapptrycket var hela orsaken till att eleven kunde
-       öppna bubblan själv och få svar om en annan fråga. */
 
     // shared.js sätter .per-open på bubblan medan panelen är uppe. Är den redan
     // öppen finns inget att göra — ett klick hade stängt den i stället.

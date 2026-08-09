@@ -184,6 +184,38 @@ await page.waitForTimeout(300);
 ok("T8a felet fångas, sidan lever", pageDied === false);
 ok("T8b sidan svarar fortfarande", await page.evaluate(() => typeof window.PER?.describe === "function"));
 
+// ── T9: closeExam() nollställer manifestet vid inlämning (Fynd 1) ─────────
+// Innan fixen tog closeExam() bort xf-in-exam/xf-per-open men rörde aldrig
+// manifestet. Eleven som lämnade in ett prov och stod på resultatskärmen och
+// frågade "varför fick jag så lågt?" fick svar om provets sista fråga i
+// stället för om resultatet, eftersom __perManifest fortfarande pekade dit.
+await page.route("**/api/grade", r => r.fulfill({ json: { ok: true, result: {
+  total_points: 4, max_points: 6,
+  per_question: [
+    { id: "q1", points: 2, max_points: 2, feedback: "bra", model_answer: "Beta" },
+    { id: "q2", points: 0, max_points: 2, feedback: "fel", model_answer: "Beta" },
+    { id: "q3", points: 2, max_points: 2, feedback: "bra", model_answer: "Beta" }
+  ]
+} } }));
+
+// T8 skrev över manifestet med ett eget testmanifest utan fokus. Navigera till
+// en riktig fråga så att publish() sätter ett äkta manifest igen — annars
+// bevisar testet ingenting om closeExam().
+await page.click(".xf-dot >> nth=1"); await page.waitForTimeout(300);
+const beforeSubmit = await page.evaluate(() => window.__perTestCtx());
+ok("T9a manifestet pekar på en fråga innan inlämning", beforeSubmit.currentQuestion?.number === 2,
+   JSON.stringify(beforeSubmit.currentQuestion));
+
+page.once("dialog", d => d.accept().catch(() => {}));
+await page.click(".xf-dot >> nth=2"); await page.waitForTimeout(200);
+await page.click(".xf-exam-nav .xf-btn.primary"); // "Lämna in" på sista frågan, 2 obesvarade → confirm()
+await page.waitForSelector("#xf .xf-screen[data-screen='result'].on", { timeout: 15000 });
+await page.waitForTimeout(200);
+const afterSubmit = await page.evaluate(() => window.__perTestCtx());
+ok("T9b currentQuestion är borta på resultatskärmen", !afterSubmit.currentQuestion, JSON.stringify(afterSubmit.currentQuestion));
+ok("T9c examState är borta på resultatskärmen", !afterSubmit.examState, JSON.stringify(afterSubmit.examState));
+ok("T9d targets är borta på resultatskärmen", !afterSubmit.targets, JSON.stringify(afterSubmit.targets));
+
 await ctx.close();
 await browser.close();
 server.close();
