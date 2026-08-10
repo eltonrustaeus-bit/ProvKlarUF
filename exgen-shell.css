@@ -56,7 +56,11 @@ html {
 .xg-utility-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .xg-utility-right a { color: var(--exgen-text-secondary, #667085); text-decoration: underline; text-underline-offset: 2px; }
 .xg-utility-right a:hover { color: var(--exgen-text, #1B2430); }
-@media (max-width: 640px) { .xg-utility-disclaimer { display: none; } }
+/* .xg-utility-disclaimer är borta. Ansvarsfriskrivningen stod i verktygsraden
+   OCH i sidfoten på varje sida — samma mening två gånger, och tillsammans med
+   headern och beta-banderollen tre remsor krom före innehållet. Den står kvar
+   i sidfoten, som är där en friskrivning hör hemma. integritetspolicy.html bar
+   den bara i verktygsraden, så den flyttades dit i stället för att tas bort. */
 @media (max-width: 480px) { .xg-utility-bar { display: none; } }
 
 .xg-header {

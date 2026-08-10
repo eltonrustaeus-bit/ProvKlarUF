@@ -45,9 +45,17 @@ let failures = 0;
 const ok = (name) => console.log(`  PASS  ${name}`);
 const fail = (name, err) => { failures++; console.error(`  FAIL  ${name}\n        ${err?.message || err}`); };
 
+// Playwrights boundingBox() returnerar {x, y, width, height} — INTE
+// left/right/top/bottom. Den här funktionen läste de fyra sistnämnda, som
+// alltid var undefined, och `undefined < tal` är false. Funktionen returnerade
+// därför ALLTID false: varje överlappskontroll i filen har varit tom sedan den
+// skrevs, och de gröna raderna om att P.E.R inte täcker provinnehåll bevisade
+// ingenting. Upptäckt genom att mäta överlappet för hand vid 390x844 och få
+// alternativ C och D helt täckta medan testet var grönt.
 function rectsOverlap(a, b) {
-  return a && b && a.width > 0 && b.width > 0 &&
-    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  if (!a || !b || a.width <= 0 || b.width <= 0 || a.height <= 0 || b.height <= 0) return false;
+  return a.x < b.x + b.width && a.x + a.width > b.x &&
+         a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 // Provet måste laddas över http, inte file://, eftersom js/site-gate.js och
@@ -133,6 +141,15 @@ async function run() {
       await page.click(".xf-ask");
       await page.waitForTimeout(350);
 
+      // Panelen mäts EFTER ett utbyte, inte tom. Den växer med innehållet:
+      // 350 ms efter klicket bär den bara hälsningen och är låg nog att missa
+      // alternativen. Så fort P.E.R svarat — vilket är hela anledningen att
+      // öppna den — är den 370px hög och når upp i arket. Att mäta det tomma
+      // läget var en grön kontroll på ett tillstånd eleven aldrig ser.
+      await page.fill("#perInput", "hjälp mig med frågan");
+      await page.press("#perInput", "Enter");
+      await page.waitForTimeout(1200);
+
       const widgetBox = await page.locator("#perWidget").boundingBox();
       if (!widgetBox || widgetBox.width < 1) throw new Error("#perWidget syns inte efter .xf-ask");
 
@@ -141,14 +158,38 @@ async function run() {
 
       // Arkets faktiska innehåll — alternativen och svarsfältet är det eleven
       // måste kunna läsa och träffa.
+      //
+      // Kravet är INTE att panelen aldrig överlappar. Uppmätt vid 390x700 finns
+      // ~200px mellan toppraden och panelens överkant, och en fråga med fyra
+      // alternativ behöver ~350px: att visa båda samtidigt går inte på en
+      // telefon, och ett test som kräver det kräver en skärm som inte finns.
+      //
+      // Kravet är att ingenting är INSTÄNGT. Arket är en egen scroller. Rullas
+      // den till sitt yttersta har allt flyttats upp så långt det går — ligger
+      // något då fortfarande under panelen går det inte att nå, och det är
+      // felet. (Den kontroll som fanns här förut mätte överlapp med en trasig
+      // rectsOverlap och kunde aldrig bli röd; se kommentaren vid funktionen.)
       const targets = await page.locator(".xf-mc-opt, .xf-answer, .xf-q-text").all();
       if (!targets.length) throw new Error("hittade inget provinnehåll att mäta mot");
+      const panelBox = await page.locator("#perPanel").boundingBox();
+      if (!panelBox || panelBox.height < 1) throw new Error("#perPanel syns inte efter .xf-ask");
+
+      await page.evaluate(() => {
+        const w = document.querySelector(".xf-sheet-wrap");
+        if (w) w.scrollTop = w.scrollHeight;
+      });
+      await page.waitForTimeout(300);
+
       for (const t of targets) {
         const box = await t.boundingBox();
         if (!box || box.height <= 0) continue;
         if (rectsOverlap(widgetBox, box)) throw new Error(`bubblan täcker provinnehåll vid ${width}px`);
+        if (box.y + box.height > panelBox.y) {
+          const txt = (await t.innerText()).replace(/\s+/g, " ").slice(0, 30);
+          throw new Error(`"${txt}" går inte att scrolla fram ovanför panelen vid ${width}px`);
+        }
       }
-      ok(`öppnad bubbla överlappar varken ark eller nav vid ${width}px`);
+      ok(`inget provinnehåll är instängt under panelen vid ${width}px`);
 
       // 3. Frågebyte gömmer den igen
       await page.click(".xf-exam-nav .xf-btn.primary");

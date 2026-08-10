@@ -1069,7 +1069,24 @@
     // igen vid frågebyte och när provet lämnas.
     document.body.classList.add("xf-per-open");
     bubble.click();
+    scrollSheetClear();
     return true;
+  }
+
+  /* Panelen lägger sig över arkets nedre del på en telefon. exam-flow.css ger
+     arket luft under sig så att ingenting blir instängt; den här raden gör att
+     eleven slipper scrolla dit själv — frågans början hamnar överst i det band
+     som är kvar ovanför panelen. Ingen effekt på en bred skärm, där panelen
+     ligger vid sidan av arket. */
+  function scrollSheetClear() {
+    var wrap = document.querySelector(".xf-sheet-wrap");
+    var sheet = wrap && wrap.querySelector(".xf-sheet");
+    if (!wrap || !sheet) return;
+    if (window.innerWidth > 600) return;
+    var top = sheet.offsetTop - 8;
+    if (top < 0) top = 0;
+    try { wrap.scrollTo({ top: top, behavior: "smooth" }); }
+    catch (_) { wrap.scrollTop = top; }
   }
 
   function next() {
