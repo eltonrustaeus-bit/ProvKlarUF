@@ -133,7 +133,22 @@
   .compareTable tr:hover td{background:var(--xf-accent-soft)}
   .chk{color:var(--xf-accent)}
   .dash{color:var(--xf-ink-2);opacity:.6}
-  @media(max-width:580px){.compareTable th{padding:0 8px 8px}.compareTable td{padding:8px}}
+  /* Jämförelsen på telefon.
+     min-width:420px tvingade tabellen 62px utanför kanten vid 390px — Premium,
+     den enda kolumnen värd att sälja på, låg utanför skärmen och ingenting
+     antydde att man kunde dra i sidled. Uppmätt vid 360/390/430px: alla tre
+     krävde scroll.
+
+     Ingen cell var klippt invändigt, så det var enbart min-width som höll isär
+     dem. Den släpps här och funktionskolumnen — som tog 203px av 421 — får
+     bryta rad i stället. .compareWrap behåller sin overflow-x som skyddsnät
+     ifall en framtida rad blir bredare, men skyddsnätet ska inte behövas. */
+  @media(max-width:600px){
+    .compareTable{min-width:0}
+    .compareTable th{padding:0 6px 8px}
+    .compareTable td{padding:9px 6px;line-height:var(--exgen-leading-normal)}
+    .compareTable th:first-child,.compareTable td:first-child{width:38%}
+  }
 
   /* ── DIN PRENUMERATION ── */
   .subRow{display:flex;align-items:center;justify-content:space-between;
