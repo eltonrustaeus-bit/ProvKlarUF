@@ -398,6 +398,29 @@ body.xf-in-exam.xf-per-open #perWidget {
   bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
+/* Panelen över arket på en telefon.
+   Uppmätt vid 390x700: #perPanel ligger på y 268–552 medan svarsalternativen
+   ligger på 250–450. Panelen täckte alltså alternativen medan P.E.R:s svar
+   handlade om just dem — och den enda befintliga kontrollen mot det var tom
+   (rectsOverlap läste left/right/top/bottom ur en boundingBox som bara har
+   x/y/width/height, och returnerade därför alltid false).
+
+   På en 700px hög skärm finns ~200px mellan toppraden och panelens överkant.
+   En fråga med fyra alternativ behöver ~350px. Att visa båda samtidigt går
+   inte, och att låtsas annat vore att designa för en skärm som inte finns.
+
+   Kravet som DÄREMOT går att hålla är att ingenting är instängt: varje del av
+   arket ska gå att scrolla upp i det synliga bandet ovanför panelen. Arket är
+   en egen scroller (.xf-sheet-wrap), så det räcker att ge den luft under sig
+   som motsvarar panelens fotavtryck — 70vh max-höjd plus de 148px den är lyft.
+   js/exam-flow.js scrollar dessutom fram frågans början när panelen öppnas, så
+   eleven slipper göra det själv. */
+@media (max-width: 600px) {
+  body.xf-in-exam.xf-per-open .xf-sheet-wrap {
+    padding-bottom: calc(70vh + 160px);
+  }
+}
+
 .xf-nudge {
   position: fixed;
   right: 20px;
