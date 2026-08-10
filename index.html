@@ -154,9 +154,9 @@
     letter-spacing:-.01em;color:#fff;
     background:var(--a);border:none;border-radius:var(--exgen-radius-md);
     text-decoration:none;cursor:pointer;
-    transition:background .15s ease,box-shadow .18s ease,transform .12s ease;
+    transition:background var(--exgen-motion-fast) var(--exgen-motion-ease),box-shadow var(--exgen-motion-fast) var(--exgen-motion-ease),transform var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
-  .ctaBtn:hover { background:var(--a2);box-shadow:0 6px 18px rgba(0,118,143,.22); }
+  .ctaBtn:hover { background:var(--a2);box-shadow:0 6px 20px rgba(0,118,143,.28); }
   .ctaBtn:active{transform:scale(.985)}
   .ctaBtn:focus-visible,.demoGo:focus-visible,.demoChip:focus-visible,.demoBack:focus-visible{
     outline:2px solid var(--a);outline-offset:2px;
@@ -164,7 +164,7 @@
 
   .heroMeta{display:flex;flex-direction:column;align-items:center;gap:8px}
   .heroFine{
-    font-family:var(--font);font-size:12.5px;
+    font-family:var(--font);font-size:var(--exgen-text-xs);
     color:var(--t3);margin:0;
   }
 
@@ -183,7 +183,7 @@
   /* ── Tablet / large phone ── buttons go side by side, type steps up */
   @media(min-width:600px){
     .hero{padding:64px 0 72px}
-    .heroEye{font-size:13.5px;margin-bottom:16px}
+    .heroEye{font-size:var(--fs-sm);margin-bottom:16px}
     .heroTitle{font-size:clamp(34px,5vw,42px);margin-bottom:16px}
     .heroSub{font-size:17px}
     .heroCtas{margin-top:32px;gap:18px}
@@ -206,7 +206,7 @@
 
   @media(min-width:1200px){
     .hero{padding:96px 0 104px}
-    .heroSub{font-size:17.5px}
+    .heroSub{font-size:var(--fs-md)}
   }
 
   /* ── Small phones ── keep the headline off five lines, keep tap targets */
@@ -299,7 +299,7 @@
 
   .demoBack {
     background:none;border:0;padding:0;cursor:pointer;
-    font-family:inherit;font-size:12.5px;color:var(--t3);
+    font-family:inherit;font-size:var(--exgen-text-xs);color:var(--t3);
     text-decoration:underline;text-underline-offset:2px;
   }
   .demoBack:hover { color:var(--a); }
@@ -323,13 +323,13 @@
   .demoBar { flex:1;height:4px;border-radius:var(--exgen-radius-pill);background:var(--l);overflow:hidden; }
   .demoBarFill {
     height:100%;width:0;background:var(--a);border-radius:var(--exgen-radius-pill);
-    transition:width .5s var(--exgen-motion-ease);
+    transition:width var(--exgen-motion-slow) var(--exgen-motion-ease);
   }
 
   .demoKeys { list-style:none;padding:0;margin:0 0 var(--exgen-space-4);display:grid;gap:7px; }
   .demoKeys li {
     display:flex;align-items:flex-start;gap:9px;
-    font-size:13.5px;line-height:1.45;color:var(--t2);
+    font-size:var(--fs-sm);line-height:1.45;color:var(--t2);
   }
   .demoKeys li::before {
     content:"—";flex:none;width:15px;color:var(--t3);font-weight:600;
@@ -371,15 +371,14 @@
     color:var(--t2);margin:0 0 var(--exgen-space-6);
   }
   .secAct { display:flex;gap:10px;flex-wrap:wrap; }
-  .ctaBtn--sm { height:44px;font-size:14.5px;padding:0 22px; }
+  .ctaBtn--sm { height:44px;font-size:var(--exgen-text-sm);padding:0 22px; }
 
-  .perSec { padding:var(--sp-16) 0;border-top:1px solid var(--l); }
-  .parentSec { padding:var(--sp-16) 0;border-top:1px solid var(--l); }
+
 
   .parentGrid { display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:var(--exgen-space-6); }
   @media(max-width:760px){ .parentGrid{grid-template-columns:1fr;gap:18px} }
   .parentT { font-weight:700;font-size:15px;color:var(--t);letter-spacing:-.02em;margin-bottom:6px; }
-  .parentD { font-size:13.5px;color:var(--t2);line-height:1.65; }
+  .parentD { font-size:var(--fs-sm);color:var(--t2);line-height:1.65; }
   .parentNote { font-size:var(--exgen-text-xs);color:var(--t3);margin:var(--exgen-space-6) 0 0; }
   .parentNote a { color:var(--a); }
 
@@ -409,8 +408,19 @@
   .pEye{color:var(--a);margin-bottom:var(--sp-2)}
 
   /* ── FEATURES ── */
-  .feats{padding:var(--sp-24) 0}
-  @media(max-width:600px){.feats{padding:var(--sp-16) 0}}
+  /* ── SEKTIONSRYTM ──
+     Sidan hade fem olika sektionsavstånd (96, 64, 56, 0+96) och tre olika sätt
+     att skilja sektioner åt (överlinje, över+underlinje, ingenting). Nu ett
+     avstånd och en linje. Hjälten och den första sektionen efter den delar
+     kant, så där ritas ingen linje. */
+  .feats, .perSec, .steps, .faq, .parentSec, .pricingStrip {
+    padding:var(--sp-16) 0;
+    border-top:1px solid var(--l);
+  }
+  .feats { border-top:0; }
+  @media(max-width:600px){
+    .feats, .perSec, .steps, .faq, .parentSec, .pricingStrip { padding:var(--sp-12) 0; }
+  }
   /* Vänsterställd i läsmåttet, inte centrerad över 1080px. Se kommentaren vid
      .secLead. Marginalen är mindre eftersom .secLead nu bär avståndet ned till
      innehållet på de sektioner som har en ingress. */
@@ -429,13 +439,13 @@
     background:var(--s);border:1px solid var(--l);
     border-radius:var(--exgen-radius-lg);padding:24px 22px;
     position:relative;overflow:hidden;
-    transition:border-color .2s,transform .22s cubic-bezier(.22,.61,.36,1);
+    transition:border-color var(--exgen-motion-fast) var(--exgen-motion-ease),transform var(--exgen-motion-normal) var(--exgen-motion-ease);
     will-change:transform;
   }
   .feat::after{
     content:"";position:absolute;top:0;left:0;right:0;height:1px;
     background:linear-gradient(90deg,transparent,rgba(0,183,217,.5),transparent);
-    opacity:0;transition:opacity .2s;
+    opacity:0;transition:opacity var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
   .feat:hover{border-color:rgba(0,183,217,.28);transform:translateY(-4px)}
   .feat:hover::after{opacity:1}
@@ -445,40 +455,41 @@
   .featD{font-size:13px;color:var(--t2);line-height:1.65}
 
   /* ── STEPS ── */
-  .steps{padding:56px 0;border-top:1px solid var(--l);border-bottom:1px solid var(--l)}
-  @media(max-width:600px){.steps{padding:36px 0}}
+
   .stepsRow{
     display:grid;grid-template-columns:repeat(3,1fr);
-    gap:0;position:relative;margin-top:36px;
+    gap:0;position:relative;margin-top:var(--exgen-space-6);
   }
   @media(max-width:580px){.stepsRow{grid-template-columns:1fr;gap:28px}.stepsConnector{display:none}}
   .stepsConnector{
-    position:absolute;top:26px;
-    left:calc(16.6% + 30px);right:calc(16.6% + 30px);
-    height:2px;
-    background:linear-gradient(90deg,rgba(0,183,217,.5),rgba(0,183,217,.15),rgba(0,183,217,.5));
+    position:absolute;top:26px;left:27px;right:calc(33.333% - 27px);
+    height:1px;
+    background:linear-gradient(90deg,var(--l3),var(--l),var(--l3));
   }
-  .step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 16px}
+  /* Vänsterställda som varje annan sektion. Centrerad text i tre spalter var
+     det sista stället på sidan där ögat måste hitta en ny startpunkt per
+     kolumn. Kopplingslinjen låg dessutom bakom cirklarna på en procentandel
+     som bara stämde vid tre lika breda spalter. */
+  .step{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding-right:24px}
   /* Bold, solid-fill step markers (Pensionskontrollen-style) — steps 1-2
      use the same solid --a teal; step 3 (the payoff step) is the one
      sparing use of the ExGen gradient accent per page. */
   .stepNum{
     width:54px;height:54px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;
-    font-family:var(--font);font-size:19px;font-weight:700;color:#fff;
-    background:var(--a);box-shadow:0 4px 16px rgba(0,118,143,.24);
+    font-family:var(--font);font-size:var(--exgen-text-lg);font-weight:700;color:#fff;
+    background:var(--a);box-shadow:0 4px 16px rgba(0,118,143,.22);
     margin-bottom:18px;position:relative;z-index:1;
   }
   /* Navy text, not white — exgen-tokens.css documents white-on-gradient
      failing AA at every stop; navy/--t clears 6.5-9.7:1 on this same
      gradient instead. */
-  .stepNum--accent{background:linear-gradient(135deg,#00B7D9,#28C3B5,#76D76A);box-shadow:0 4px 16px rgba(0,183,217,.28);color:#0E1B2A}
-  .stepT{font-weight:600;font-size:14.5px;color:var(--t);margin-bottom:6px}
-  .stepD{font-size:12.5px;color:var(--t3);line-height:1.6}
+  .stepNum--accent{background:linear-gradient(135deg,#00B7D9,#28C3B5,#76D76A);box-shadow:0 4px 16px rgba(0,118,143,.22);color:var(--exgen-navy)}
+  .stepT{font-weight:600;font-size:var(--exgen-text-sm);color:var(--t);margin-bottom:6px}
+  .stepD{font-size:var(--exgen-text-xs);color:var(--t3);line-height:1.6}
 
   /* ── FAQ ── */
-  .faq{padding:var(--sp-24) 0}
-  @media(max-width:600px){.faq{padding:var(--sp-16) 0}}
+
   .faqList{background:var(--s);border:1px solid var(--l2);border-radius:var(--exgen-radius-lg);overflow:hidden;box-shadow:var(--sh)}
   .faqItem{border-bottom:1px solid var(--l);overflow:hidden;padding:0 var(--sp-6)}
   .faqItem:last-child{border-bottom:none}
@@ -488,7 +499,7 @@
     padding:var(--sp-4) 0;cursor:pointer;width:100%;
     font-family:var(--font);font-weight:600;font-size:var(--fs-base);color:var(--t);
     background:none;border:none;text-align:left;
-    transition:color .15s;
+    transition:color var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
   .faqQ:hover{color:var(--a)}
   .faqQ:focus-visible{outline:2px solid var(--a);outline-offset:2px;border-radius:2px}
@@ -497,20 +508,19 @@
     border:1px solid var(--l2);flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
     font-size:14px;color:var(--a);
-    transition:transform .22s cubic-bezier(.22,.61,.36,1),background .15s;
+    transition:transform var(--exgen-motion-normal) var(--exgen-motion-ease),background var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
   .faqItem.open .faqIco{transform:rotate(45deg);background:var(--a);color:#fff;border-color:var(--a)}
   .faqA{
     max-height:0;overflow:hidden;padding-bottom:0;
     font-size:var(--fs-base);color:var(--t2);line-height:var(--lh-normal);
-    transition:max-height .3s cubic-bezier(.22,.61,.36,1),padding .22s;
+    transition:max-height var(--exgen-motion-slow) var(--exgen-motion-ease),padding var(--exgen-motion-normal) var(--exgen-motion-ease);
   }
   .faqA[hidden]{display:block;max-height:0;padding-bottom:0}
   .faqItem.open .faqA{max-height:600px;padding-bottom:var(--sp-4)}
 
   /* ── PRICING STRIP ── */
-  .pricingStrip{padding:0 0 var(--sp-24)}
-  @media(max-width:600px){.pricingStrip{padding:0 0 var(--sp-16)}}
+
   .pCard{
     background:var(--s);border:1px solid var(--l2);box-shadow:var(--sh);
     border-radius:var(--exgen-radius-lg);padding:var(--sp-8);
@@ -532,7 +542,7 @@
   .pNote{font-family:var(--font);font-size:var(--exgen-text-xs);color:var(--t3);letter-spacing:0}
 
   /* ── REVEAL — transition defined in style.css ── */
-  .rev{opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease}
+  .rev{opacity:0;transform:translateY(24px);transition:opacity var(--exgen-motion-slow) var(--exgen-motion-ease),transform var(--exgen-motion-slow) var(--exgen-motion-ease)}
   .rev.rev-visible{opacity:1;transform:none}
 
 
@@ -558,7 +568,7 @@
     border: 1px solid var(--l2); box-shadow: var(--sh3); border-radius: var(--exgen-radius-lg);
     padding: 12px 14px 12px 18px; z-index: 8000;
     opacity: 0; pointer-events: none;
-    transition: opacity .28s ease, transform .28s cubic-bezier(.22,.61,.36,1);
+    transition: opacity var(--exgen-motion-normal) var(--exgen-motion-ease), transform var(--exgen-motion-normal) var(--exgen-motion-ease);
   }
   .joinCta.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
   .joinCtaTxt {
@@ -569,7 +579,7 @@
     flex-shrink: 0; height: 44px; padding: 0 20px;
     background: var(--a); color: #fff; border: none; border-radius: var(--exgen-radius-md);
     font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer;
-    transition: background .15s ease, transform .12s ease;
+    transition: background var(--exgen-motion-fast) var(--exgen-motion-ease), transform var(--exgen-motion-fast) var(--exgen-motion-ease);
     white-space: nowrap;
   }
   .joinCtaBtn:hover { background: var(--a2); transform: translateY(-1px); }
@@ -798,7 +808,8 @@
 
     <!-- ═══ STEPS ═══ -->
     <section class="steps rev" aria-label="Hur det funkar">
-      <h2 class="secTitle" style="margin-bottom:0">Hur det funkar</h2>
+      <p class="secEye">Tre steg</p>
+      <h2 class="secTitle">Hur det funkar</h2>
       <div class="stepsRow">
         <div class="stepsConnector" aria-hidden="true"></div>
         <div class="step">
@@ -821,6 +832,7 @@
 
     <!-- ═══ FAQ ═══ -->
     <section class="faq rev" aria-label="Vanliga frågor">
+      <p class="secEye">Frågor och svar</p>
       <h2 class="secTitle">Vanliga frågor</h2>
 
       <div class="faqList">
@@ -930,7 +942,7 @@
           </div>
         </div>
         <div class="pRight">
-          <a class="btn btnP" href="pricing.html" style="height:40px;padding:0 22px;font-size:13.5px">Se alla planer →</a>
+          <a class="btn btnP" href="pricing.html" style="height:40px;padding:0 22px;font-size:var(--fs-sm)">Se alla planer →</a>
           <p class="pNote">Ingen kortuppgift krävs för att starta.</p>
         </div>
       </div>
@@ -1202,7 +1214,7 @@ document.querySelectorAll(".faqQ").forEach(q=>{
 
 <!-- Landing CTA bar — the auth modal is the shared shared.js pvModal -->
 <style>
-  #perWidget{transition:bottom .25s ease, opacity .2s ease}
+  #perWidget{transition:bottom var(--exgen-motion-normal) var(--exgen-motion-ease), opacity var(--exgen-motion-fast) var(--exgen-motion-ease)}
   body.joincta-on #perWidget{bottom:104px}
   @media(max-width:480px){ body.joincta-on #perWidget{bottom:94px} }
 </style>
