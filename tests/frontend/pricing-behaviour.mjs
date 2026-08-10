@@ -336,11 +336,49 @@ const FAQ = [
   await ctx.close();
 }
 
-// ── 8: sidfotens år räknas fram, inte skrivs in ──────────────────────────
+// ── 8: varje --exgen-token sidan hänvisar till finns faktiskt ────────────
+// CSS är tyst om okända custom properties. var(--exgen-space-10) — som inte
+// finns i skalan (1/2/3/4/6/8/12/16) — gör inte deklarationen ogiltig med ett
+// felmeddelande; den gör hela raden ogiltig utan ett ljud. Zonavståndet mättes
+// till 0px på både prissidan och förbättringssidan innan det upptäcktes, och
+// ingen körning, ingen konsol och inget test hade sagt något.
+//
+// Kontrollen letar därför upp varje var(--exgen-…) UTAN reservvärde i sidans
+// egna stilmallar och kräver att namnet är definierat. Den dödar klassen, inte
+// bara de nio raderna som råkade vara fel den här gången.
+{
+  const { ctx, page } = await mk();
+  const bad = await page.evaluate(() => {
+    const names = new Set();
+    const scan = css => {
+      // Utan komma efter namnet finns inget reservvärde att falla tillbaka på.
+      const re = /var\(\s*(--exgen-[a-z0-9-]+)\s*\)/gi;
+      let m; while ((m = re.exec(css))) names.add(m[1]);
+    };
+    for (const sheet of document.styleSheets) {
+      let rules;
+      try { rules = sheet.cssRules; } catch { continue; }   // korsdomän, t.ex. Google Fonts
+      if (!rules) continue;
+      const walk = list => {
+        for (const r of list) {
+          if (r.cssText) scan(r.cssText);
+          if (r.cssRules) walk(r.cssRules);
+        }
+      };
+      walk(rules);
+    }
+    const root = getComputedStyle(document.documentElement);
+    return [...names].filter(n => !root.getPropertyValue(n).trim()).sort();
+  });
+  ok("8a inga hänvisningar till tokens som inte finns", bad.length === 0, bad.join(" "));
+  await ctx.close();
+}
+
+// ── 9: sidfotens år räknas fram, inte skrivs in ──────────────────────────
 {
   const { ctx, page } = await mk();
   const y = await page.evaluate(() => (document.querySelector("footer").innerText || ""));
-  ok("8a året är i år", y.includes(String(new Date().getFullYear())), y.slice(0, 80));
+  ok("9a året är i år", y.includes(String(new Date().getFullYear())), y.slice(0, 80));
   await ctx.close();
 }
 

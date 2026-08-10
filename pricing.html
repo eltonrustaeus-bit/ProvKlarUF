@@ -25,121 +25,132 @@
   <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
   <script src="js/exgen-shell.js" defer></script>
   <style>
-  /* ── PRICING-SPECIFIC ── */
+  /* ── PRISSIDAN ──────────────────────────────────────────────────────────
+     Sidan bygger på det delade formspråket i exgen-ui.css — rösten (.xf-per),
+     kortet (.xf-card), etiketten (.xf-eyebrow), knappen (.xf-btn), märket
+     (.xf-chip), noten (.xf-note) — precis som provskaparen i app.html och
+     förbättringssidan. Det som står här är sidlokalt layoutlim: rutnätet för
+     planerna och jämförelsens tabell. Ingen ny vokabulär, inga nya färger.
 
-  /* PAGE HERO */
-  .pageHero{padding:40px 0 32px;border-bottom:1px solid var(--l);margin-bottom:28px}
-  @media(max-width:600px){.pageHero{padding:24px 0 20px}}
-  .pageSub{font-size:14px;color:var(--t2);max-width:50ch;line-height:1.7}
+     MÅTTET, och varför prissidan avviker från förbättringssidans 580px:
+     kolumnen är ett LÄSMÅTT. Rösten och zonernas texter får den, för de är
+     prosa och ska ligga i samma spalt som på varje annan sida. Men tre planer
+     bredvid varandra och en jämförelse med fyra kolumner är inte läsning i en
+     spalt — det är ett beslut i två riktningar. Pressat till 580px blir varje
+     plankort 180px brett och tabellen tvingas scrolla i sidled på en dator.
+     Samma vokabulär och samma rytm som de andra sidorna, annan bredd exakt där
+     innehållet kräver det. */
 
-  /* PLAN GRID */
-  .planGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+  main.wrap{padding-top:40px;padding-bottom:80px}
+  @media(max-width:600px){main.wrap{padding-bottom:48px}}
+
+  /* ── ZONER ── samma avstånd och samma rubrikform som förbättring.html */
+  .xfZone{margin-bottom:var(--exgen-space-12)}
+  .xfZone:last-child{margin-bottom:0}
+  .xfZone > .xf-note{margin:-6px 0 var(--exgen-space-6)}
+
+  /* ── HERO ── */
+  /* .xf-measure centrerar sig själv, vilket är rätt på en sida där HELA
+     innehållet ligger i kolumnen. Här är zonerna under bredare och börjar vid
+     vänsterkanten — en centrerad öppningsrad hade svävat i mitten och tappat
+     kontakten med sidan den inleder. Kolumnen behålls, centreringen inte. */
+  .pageHero .xf-measure{margin-left:0}
+  .pageHero{padding-bottom:36px;border-bottom:1px solid var(--l);margin-bottom:var(--exgen-space-12)}
+  @media(max-width:600px){.pageHero{padding-bottom:26px;margin-bottom:var(--exgen-space-8)}}
+
+  /* ── PLANRUTNÄT ── */
+  .planGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:900px){.planGrid{grid-template-columns:1fr 1fr}}
   @media(max-width:580px){.planGrid{grid-template-columns:1fr}}
 
-  /* PLAN CARD */
-  .planCard{
-    background:var(--s);border:1px solid var(--l);
-    border-radius:var(--exgen-radius-lg);padding:22px;
-    position:relative;overflow:hidden;
-    transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease;
-    display:flex;flex-direction:column;gap:0;
-  }
-  .planCard:hover{border-color:var(--l2);transform:translateY(-3px);box-shadow:var(--sh2)}
+  /* ── PLANKORT ── .xf-card bär ytan, kanten, radien och luften. Här ligger
+     bara kolumnen som håller knappen kvar i underkanten oavsett hur långa de
+     tre funktionslistorna är. */
+  .planCard{display:flex;flex-direction:column;margin-bottom:0;
+    transition:border-color var(--exgen-motion-fast) var(--exgen-motion-ease)}
+  .planCard:hover{border-color:var(--xf-accent)}
+  /* Den rekommenderade planen markeras med kant, inte med en permanent puls.
+     Animationen drog blicken från innehållet och läste som dekoration. */
+  .planCard.featured{border-color:var(--xf-accent)}
 
-  /* premium card highlight */
-  /* Featured plan is marked by a solid brand border + elevation, not by a
-     permanently pulsing glow — the animation drew the eye away from the
-     content and read as decoration for its own sake. */
-  .planCard.featured{border-color:var(--a);box-shadow:var(--sh2)}
-  .planCard.featured:hover{box-shadow:var(--sh3)}
+  /* Kortet P.E.R just skickade besökaren till. Säger "här" en gång och
+     bleknar — samma mönster och samma accent som .xfZone--flash på
+     förbättringssidan. */
+  .planCard--flash{box-shadow:0 0 0 2px var(--xf-accent);transition:box-shadow .3s ease}
+  @media(prefers-reduced-motion:reduce){.planCard--flash{transition:none}}
 
-  /* Kortet P.E.R just skickade besökaren till. Markeringen bleknar av sig
-     själv — den ska säga "här" en gång, inte bli ett permanent tillstånd.
-     Ingen ny färg: samma accent som resten av sidan, bara som ring. */
-  .planCard--flash { box-shadow: 0 0 0 2px var(--a, #00768F); transition: box-shadow .3s ease; }
-  @media (prefers-reduced-motion: reduce) { .planCard--flash { transition: none; } }
+  /* Märket är .xf-chip. Klassnamnet .planBadge är kvar som JS-krok — röstens
+     skript byter dess text till "din plan" respektive "rekommenderas för dig". */
+  .planBadge{align-self:flex-start;margin-bottom:14px;cursor:default}
+  .planCard.featured .planBadge{border-color:var(--xf-accent);color:var(--xf-accent)}
 
-  .planBadge{
-    display:inline-flex;align-items:center;gap:5px;
-    font-family:var(--font);font-size:var(--exgen-text-xs);font-weight:600;
-    color:var(--a);letter-spacing:0;
-    border:1px solid var(--l2);border-radius:var(--exgen-radius-pill);padding:2px 8px;
-    background:rgba(0,183,217,.06);
-    margin-bottom:14px;align-self:flex-start;
-  }
-  .planBadge.muted{color:var(--t3);border-color:var(--l);background:transparent}
+  .planName{font-size:var(--exgen-text-lg);font-weight:var(--exgen-weight-semibold);
+    letter-spacing:var(--exgen-tracking-tight);color:var(--xf-ink);margin-bottom:4px}
+  .planDesc{font-size:var(--exgen-text-sm);color:var(--xf-ink-2);
+    line-height:var(--exgen-leading-normal);margin-bottom:var(--exgen-space-4)}
 
-  .planName{font-weight:700;font-size:18px;color:var(--t);letter-spacing:-.02em;margin-bottom:4px}
-  .planDesc{font-size:12.5px;color:var(--t2);line-height:1.5;margin-bottom:16px}
+  .planPriceRow{display:flex;align-items:baseline;gap:5px;margin-bottom:4px}
+  .planAmt{font-size:36px;font-weight:var(--exgen-weight-semibold);color:var(--xf-ink);
+    letter-spacing:-.04em;line-height:1}
+  .planCurr,.planPer{font-family:var(--exgen-font-mono);font-size:var(--exgen-text-xs);color:var(--xf-ink-2)}
+  .planNote{font-size:var(--exgen-text-xs);color:var(--xf-ink-2);margin-bottom:var(--exgen-space-4)}
 
-  .planPriceRow{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-  .planAmt{font-weight:700;font-size:36px;color:var(--t);letter-spacing:-.04em;line-height:1}
-  .planCurr{font-family:var(--mono);font-size:13px;color:var(--t3);margin-bottom:2px}
-  .planPer{font-family:var(--mono);font-size:11px;color:var(--t3)}
-  .planNote{font-family:var(--font);font-size:var(--exgen-text-xs);color:var(--t3);margin-bottom:20px}
+  /* Skiljelinjen bar tidigare en egen .planDivider-div. En kant på blocket
+     under gör samma sak utan ett element som inte betyder något. */
+  .planIncl{padding-top:var(--exgen-space-4);border-top:1px solid var(--xf-line);
+    display:flex;flex-direction:column;flex:1}
 
-  .planDivider{height:1px;background:var(--l);margin:16px 0}
+  .featureList{list-style:none;display:grid;gap:7px;margin:0 0 var(--exgen-space-4);flex:1}
+  .featureList li{display:flex;align-items:flex-start;gap:9px;
+    font-size:var(--exgen-text-sm);color:var(--xf-ink-2);line-height:var(--exgen-leading-normal)}
+  .featureList li::before{content:"✓";font-family:var(--exgen-font-mono);font-size:11px;
+    color:var(--xf-accent);flex-shrink:0;margin-top:2px}
+  .featureList li.dim{opacity:.6}
+  .featureList li.dim::before{content:"—";color:var(--xf-ink-2)}
 
-  .planInclLabel{font-family:var(--font);font-size:var(--exgen-text-xs);font-weight:600;color:var(--t2);letter-spacing:0;margin-bottom:10px}
+  /* Sammanfattningen låg i en egen ram med accentkant — ett kort inuti ett
+     kort som upprepade det funktionslistan precis sagt. Texten är kvar, ramen
+     är borta; den är en not, inte ett eget område. */
+  .planCard .xf-note{margin:0 0 var(--exgen-space-4)}
+  .planCard .xf-btn{width:100%;margin-top:auto}
+  a.xf-btn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
 
-  .featureList{list-style:none;display:grid;gap:7px;margin-bottom:22px;flex:1}
-  .featureList li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--t2);line-height:1.55}
-  .featureList li::before{content:"✓";font-family:var(--mono);font-size:11px;color:var(--a);flex-shrink:0;margin-top:2px;font-weight:500}
-  .featureList li.dim{color:var(--t3)}
-  .featureList li.dim::before{content:"—";color:var(--t3)}
-
-  .planNote2{
-    font-size:var(--exgen-text-sm);color:var(--t2);line-height:var(--exgen-leading-relaxed);
-    border-left:2px solid var(--l2);padding-left:12px;
-    margin-bottom:18px;
-  }
-
-  .planCta{
-    display:flex;align-items:center;justify-content:center;gap:6px;
-    width:100%;min-height:48px;
-    font-family:var(--font);font-weight:700;font-size:15px;
-    border-radius:var(--exgen-radius-md);cursor:pointer;
-    border:1px solid var(--a);background:var(--a);color:#fff;
-    transition:box-shadow .15s ease,background .15s ease;
-    margin-top:auto;
-  }
-  @media(max-width:480px){.planCta{min-height:48px}}
-  .planCta:hover{box-shadow:0 8px 24px rgba(0,183,217,.28);background:var(--a2)}
-  .planCta:active{transform:scale(.98)}
-  .planCta.outline{background:transparent;color:var(--t);border-color:rgba(0,183,217,.28)}
-  .planCta.outline:hover{background:var(--a-dim);border-color:var(--l2);box-shadow:var(--sh)}
-
-  /* COMPARE TABLE */
-  .compareWrap{margin-bottom:28px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .compareLabel{font-family:var(--font);font-size:var(--exgen-text-xs);font-weight:600;color:var(--t2);letter-spacing:0;margin-bottom:12px}
+  /* ── JÄMFÖRELSE ── */
+  .compareWrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .compareTable{width:100%;border-collapse:collapse;min-width:420px}
-  @media(max-width:580px){.compareTable th{padding:6px 8px;font-size:9.5px}.compareTable td{padding:7px 8px;font-size:12px}}
-  .compareTable th{font-family:var(--font);font-size:var(--exgen-text-xs);font-weight:600;color:var(--t2);letter-spacing:0;text-align:left;padding:10px 12px;border-bottom:1px solid var(--l2)}
+  /* Kolumnrubrikerna får etikettens form i stället för en egen fet stil —
+     det är samma slags text som .xf-eyebrow bär överallt annars. */
+  .compareTable th{font-family:var(--exgen-font-mono);font-size:10.5px;
+    letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+    font-weight:var(--exgen-weight-medium);color:var(--xf-ink-2);
+    text-align:left;padding:0 12px 10px;border-bottom:1px solid var(--xf-line)}
   .compareTable th:not(:first-child){text-align:center}
-  .compareTable td{font-size:13px;color:var(--t2);padding:9px 12px;border-bottom:1px solid var(--l)}
-  .compareTable td:not(:first-child){text-align:center;font-family:var(--mono);font-size:12px}
+  .compareTable td{font-size:var(--exgen-text-sm);color:var(--xf-ink-2);
+    padding:10px 12px;border-bottom:1px solid var(--l)}
+  .compareTable td:not(:first-child){text-align:center;
+    font-family:var(--exgen-font-mono);font-size:var(--exgen-text-xs)}
   .compareTable tr:last-child td{border-bottom:none}
-  .compareTable tr:hover td{background:var(--a-dim)}
-  .chk{color:var(--a);font-size:13px}
-  .dash{color:var(--t3)}
+  .compareTable tr:hover td{background:var(--xf-accent-soft)}
+  .chk{color:var(--xf-accent)}
+  .dash{color:var(--xf-ink-2);opacity:.6}
+  @media(max-width:580px){.compareTable th{padding:0 8px 8px}.compareTable td{padding:8px}}
 
-  /* FAQ mini */
-  .faqGrid{display:grid;gap:7px;margin-bottom:28px}
-  .faqItem{background:var(--s);border:1px solid var(--l);border-radius:var(--exgen-radius-lg);overflow:hidden;transition:border-color .15s}
-  .faqItem:hover{border-color:var(--l2)}
-  .faqQ{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer;user-select:none;transition:background .14s}
-  .faqQ:hover{background:var(--a-dim)}
-  .faqQ:focus-visible{outline:2px solid var(--a);outline-offset:-2px;background:var(--a-dim)}
-  .faqQTxt{font-weight:600;font-size:13.5px;color:var(--t)}
-  .faqChev{width:14px;height:14px;color:var(--t3);flex-shrink:0;transition:transform .2s cubic-bezier(.22,.61,.36,1),color .14s}
-  .faqItem:not(.faqCol) .faqChev{transform:rotate(90deg);color:var(--a)}
-  .faqDiv{height:1px;background:var(--l);transform:scaleX(0);transform-origin:left;transition:transform .2s cubic-bezier(.22,.61,.36,1)}
-  .faqItem:not(.faqCol) .faqDiv{transform:scaleX(1)}
-  .faqA{max-height:400px;opacity:1;padding:14px 16px;font-size:13px;color:var(--t2);line-height:1.65;transition:max-height .28s cubic-bezier(.22,.61,.36,1),opacity .2s ease,padding .2s ease;overflow:hidden}
-  .faqItem.faqCol .faqA{max-height:0;opacity:0;padding-top:0;padding-bottom:0}
+  /* ── DIN PRENUMERATION ── */
+  .subRow{display:flex;align-items:center;justify-content:space-between;
+    gap:16px;flex-wrap:wrap;margin-bottom:0}
 
-  /* CUSTOM CURSOR */
+  /* ── VANLIGA FRÅGOR ──
+     Låg i dragspel med tre av fyra svar hopfällda. På en sida vars enda
+     uppgift är att svara på "ska jag betala?" är ett gömt svar ett svar
+     besökaren inte fick. Öppna kort nu — ingen chevron, ingen max-height,
+     ingen JS. */
+  .faqGrid{display:grid;gap:8px}
+  .faqItem{margin-bottom:0}
+  .faqQ{font-size:var(--exgen-text-base);font-weight:var(--exgen-weight-semibold);
+    color:var(--xf-ink);margin-bottom:6px}
+  .faqA{font-size:var(--exgen-text-sm);color:var(--xf-ink-2);line-height:var(--exgen-leading-relaxed)}
+
+  /* ── MUSPEKARE ── samma som index.html och förbättring.html */
   @media(pointer:fine){
     *{cursor:none!important}
     #cursorDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:#00768F;pointer-events:none;opacity:0;transition:transform .08s ease,opacity .15s;will-change:transform}
@@ -148,7 +159,6 @@
     #cursorRing.rHov>div{transform:scale(1.57);opacity:.3}
     #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
   }
-  .planCard.featured{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 
   </style>
 
@@ -220,116 +230,134 @@
 </div>
 <script>if(sessionStorage.getItem('betaDismissed')==='1'){var _b=document.getElementById('betaBanner');if(_b)_b.style.display='none'}</script>
 
-<main id="main-content">
-<div class="wrap">
+<main class="wrap" id="main-content">
 
   <!-- P.E.R:S RÖST
        Ersätter "Enkel prissättning. Ingen bindningstid." — en rubrik som är
        likadan för varenda besökare och som varje konkurrent också har.
        En prissida ska svara på "behöver JAG betala?", och det svaret beror på
        hur mycket eleven faktiskt använt. setPricingVoice() nedan räknar det ur
-       historiken som redan finns. -->
+       historiken som redan finns.
+
+       Rösten ligger i .xf-measure — samma 580px läsmått som app.html och
+       förbättring.html öppnar med. Zonerna under den är bredare, se
+       kommentaren i <style>. -->
   <div class="pageHero rev">
-    <div class="xf-per">
-      <div class="xf-orb" aria-hidden="true"></div>
-      <div style="flex:1;min-width:0">
-        <h1 class="xf-say" id="priceSay">Börja gratis.</h1>
-        <p class="xf-sub" id="priceSub">Uppgradera först när du slår i taket — inte innan.</p>
+    <div class="xf-measure">
+      <div class="xf-per">
+        <div class="xf-orb" aria-hidden="true"></div>
+        <div style="flex:1;min-width:0">
+          <h1 class="xf-say" id="priceSay">Börja gratis.</h1>
+          <p class="xf-sub" id="priceSub">Uppgradera först när du slår i taket — inte innan.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- PLAN CARDS -->
-  <div class="planGrid">
+  <!-- Kroppen. .xf-body har ingen egen CSS — den är en ren grupperingsdiv
+       också i app.html och på förbättringssidan. Den finns för att strukturen
+       ska vara densamma. -->
+  <div class="xf-body">
 
-    <!-- GRATIS -->
-    <div class="planCard rev d1" id="plan-gratis">
-      <span class="planBadge muted">Gratis</span>
-      <div class="planName">Gratis</div>
-      <div class="planDesc">Prova ExGen utan kostnad.</div>
-      <div class="planPriceRow">
-        <span class="planAmt">0</span>
-        <span class="planCurr">kr</span>
-        <span class="planPer">för alltid</span>
+  <!-- ZON 1 — PLANERNA. Det besökaren kom för. -->
+  <section class="xfZone rev" id="zonPlaner">
+    <div class="xf-eyebrow">Planer</div>
+    <p class="xf-note">Tre nivåer · byt eller avsluta när du vill</p>
+
+    <div class="planGrid">
+
+      <!-- GRATIS -->
+      <div class="xf-card planCard rev d1" id="plan-gratis">
+        <span class="xf-chip planBadge">Gratis</span>
+        <div class="planName">Gratis</div>
+        <div class="planDesc">Prova ExGen utan kostnad.</div>
+        <div class="planPriceRow">
+          <span class="planAmt">0</span>
+          <span class="planCurr">kr</span>
+          <span class="planPer">för alltid</span>
+        </div>
+        <div class="planNote">10 kursfrågor/dag · inget kort krävs</div>
+
+        <div class="planIncl">
+          <div class="xf-eyebrow">Ingår i Gratis</div>
+          <ul class="featureList">
+            <li>3 prov per vecka på ditt eget material</li>
+            <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
+            <li>Rättning med poäng, feedback och modellsvar</li>
+            <li>Se dina resultat och din poängutveckling</li>
+            <li>P.E.R — 5 frågor / vecka</li>
+            <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
+          </ul>
+
+          <p class="xf-note">Prova plattformen utan kostnad. Uppgradera till Basic när du vill träna om det du svarat fel på.</p>
+          <a class="xf-btn ghost" href="app.html" data-pv-auth="register">Skapa ditt första prov</a>
+        </div>
       </div>
-      <div class="planNote">10 kursfrågor/dag · inget kort krävs</div>
 
-      <div class="planDivider"></div>
-      <div class="planInclLabel">Ingår i Gratis</div>
+      <!-- BASIC -->
+      <div class="xf-card planCard rev d2" id="plan-basic">
+        <span class="xf-chip planBadge">Basic</span>
+        <div class="planName">Basic</div>
+        <div class="planDesc">För stabil och regelbunden provträning.</div>
+        <div class="planPriceRow">
+          <span class="planAmt">29</span>
+          <span class="planCurr">kr</span>
+          <span class="planPer">/ månad</span>
+        </div>
+        <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
-      <ul class="featureList">
-        <li>3 prov per vecka på ditt eget material</li>
-        <li>Välj nivå (E/C/A), frågetyp och antal frågor</li>
-        <li>Rättning med poäng, feedback och modellsvar</li>
-        <li>Se dina resultat och din poängutveckling</li>
-        <li>P.E.R — 5 frågor / vecka</li>
-        <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
-      </ul>
+        <div class="planIncl">
+          <div class="xf-eyebrow">Ingår i Basic</div>
+          <ul class="featureList">
+            <li>Upp till 30 prov per månad — ungefär ett om dagen</li>
+            <li>Fota anteckningar och gör prov på dem direkt</li>
+            <li>Historik — följ din utveckling över tid</li>
+            <li>Synk mellan dator, telefon och surfplatta</li>
+            <li>P.E.R — 5 frågor / dag</li>
+            <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
+          </ul>
 
-      <div class="planNote2">Prova plattformen utan kostnad. Uppgradera till Basic när du vill träna om det du svarat fel på.</div>
-      <a class="planCta outline" href="app.html" data-pv-auth="register">Skapa ditt första prov</a>
-    </div>
-
-    <!-- BASIC -->
-    <div class="planCard rev d2" id="plan-basic">
-      <span class="planBadge muted">Basic</span>
-      <div class="planName">Basic</div>
-      <div class="planDesc">För stabil och regelbunden provträning.</div>
-      <div class="planPriceRow">
-        <span class="planAmt">29</span>
-        <span class="planCurr">kr</span>
-        <span class="planPer">/ månad</span>
+          <p class="xf-note">Basic är för dig som pluggar regelbundet och vill ha prov när du behöver dem. Uppgradera till Premium för felbank, AI-coach och obegränsat.</p>
+          <button class="xf-btn ghost" id="btn-basic" type="button" onclick="startCheckout('basic')">Kom igång med Basic</button>
+        </div>
       </div>
-      <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
-      <div class="planDivider"></div>
-      <div class="planInclLabel">Ingår i Basic</div>
+      <!-- PREMIUM -->
+      <div class="xf-card planCard featured rev d3" id="plan-premium">
+        <span class="xf-chip planBadge">Premium — Rekommenderas</span>
+        <div class="planName">Premium</div>
+        <div class="planDesc">Maxa resultaten med personlig AI-coach.</div>
+        <div class="planPriceRow">
+          <span class="planAmt">79</span>
+          <span class="planCurr">kr</span>
+          <span class="planPer">/ månad</span>
+        </div>
+        <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
-      <ul class="featureList">
-        <li>Upp till 30 prov per månad — ungefär ett om dagen</li>
-        <li>Fota anteckningar och gör prov på dem direkt</li>
-        <li>Historik — följ din utveckling över tid</li>
-        <li>Synk mellan dator, telefon och surfplatta</li>
-        <li>P.E.R — 5 frågor / dag</li>
-        <li class="dim">Felbank &amp; AI-coach — kräver Premium</li>
-      </ul>
+        <div class="planIncl">
+          <div class="xf-eyebrow">Allt i Basic, plus</div>
+          <ul class="featureList">
+            <li>Obegränsat antal prov</li>
+            <li>P.E.R utan gräns — ser vilken fråga du sitter på</li>
+            <li>P.E.R Coach: personlig studieplan från dina misstag</li>
+            <li>Lärarrapport — sammanställning inför utvecklingssamtal</li>
+            <li>Full progression över alla ämnen</li>
+          </ul>
 
-      <div class="planNote2">Basic är för dig som pluggar regelbundet och vill ha prov när du behöver dem. Uppgradera till Premium för felbank, AI-coach och obegränsat.</div>
-      <button class="planCta outline" id="btn-basic" onclick="startCheckout('basic')">Kom igång med Basic</button>
-    </div>
-
-    <!-- PREMIUM -->
-    <div class="planCard featured rev d3" id="plan-premium">
-      <span class="planBadge">Premium — Rekommenderas</span>
-      <div class="planName">Premium</div>
-      <div class="planDesc">Maxa resultaten med personlig AI-coach.</div>
-      <div class="planPriceRow">
-        <span class="planAmt">79</span>
-        <span class="planCurr">kr</span>
-        <span class="planPer">/ månad</span>
+          <p class="xf-note">Premium ger dig P.E.R utan gräns — den ser vilket prov och vilken fråga du jobbar med, och känner till vad du brukar svara fel på.</p>
+          <button class="xf-btn primary" id="btn-premium" type="button" onclick="startCheckout('premium')">Kom igång med Premium</button>
+        </div>
       </div>
-      <div class="planNote">Ingen bindningstid · avsluta när du vill</div>
 
-      <div class="planDivider"></div>
-      <div class="planInclLabel">Allt i Basic, plus</div>
-
-      <ul class="featureList">
-        <li>Obegränsat antal prov</li>
-        <li>P.E.R utan gräns — ser vilken fråga du sitter på</li>
-        <li>P.E.R Coach: personlig studieplan från dina misstag</li>
-        <li>Lärarrapport — sammanställning inför utvecklingssamtal</li>
-        <li>Full progression över alla ämnen</li>
-      </ul>
-
-      <div class="planNote2">Premium ger dig P.E.R utan gräns — den ser vilket prov och vilken fråga du jobbar med, och känner till vad du brukar svara fel på.</div>
-      <button class="planCta" id="btn-premium" onclick="startCheckout('premium')">Kom igång med Premium</button>
     </div>
+  </section>
 
-  </div>
+  <!-- ZON 2 — JÄMFÖRELSEN. För den som inte nöjer sig med tre kort. -->
+  <section class="xfZone rev" id="zonJamfor">
+    <div class="xf-eyebrow">Jämför</div>
+    <p class="xf-note">Rad för rad, vad som ingår var</p>
 
-  <!-- COMPARE TABLE -->
-  <div class="compareWrap rev">
-    <div class="compareLabel">Jämför planer</div>
+    <div class="compareWrap">
     <table class="compareTable" aria-label="Funktionsjämförelse">
       <thead>
         <tr>
@@ -370,63 +398,51 @@
         <tr><td>Synk mellan enheter</td><td><span class="dash">—</span></td><td><span class="chk">✓</span></td><td><span class="chk">✓</span></td></tr>
       </tbody>
     </table>
-  </div>
-
-  <!-- MANAGE SUBSCRIPTION -->
-  <div id="manageSubSection" style="display:none;margin-bottom:32px" class="rev">
-    <div style="background:var(--s);border:1px solid var(--l2);border-radius:var(--exgen-radius-lg);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--a);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Din plan</div>
-        <div style="font-weight:600;font-size:14px;color:var(--t)">Hantera eller avsluta din prenumeration via säker betalningsportal.</div>
-      </div>
-      <button id="manageSubBtn" style="height:38px;padding:0 20px;font-size:13px;font-weight:600;background:transparent;color:var(--t);border:1px solid var(--l2);border-radius:var(--exgen-radius-md);cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='rgba(0,183,217,.4)';this.style.color='var(--a)'" onmouseout="this.style.borderColor='var(--l2)';this.style.color='var(--t)'">
-        Hantera prenumeration →
-      </button>
     </div>
-  </div>
+  </section>
 
-  <!-- FAQ -->
-  <div class="faqGrid rev">
+  <!-- ZON 3 — DIN PRENUMERATION. Visas bara för den som betalar; skriptet
+       längst ned sätter display. -->
+  <section class="xfZone rev" id="manageSubSection" style="display:none">
+    <div class="xf-eyebrow">Din prenumeration</div>
 
-    <div class="faqItem" id="fq1">
-      <div class="faqQ" data-faq="fq1">
-        <span class="faqQTxt">Kan jag testa gratis innan jag väljer plan?</span>
-        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
-      </div>
-      <div class="faqDiv"></div>
-      <div class="faqA">Ja. Du kan skapa konto och prova utan att ange kortuppgifter. Gratisläget ger dig 3 prov i veckan på ditt eget material, med rättning och modellsvar på varje fråga.</div>
+    <div class="xf-card subRow">
+      <div>Hantera eller avsluta din prenumeration via säker betalningsportal.</div>
+      <button class="xf-btn ghost" id="manageSubBtn" type="button">Hantera prenumeration →</button>
     </div>
+  </section>
 
-    <div class="faqItem faqCol" id="fq2">
-      <div class="faqQ" data-faq="fq2">
-        <span class="faqQTxt">Hur avbokar jag mitt medlemskap?</span>
-        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+  <!-- ZON 4 — VANLIGA FRÅGOR. Öppna, inte hopfällda; se kommentaren i <style>. -->
+  <section class="xfZone rev" id="zonFragor">
+    <div class="xf-eyebrow">Vanliga frågor</div>
+    <p class="xf-note">Svaren som brukar avgöra</p>
+
+    <div class="faqGrid">
+
+      <div class="xf-card faqItem" id="fq1">
+        <div class="faqQ">Kan jag testa gratis innan jag väljer plan?</div>
+        <div class="faqA">Ja. Du kan skapa konto och prova utan att ange kortuppgifter. Gratisläget ger dig 3 prov i veckan på ditt eget material, med rättning och modellsvar på varje fråga.</div>
       </div>
-      <div class="faqDiv"></div>
-      <div class="faqA">Du kan avsluta när som helst via prenumerationsportalen — klicka på "Hantera prenumeration" ovanför (visas om du är inloggad med ett aktivt konto), eller via menyn i appen. Ingen bindningstid och du debiteras inte för nästa period efter avslut.</div>
-    </div>
 
-    <div class="faqItem faqCol" id="fq3">
-      <div class="faqQ" data-faq="fq3">
-        <span class="faqQTxt">Vad händer med mina prov och historik om jag nedgraderar?</span>
-        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      <div class="xf-card faqItem" id="fq2">
+        <div class="faqQ">Hur avbokar jag mitt medlemskap?</div>
+        <div class="faqA">Du kan avsluta när som helst via prenumerationsportalen — klicka på "Hantera prenumeration" ovanför (visas om du är inloggad med ett aktivt konto), eller via menyn i appen. Ingen bindningstid och du debiteras inte för nästa period efter avslut.</div>
       </div>
-      <div class="faqDiv"></div>
-      <div class="faqA">Din historik och dina sparade prov finns kvar. Premium-funktioner (AI-coach, felbank, träningsläge) pausas men aktiveras igen om du uppgraderar tillbaka.</div>
-    </div>
 
-    <div class="faqItem faqCol" id="fq4">
-      <div class="faqQ" data-faq="fq4">
-        <span class="faqQTxt">Finns det en plan för hela klassen eller skolan?</span>
-        <svg class="faqChev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 3 11 8 6 13"/></svg>
+      <div class="xf-card faqItem" id="fq3">
+        <div class="faqQ">Vad händer med mina prov och historik om jag nedgraderar?</div>
+        <div class="faqA">Din historik och dina sparade prov finns kvar. Premium-funktioner (AI-coach, felbank, träningsläge) pausas men aktiveras igen om du uppgraderar tillbaka.</div>
       </div>
-      <div class="faqDiv"></div>
-      <div class="faqA">Vi arbetar på ett skolpaket med centraliserad administration och klassöversikt. Hör av dig till oss via appen för mer info om nuvarande möjligheter.</div>
+
+      <div class="xf-card faqItem" id="fq4">
+        <div class="faqQ">Finns det en plan för hela klassen eller skolan?</div>
+        <div class="faqA">Vi arbetar på ett skolpaket med centraliserad administration och klassöversikt. Hör av dig till oss via appen för mer info om nuvarande möjligheter.</div>
+      </div>
+
     </div>
+  </section>
 
-  </div>
-
-</div>
+  </div><!-- /.xf-body -->
 </main>
 
 
@@ -448,15 +464,8 @@
 /* LOADER */
 window.addEventListener("load", () => setTimeout(() => document.getElementById("ldr").classList.add("out"), 160));
 
-/* THEME */
-
-/* FAQ TOGGLE */
-document.querySelectorAll("[data-faq]").forEach(btn => {
-  const id  = btn.getAttribute("data-faq");
-  const item = document.getElementById(id);
-  btn.addEventListener("click", () => item && item.classList.toggle("faqCol"));
-});
-
+/* FAQ-dragspelet är borta — alla fyra svar står öppna. Se kommentaren i
+   <style>. Ingen växlare behövs längre. */
 
 /* COUNTER ANIMATION */
 (function(){
@@ -605,7 +614,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll('.rev').forEach(el=>el.classList.add('in'));
   if(!rm&&window.gsap){
     gsap.registerPlugin(ScrollTrigger);
-    gsap.from('.pageHero > *',{y:20,opacity:0,duration:.6,ease:'power2.out',stagger:.12,delay:.15});
+    gsap.from('.pageHero .xf-say, .pageHero .xf-sub',{y:20,opacity:0,duration:.6,ease:'power2.out',stagger:.12,delay:.15});
     gsap.from('.planCard',{y:30,opacity:0,duration:.65,ease:'power2.out',stagger:.1,
       scrollTrigger:{trigger:'.planGrid',start:'top 85%',once:true}});
     gsap.from('.compareWrap',{y:20,opacity:0,duration:.5,ease:'power2.out',
