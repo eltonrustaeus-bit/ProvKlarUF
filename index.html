@@ -67,7 +67,7 @@
   .hero {
     position:relative;
     overflow:hidden;
-    padding:48px var(--sp-6) 56px;
+    padding:48px 0 56px;
   }
 
   /* Background — one soft top-centred wash plus a faint, heavily masked
@@ -92,11 +92,21 @@
   }
 
   /* Layout */
+  /* Samma mått och samma yttre luft som .wrap (--max + 22px), så att hjälten,
+     headern och korten delar vänsterkant. Tidigare var hjälten 1180px bred
+     med sin egen padding: h1 började på x=130, korten på x=202 och märket på
+     x=359 — tre kanter på en sida. Mätt på 1440px. */
   .heroInner {
     position:relative;z-index:1;
-    width:100%;max-width:1180px;margin:0 auto;
+    width:100%;max-width:var(--max);margin:0 auto;
+    /* Luften ligger här, inte på .hero, så att lådan blir identisk med .wrap:
+       samma 1080 px och samma 22 px innerkant. Ligger den på .hero i stället
+       centreras .heroInner i det som blir kvar och innehållet hamnar 22 px
+       till vänster om varje kort på sidan. */
+    padding:0 22px;box-sizing:border-box;
     display:flex;flex-direction:column;align-items:center;
   }
+  @media(max-width:600px){ .heroInner{padding:0 16px} }
   .heroContent {
     display:flex;flex-direction:column;
     align-items:center;text-align:center;
@@ -190,7 +200,7 @@
 
   /* ── Tablet / large phone ── buttons go side by side, type steps up */
   @media(min-width:600px){
-    .hero{padding:64px var(--sp-8) 72px}
+    .hero{padding:64px 0 72px}
     .heroEye{font-size:13.5px;margin-bottom:16px}
     .heroTitle{font-size:clamp(34px,5vw,42px);margin-bottom:16px}
     .heroSub{font-size:17px}
@@ -201,7 +211,7 @@
 
   /* ── Laptop / desktop ── split layout, copy left-aligned */
   @media(min-width:920px){
-    .hero{padding:80px var(--sp-10,40px) 88px}
+    .hero{padding:80px 0 88px}
     .heroInner{
       display:grid;grid-template-columns:1.1fr .9fr;
       align-items:center;gap:clamp(40px,5vw,72px);
@@ -213,13 +223,13 @@
   }
 
   @media(min-width:1200px){
-    .hero{padding:96px var(--sp-12) 104px}
+    .hero{padding:96px 0 104px}
     .heroSub{font-size:17.5px}
   }
 
   /* ── Small phones ── keep the headline off five lines, keep tap targets */
   @media(max-width:360px){
-    .hero{padding:40px var(--sp-4) 48px}
+    .hero{padding:40px 0 48px}
     .heroTitle{font-size:26px;letter-spacing:-.03em}
     .heroSub{font-size:15px}
     .ctaBtn,.demoBtn{font-size:15px;padding:0 18px}
