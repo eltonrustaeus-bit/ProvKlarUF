@@ -11,19 +11,18 @@
   <meta name="description" content="ExGen är studieplattformen för grundskolan och gymnasiet. Klistra in ditt material och få ett prov med rättning, modellsvar och förklaring på varje fråga — plus en felbank som visar exakt vad du behöver träna på." />
   <meta property="og:title" content="ExGen – AI-driven studieapp för elever och studenter" />
   <meta property="og:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
-  <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.png" />
+  <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.jpg" />
   <meta property="og:url" content="https://proviaai.se/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ExGen – AI-driven studieapp för elever och studenter" />
   <meta name="twitter:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
-  <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.png" />
+  <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.jpg" />
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
   <link rel="apple-touch-icon" href="/image/favicon-180.png" />
   <link rel="canonical" href="https://proviaai.se/" />
-  <link rel="preload" href="/image/proviaai-logo.png" as="image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -332,12 +331,6 @@
   .feat:hover{border-color:rgba(0,183,217,.28);transform:translateY(-4px)}
   .feat:hover::after{opacity:1}
 
-  .featBig{
-    display:block;font-weight:700;
-    font-size:clamp(38px,5vw,52px);
-    color:var(--a);letter-spacing:-.04em;line-height:1;
-    margin-bottom:4px;
-  }
   .featIcon{display:block;margin-bottom:12px;color:var(--a)}
   .featT{font-weight:700;font-size:16px;color:var(--t);letter-spacing:-.02em;margin-bottom:8px;line-height:1.25}
   .featD{font-size:13px;color:var(--t2);line-height:1.65}
@@ -433,20 +426,10 @@
   .rev{opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease}
   .rev.rev-visible{opacity:1;transform:none}
 
-  /* ── CURSOR ── */
-  @media(pointer:fine){
-    *{cursor:none !important}
-    #cDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:#00768F;pointer-events:none;opacity:0;will-change:transform;transition:opacity .15s}
-    #cRing{position:fixed;top:0;left:0;z-index:99998;width:28px;height:28px;pointer-events:none;opacity:0;will-change:transform;transition:opacity .15s}
-    #cRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(0,183,217,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s}
-    #cRing.rH>div{transform:scale(1.55);opacity:.3}
-    #cRing.rD>div{transform:scale(.62);opacity:.8}
-  }
+
 
   /* ── REDUCED MOTION ── */
   @media(prefers-reduced-motion:reduce){
-    *{cursor:auto !important}
-    #cDot,#cRing{display:none !important}
     .heroEye,.heroTitle,.heroSub,.heroCtas,.heroVisual,.pvCard,.pvOpt--correct,.pvExpl{
       opacity:1 !important;transform:none !important;animation:none !important;
     }
@@ -622,7 +605,7 @@
 <div class="xg-utility-bar">
   <div class="xg-utility-wrap">
     <a class="xg-utility-badge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive">
-      <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="12" height="12" alt="">
+      <img src="/image/ungdrive-icon.png" width="12" height="12" alt="">
       <span>Backed by UngDrive</span>
     </a>
     <div class="xg-utility-right">
@@ -987,7 +970,7 @@
     <a href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive"
        style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;
               border:1px solid var(--exgen-border,#E4E7EC);border-radius:var(--exgen-radius-pill);padding:4px 11px">
-      <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="14" height="14"
+      <img src="/image/ungdrive-icon.png" width="14" height="14"
            style="border-radius:3px;opacity:.85" alt="UngDrive">
       <span style="font:500 10px 'DM Mono',monospace;letter-spacing:.05em">Backed by UngDrive</span>
     </a>
@@ -1005,13 +988,22 @@
   </div>
 </footer>
 
-<!-- CURSOR -->
-<div id="cDot" aria-hidden="true"></div>
-<div id="cRing" aria-hidden="true"><div></div></div>
+
 
 <script>
 /* LOADER */
-window.addEventListener("load",()=>setTimeout(()=>document.getElementById("ldr").classList.add("out"),160));
+/* Låg tidigare bara på "load". Det gjorde att laddskärmen hölls öppen av
+   bilden den själv visar: window.load väntade på image/exgen-logo.png, som på
+   strypt mobil var färdig först vid 21,4 s. Markupen är klar långt innan dess,
+   så DOMContentLoaded släcker nu skärmen och load får stå kvar som skyddsnät. */
+(function(){
+  var done=false;
+  function hide(){ if(done)return; done=true;
+    var el=document.getElementById("ldr"); if(el) el.classList.add("out"); }
+  if(document.readyState!=="loading") setTimeout(hide,160);
+  else document.addEventListener("DOMContentLoaded",()=>setTimeout(hide,160));
+  window.addEventListener("load",hide);
+})();
 
 /* YEAR */
 document.getElementById("yr").textContent=new Date().getFullYear();
@@ -1042,168 +1034,12 @@ document.querySelectorAll(".faqQ").forEach(q=>{
 });
 </script>
 
-<!-- LIVE STATS -->
-<script>
-window._statsReady = (async function() {
-  const SB = "https://mnmotdluigzeehdjbhbu.supabase.co";
-  const KEY = "sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN";
-  const H = { apikey: KEY, Authorization: "Bearer " + KEY };
-  try {
-    const [cntRes, catRes] = await Promise.all([
-      fetch(SB + "/rest/v1/driving_questions?select=id&limit=1", { headers: { ...H, Prefer: "count=exact", Range: "0-0" } }),
-      fetch(SB + "/rest/v1/driving_questions?select=category&limit=500", { headers: H })
-    ]);
-    const cr = cntRes.headers.get("content-range");
-    const qCount = cr ? parseInt(cr.split("/")[1]) : null;
-    const cats = await catRes.json();
-    const cCount = Array.isArray(cats) ? new Set(cats.map(r => r.category).filter(Boolean)).size : null;
 
-    if (qCount) {
-      document.querySelectorAll("[data-target='356']").forEach(el => { el.dataset.target = qCount; });
-      const sub = document.getElementById("heroSub");
-      if (sub) sub.innerHTML = sub.innerHTML.replace(/\d+ frågor/, qCount + " frågor");
-      document.querySelectorAll(".sS").forEach(el => {
-        if (el.textContent.includes("frågor")) el.textContent = el.textContent.replace(/\d+ frågor/, qCount + " frågor");
-      });
-      document.querySelectorAll(".featD").forEach(el => {
-        if (el.textContent.includes("frågor fördelade")) el.textContent = el.textContent.replace(/\d+ frågor/, qCount + " frågor");
-      });
-    }
-    if (cCount) {
-      document.querySelectorAll("[data-target='16']").forEach(el => { el.dataset.target = cCount; });
-      const sub = document.getElementById("heroSub");
-      if (sub) sub.innerHTML = sub.innerHTML.replace(/\d+ kategorier/, cCount + " kategorier");
-      document.querySelectorAll(".sS").forEach(el => {
-        if (el.textContent.includes("kategorier")) el.textContent = el.textContent.replace(/\d+ kategorier/, cCount + " kategorier");
-      });
-    }
-    if (qCount || cCount) {
-      document.querySelectorAll(".faqA").forEach(el => {
-        el.innerHTML = el.innerHTML
-          .replace(/\d+ frågor/, (qCount || 356) + " frågor")
-          .replace(/\d+ ämnesområden/, (cCount || 16) + " ämnesområden");
-      });
-    }
-    return { qCount, cCount };
-  } catch(e) { return {}; }
-})();
-</script>
 
-<!-- GSAP -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script>
-(function(){
-  const reduced=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-  if(reduced){
-    document.querySelectorAll(".rev").forEach(el=>{el.style.opacity="1";el.style.transform="none"});
-    document.querySelectorAll(".counter").forEach(el=>el.textContent=el.dataset.target||el.textContent);
-    return;
-  }
 
-  gsap.registerPlugin(ScrollTrigger);
 
-  /* Hero entrance is pure CSS (see .heroEye/.heroTitle/... animation-delay
-     block above) so the headline and CTAs are never left invisible if the
-     GSAP CDN is slow or blocked. */
 
-  /* — SCROLL REVEALS — */
-  gsap.utils.toArray(".rev").forEach(el=>{
-    const d=parseFloat(getComputedStyle(el).getPropertyValue("--d")||"0");
-    gsap.to(el,{
-      scrollTrigger:{trigger:el,start:"top 88%",once:true},
-      opacity:1,y:0,duration:.55,delay:d,ease:"power2.out"
-    });
-  });
 
-  /* — FEATURE COUNTER — */
-  document.querySelectorAll(".counter[data-target]").forEach(el=>{
-    ScrollTrigger.create({
-      trigger:el,start:"top 85%",once:true,
-      onEnter(){
-        const target=+el.dataset.target;
-        gsap.to(el,{
-          textContent:target,duration:1.1,ease:"power2.out",
-          snap:{textContent:1},
-          onUpdate(){el.textContent=Math.round(+el.textContent)}
-        });
-      }
-    });
-  });
-
-  /* — CARD TILT — desktop only */
-  if(window.matchMedia("(pointer:fine)").matches){
-    document.querySelectorAll(".feat").forEach(card=>{
-      card.addEventListener("mousemove",e=>{
-        const r=card.getBoundingClientRect();
-        const x=(e.clientX-r.left-r.width/2)/(r.width/2);
-        const y=(e.clientY-r.top-r.height/2)/(r.height/2);
-        gsap.to(card,{rotationY:x*6,rotationX:-y*4,duration:.3,ease:"power2.out",transformPerspective:700,transformOrigin:"center center"});
-      });
-      card.addEventListener("mouseleave",()=>{
-        gsap.to(card,{rotationY:0,rotationX:0,duration:.5,ease:"power3.out"});
-      });
-    });
-  }
-
-  /* — STEPS STAGGER — */
-  document.querySelectorAll(".step").forEach((el,i)=>{
-    gsap.from(el,{
-      scrollTrigger:{trigger:el,start:"top 88%",once:true},
-      opacity:0,y:18,duration:.45,delay:i*.1,ease:"power2.out"
-    });
-  });
-})();
-</script>
-
-<!-- CURSOR -->
-<script>
-(function(){
-  if(window.matchMedia("(pointer:coarse)").matches||"ontouchstart" in window)return;
-  if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
-  const dot=document.getElementById("cDot"),ring=document.getElementById("cRing");
-  if(!dot||!ring)return;
-  let mx=-200,my=-200,rx=-200,ry=-200,vis=false,lastEl=null;
-  (function raf(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`;requestAnimationFrame(raf)})();
-  const SEL="a,button,.sOpt,.faqQ,.feat";
-  function applyH(el){
-    if(el===lastEl)return;lastEl=el;
-    if(el){ring.classList.add("rH");dot.style.transform=`translate(${mx-3}px,${my-3}px) scale(.5)`}
-    else{ring.classList.remove("rH");dot.style.transform=`translate(${mx-3}px,${my-3}px)`}
-  }
-  document.addEventListener("mousemove",e=>{
-    mx=e.clientX;my=e.clientY;
-    if(!vis){vis=true;dot.style.opacity="1";ring.style.opacity="1"}
-    dot.style.transform=`translate(${mx-3}px,${my-3}px)${lastEl?" scale(.5)":""}`;
-    applyH(e.target?.closest?e.target.closest(SEL):null);
-  });
-  document.addEventListener("mousedown",()=>{ring.classList.remove("rH");ring.classList.add("rD")});
-  document.addEventListener("mouseup",()=>{ring.classList.remove("rD");applyH(lastEl)});
-  document.addEventListener("mouseleave",()=>{dot.style.opacity="0";ring.style.opacity="0";vis=false});
-  document.addEventListener("mouseenter",()=>{if(vis){dot.style.opacity="1";ring.style.opacity="1"}});
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script>
-(function(){
-  const SB_URL='https://mnmotdluigzeehdjbhbu.supabase.co';
-  const SB_KEY='sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN';
-  document.addEventListener('DOMContentLoaded',async function(){
-    try{
-      const sb=window.supabase.createClient(SB_URL,SB_KEY);
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session)return;
-      const {data}=await sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle();
-      if(data?.role){
-        const btn=document.getElementById('demoBtnLink');
-        const opt=document.getElementById('demoSheetOpt');
-        if(btn)btn.style.display='';
-        if(opt)opt.style.display='';
-      }
-    }catch(e){}
-  });
-})();
-</script>
 <!-- VISITOR BOTTOM NAV — hidden by shared.js when user is logged in -->
 <!-- JOIN CTA — appears after scrolling past hero -->
 <div id="joinCta" class="joinCta" aria-hidden="true" role="complementary">

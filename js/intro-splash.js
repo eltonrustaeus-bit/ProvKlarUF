@@ -4,6 +4,26 @@
      Logo alltid synlig, 4.5s premium reveal
   ══════════════════════════════════════ */
 
+  /* ── Startsidan får ingen splash ──
+     Mätt på index.html: MIN_DELAY är 3900 ms och uttoningen 950 ms, och under
+     hela tiden ligger body > * på opacity 0. Desktop-FCP gick från 248 ms
+     (återbesök, splashen överhoppad) till 4900 ms (första besöket). På strypt
+     mobil togs splashen bort först vid 22,4 s, eftersom SAFETY_DELAY och
+     window.load kedjar på varandra.
+
+     Det är fyra och en halv sekund tomt fönster framför den enda sida vars
+     hela uppgift är att övertyga någon som aldrig sett produkten. Varumärket
+     tjänar inget på att visas för någon som hunnit lämna.
+
+     Villkoret är avsiktligt bara startsidan, inte hela sajten: djuplänkar in i
+     pricing, konto eller appen behåller varumärkesmomentet. I praktiken landar
+     nästan varje ny besökare här, så räkna med att splashen sällan syns —
+     ta bort raden nedan för att få tillbaka den överallt.
+
+     Enskilda sidor kan fortfarande korta av den via window.exgenSkipSplash. */
+  var _p = location.pathname.replace(/\/index\.html$/, "/");
+  if (_p === "/" || _p === "") return;
+
   /* Signed-in users skip the brand reveal entirely. They have seen it, and a
      4s animation in front of the tool they open every day is friction rather
      than branding. Reads the Supabase session key directly, the same way
@@ -189,7 +209,7 @@
         '<div id="piPartner">' +
           '<span id="piPartnerLabel">Backed by</span>' +
           '<a id="piBadge" href="https://ungdrive.se" target="_blank" rel="noopener">' +
-            '<img src="https://ungdrive.se/img/icon-ios-1024@1x.png"' +
+            '<img src="/image/ungdrive-icon.png"' +
                  ' width="22" height="22" alt="UngDrive">' +
             '<span id="piBadgeName">UngDrive</span>' +
           '</a>' +
