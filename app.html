@@ -519,7 +519,6 @@ white-space:nowrap;
   <a class="xg-nav-link active" href="app.html" aria-current="page">Mockprov</a>
   <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
   <a class="xg-nav-link" href="pricing.html">Priser</a>
-  <a class="xg-nav-link" href="konto.html">Konto</a>
 </nav>
       <a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
 <div class="menuWrap">
@@ -535,7 +534,6 @@ white-space:nowrap;
 <a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span id="mImprove">Min utveckling</span><span class="ddPill">Coach</span></a>
 <a data-module="korkort" class="ddItem" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(0,183,217,.08)">Nytt</span></a>
 <a class="ddItem" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Uppgradera</span><span class="ddPill" id="rolePill">Gratis</span></a>
-<a class="ddItem" href="konto.html" id="kontoLink" style="display:none"><span>Mitt konto</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></a>
 <button class="ddItem" type="button" id="cancelSubBtn" style="display:none"><span>Hantera prenumeration</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></button>
 <button class="ddItem" type="button" id="langBtn"><span id="mLang">English</span><span class="ddPill" id="langPill">SV</span></button>
 <button class="ddItem" type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="ddPill">Lås</span></button>
@@ -1617,12 +1615,10 @@ try{
   onClick("langBtn",async()=>{LANG=(LANG==="sv")?"en":"sv";localStorage.setItem("proviaai_lang",LANG);applyLang();await refreshQuotaUi();closeMenuAnimated();runTrainModeIfRequested();});
 
   // Show/hide account links based on login + role
+  // #kontoLink är borta — kontot nås numera bara via kontoknappen i headern,
+  // som är synlig vid varje bredd och redan byter etikett vid inloggning.
   async function updateCancelBtn() {
     const btn = $("cancelSubBtn");
-    const kontoLink = $("kontoLink");
-    const { data: { session } } = await db.auth.getSession();
-    const loggedIn = !!session;
-    if (kontoLink) kontoLink.style.display = loggedIn ? "" : "none";
     if (btn) btn.style.display = (currentRole === "basic" || currentRole === "premium") ? "" : "none";
   }
   updateCancelBtn();

@@ -85,6 +85,18 @@ html {
 
 .xg-nav { display: flex; align-items: center; gap: 2px; }
 @media (max-width: 860px) { .xg-nav { display: none; } }
+
+/* Hamburgaren är den SMALA skärmens navigering, inte ett tillägg till den
+   breda. Fram till nu stod båda framme samtidigt: vid 1280px mätte .xg-nav
+   398x33 med fem länkar och .mWrap 44x44 med en panel som listade exakt samma
+   destinationer igen. Två kompletta navigeringar i samma synfält — samma
+   dubblering Del B tog bort på förbättringssidan.
+
+   Reglerna för själva knappen bor i style.css (.mWrap/.menuWrap, delade med
+   sidor som inte laddar den här filen), så synligheten styrs härifrån i stället
+   för att style.css ska behöva veta något om .xg-nav:s brytpunkt. Frågan är
+   komplementet till raden ovanför: exakt en av de två syns vid varje bredd. */
+@media (min-width: 861px) { .mWrap, .menuWrap { display: none; } }
 .xg-nav-link {
   position: relative;
   font: 500 14px var(--exgen-font, sans-serif); color: var(--exgen-text-secondary, #667085);

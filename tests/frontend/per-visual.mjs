@@ -116,6 +116,22 @@ process.on("SIGTERM", () => onSignal(143));
 // (T8 "raden utan fokus", T9 "raden med fokus", T10 "dold tills man hovrar").
 const QUIET = `
   #perWidget{display:none!important}
+  /* Välkomsthälsningen. shared.js showWelcomeAnim() lägger #proviaWelcome över
+     hela sidan och tar bort den med en setTimeout på 2400 ms + 500 ms — inte
+     med en animation, så *{animation:none} biter inte, och riggen väntar bara
+     700 ms. app.html anropar den varje gång en session återställs, vilket är
+     precis vad addInitScript här nedanför seedar.
+
+     Konsekvensen var att app.html-vyerna INTE var av appen. De var av en
+     "Välkommen tillbaka U1"-skärm utan header, utan provskapare, utan
+     innehåll — och därmed var varje "app.html 0" i tabellen en jämförelse
+     mellan två välkomsthälsningar. Upptäckt när en headerändring som rörde
+     app.html mätte 0 skiljande pixlar medan index och konto mätte 6529
+     respektive 6592.
+
+     Samma familj som de två fällor Del B hittade (inloggningsrutan och
+     scroll-reveal): något ligger över sidan och en nolla betyder ingenting. */
+  #proviaWelcome{display:none!important}
   header,.xg-header,.xg-utility-bar{position:static!important}
   .joinCta{display:none!important}
   *,*::before,*::after{animation:none!important;transition:none!important}
