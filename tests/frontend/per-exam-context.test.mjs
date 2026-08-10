@@ -1,8 +1,4 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
+import { ROOT, serve, mockApis, seed, report } from "./_harness.mjs";
 // Bevisar att P.E.R får rätt fråga — det som saknades när eleven skrev
 // "hjälp mig med frågan" och fick svar om en annan.
 //
@@ -11,19 +7,8 @@ import path from "node:path";
 //
 // Användning:  node tests/frontend/per-exam-context.test.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
-
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/app.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(4611, r));
+const srv = await serve(ROOT, { indexFile: "app.html" });
 
 const EXAM = {
   title: "Prov", level: "C",
@@ -37,29 +22,27 @@ const EXAM = {
 };
 
 let lastExplain = null;
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("per-exam-context");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await ctx.newPage();
-await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-await page.route("**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM)), meta: { quota: { enforced: false } } } }));
-await page.route("**/api/explain", r => {
-  try { lastExplain = JSON.parse(r.request().postData() || "{}"); } catch (_) {}
-  r.fulfill({ json: { ok: true, answer: "Svar från P.E.R." } });
+// Mockar och session från _harness.mjs. Provgenereringen och explain-avlyssnaren
+// är det den här filen behöver som ingen annan gör och ligger i `extra`, som
+// registreras sist och därmed vinner.
+await mockApis(page, {
+  extra: [
+    ["**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM)), meta: { quota: { enforced: false } } } })],
+    ["**/api/explain", r => {
+      try { lastExplain = JSON.parse(r.request().postData() || "{}"); } catch (_) {}
+      r.fulfill({ json: { ok: true, answer: "Svar från P.E.R." } });
+    }],
+  ],
 });
-await page.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
+await seed(page);
 
-await page.addInitScript(() => {
-  const exp = Math.floor(Date.now() / 1000) + 7200;
-  localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
-  localStorage.setItem("proviaai_role", "premium");
-  localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-});
-
-await page.goto("http://localhost:4611/app.html", { waitUntil: "networkidle" });
+await page.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
 await page.waitForSelector("#xf .xf-screen.on", { timeout: 8000 });
 await page.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary"); await page.waitForTimeout(200);
 await page.fill("#xf .xf-screen[data-screen='subject'] .xf-input", "Biologi 1");
@@ -257,27 +240,23 @@ const EXAM_SHORT = {
 
 const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page2 = await ctx2.newPage();
-await page2.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-await page2.route("**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM_SHORT)), meta: { quota: { enforced: false } } } }));
-await page2.route("**/api/explain", r => r.fulfill({ json: { ok: true, answer: "Svar." } }));
-await page2.route("**/api/grade", r => r.fulfill({ json: { ok: true, result: {
-  total_points: 6, max_points: 6,
-  per_question: [
-    { id: "s1", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
-    { id: "s2", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
-    { id: "s3", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" }
-  ]
-} } }));
-await page2.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-await page2.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-await page2.addInitScript(() => {
-  const exp = Math.floor(Date.now() / 1000) + 7200;
-  localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
-  localStorage.setItem("proviaai_role", "premium");
-  localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
+await mockApis(page2, {
+  extra: [
+    ["**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM_SHORT)), meta: { quota: { enforced: false } } } })],
+    ["**/api/explain", r => r.fulfill({ json: { ok: true, answer: "Svar." } })],
+    ["**/api/grade", r => r.fulfill({ json: { ok: true, result: {
+      total_points: 6, max_points: 6,
+      per_question: [
+        { id: "s1", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
+        { id: "s2", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" },
+        { id: "s3", points: 2, max_points: 2, feedback: "bra", model_answer: "svar" }
+      ]
+    } } })],
+  ],
 });
+await seed(page2);
 
-await page2.goto("http://localhost:4611/app.html", { waitUntil: "networkidle" });
+await page2.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
 await page2.waitForSelector("#xf .xf-screen.on", { timeout: 8000 });
 await page2.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary"); await page2.waitForTimeout(200);
 await page2.fill("#xf .xf-screen[data-screen='subject'] .xf-input", "Biologi 1");
@@ -333,9 +312,6 @@ await ctx2.close();
 
 await ctx.close();
 await browser.close();
-server.close();
+await srv.close();
 
-console.log(pass.map(p => "  ok  " + p).join("\n"));
-if (fail.length) { console.log(fail.map(f => "  FAIL " + f).join("\n")); }
-console.log(`\n${pass.length} ok, ${fail.length} fail`);
-process.exit(fail.length ? 1 : 0);
+process.exit(R.finish());

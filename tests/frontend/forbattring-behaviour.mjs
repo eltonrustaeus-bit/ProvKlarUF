@@ -1,8 +1,4 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
+import { ROOT, serve, openPage, report } from "./_harness.mjs";
 // Beteendekontrakt för förbättring.html.
 //
 // Skrivet FÖRE ombyggnaden i Del B och kört mot den oförändrade sidan. Ett test
@@ -27,23 +23,11 @@ import path from "node:path";
 //
 // Användning:  node tests/frontend/forbattring-behaviour.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
-const PORT = 4617;
+const srv = await serve(ROOT, { indexFile: "förbättring.html" });
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/förbättring.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(PORT, r));
-
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("forbattring-behaviour");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const browser = await chromium.launch();
 const now = Date.now();
@@ -83,33 +67,22 @@ const ROWS = [
   examRow(3, "Matematik 2b", ["m3"], ["r3"]),
 ];
 
+// Servern, mockarna, sessionen och splash-förbikopplingen kommer från
+// _harness.mjs. Kvar här: user_exams-raderna, som måste registreras SIST för
+// att vinna över den generella **/rest/v1/** — sist registrerad rutt vinner,
+// tvärtemot hur listan läses. Registrerad först åt den generella upp den här
+// och synken skrev en tom historik över allt testet trodde att det seedat.
+//
+// Och ett faktum, inte en fälla: syncFromAccount() skriver ALLTID över
+// proviaai_history och proviaai_mistakes med vad Supabase svarade. Att seeda
+// dem i localStorage fungerar inte — datan måste komma via user_exams, vilket
+// också gör att testet går genom mergeMistakes().
 async function mk(nExams = 3) {
   const rows = ROWS.slice(0, nExams);
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  const page = await ctx.newPage();
-  await page.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
-  // Efter den generella — sist registrerad vinner, se fälla 1.
-  await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-  await page.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-  await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-  // EFTER den generella. Sist registrerad vinner — tvärtom mot vad ordningen
-  // ser ut att säga. Registrerad först åt den generella upp den här och synken
-  // skrev en tom historik över allt testet trodde att det hade seedat.
-  await page.route("**/rest/v1/user_exams**", r => r.fulfill({ json: rows }));
-
-  await page.addInitScript(() => {
-    sessionStorage.setItem("pi_splash_shown", "1");
-    const exp = Math.floor(Date.now() / 1000) + 7200;
-    localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
-    localStorage.setItem("proviaai_role", "premium");
-    localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-    localStorage.setItem("proviaai_lang", "sv");
-    localStorage.removeItem("proviaai_train_pick");
+  return openPage(browser, `${srv.url}/förbättring.html`, {
+    height: 900, settle: 1200,
+    mocks: { extra: [["**/rest/v1/user_exams**", r => r.fulfill({ json: rows })]] },
   });
-
-  await page.goto(`http://localhost:${PORT}/förbättring.html`, { waitUntil: "networkidle" });
-  await page.waitForTimeout(1200);
-  return { ctx, page };
 }
 
 const pick = page => page.evaluate(() => {
@@ -369,10 +342,5 @@ const LANG_IDS_FLOOR = 32;
 } catch (e) { crash = e; }
 
 await browser.close();
-server.close();
-if (crash) console.log("  FAIL  riggen kastade — " + String(crash.message).split("\n")[0]);
-
-console.log(pass.map(p => "  ok  " + p).join("\n"));
-if (fail.length) console.log(fail.map(f => "  FAIL " + f).join("\n"));
-console.log(`\n${pass.length} ok, ${fail.length} fail`);
-process.exit(fail.length || crash ? 1 : 0);
+await srv.close();
+process.exit(R.finish(crash));

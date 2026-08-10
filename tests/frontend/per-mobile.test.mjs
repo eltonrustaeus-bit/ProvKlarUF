@@ -24,13 +24,7 @@
 // Fristående — använder repots egen playwright-dep. Hoppas över (exit 0) om
 // chromium saknas.
 
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
-
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+import { ROOT, serve, rectsOverlap, mockApis, seed } from "./_harness.mjs";
 
 let chromium;
 try {
@@ -45,32 +39,19 @@ let failures = 0;
 const ok = (name) => console.log(`  PASS  ${name}`);
 const fail = (name, err) => { failures++; console.error(`  FAIL  ${name}\n        ${err?.message || err}`); };
 
-// Playwrights boundingBox() returnerar {x, y, width, height} — INTE
-// left/right/top/bottom. Den här funktionen läste de fyra sistnämnda, som
-// alltid var undefined, och `undefined < tal` är false. Funktionen returnerade
-// därför ALLTID false: varje överlappskontroll i filen har varit tom sedan den
-// skrevs, och de gröna raderna om att P.E.R inte täcker provinnehåll bevisade
-// ingenting. Upptäckt genom att mäta överlappet för hand vid 390x844 och få
-// alternativ C och D helt täckta medan testet var grönt.
-function rectsOverlap(a, b) {
-  if (!a || !b || a.width <= 0 || b.width <= 0 || a.height <= 0 || b.height <= 0) return false;
-  return a.x < b.x + b.width && a.x + a.width > b.x &&
-         a.y < b.y + b.height && a.y + a.height > b.y;
-}
+// rectsOverlap kommer från _harness.mjs. Den bodde här och läste
+// a.left/right/top/bottom ur en boundingBox som bara har x/y/width/height —
+// fälten var undefined, jämförelserna false, och funktionen returnerade ALLTID
+// false. Varje överlappskontroll i filen var tom sedan den skrevs. Den delade
+// versionen har ett eget självtest (_harness.test.mjs H1–H9) där just det
+// fallet är H2, så buggen kan inte återuppstå tyst i en fjortonde kopia.
+
 
 // Provet måste laddas över http, inte file://, eftersom js/site-gate.js och
-// motorn båda talar med /api.
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/app.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-const PORT = 5310;
-await new Promise((r) => server.listen(PORT, r));
+// motorn båda talar med /api. Servern kommer från _harness.mjs och binder en
+// ledig port i stället för ett fast nummer — två filer stod båda på 4621 och en
+// körning av hela katalogen dog mitt i.
+const srv = await serve(ROOT, { indexFile: "app.html" });
 
 const EXAM = {
   title: "Prov", level: "C",
@@ -89,7 +70,7 @@ const EXAM = {
 };
 
 async function toExam(page) {
-  await page.goto(`http://localhost:${PORT}/app.html`, { waitUntil: "networkidle" });
+  await page.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
   await page.waitForSelector("#xf .xf-screen.on", { timeout: 10000 });
   await page.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary");
   await page.waitForTimeout(200);
@@ -115,19 +96,16 @@ async function run() {
     const ctx = await browser.newContext({ viewport: { width, height: 700 } });
     const page = await ctx.newPage();
 
-    await page.route("**/api/check-role", (r) => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-    await page.route("**/api/generate-exam", (r) => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM)), meta: { quota: { enforced: false } } } }));
-    await page.route("**/auth/v1/**", (r) => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-    await page.route("**/rest/v1/**", (r) => r.fulfill({ json: [] }));
-    await page.addInitScript(() => {
-      const exp = Math.floor(Date.now() / 1000) + 7200;
-      localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({
-        access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp,
-        token_type: "bearer", user: { id: "u1", email: "t@t.se" }
-      }));
-      localStorage.setItem("proviaai_role", "premium");
-      localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
+    // Mockarna och sessionen kommer från _harness.mjs. Provgenereringen och
+    // P.E.R-svaret är det enda den här filen behöver som ingen annan gör, och
+    // ligger därför i `extra` — som registreras sist och därmed vinner.
+    await mockApis(page, {
+      extra: [
+        ["**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam: JSON.parse(JSON.stringify(EXAM)), meta: { quota: { enforced: false } } } })],
+        ["**/api/explain", r => r.fulfill({ json: { ok: true, answer: "Citronsyracykeln sker i mitokondriens matrix — inte i cytoplasman. Titta på var pyruvat transporteras in efter glykolysen." } })],
+      ],
     });
+    await seed(page);
 
     try {
       await toExam(page);
@@ -205,7 +183,7 @@ async function run() {
   }
 
   await browser.close();
-  server.close();
+  await srv.close();
 }
 
 run().then(() => {

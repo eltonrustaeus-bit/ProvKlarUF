@@ -1,6 +1,5 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
+import { ROOT, serve, mockApis, seed } from "./_harness.mjs";
+import { resolve } from "node:path";
 import fs from "node:fs";
 import path from "node:path";
 // Viewport- och tillgänglighetssvep för provskaparen
@@ -20,23 +19,15 @@ import path from "node:path";
 // Exitkod 0 = allt grönt.
 
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = process.env.OUT_DIR || resolve(ROOT, ".test-out");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
 
 const SHOT = OUT;
 fs.mkdirSync(SHOT, { recursive: true });
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/app.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(4400, r));
+// Servern kommer från _harness.mjs: ledig port i stället för ett fast
+// nummer, och sökvägen kontrollerad mot roten på ett ställe.
+const srv = await serve(ROOT, { indexFile: "app.html" });
 
 const LONG_Q = "Diagrammet visar hur koncentrationen av laktat i blodet förändras hos två löpare under ett 40 minuter långt intervallpass, där den ena har tränat uthållighet systematiskt i tre år och den andra har börjat träna för fyra veckor sedan. Förklara med utgångspunkt i cellandningens delsteg varför kurvorna skiljer sig åt, vilken roll mitokondriernas antal och storlek spelar för skillnaden, och vad det innebär för hur de två löparna bör lägga upp sin fortsatta träning.";
 const LONG_OPT = "Den vältränade löparen har fler och större mitokondrier per muskelcell, vilket gör att en större andel av pyruvatet kan tas om hand aerobt innan syretillförseln blir begränsande";
@@ -86,17 +77,17 @@ const SESSION = () => {
 async function newPage(opts, exam) {
   const ctx = await browser.newContext(opts);
   const page = await ctx.newPage();
-  await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-  await page.route("**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam, meta: { quota: { enforced: false } } } }));
-  await page.route("**/api/grade", r => r.fulfill({ json: { ok: true, result: mkResult(exam, true) } }));
-  await page.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-  await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-  await page.addInitScript(SESSION);
+  // Baslagret från _harness.mjs; provgenereringen och rättningen sist.
+  await mockApis(page, { extra: [
+    ["**/api/generate-exam", r => r.fulfill({ json: { ok: true, exam, meta: { quota: { enforced: false } } } })],
+    ["**/api/grade", r => r.fulfill({ json: { ok: true, result: mkResult(exam, true) } })],
+  ] });
+  await seed(page);
   return { ctx, page };
 }
 
 async function toContract(page) {
-  await page.goto("http://localhost:4400/app.html", { waitUntil: "networkidle" });
+  await page.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
   await page.waitForSelector("#xf .xf-screen.on", { timeout: 8000 });
   await page.click("#xf .xf-screen[data-screen='start'] .xf-btn.primary");
   await page.waitForTimeout(250);
@@ -239,7 +230,7 @@ for (const [label, w, h] of [["390x844 · 20 frågor", 390, 844], ["1440x900 · 
 {
   const exam = mkExam(6, false);
   const { ctx, page } = await newPage({ viewport: { width: 1280, height: 860 } }, exam);
-  await page.goto("http://localhost:4400/app.html", { waitUntil: "networkidle" });
+  await page.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
   await page.waitForSelector("#xf .xf-screen.on");
   await page.waitForTimeout(600);
 
@@ -412,7 +403,7 @@ for (const [label, w, h] of [["390x844 · 20 frågor", 390, 844], ["1440x900 · 
 }
 
 await browser.close();
-server.close();
+await srv.close();
 
 const order = { KRITISK: 0, HÖG: 1, MEDEL: 2, LÅG: 3 };
 findings.sort((a, b) => order[a.sev] - order[b.sev]);
