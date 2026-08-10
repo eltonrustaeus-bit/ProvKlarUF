@@ -158,29 +158,11 @@
   }
   .ctaBtn:hover { background:var(--a2);box-shadow:0 6px 18px rgba(0,118,143,.22); }
   .ctaBtn:active{transform:scale(.985)}
-  .demoBtn{
-    display:inline-flex;align-items:center;justify-content:center;
-    height:52px;padding:0 24px;
-    font-family:var(--font);font-size:16px;font-weight:600;
-    color:var(--t);letter-spacing:-.01em;
-    background:var(--s);border:1px solid var(--l2);
-    border-radius:var(--exgen-radius-md);text-decoration:none;
-    transition:border-color .18s,background .18s,transform .12s ease;
-  }
-  .demoBtn:hover{border-color:var(--l3);background:var(--s2)}
-  .demoBtn:active{transform:scale(.985)}
-  .ctaBtn:focus-visible,.demoBtn:focus-visible,.demoLink:focus-visible{
+  .ctaBtn:focus-visible,.demoGo:focus-visible,.demoChip:focus-visible,.demoBack:focus-visible{
     outline:2px solid var(--a);outline-offset:2px;
   }
 
   .heroMeta{display:flex;flex-direction:column;align-items:center;gap:8px}
-  .demoLink {
-    font-family:var(--font);font-size:14px;font-weight:500;
-    color:var(--t2);text-decoration:none;
-    border-bottom:1px solid var(--l3);padding-bottom:1px;
-    transition:color .15s,border-color .15s;
-  }
-  .demoLink:hover{color:var(--a);border-color:var(--a)}
   .heroFine{
     font-family:var(--font);font-size:12.5px;
     color:var(--t3);margin:0;
@@ -206,7 +188,7 @@
     .heroSub{font-size:17px}
     .heroCtas{margin-top:32px;gap:18px}
     .heroBtns{flex-direction:row;width:auto;max-width:none}
-    .ctaBtn,.demoBtn{padding:0 28px}
+    .ctaBtn{padding:0 28px}
   }
 
   /* ── Laptop / desktop ── split layout, copy left-aligned */
@@ -232,59 +214,174 @@
     .hero{padding:40px 0 48px}
     .heroTitle{font-size:26px;letter-spacing:-.03em}
     .heroSub{font-size:15px}
-    .ctaBtn,.demoBtn{font-size:15px;padding:0 18px}
+    .ctaBtn{font-size:15px;padding:0 18px}
   }
 
-  /* MOCKPROV STRIP */
-  .mockStrip{
-    background:var(--s);border:1px solid var(--l2);
-    border-radius:var(--exgen-radius-lg);padding:24px 28px;
+  /* ── DEMON ──────────────────────────────────────────────────────────────
+     Sidans enda produktbevis. Formen är .xf-card från exgen-ui.css: en 1px
+     linje, radius-lg, --s som yta, ingen skugga. Den ska se ut som appen, för
+     det är appen den visar.
+
+     Syns på alla bredder. Den gamla .heroVisual låg bakom display:none under
+     920px — telefonbesökaren fick tre skärmar ren prosa innan något
+     produktliknande dök upp, och telefonen är merparten av trafiken. */
+  .heroVisual { display:block; width:100%; }
+
+  .demoCard {
+    background:var(--s);
+    border:1px solid var(--l2);
+    border-radius:var(--exgen-radius-lg);
+    padding:var(--exgen-space-6);
+  }
+
+  .demoHead {
     display:flex;align-items:center;justify-content:space-between;
-    gap:20px;flex-wrap:wrap;
-    margin-bottom:0;
-    position:relative;overflow:hidden;
+    gap:12px;margin-bottom:var(--exgen-space-4);
   }
-  .mockStrip::before{
-    content:"";position:absolute;inset:0;
-    background:radial-gradient(ellipse 50% 100% at 0% 50%,rgba(0,183,217,.05),transparent 65%);
-    pointer-events:none;
+  .demoEye {
+    font-family:var(--exgen-font-mono);font-size:10.5px;font-weight:400;
+    letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+    color:var(--a);
   }
-  .mockStripLeft{flex:1;min-width:180px;display:flex;align-items:center;gap:16px}
-  .mockStripIcon{font-size:28px;flex-shrink:0;display:flex;align-items:center;color:var(--a)}
-  .mockStripT{font-weight:700;font-size:15px;color:var(--t);letter-spacing:-.02em;margin-bottom:4px}
-  .mockStripD{font-size:12.5px;color:var(--t2);line-height:1.55}
+  /* Kvoten står utskriven innan man trycker. Turbo AI:s enda återkommande
+     kritik i recensionerna är att taket är dolt tills man slår i det. */
+  .demoFree {
+    font-family:var(--exgen-font-mono);font-size:10.5px;
+    letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+    color:var(--t3);
+  }
 
+  .demoChips { display:flex;flex-wrap:wrap;gap:7px;margin-bottom:var(--exgen-space-4); }
+  .demoChip {
+    padding:7px 13px;border-radius:var(--exgen-radius-pill);
+    border:1px solid var(--l2);background:var(--s);
+    font-family:inherit;font-size:13px;color:var(--t2);cursor:pointer;
+    transition:border-color var(--exgen-motion-fast) var(--exgen-motion-ease),
+               color var(--exgen-motion-fast) var(--exgen-motion-ease),
+               background var(--exgen-motion-fast) var(--exgen-motion-ease);
+  }
+  .demoChip:hover { border-color:var(--a);color:var(--t); }
+  .demoChip.sel {
+    border-color:var(--a);background:rgba(0,118,143,.07);
+    color:var(--a);font-weight:500;
+  }
 
-  /* ── BENEFITS ── Pensionskontrollen-style callout: a solid-fill card
-     stating the concrete payoff, right after the hero/stats, before the
-     product demo — Elton asked to push this closer to Allra's own flat
-     solid-color box rather than the lighter tint this started as. Fill
-     is var(--a) (the same #00768F used everywhere else for solid teal
-     fills, so white text is already proven AA-safe here — no new
-     contrast math needed). No green gradient on this one: the brief's
-     "sparingly" already gets its one use on .stepNum--accent further
-     down the page. */
-  .benefits{padding:8px 0 48px}
-  @media(max-width:600px){.benefits{padding:4px 0 28px}}
-  .benefitsCard{
-    display:flex;align-items:center;gap:40px;flex-wrap:wrap;
-    background:var(--a);border-radius:var(--exgen-radius-lg);
-    padding:32px 36px;box-shadow:0 12px 32px rgba(0,118,143,.28);
-    position:relative;overflow:hidden;
+  .demoLbl {
+    display:block;
+    font-family:var(--exgen-font-mono);font-size:10.5px;
+    letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+    color:var(--t3);margin-bottom:6px;
   }
-  .benefitsLeft{flex:1;min-width:240px}
-  .benefitsTitle{
-    font-size:clamp(19px,2.4vw,24px);font-weight:700;
-    letter-spacing:-.03em;color:#fff;line-height:1.3;
+  .demoArea {
+    width:100%;box-sizing:border-box;resize:vertical;
+    font-family:inherit;font-size:14px;line-height:1.6;color:var(--t);
+    background:var(--s2);border:1px solid var(--l2);
+    border-radius:var(--exgen-radius-sm);padding:12px 14px;
+    outline:none;margin-bottom:var(--exgen-space-4);
+    transition:border-color var(--exgen-motion-fast) var(--exgen-motion-ease),
+               box-shadow var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
-  .benefitsList{display:flex;flex-direction:column;gap:12px;flex:1;min-width:260px}
-  .benefitsItem{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#fff;line-height:1.5}
-  .benefitsCheck{
-    width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:1px;
-    background:rgba(255,255,255,.18);color:#fff;
+  .demoArea:focus { border-color:var(--a);box-shadow:0 0 0 3px rgba(0,118,143,.07); }
+
+  .demoGo {
     display:flex;align-items:center;justify-content:center;
+    width:100%;height:46px;padding:0 20px;
+    font-family:var(--font);font-size:15px;font-weight:600;letter-spacing:-.01em;
+    color:#fff;background:var(--a);border:none;
+    border-radius:var(--exgen-radius-md);cursor:pointer;text-decoration:none;
+    transition:background var(--exgen-motion-fast) var(--exgen-motion-ease),
+               transform var(--exgen-motion-fast) var(--exgen-motion-ease);
   }
-  @media(max-width:700px){.benefitsCard{padding:26px 22px;gap:22px}}
+  .demoGo:hover { background:var(--a2); }
+  .demoGo:active { transform:scale(.99); }
+  .demoGo:disabled { opacity:.4;cursor:not-allowed;transform:none; }
+  .demoGo--final { margin-top:var(--exgen-space-4); }
+
+  .demoBack {
+    background:none;border:0;padding:0;cursor:pointer;
+    font-family:inherit;font-size:12.5px;color:var(--t3);
+    text-decoration:underline;text-underline-offset:2px;
+  }
+  .demoBack:hover { color:var(--a); }
+
+  .demoNote {
+    font-size:var(--exgen-text-xs);color:var(--t3);
+    line-height:var(--exgen-leading-normal);margin:var(--exgen-space-3) 0 0;
+  }
+
+  .demoQ {
+    font-size:15.5px;font-weight:600;line-height:1.5;color:var(--t);
+    letter-spacing:-.01em;margin:0 0 var(--exgen-space-4);
+  }
+
+  /* ── Rättningen ──
+     Det som ingen annan sida i kategorin visar. Turbo, Knowt och Gizmo visar
+     alla en INMATNING i hjälten — en uppladdningsruta eller en telefonmockup.
+     Ingen visar vad som kommer tillbaka. */
+  .demoScoreRow { display:flex;align-items:center;gap:14px;margin-bottom:var(--exgen-space-4); }
+  .demoScore { font-size:22px;font-weight:700;letter-spacing:-.03em;color:var(--t);white-space:nowrap; }
+  .demoBar { flex:1;height:4px;border-radius:var(--exgen-radius-pill);background:var(--l);overflow:hidden; }
+  .demoBarFill {
+    height:100%;width:0;background:var(--a);border-radius:var(--exgen-radius-pill);
+    transition:width .5s var(--exgen-motion-ease);
+  }
+
+  .demoKeys { list-style:none;padding:0;margin:0 0 var(--exgen-space-4);display:grid;gap:7px; }
+  .demoKeys li {
+    display:flex;align-items:flex-start;gap:9px;
+    font-size:13.5px;line-height:1.45;color:var(--t2);
+  }
+  .demoKeys li::before {
+    content:"—";flex:none;width:15px;color:var(--t3);font-weight:600;
+  }
+  .demoKeys li.hit { color:var(--t); }
+  .demoKeys li.hit::before { content:"✓";color:var(--a); }
+
+  .demoModel, .demoBank {
+    padding:12px 14px;border-radius:var(--exgen-radius-sm);
+    border:1px solid var(--l2);background:var(--s2);
+    font-size:13px;line-height:1.6;color:var(--t2);
+  }
+  .demoModel { margin-bottom:var(--exgen-space-3); }
+  .demoModel p, .demoBank p { margin:0; }
+  .demoModelEye, .demoBankEye {
+    display:block;margin-bottom:5px;
+    font-family:var(--exgen-font-mono);font-size:10.5px;
+    letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+    color:var(--a);
+  }
+  /* Felbanken är slutet på demon, inte en fotnot. Det är den som är produkten
+     över tid — en enskild rättad fråga är ett svagt prov på värdet. */
+  .demoBank { border-color:rgba(0,118,143,.28);background:rgba(0,118,143,.07); }
+  .demoBankEye { color:var(--a); }
+
+  @media(max-width:600px){
+    .demoCard { padding:var(--exgen-space-4); }
+  }
+
+  /* ── SEKTIONSFORM ────────────────────────────────────────────────────────
+     Ingresserna är vänsterställda i läsmåttet i stället för centrerade över
+     hela 1080px. Centrerad rubrik + centrerad underrubrik över full bredd är
+     det mest mallaktiga uttrycket en sida kan ha, och 1080px är dubbelt så
+     brett som texten vill vara. 580px är --xf-measure från exgen-ui.css,
+     samma mått som app.html och förbättring.html läser i. */
+  .secLead {
+    max-width:var(--xf-measure);
+    font-size:15.5px;line-height:var(--exgen-leading-relaxed);
+    color:var(--t2);margin:0 0 var(--exgen-space-6);
+  }
+  .secAct { display:flex;gap:10px;flex-wrap:wrap; }
+  .ctaBtn--sm { height:44px;font-size:14.5px;padding:0 22px; }
+
+  .perSec { padding:var(--sp-16) 0;border-top:1px solid var(--l); }
+  .parentSec { padding:var(--sp-16) 0;border-top:1px solid var(--l); }
+
+  .parentGrid { display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:var(--exgen-space-6); }
+  @media(max-width:760px){ .parentGrid{grid-template-columns:1fr;gap:18px} }
+  .parentT { font-weight:700;font-size:15px;color:var(--t);letter-spacing:-.02em;margin-bottom:6px; }
+  .parentD { font-size:13.5px;color:var(--t2);line-height:1.65; }
+  .parentNote { font-size:var(--exgen-text-xs);color:var(--t3);margin:var(--exgen-space-6) 0 0; }
+  .parentNote a { color:var(--a); }
 
   /* ── ETIKETT ──
      Fem regler med exakt samma deklarationer stod på var sitt håll i den här
@@ -300,26 +397,28 @@
      Deklarationerna är skrivna av här och inte ärvda via klassbyte i markupen,
      eftersom de fem etiketterna bär olika färg och marginal per plats — det är
      bara typografin som är gemensam. */
-  .mockStripEye, .benefitsEye, .secEye, .featLabel, .pEye {
+  .secEye, .featLabel, .pEye {
     font-family:var(--exgen-font-mono);
     font-size:10.5px;
     font-weight:400;
     letter-spacing:var(--exgen-tracking-wide);
     text-transform:uppercase;
   }
-  .mockStripEye{color:var(--a);margin-bottom:6px}
-  .benefitsEye{color:#fff;margin-bottom:var(--sp-2)}
-  .secEye{color:var(--a);text-align:center;margin-bottom:var(--sp-2)}
+  .secEye{color:var(--a);margin-bottom:var(--sp-2)}
   .featLabel{color:var(--a);margin-bottom:var(--sp-2)}
   .pEye{color:var(--a);margin-bottom:var(--sp-2)}
 
   /* ── FEATURES ── */
   .feats{padding:var(--sp-24) 0}
   @media(max-width:600px){.feats{padding:var(--sp-16) 0}}
+  /* Vänsterställd i läsmåttet, inte centrerad över 1080px. Se kommentaren vid
+     .secLead. Marginalen är mindre eftersom .secLead nu bär avståndet ned till
+     innehållet på de sektioner som har en ingress. */
   .secTitle{
+    max-width:var(--xf-measure);
     font-size:var(--fs-2xl);font-weight:700;
     letter-spacing:-.03em;line-height:var(--lh-tight);color:var(--t);
-    text-align:center;margin-bottom:var(--sp-12);
+    margin-bottom:var(--sp-8);
   }
   .featsGrid{
     display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
@@ -440,122 +539,10 @@
 
   /* ── REDUCED MOTION ── */
   @media(prefers-reduced-motion:reduce){
-    .heroEye,.heroTitle,.heroSub,.heroCtas,.heroVisual,.pvCard,.pvOpt--correct,.pvExpl{
+    .heroEye,.heroTitle,.heroSub,.heroCtas,.heroVisual{
       opacity:1 !important;transform:none !important;animation:none !important;
     }
     .rev{opacity:1 !important;transform:none !important}
-  }
-
-  /* ── PRODUCT VISUAL (right side, ≥920px only) ── */
-  .heroVisual{display:none}
-
-  @media(min-width:920px){
-    .heroVisual{display:block}
-  }
-
-  .pvCard{
-    background:var(--s);border:1px solid var(--l2);
-    border-radius:var(--exgen-radius-lg);padding:22px 24px;
-    box-shadow:var(--sh3);
-  }
-
-  .pvProgressRow{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-  .pvProgressBar{flex:1;height:3px;border-radius:var(--exgen-radius-pill);background:var(--l);overflow:hidden}
-  .pvProgressFill{height:100%;width:60%;background:var(--a);border-radius:var(--exgen-radius-pill)}
-  .pvProgressLabel{font-family:var(--font);font-size:12px;color:var(--t3);white-space:nowrap}
-
-  .pvQ{font-weight:600;font-size:15px;color:var(--t);line-height:1.5;margin:0 0 14px;letter-spacing:-.01em}
-
-  .pvOpts{display:grid;gap:8px;margin-bottom:14px}
-  .pvOpt{
-    display:flex;align-items:center;gap:10px;
-    padding:11px 13px;border-radius:var(--exgen-radius-sm);
-    border:1px solid var(--l);background:var(--s2);
-    font-size:13.5px;color:var(--t2);line-height:1.35;
-  }
-  .pvOpt--correct{
-    border-color:rgba(0,118,143,.4);background:rgba(0,118,143,.06);color:var(--t);
-  }
-
-  .pvLetter{
-    width:22px;height:22px;border-radius:var(--exgen-radius-sm);
-    display:grid;place-items:center;flex-shrink:0;
-    font-family:var(--font);font-size:11px;font-weight:600;
-    background:var(--s);border:1px solid var(--l2);color:var(--t3);
-  }
-  .pvOpt--correct .pvLetter{background:var(--a);border-color:var(--a);color:#fff}
-
-  .pvExpl{
-    padding:12px 14px;border-radius:var(--exgen-radius-sm);
-    border:1px solid var(--l2);background:var(--s2);
-    font-size:13px;color:var(--t2);line-height:1.6;
-  }
-  .pvExplLabel{
-    font-family:var(--font);font-size:12px;color:var(--a);font-weight:600;
-    display:block;margin-bottom:5px;
-  }
-
-  .pvBadgeDot{
-    width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0;
-  }
-
-  /* ── STATS ROW ── */
-  .statsRow { padding: 0; }
-  .statsRowInner {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0; flex-wrap: wrap;
-    padding: 24px 0;
-    border-top: 1px solid var(--l);
-    border-bottom: 1px solid var(--l);
-  }
-  .statChip {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 8px 28px;
-  }
-  .statBig {
-    font-size: clamp(20px,2.8vw,28px); font-weight: 700;
-    color: var(--t); letter-spacing: -.04em; line-height: 1;
-  }
-  .statLbl {
-    font-family: var(--font); font-size: var(--exgen-text-xs); color: var(--t3);
-    letter-spacing: 0; margin-top: 6px;
-  }
-  .statDivider { width: 1px; height: 32px; background: var(--l); flex-shrink: 0; }
-  @media(max-width:580px){
-    .statChip { padding: 6px 14px; }
-    .statDivider { height: 22px; }
-  }
-  @media(max-width:400px){
-    .statsRowInner { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-    .statDivider { display: none; }
-    .statChip { border-bottom: 1px solid var(--l); }
-    .statChip:nth-child(odd) { border-right: 1px solid var(--l); }
-  }
-
-  /* ── PRODUCT SHOWCASE ── */
-  .productShowcase { padding: 56px 0 48px; }
-  @media(max-width:600px){.productShowcase{padding:36px 0 28px}}
-  .showcaseOuter {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    max-width: 480px; margin: 28px auto 0;
-  }
-  .showcaseCard {
-    width: 100%;
-    background: var(--s); border: 1px solid var(--l2);
-    border-radius: var(--exgen-radius-lg); padding: 22px 24px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.09);
-    animation: showcaseFloat 6s 1.5s ease-in-out infinite;
-  }
-  @keyframes showcaseFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-  }
-  @media(prefers-reduced-motion:reduce){ .showcaseCard { animation: none; } }
-  .showcaseBadge {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 14px; border-radius: var(--exgen-radius-md);
-    border: 1px solid var(--l); background: var(--s);
-    font-family: var(--font); font-size: var(--exgen-text-xs); color: var(--t2); letter-spacing: 0;
   }
 
   /* ── JOIN CTA STICKY BAR ── */
@@ -670,136 +657,95 @@
         <p class="heroEye" id="heroEye">För elever i grundskolan och gymnasiet</p>
 
         <h1 class="heroTitle">
-          <span>ExGen&nbsp;&ndash;</span> <span>Realistiska prov.</span> <span>Personlig återkoppling.</span> <span>Verklig utveckling.</span>
+          <span>Klistra in ditt material.</span> <span>Få ett riktigt prov,</span> <span>rättat med modellsvar.</span>
         </h1>
 
         <p class="heroSub">
-          Utgå från ditt eget material och få ett prov som liknar det riktiga. Varje svar rättas med en förklaring som visar exakt vad du behöver träna mer på — steg för steg.
+          Provet byggs på det ni faktiskt läser — inte på en färdig frågebank. Varje svar får poäng, ett modellsvar och en förklaring, och det du missar samlas i en felbank du kan träna om.
         </p>
 
         <div class="heroCtas" id="heroCtas">
           <div class="heroBtns">
             <a class="ctaBtn" href="app.html" data-pv-auth="register">Skapa ditt första prov</a>
-            <a class="demoBtn" href="förbättring.html" data-pv-auth="register">Se din utveckling</a>
           </div>
           <div class="heroMeta">
-            <a data-module="demo" class="demoLink" id="demoBtnLink" href="live-demo.html">Se hur ExGen fungerar</a>
             <p class="heroFine">Gratis att börja · inget kort krävs</p>
           </div>
         </div>
 
       </div>
 
-      <!-- Product visual — desktop only, aria-hidden -->
-      <div class="heroVisual" aria-hidden="true">
-        <div class="pvCard">
-          <div class="pvProgressRow">
-            <div class="pvProgressBar"><div class="pvProgressFill"></div></div>
-            <span class="pvProgressLabel">Fråga 7 / 12 · Nivå C</span>
-          </div>
-          <p class="pvQ">Vad anger diskriminanten i en andragradsekvation?</p>
-          <div class="pvOpts">
-            <div class="pvOpt pvOpt--correct">
-              <span class="pvLetter">A</span>
-              <span>Antalet reella lösningar</span>
+      <!-- ═══ DEMON ═══
+           Startsidans enda produktbevis, och det enda som är interaktivt.
+           Ersätter de två handbyggda provkorten (.pvCard i hjälten och
+           .showcaseCard i produktvisningen) som visade samma obesvarade
+           flervalsfråga 1,2 skärmar isär, medan texten sålde poäng,
+           modellsvar och felbank — alltså rättningen, som ingetdera visade.
+
+           Den syns på ALLA bredder. Den gamla .heroVisual låg bakom
+           display:none under 920px, så en telefonbesökare fick tre skärmar
+           ren prosa innan något produktliknande dök upp.
+
+           Ingen modell körs. Frågorna, modellsvaren och nyckelbegreppen
+           ligger i js/demo-prov.json och rättningen jämför besökarens text
+           mot begreppen. Demon säger det rakt ut i #demoHur — påståendet att
+           en AI bedömt svaret skulle vara osant här. Skälet är att sidan inte
+           kan få en egen API-route: Vercel Hobby tar tolv serverless-
+           funktioner och api/ har exakt tolv. -->
+      <div class="heroVisual">
+        <div class="demoCard" id="demoCard">
+
+          <!-- Steg 1: materialet -->
+          <div class="demoStep" id="demoStepMaterial">
+            <div class="demoHead">
+              <span class="demoEye">Prova direkt</span>
+              <span class="demoFree">Utan konto</span>
             </div>
-            <div class="pvOpt">
-              <span class="pvLetter">B</span>
-              <span>Ekvationens symmetrilinje</span>
-            </div>
-            <div class="pvOpt">
-              <span class="pvLetter">C</span>
-              <span>Kurvans högsta punkt</span>
-            </div>
+            <div class="demoChips" id="demoChips" role="group" aria-label="Välj exempelmaterial"></div>
+            <label class="demoLbl" for="demoMaterial">Ditt material</label>
+            <textarea class="demoArea" id="demoMaterial" rows="6" spellcheck="false"></textarea>
+            <button class="demoGo" id="demoGo" type="button">Gör ett prov på det här</button>
+            <p class="demoNote" id="demoHur">Exemplen är förskrivna, så demon svarar direkt. I appen läser P.E.R din egen text och skriver frågorna utifrån den.</p>
           </div>
-          <div class="pvExpl">
-            <span class="pvExplLabel">Rätt svar — återkoppling</span>
-            Diskriminanten b²−4ac avgör antalet reella lösningar: positiv ger två, noll ger en, negativ ger ingen.
+
+          <!-- Steg 2: frågan -->
+          <div class="demoStep" id="demoStepFraga" hidden>
+            <div class="demoHead">
+              <span class="demoEye" id="demoFragaEye">Fråga 1 av 1 · Nivå C</span>
+              <button class="demoBack" id="demoBack" type="button">Byt material</button>
+            </div>
+            <p class="demoQ" id="demoQ"></p>
+            <label class="demoLbl" for="demoSvar">Ditt svar</label>
+            <textarea class="demoArea" id="demoSvar" rows="4" placeholder="Skriv med egna ord. Du behöver inte skriva långt."></textarea>
+            <button class="demoGo" id="demoGrade" type="button">Rätta mitt svar</button>
+            <p class="demoNote">Rättningen jämför ditt svar mot modellsvarets nyckelbegrepp.</p>
           </div>
+
+          <!-- Steg 3: rättningen — det ingen annan i kategorin visar -->
+          <div class="demoStep" id="demoStepRattning" hidden>
+            <div class="demoHead">
+              <span class="demoEye">Rättat</span>
+              <button class="demoBack" id="demoRestart" type="button">Gör om</button>
+            </div>
+            <div class="demoScoreRow">
+              <span class="demoScore" id="demoScore"></span>
+              <div class="demoBar" aria-hidden="true"><div class="demoBarFill" id="demoBarFill"></div></div>
+            </div>
+            <ul class="demoKeys" id="demoKeys"></ul>
+            <div class="demoModel">
+              <span class="demoModelEye">Modellsvar</span>
+              <p id="demoModelText"></p>
+            </div>
+            <div class="demoBank" id="demoBank">
+              <span class="demoBankEye">Felbank</span>
+              <p id="demoBankText"></p>
+            </div>
+            <a class="demoGo demoGo--final" href="app.html" data-pv-auth="register">Fortsätt med ditt eget material</a>
+          </div>
+
         </div>
       </div>
     </div><!-- /heroInner -->
-  </section>
-
-  <!-- ═══ STATS ROW ═══ -->
-  <section class="statsRow" aria-label="Nyckeltal">
-    <div class="wrap statsRowInner rev">
-      <div class="statChip">
-        <span class="statBig">Ditt</span>
-        <span class="statLbl">eget material blir provet</span>
-      </div>
-      <div class="statDivider" aria-hidden="true"></div>
-      <div class="statChip">
-        <span class="statBig">E·C·A</span>
-        <span class="statLbl">nivå, som betygsstegen</span>
-      </div>
-      <div class="statDivider" aria-hidden="true"></div>
-      <div class="statChip">
-        <span class="statBig">Alla</span>
-        <span class="statLbl">svar får en förklaring</span>
-      </div>
-      <div class="statDivider" aria-hidden="true"></div>
-      <div class="statChip">
-        <span class="statBig">0 kr</span>
-        <span class="statLbl">att komma igång</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ BENEFITS ═══ -->
-  <section class="benefits" aria-label="Vad ExGen ger dig">
-    <div class="wrap">
-      <div class="benefitsCard rev">
-        <div class="benefitsLeft">
-          <p class="benefitsEye">Vad ExGen ger dig</p>
-          <h2 class="benefitsTitle">En tydlig fördel innan du sätter dig vid det riktiga provet</h2>
-        </div>
-        <ul class="benefitsList" style="list-style:none;padding:0;margin:0">
-          <li class="benefitsItem">
-            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <span>Se exakt vad du kan och var du behöver träna mer — inga gissningar.</span>
-          </li>
-          <li class="benefitsItem">
-            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <span>AI-förklaring på varje fråga direkt — gratis att starta, inget kort krävs.</span>
-          </li>
-          <li class="benefitsItem">
-            <span class="benefitsCheck" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <span>Prov på nivå E, C eller A — så du vet var du ligger innan läraren säger det.</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ PRODUCT SHOWCASE ═══ -->
-  <section class="productShowcase xg-band" aria-label="Produktvisning">
-    <div class="wrap">
-      <p class="secEye rev">Så här ser det ut</p>
-      <h2 class="secTitle rev">Prov på ditt material, rättat på riktigt</h2>
-      <div class="showcaseOuter rev d1">
-        <div class="showcaseCard">
-          <div class="mhpTop">
-            <div class="mhpBar"><div class="mhpFill"></div></div>
-            <span class="mhpLbl">Fråga 4 / 10 · Nivå C</span>
-          </div>
-          <p class="mhpQ">Vad menas med att Sverige har en parlamentarisk demokrati?</p>
-          <div class="mhpOpts">
-            <div class="mhpOpt"><span class="mhpLetter">A</span><span>Folket röstar direkt om varje lag</span></div>
-            <div class="mhpOpt mhpOk"><span class="mhpLetter">B</span><span>Regeringen måste ha riksdagens stöd</span></div>
-            <div class="mhpOpt"><span class="mhpLetter">C</span><span>Kungen utser statsministern</span></div>
-          </div>
-          <div class="mhpExpl">
-            <span class="mhpExplTag">Rätt — förklaring</span>
-            Regeringen styr så länge den tolereras av riksdagen. Saknar den stödet kan riksdagen fälla den genom misstroendeförklaring.
-          </div>
-        </div>
-        <div class="showcaseBadge">
-          <span class="pvBadgeDot" aria-hidden="true"></span>
-          <span>Förklaring på varje svar — direkt</span>
-        </div>
-      </div>
-    </div>
   </section>
 
   <div class="wrap">
@@ -834,31 +780,21 @@
       </div>
     </section>
 
-    <!-- ═══ MOCKPROV STRIP ═══ -->
-    <div class="mockStrip rev" style="margin-bottom:48px" aria-label="Mockprov med AI">
-      <div class="mockStripLeft">
-        <div class="mockStripIcon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></div>
-        <div>
-          <div class="mockStripEye">Mockprov med AI</div>
-          <div class="mockStripT">Träna på ditt eget material</div>
-          <div class="mockStripD">Klistra in studiematerial → AI genererar prov direkt. Rättar med feedback och modellsvar.</div>
-        </div>
+    <!-- ═══ P.E.R ═══
+         Var tidigare den andra av två .mockStrip-remsor. Den första sade om
+         mockprovet exakt vad de två första featurekorten redan sagt, med en
+         knapp fäst vid sig, och är borta. Den här bär något eget — att svaret
+         känner till frågan du står på — och är därför en riktig sektion. -->
+    <section class="perSec rev" aria-label="P.E.R — ExGens personliga AI-coach">
+      <p class="secEye">P.E.R — din AI-coach</p>
+      <h2 class="secTitle">Ser vilken fråga du sitter på</h2>
+      <p class="secLead">
+        P.E.R vet vilket prov och vilken fråga du jobbar på just nu, och kommer ihåg vilka ämnen du brukar svara fel på. Svaret blir specifikt för din situation, inte ett generellt AI-svar.
+      </p>
+      <div class="secAct">
+        <button class="ctaBtn ctaBtn--sm" id="perStripBtn" type="button">Fråga P.E.R</button>
       </div>
-      <a class="btn btnG" href="app.html" data-pv-auth="register" style="height:40px;padding:0 22px;font-size:13.5px;flex-shrink:0">Prova mockprov →</a>
-    </div>
-
-    <!-- ═══ P.E.R ═══ -->
-    <div class="mockStrip rev" style="margin-bottom:48px" aria-label="P.E.R — ExGens personliga AI-coach">
-      <div class="mockStripLeft">
-        <div class="mockStripIcon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg></div>
-        <div>
-          <div class="mockStripEye">P.E.R — ExGens personliga AI-coach</div>
-          <h3 class="mockStripT" style="margin-top:0">Ser vilken fråga du sitter på</h3>
-          <div class="mockStripD">P.E.R vet vilket prov och vilken fråga du jobbar på just nu, och kommer ihåg vilka ämnen du brukar svara fel på. Svaret blir specifikt för din situation, inte ett generellt AI-svar.</div>
-        </div>
-      </div>
-      <button class="btn btnG" id="perStripBtn" type="button" style="height:40px;padding:0 22px;font-size:13.5px;flex-shrink:0">Fråga P.E.R →</button>
-    </div>
+    </section>
 
     <!-- ═══ STEPS ═══ -->
     <section class="steps rev" aria-label="Hur det funkar">
@@ -939,6 +875,34 @@
 
     </section>
 
+    <!-- ═══ FÖRÄLDRAR ═══
+         Marknadsjämförelsen: Knowt, Gizmo och Turbo talar uteslutande till
+         eleven, men i Sverige är det föräldern som betalar. Ingen sida i
+         kategorin har en sektion riktad hit. Påståendena nedan är avsiktligt
+         bara sådant sidan själv kan stå för — vad som händer med materialet
+         är en länk till policyn, inte ett löfte formulerat här. -->
+    <section class="parentSec rev" aria-label="För föräldrar">
+      <p class="secEye">För föräldrar</p>
+      <h2 class="secTitle">Vad ditt barn faktiskt får</h2>
+      <div class="parentGrid">
+        <div class="parentItem">
+          <div class="parentT">Prov på skolans eget material</div>
+          <div class="parentD">Ni klistrar in anteckningarna, kapitlet eller stencilen från kursen. Frågorna byggs på just det, inte på en färdig frågebank som gissar vad klassen läser.</div>
+        </div>
+        <div class="parentItem">
+          <div class="parentT">Inga svar skrivs åt eleven</div>
+          <div class="parentD">ExGen gör inte inlämningsuppgifter. Det ställer frågor på sådant eleven redan ska kunna, rättar svaren och visar vad som saknades. Ingen betygssättning sker här.</div>
+        </div>
+        <div class="parentItem">
+          <div class="parentT">0 kr att pröva</div>
+          <div class="parentD">Tre prov i veckan är gratis och kräver inget kort. Vill ni ha mer kostar det 29 eller 79 kr i månaden, utan bindningstid.</div>
+        </div>
+      </div>
+      <p class="parentNote">
+        Vad som lagras och hur länge står i <a href="integritetspolicy.html">integritetspolicyn</a>.
+      </p>
+    </section>
+
     <!-- ═══ PRICING ═══ -->
     <section class="pricingStrip rev" aria-label="Priser">
       <div class="pCard">
@@ -995,8 +959,43 @@
     <a href="integritetspolicy.html">Integritetspolicy</a>
     <span>·</span>
     <span>Studiestöd — ingen officiell betygssättning</span>
+    <!-- Genvägen till den interna demosidan. Låg tidigare i hjälten som en
+         tredje konkurrerande CTA och visades av ett skript som laddade hela
+         supabase-js UMD-bundeln från jsdelivr för att avgöra om den skulle
+         synas. Samma villkor, en fetch, och den står inte längre i vägen för
+         besökaren som ska börja. -->
+    <span id="demoSep" hidden>·</span>
+    <a id="demoBtnLink" href="live-demo.html" hidden>Se hur ExGen fungerar</a>
   </div>
 </footer>
+
+<script>
+/* Visar demolänken för den som har en roll. Läser sessionen ur samma
+   localStorage-nyckel som shared.js redan använder och frågar REST-API:et
+   direkt — ingen extra klientbundle. */
+(function(){
+  var link = document.getElementById("demoBtnLink");
+  if (!link) return;
+  var SB = "https://mnmotdluigzeehdjbhbu.supabase.co";
+  var KEY = "sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN";
+  var tok = null, uid = null;
+  try {
+    var raw = JSON.parse(localStorage.getItem("sb-mnmotdluigzeehdjbhbu-auth-token") || "{}");
+    tok = raw.access_token; uid = raw.user && raw.user.id;
+  } catch (_) {}
+  if (!tok || !uid) return;
+  fetch(SB + "/rest/v1/profiles?select=role&id=eq." + encodeURIComponent(uid),
+        { headers: { apikey: KEY, Authorization: "Bearer " + tok } })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .then(function(rows){
+      if (rows && rows[0] && rows[0].role) {
+        link.hidden = false;
+        document.getElementById("demoSep").hidden = false;
+      }
+    })
+    .catch(function(){});
+})();
+</script>
 
 
 
@@ -1020,6 +1019,150 @@ document.getElementById("yr").textContent=new Date().getFullYear();
 
 
 document.getElementById("perStripBtn")?.addEventListener("click",()=>{document.getElementById("perBubble")?.click();});
+
+/* ── DEMON ──────────────────────────────────────────────────────────────────
+   Hjältens levande ruta. Ingen modell körs och inget nätverksanrop går till
+   någon endpoint: allt ligger i js/demo-prov.json. Skälet är inte ambition
+   utan tak — Vercel Hobby tar tolv serverless-funktioner och api/ har exakt
+   tolv, så sidan kan inte få en egen route.
+
+   Rättningen jämför besökarens text mot modellsvarets nyckelbegrepp. Det står
+   utskrivet i gränssnittet (#demoHur och noten under "Rätta mitt svar"), för
+   att kalla det en AI-bedömning vore osant.
+
+   Vill man byta till en riktig modell är gradeAnswer() nedan det enda som
+   behöver ersättas. */
+(function(){
+  var card = document.getElementById("demoCard");
+  if (!card) return;
+
+  var els = {
+    chips:   document.getElementById("demoChips"),
+    material:document.getElementById("demoMaterial"),
+    go:      document.getElementById("demoGo"),
+    back:    document.getElementById("demoBack"),
+    restart: document.getElementById("demoRestart"),
+    grade:   document.getElementById("demoGrade"),
+    q:       document.getElementById("demoQ"),
+    qEye:    document.getElementById("demoFragaEye"),
+    svar:    document.getElementById("demoSvar"),
+    score:   document.getElementById("demoScore"),
+    bar:     document.getElementById("demoBarFill"),
+    keys:    document.getElementById("demoKeys"),
+    model:   document.getElementById("demoModelText"),
+    bank:    document.getElementById("demoBankText"),
+    steps: {
+      material: document.getElementById("demoStepMaterial"),
+      fraga:    document.getElementById("demoStepFraga"),
+      rattning: document.getElementById("demoStepRattning")
+    }
+  };
+
+  var data = null, aktiv = null;
+
+  function show(namn){
+    Object.keys(els.steps).forEach(function(k){ els.steps[k].hidden = (k !== namn); });
+  }
+
+  /* Normalisering före jämförelse. Utan den missar "CO2" mot "co₂" och varje
+     ord som besökaren råkat böja eller sätta komma efter. */
+  function norm(t){
+    return (" " + String(t).toLowerCase() + " ")
+      .replace(/₂/g, "2")
+      .replace(/[^\wåäöéü\s-]/g, " ")
+      .replace(/\s+/g, " ");
+  }
+
+  /* Ersätt den här och bara den här om demon någon gång ska gå mot en modell. */
+  function gradeAnswer(svar, ex){
+    var n = norm(svar);
+    return ex.nyckelbegrepp.map(function(b){
+      var traff = b.synonymer.some(function(syn){ return n.indexOf(norm(syn).trim()) !== -1; });
+      return { term: b.term, traff: traff };
+    });
+  }
+
+  function valj(ex){
+    aktiv = ex;
+    els.material.value = ex.material;
+    [].forEach.call(els.chips.children, function(c){
+      c.classList.toggle("sel", c.dataset.id === ex.id);
+      c.setAttribute("aria-pressed", c.dataset.id === ex.id ? "true" : "false");
+    });
+  }
+
+  function tillFraga(){
+    if (!aktiv) return;
+    els.q.textContent = aktiv.fraga;
+    els.qEye.textContent = "Fråga 1 av 1 · " + aktiv.amne + " · Nivå " + aktiv.niva;
+    els.svar.value = "";
+    show("fraga");
+    els.svar.focus({ preventScroll: true });
+  }
+
+  function tillRattning(){
+    if (!aktiv) return;
+    var res = gradeAnswer(els.svar.value, aktiv);
+    var traffar = res.filter(function(r){ return r.traff; }).length;
+    var max = aktiv.maxpoang;
+
+    els.score.textContent = traffar + " av " + max + " poäng";
+    els.bar.style.width = Math.round((traffar / max) * 100) + "%";
+
+    els.keys.textContent = "";
+    res.forEach(function(r){
+      var li = document.createElement("li");
+      if (r.traff) li.className = "hit";
+      li.textContent = r.term;
+      els.keys.appendChild(li);
+    });
+
+    els.model.textContent = aktiv.modellsvar;
+
+    var missade = res.filter(function(r){ return !r.traff; });
+    els.bank.textContent = missade.length
+      ? "Det här hade sparats som en lucka att träna om: " +
+        missade.map(function(m){ return m.term; }).join(", ") + "."
+      : "Inget att spara den här gången — allt i modellsvaret fanns med. "
+        + "I appen läggs bara det du missar i felbanken.";
+
+    show("rattning");
+  }
+
+  els.go.addEventListener("click", tillFraga);
+  els.grade.addEventListener("click", tillRattning);
+  els.back.addEventListener("click", function(){ show("material"); });
+  els.restart.addEventListener("click", function(){ show("material"); });
+
+  /* Enter i svarsrutan ska inte skicka — svaren är flera meningar. Cmd/Ctrl+Enter
+     rättar, som i appen. */
+  els.svar.addEventListener("keydown", function(e){
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); tillRattning(); }
+  });
+
+  fetch("js/demo-prov.json")
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(new Error("http " + r.status)); })
+    .then(function(j){
+      data = j.exempel || [];
+      if (!data.length) throw new Error("inga exempel");
+      data.forEach(function(ex){
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "demoChip";
+        b.dataset.id = ex.id;
+        b.textContent = ex.etikett;
+        b.addEventListener("click", function(){ valj(ex); });
+        els.chips.appendChild(b);
+      });
+      valj(data[0]);
+    })
+    .catch(function(){
+      /* Faller tyst tillbaka: rutan tas bort i stället för att stå kvar tom och
+         se trasig ut. Resten av hjälten — rubrik, ingress, knapp — bär sidan. */
+      var v = card.closest(".heroVisual");
+      if (v) v.style.display = "none";
+    });
+})();
 
 /* FAQ */
 document.querySelectorAll(".faqQ").forEach(q=>{
