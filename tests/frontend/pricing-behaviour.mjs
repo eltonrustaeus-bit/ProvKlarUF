@@ -66,9 +66,9 @@ const weekStart = new Date(new Date(now).setHours(0, 0, 0, 0)).getTime() - wd * 
 // framtiden — annars beror testet på vilken veckodag det körs.
 const inWeek = n => Array.from({ length: n }, (_, i) => ({ ts: weekStart + 3600e3 + i * 60e3, course: "Biologi 1", pct: 70 }));
 
-/* seed: { role, history, profileRole, session } */
+/* seed: { role, history, profileRole, session, width } */
 async function mk(seed = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+  const ctx = await browser.newContext({ viewport: { width: seed.width || 1280, height: 900 }, reducedMotion: "reduce" });
   const page = await ctx.newPage();
   await page.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
   // Efter den generella — sist registrerad vinner, se fälla 1.
@@ -374,11 +374,49 @@ const FAQ = [
   await ctx.close();
 }
 
-// ── 9: sidfotens år räknas fram, inte skrivs in ──────────────────────────
+// ── 9: jämförelsen ryms på en telefon ───────────────────────────────────
+// Tabellen låg i en .compareWrap med overflow-x:auto och en min-width på
+// 420px. Vid 390px finns 358px, så Premium-kolumnen — den enda som är värd
+// att sälja på — låg 62px utanför kanten, och ingenting antydde att man kunde
+// dra. Uppmätt före fixen, vid tre bredder:
+//
+//   390px  wrap 358  tabell 420  behöver scroll
+//   360px  wrap 328  tabell 420  behöver scroll
+//   430px  wrap 398  tabell 420  behöver scroll
+//
+// Inga celler var klippta invändigt — det var min-width som höll isär dem, så
+// tabellen kunde smalna utan att texten går sönder.
+//
+// .compareWrap behåller sin overflow-x som skyddsnät (en framtida rad kan bli
+// bredare än den här mätningen), men kravet är att skyddsnätet inte ska
+// behövas vid vanliga telefonbredder. Kravet gäller sidan också: <body> får
+// aldrig scrolla i sidled.
+for (const width of [360, 390, 430]) {
+  const { ctx, page } = await mk({ width });
+  const t = await page.evaluate(() => {
+    const wrap = document.querySelector("main table").closest("div");
+    const clipped = [...document.querySelectorAll("main table td, main table th")]
+      .filter(e => e.scrollWidth > e.getBoundingClientRect().width + 1)
+      .map(e => e.textContent.trim().slice(0, 24));
+    return {
+      wrap: Math.round(wrap.clientWidth),
+      table: Math.round(document.querySelector("main table").getBoundingClientRect().width),
+      needsScroll: wrap.scrollWidth > wrap.clientWidth + 1,
+      bodyScrolls: document.documentElement.scrollWidth > innerWidth + 1,
+      clipped,
+    };
+  });
+  ok(`9a jämförelsen ryms vid ${width}px`, !t.needsScroll, JSON.stringify(t));
+  ok(`9b sidan scrollar inte i sidled vid ${width}px`, !t.bodyScrolls, JSON.stringify(t));
+  ok(`9c ingen cell är klippt vid ${width}px`, t.clipped.length === 0, t.clipped.join(" | "));
+  await ctx.close();
+}
+
+// ── 10: sidfotens år räknas fram, inte skrivs in ─────────────────────────
 {
   const { ctx, page } = await mk();
   const y = await page.evaluate(() => (document.querySelector("footer").innerText || ""));
-  ok("9a året är i år", y.includes(String(new Date().getFullYear())), y.slice(0, 80));
+  ok("10a året är i år", y.includes(String(new Date().getFullYear())), y.slice(0, 80));
   await ctx.close();
 }
 
