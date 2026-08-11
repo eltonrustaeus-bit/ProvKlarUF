@@ -18,7 +18,13 @@ const PROVIA_OPERATING_MAP = `## EXGEN-KARTA
 - Priser: Gratis, Basic och Premium.
 - Konto: plan, uppgradering, Stripe-portal, avsluta prenumeration och utloggning.`;
 
-export async function callAI(messages, { model, schema, timeout = 30_000 } = {}) {
+// callAIRaw — samma anrop som callAI, men returnerar även usage-objektet och den faktiska
+// modellen. Tillagd 2026-07-27 för P.E.R:s elevloop: kostnads- och tokenmätning krävde att
+// OpenAI-svarets `usage` går att läsa, och det kastades tidigare bort av extractText().
+// callAI() nedan delegerar hit och beter sig exakt som förut (returnerar bara texten), så
+// befintliga anropare (explain.js, smart-tips.js, teacher-report.js, legal-generation.mjs)
+// påverkas inte.
+export async function callAIRaw(messages, { model, schema, timeout = 30_000 } = {}) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY');
   const m = model || process.env.OPENAI_MODEL || 'gpt-4o-mini';
@@ -34,7 +40,16 @@ export async function callAI(messages, { model, schema, timeout = 30_000 } = {})
   let data;
   try { data = JSON.parse(raw); } catch { data = {}; }
   if (!r.ok) throw new Error(data?.error?.message || `OpenAI ${r.status}`);
-  return extractText(data);
+  return {
+    text: extractText(data),
+    usage: data?.usage || null,
+    model: data?.model || m,
+  };
+}
+
+export async function callAI(messages, { model, schema, timeout = 30_000 } = {}) {
+  const { text } = await callAIRaw(messages, { model, schema, timeout });
+  return text;
 }
 
 export function extractText(data) {

@@ -17,13 +17,27 @@
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
 import { generateVerifiedQuestion, persistGeneratedQuestion, PIPELINE_VERSION, PROMPT_VERSION } from "../src/generation/legal-generation.mjs";
+import { runDiagnostic, runAnswer, runCoach, getProfile } from "../src/per/orchestrator.mjs";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-async function flagsEnabled(keys) {
-  const { data, error } = await supabase.from("feature_flags").select("key, enabled").in("key", keys);
+// Codex-granskning 2026-07-27 (CR-PER-008, ACCEPTERAD): flaggkontrollen läste bara `enabled` och
+// ignorerade `allowed_user_ids`, trots att kolumnen finns i schemat sedan Fas 1 just för att kunna
+// köra en begränsad pilot. Att slå på en flagga öppnade alltså ytan för ALLA inloggade användare.
+// Nu gäller: enabled=true OCH (allowed_user_ids tom = alla, annars måste användaren finnas i listan).
+// rollout_percentage används fortfarande inte — en procentuell utrullning kräver en stabil
+// hashning av user_id som ingen yta behöver än, och en oanvänd halvfärdig mekanism är sämre än
+// ingen alls. Dokumenterat i docs/per/ARCHITECTURE.md.
+async function flagsEnabled(keys, userId = null) {
+  const { data, error } = await supabase.from("feature_flags").select("key, enabled, allowed_user_ids").in("key", keys);
   if (error || !data) return false;
-  return keys.every((k) => data.find((row) => row.key === k)?.enabled === true);
+  return keys.every((k) => {
+    const row = data.find((r) => r.key === k);
+    if (!row || row.enabled !== true) return false;
+    const allowed = row.allowed_user_ids ?? [];
+    if (allowed.length === 0) return true;
+    return userId ? allowed.includes(userId) : false;
+  });
 }
 
 // Enkel, självständig daglig kvot (oberoende av PLAN_RULES i api/_provia-rules.js — den filen är
@@ -223,7 +237,10 @@ async function opGenerate(req, res, user) {
   // får ALDRIG se det faktiska genererade innehållet eller verifieringsutfallet — bara att ett
   // jobb kördes. Det är hela poängen med shadow mode: samla in kvalitetsdata i skala innan någon
   // elev någonsin exponeras för resultatet.
-  if (await flagsEnabled(["legal_shadow_mode"])) {
+  // user.id skickas med (Codex CR-PER-022): utan den nekar den nya flagglogiken varje flagga som
+  // har en ifylld allowed_user_ids, vilket skulle stänga av shadow mode för precis de konton den
+  // var begränsad till — och de hade då fått det fullständiga svaret i stället för det redigerade.
+  if (await flagsEnabled(["legal_shadow_mode"], user.id)) {
     return res.status(200).json({ ok: true, shadow: true, question_id: persisted.examQuestionId });
   }
 
@@ -235,6 +252,151 @@ async function opGenerate(req, res, user) {
   });
 }
 
+// ── P.E.R. elevloop (Fas 9) ─────────────────────────────────────────────────
+// Egen feature flag (per_learner_loop_enabled) OCH egen dygnskvot, ovanpå den generella
+// knowledge-engine-gaten. Codex CR-PER-012: elevriktade ops får inte ärva genereringsytans
+// flagga och kvot — de har helt andra kostnads- och exponeringsprofiler.
+
+// Räknas per BETALD REQUEST, inte per sparat svar: en diagnostisk fråga som måste generera nytt
+// material kostar pengar även om eleven aldrig svarar. 40 räcker till ~20 fråga/svar-omgångar
+// plus coachning per dygn — långt över vad en elev gör på en lektion, långt under vad ett
+// skript hinner bränna.
+const MAX_ASSESSMENTS_PER_USER_PER_DAY = 40;
+const MAX_STUDENT_ANSWER_CHARS = 4000;
+
+// Atomisk kvot (CR-PER-007): count-then-insert i JS är inte en gräns när requests är parallella.
+async function underAssessmentQuota(userId) {
+  const { data, error } = await supabase.rpc("per_consume_daily_quota", {
+    p_user_id: userId,
+    p_feature: "per_assessment",
+    p_limit: MAX_ASSESSMENTS_PER_USER_PER_DAY,
+  });
+  if (error) return { allowed: false, remaining: 0 }; // fail-closed
+  return { allowed: data?.allowed === true, remaining: data?.remaining ?? 0 };
+}
+
+// Codex CR-PER-029: kvoten konsumeras innan ägarskaps- och dubblettkontrollen hunnit köra. Ett
+// 404, ett redan besvarat svar eller ett fel innan första AI-anropet kostar ingenting — då ska
+// platsen tillbaka. Återbetalning får aldrig kasta; en missad återbetalning är ett litet fel,
+// ett kastat undantag mitt i ett svar är ett stort.
+async function refundAssessmentQuota(userId) {
+  try {
+    await supabase.rpc("per_refund_daily_quota", { p_user_id: userId, p_feature: "per_assessment" });
+  } catch {
+    /* ignoreras med flit */
+  }
+}
+
+function badRequest(res, message) {
+  return res.status(400).json({ error: message });
+}
+
+async function opPerDiagnose(req, res, user) {
+  const { level, concept_id, question_type } = req.body || {};
+  if (level !== undefined && !["E", "C", "A"].includes(level)) return badRequest(res, "level måste vara E, C eller A");
+  if (question_type !== undefined && !["multiple_choice", "short_answer"].includes(question_type)) {
+    return badRequest(res, "question_type måste vara multiple_choice eller short_answer");
+  }
+  const quota = await underAssessmentQuota(user.id);
+  if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
+
+  try {
+    const result = await runDiagnostic({
+      supabase, userId: user.id,
+      level: level ?? "E",
+      conceptId: concept_id ?? null,
+      questionType: question_type ?? "short_answer",
+    });
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(422).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (e) {
+    await refundAssessmentQuota(user.id);
+    console.error("per diagnose error:", e?.message);
+    return res.status(502).json({ error: "Kunde inte hämta en uppgift just nu" });
+  }
+}
+
+async function opPerAnswer(req, res, user) {
+  const { question_id, answer, idempotency_key } = req.body || {};
+  if (!question_id || typeof question_id !== "string") return badRequest(res, "question_id krävs");
+  if (answer === undefined || answer === null) return badRequest(res, "answer krävs");
+  const answerText = Array.isArray(answer) ? answer.map(String).join("|") : String(answer);
+  if (!answerText.trim()) return badRequest(res, "answer får inte vara tomt");
+  if (answerText.length > MAX_STUDENT_ANSWER_CHARS) {
+    return badRequest(res, `answer får max vara ${MAX_STUDENT_ANSWER_CHARS} tecken`);
+  }
+  if (!idempotency_key || typeof idempotency_key !== "string" || idempotency_key.length > 200) {
+    return badRequest(res, "idempotency_key krävs (max 200 tecken)");
+  }
+
+  const quota = await underAssessmentQuota(user.id);
+  if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
+
+  try {
+    const result = await runAnswer({
+      supabase, userId: user.id,
+      questionId: question_id,
+      studentAnswer: Array.isArray(answer) ? answer : answerText,
+      idempotencyKey: idempotency_key,
+    });
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(result.reason === "question_not_found_or_not_owned" ? 404 : 422).json(result);
+    }
+    // Ett redan besvarat svar returnerar den lagrade bedömningen utan ett enda AI-anrop.
+    if (result.already_answered) await refundAssessmentQuota(user.id);
+    return res.status(200).json(result);
+  } catch (e) {
+    await refundAssessmentQuota(user.id);
+    console.error("per answer error:", e?.message);
+    return res.status(502).json({ error: "Kunde inte bedöma svaret just nu" });
+  }
+}
+
+async function opPerCoach(req, res, user) {
+  const { concept_id, help_level, question_id } = req.body || {};
+  if (!concept_id || typeof concept_id !== "string") return badRequest(res, "concept_id krävs");
+  const helpLevel = Number.isInteger(help_level) ? help_level : 0;
+  if (helpLevel < 0 || helpLevel > 2) return badRequest(res, "help_level måste vara 0, 1 eller 2");
+
+  const quota = await underAssessmentQuota(user.id);
+  if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
+
+  try {
+    const result = await runCoach({
+      supabase, userId: user.id, conceptId: concept_id, helpLevel, questionId: question_id ?? null,
+    });
+    if (!result.ok) {
+      await refundAssessmentQuota(user.id);
+      return res.status(422).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (e) {
+    await refundAssessmentQuota(user.id);
+    console.error("per coach error:", e?.message);
+    return res.status(502).json({ error: "Kunde inte hämta hjälp just nu" });
+  }
+}
+
+async function opPerProfile(req, res, user) {
+  try {
+    return res.status(200).json(await getProfile(supabase, user.id));
+  } catch (e) {
+    console.error("per profile error:", e?.message);
+    return res.status(500).json({ error: "Kunde inte läsa profilen" });
+  }
+}
+
+const LEARNER_OPS = {
+  per_diagnose: opPerDiagnose,
+  per_answer: opPerAnswer,
+  per_coach: opPerCoach,
+  per_profile: opPerProfile,
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -243,12 +405,24 @@ export default async function handler(req, res) {
   const user = await requireAuth(req, res);
   if (!user) return;
 
-  if (!(await flagsEnabled(["knowledge_engine_enabled", "legal_rag_enabled"]))) {
+  const op = req.body?.op;
+
+  // Elevloopen har egen gate. Den generella knowledge-engine-gaten gäller fortfarande som
+  // yttersta kill switch — stängs den av stannar allt, även elevflödet.
+  if (LEARNER_OPS[op]) {
+    if (!(await flagsEnabled(["knowledge_engine_enabled", "legal_rag_enabled", "per_learner_loop_enabled"], user.id))) {
+      return res.status(403).json({ error: "P.E.R. elevläge är inte aktiverat för det här kontot" });
+    }
+    return LEARNER_OPS[op](req, res, user);
+  }
+
+  if (!(await flagsEnabled(["knowledge_engine_enabled", "legal_rag_enabled"], user.id))) {
     return res.status(403).json({ error: "Knowledge engine är inte aktiverad" });
   }
 
-  const op = req.body?.op;
   if (op === "blueprint") return opBlueprint(req, res, user);
   if (op === "generate") return opGenerate(req, res, user);
-  return res.status(400).json({ error: "Okänd op. Giltiga: blueprint, generate" });
+  return res.status(400).json({
+    error: "Okänd op. Giltiga: blueprint, generate, per_diagnose, per_answer, per_coach, per_profile",
+  });
 }
