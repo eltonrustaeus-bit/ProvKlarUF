@@ -175,7 +175,19 @@ input, select, textarea, button { font-family: var(--font); }
 }
 
 /* ── HEADER ── */
-header {
+/* Gäller den GAMLA headern (.hWrap), som bara admin.html har kvar. Selektorn
+   var tidigare bara `header`, alltså elementet, och träffade därför också den
+   nya .xg-header på alla övriga sidor. Två mätbara följder:
+
+     1. display:flex gjorde .xg-header-wrap till ett flex-item med
+        flex:0 1 auto, så dess max-width:1080px aldrig fylldes. Headern blev
+        770 px bred mitt på en 1080 px sida — märket hamnade på x=359 medan
+        korten började på x=202 och h1 på x=130. Tre vänsterkanter på en sida.
+     2. height:58px låste headern och åsidosatte .xg-header-wrap egen padding.
+
+   :not(.xg-header) i stället för att flytta reglerna, eftersom admin.html
+   fortfarande bygger på .hWrap och inget annat här ska ändras för den. */
+header:not(.xg-header) {
   height: 58px; position: sticky; top: 0; z-index: 3000;
   /* Was rgba(243,248,245,.92) — a green-tinted white left over from the
      pre-ExGen ProviaAI palette, missed by the earlier colour purge because
@@ -627,7 +639,10 @@ body.pg-leaving {
 
 /* ── HEADER SCROLL COMPRESS ── */
 header { transition: box-shadow .2s ease; }
-header.scrolled {
+/* Kvar från det mörka temat: en nästan svart 24px-skugga. Under en vit header
+   läser den som smuts. Scopad till den gamla headern; .xg-header får sin egen
+   i exgen-shell.css. */
+header.scrolled:not(.xg-header) {
   box-shadow: 0 2px 24px rgba(0,0,0,.35);
 }
 header.scrolled .hWrap { height: 48px; }

@@ -68,7 +68,16 @@ html {
   background: var(--exgen-bg, #FFFFFF);
   border-bottom: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
 }
+/* shared.js initHeaderCompress sätter .scrolled på header vid scrollY > 72.
+   Den gamla regeln i style.css gav en nästan svart 24px-skugga; den är nu
+   scopad bort från .xg-header och ersatt av systemets egen. */
+.xg-header.scrolled { box-shadow: var(--exgen-shadow-sm, 0 1px 2px rgba(14,27,42,.06)); }
+
+/* width:100% behövs trots max-width. Utan den räcker det att någon förälder
+   är display:flex för att wrappen ska krympa till innehållets bredd i stället
+   för att fylla ut till måttet — vilket är precis vad som hände. */
 .xg-header-wrap {
+  width: 100%;
   max-width: 1080px; margin-inline: auto;
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--exgen-space-4, 16px);

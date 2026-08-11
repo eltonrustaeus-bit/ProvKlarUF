@@ -1,0 +1,154 @@
+{
+  "_om": "Förbakade exempel för den levande demon i hjälten på index.html. Ingen modell körs här — allt nedan är skrivet i förväg och rättningen jämför besökarens text mot nyckelbegreppen. Det är också vad demon säger rakt ut i gränssnittet. Skälet är att index.html inte kan få en egen API-route: Vercel Hobby tar tolv serverless-funktioner och api/ har exakt tolv.",
+  "exempel": [
+    {
+      "id": "fotosyntes",
+      "amne": "Biologi",
+      "etikett": "Biologi",
+      "material": "Fotosyntesen är den process där gröna växter omvandlar ljusenergi till kemiskt bunden energi. Klorofyllet i bladens kloroplaster fångar upp ljuset. Växten tar in koldioxid genom klyvöppningarna och vatten via rötterna, och bygger om dem till druvsocker. Syre bildas som restprodukt och avges till luften.",
+      "fraga": "Förklara varför fotosyntesen är en förutsättning för djurlivet på jorden. Utgå från vad som tas in och vad som bildas.",
+      "niva": "C",
+      "maxpoang": 4,
+      "modellsvar": "Fotosyntesen tar in koldioxid och vatten och omvandlar dem med hjälp av ljusenergi till druvsocker och syre. Djur kan inte bygga sin egen näring utan är beroende av växternas socker, direkt eller genom de djur de äter. Djur behöver dessutom syre för sin cellandning, och det syret kommer från fotosyntesen. Utan fotosyntesen skulle alltså både näringen och syret i atmosfären saknas.",
+      "nyckelbegrepp": [
+        {
+          "term": "koldioxid tas in",
+          "synonymer": [
+            "koldioxid",
+            "co2"
+          ]
+        },
+        {
+          "term": "socker bildas som näring",
+          "synonymer": [
+            "socker",
+            "druvsocker",
+            "glukos",
+            "näring",
+            "energi"
+          ]
+        },
+        {
+          "term": "syre bildas",
+          "synonymer": [
+            "syre",
+            "o2"
+          ]
+        },
+        {
+          "term": "djur behöver syret och näringen",
+          "synonymer": [
+            "djur",
+            "andas",
+            "cellandning",
+            "andning",
+            "äter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "andravarldskriget",
+      "amne": "Historia",
+      "etikett": "Historia",
+      "material": "Versaillesfreden 1919 ålade Tyskland stora skadestånd och landavträdelser, vilket skapade en utbredd bitterhet. Den ekonomiska krisen på 1930-talet gjorde att många sökte sig till ytterlighetspartier, och Hitler kunde ta makten 1933. Storbritannien och Frankrike förde först en eftergiftspolitik och lät Tyskland växa sig starkt. Först vid angreppet på Polen 1939 förklarade de krig.",
+      "fraga": "Redogör för hur Versaillesfreden och 1930-talets ekonomiska kris bidrog till andra världskrigets utbrott.",
+      "niva": "C",
+      "maxpoang": 4,
+      "modellsvar": "Versaillesfreden 1919 tvingade Tyskland till stora skadestånd och landavträdelser, vilket skapade bitterhet och en känsla av orättvisa. När den ekonomiska krisen slog till på 1930-talet drabbades Tyskland hårt, och missnöjet gjorde att många sökte sig till ytterlighetspartier. Det gjorde det möjligt för Hitler att ta makten 1933. Att Storbritannien och Frankrike därefter förde en eftergiftspolitik lät Tyskland växa sig starkt utan motstånd, ända fram till angreppet på Polen 1939.",
+      "nyckelbegrepp": [
+        {
+          "term": "Versaillesfredens villkor skapade bitterhet",
+          "synonymer": [
+            "versailles",
+            "skadestånd",
+            "bitterhet",
+            "orättvis",
+            "förnedring"
+          ]
+        },
+        {
+          "term": "den ekonomiska krisen på 1930-talet",
+          "synonymer": [
+            "ekonomisk kris",
+            "krisen",
+            "arbetslöshet",
+            "depression",
+            "1930"
+          ]
+        },
+        {
+          "term": "stödet för ytterlighetspartier och Hitlers maktövertagande",
+          "synonymer": [
+            "hitler",
+            "nazist",
+            "ytterlighet",
+            "extrem",
+            "makten"
+          ]
+        },
+        {
+          "term": "eftergiftspolitiken",
+          "synonymer": [
+            "eftergift",
+            "eftergiftspolitik",
+            "lät tyskland",
+            "ingrep inte",
+            "annektera"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "andragradsekvationer",
+      "amne": "Matematik",
+      "etikett": "Matematik",
+      "material": "En andragradsekvation skrivs ax² + bx + c = 0 där a inte är noll. Uttrycket b² − 4ac kallas diskriminant. Är den positiv finns två reella lösningar, är den noll finns exakt en, och är den negativ finns ingen reell lösning. Grafiskt är lösningarna de punkter där parabeln skär x-axeln.",
+      "fraga": "Ekvationen x² + 4x + 7 = 0 ska lösas. Beräkna diskriminanten, ange antalet reella lösningar och förklara vad det betyder för parabelns graf.",
+      "niva": "C",
+      "maxpoang": 4,
+      "modellsvar": "Med a = 1, b = 4 och c = 7 blir diskriminanten D = b² − 4ac = 16 − 28 = −12. Eftersom diskriminanten är negativ saknar ekvationen reella lösningar. Grafiskt betyder det att parabeln y = x² + 4x + 7 aldrig skär x-axeln — den ligger helt ovanför den, eftersom a är positiv.",
+      "nyckelbegrepp": [
+        {
+          "term": "diskriminanten b² − 4ac används",
+          "synonymer": [
+            "diskriminant",
+            "b^2",
+            "b²",
+            "4ac",
+            "16 - 28",
+            "16-28"
+          ]
+        },
+        {
+          "term": "värdet −12",
+          "synonymer": [
+            "-12",
+            "−12",
+            "minus 12",
+            "negativ"
+          ]
+        },
+        {
+          "term": "inga reella lösningar",
+          "synonymer": [
+            "inga reella",
+            "ingen reell",
+            "saknar lösning",
+            "noll lösningar",
+            "inga lösningar"
+          ]
+        },
+        {
+          "term": "parabeln skär inte x-axeln",
+          "synonymer": [
+            "skär inte",
+            "korsar inte",
+            "x-axeln",
+            "ovanför"
+          ]
+        }
+      ]
+    }
+  ]
+}
