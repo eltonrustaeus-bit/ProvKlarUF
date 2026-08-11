@@ -86,19 +86,38 @@ Before reading any source file, query the graphify graph:
 - explain.js accepterar nu `pageContext` + `helpLevel` (0=ledtråd, 1=förklara, 2=steg-för-steg, 3=full lösning)
 
 ## API Routes (security-sensitive — review carefully)
+Alla 12 rutter (filer i `api/` utan `_`-prefix) står här. Det är också exakt
+Vercel Hobby-planens tak — en ny rutt kräver att en annan viks in i en befintlig,
+vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
+
 | File | Purpose |
 |------|---------|
-| `api/_auth.js` | Auth middleware shared by all routes |
-| `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/smart-tips/teacher-report) |
+| `api/_auth.js` | Auth middleware shared by all routes (hjälpare, ingen rutt) |
+| `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
-| `api/explain.js` | P.E.R chat + körkortsförklaring — quota enforced (ESM) |
-| `api/smart-tips.js` | P.E.R tips för felbank — auth required (ESM) |
-| `api/check-role.js` | Returns user role — never trust client-side role |
+| `api/explain.js` | P.E.R chat + körkortsförklaring + felbankstips — quota enforced (ESM) |
+| `api/check-role.js` | Returns user role — never trust client-side role. Bär även delete-exams och Stripe-portalen |
 | `api/signup.js` | Creates user row — validate all inputs |
-| `api/admin.js` | Admin-only — verify role server-side |
+| `api/admin.js` | Admin-only — verify role server-side. `body.action`-dispatch (list-users, set-role, approve, …) |
 | `api/ocr.js` | File upload — sanitize paths |
 | `api/teacher-report.js` | P.E.R lärarrapport — auth required (ESM) |
+| `api/create-checkout-session.js` | **Betalning.** Skapar Stripe-session — auth krävs, plan får aldrig tas från klienten okontrollerat (ESM) |
+| `api/stripe-webhook.js` | **Betalning.** Ingen `_auth` — verifieras med Stripes signatur (`constructEvent`), inte med JWT. Måste vara idempotent (ESM) |
+| `api/hp.js` | Högskoleprovet, `body.op`-dispatch (generate/diagnose/realprov) — facit hålls tillbaka före inlämning (ESM) |
+| `api/knowledge.js` | Knowledge & Learning Engine, `body.op`-dispatch — återanvänder `_auth.js` (ESM) |
+
+<!-- api/smart-tips.js stod i tabellen tills 2026-08-11 men togs bort ur repot
+     redan i 8ec11c4, då den veks in i explain.js för att komma under Vercels
+     12-funktionstak. Raden levde vidare i flera månader och lästes som sanning.
+     Samtidigt saknades fyra rutter helt — create-checkout-session,
+     stripe-webhook, hp och knowledge — trots att rubriken säger
+     "security-sensitive" och två av dem hanterar betalningar.
+
+     Lägg till en rad samma commit som filen skapas, och ta bort raden samma
+     commit som filen försvinner. -->
+
+
 
 Any change to `api/` triggers security review checklist:
 - [ ] Input validated before use
