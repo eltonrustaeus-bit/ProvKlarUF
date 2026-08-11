@@ -1,8 +1,4 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
+import { ROOT, serve, mockApis, report } from "./_harness.mjs";
 // Kontraktstester för P.E.R:s sidmanifest (shared.js).
 //
 // Bakgrunden: js/exam-flow.js skickade { focus: … } medan getPageContext()
@@ -13,37 +9,25 @@ import path from "node:path";
 //
 // Användning:  node tests/frontend/per-manifest.test.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
+const srv = await serve(ROOT, { indexFile: "pricing.html" });
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/pricing.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(4610, r));
-
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("per-manifest");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } });
 const page = await ctx.newPage();
 const warns = [];
 page.on("console", m => { if (m.type() === "warning") warns.push(m.text()); });
-await page.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
-// js/site-gate.js (tillagd 2026-08-07) frågar /api/check-role innan sidan
-// visas och redirectar till /snart.html om allow inte är true. Registreras
-// efter den generiska /api/**-mocken ovan — Playwright matchar sist
-// registrerad rutt först, så den här vinner för just check-role.
-await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-await page.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-await page.goto("http://localhost:4610/pricing.html", { waitUntil: "networkidle" });
+// Mockarna kommer från _harness.mjs, inklusive site-gate-fällan: den generella
+// **/api/** måste registreras FÖRE check-role eftersom Playwrights sist
+// registrerade rutt vinner.
+await mockApis(page);
+// Ingen seed. Den här filen mäter manifestlagret på en ANONYM besökare —
+// PER.describe ska fungera utan session, och en seedad session hade lagt till
+// userScore och historik som T5 och T12 uttryckligen kontrollerar frånvaron av.
+await page.goto(`${srv.url}/pricing.html`, { waitUntil: "networkidle" });
 
 // ── T1: describe finns på den publika ytan ────────────────────────────────
 ok("T1 PER.describe finns", await page.evaluate(() => typeof window.PER?.describe === "function"));
@@ -216,9 +200,6 @@ ok("T14b knappen ger besked i stället för en tyst no-op", t14.disabled === tru
 
 await ctx.close();
 await browser.close();
-server.close();
+await srv.close();
 
-console.log(pass.map(p => "  ok  " + p).join("\n"));
-if (fail.length) { console.log(fail.map(f => "  FAIL " + f).join("\n")); }
-console.log(`\n${pass.length} ok, ${fail.length} fail`);
-process.exit(fail.length ? 1 : 0);
+process.exit(R.finish());

@@ -1,8 +1,4 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
+import { ROOT, serve, openPage, report } from "./_harness.mjs";
 // Beteendekontrakt för toppmenyn — Del D.
 //
 // Till skillnad från de andra beteendetesterna i katalogen är det här skrivet
@@ -31,23 +27,11 @@ import path from "node:path";
 //
 // Användning:  node tests/frontend/header-behaviour.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
-const PORT = 4621;
+const srv = await serve(ROOT);
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/index.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(PORT, r));
-
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("header-behaviour");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 // korkortet.html och provia-hp.html utelämnas: modulerna är avstängda i
 // js/exgen-modules.js och sidorna omdirigerar till startsidan.
@@ -64,30 +48,16 @@ const browser = await chromium.launch();
 let crash = null;
 try {
 
-async function open(url, width) {
-  const ctx = await browser.newContext({ viewport: { width, height: 800 }, reducedMotion: "reduce" });
-  const p = await ctx.newPage();
-  await p.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
-  // Efter den generella — sist registrerad vinner.
-  await p.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } }));
-  await p.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-  await p.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-  await p.addInitScript(() => {
-    sessionStorage.setItem("pi_splash_shown", "1");
-    localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-    localStorage.setItem("proviaai_role", "premium");
-    // Hela sessionsformen, inte en delmängd. Utan refresh_token/expires_in
-    // godtar shared.js inte sessionen och öppnar #pvModal — ett fast överlägg
-    // på z-index 13000 som täcker headern. Riggen rapporterade då "hamburgaren
-    // går inte att klicka" på app.html och förbättring.html, vilket såg ut som
-    // en produktbugg och var riggens eget fel. Samma fälla som Del B mätte upp.
-    const exp = Math.floor(Date.now() / 1000) + 7200;
-    localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
+// Servern, mockarna, sessionen och splash-förbikopplingen kommer från
+// _harness.mjs. Sessionen måste vara komplett: en delmängd utan refresh_token
+// får shared.js att öppna #pvModal över hela sidan, och riggen rapporterade då
+// att hamburgaren inte gick att klicka.
+const open = (url, width) =>
+  openPage(browser, `${srv.url}/${encodeURI(url)}`, {
+    width, height: 800, reducedMotion: "reduce",
+    waitUntil: "domcontentloaded", settle: 900,
   });
-  await p.goto(`http://localhost:${PORT}/${encodeURI(url)}`, { waitUntil: "domcontentloaded" });
-  await p.waitForTimeout(900);
-  return { ctx, page: p };
-}
+
 
 // Fäller ut hamburgaren om den finns och syns. Frågar aldrig efter en klass
 // på själva panelen — bara efter knappen inuti .mWrap/.menuWrap, som är den
@@ -205,10 +175,5 @@ for (const url of PAGES) {
 } catch (e) { crash = e; }
 
 await browser.close();
-server.close();
-if (crash) console.log("  FAIL  riggen kastade — " + String(crash.stack || crash.message).split("\n").slice(0, 3).join(" / "));
-
-console.log(pass.map(p => "  ok  " + p).join("\n"));
-if (fail.length) console.log(fail.map(f => "  FAIL " + f).join("\n"));
-console.log(`\n${pass.length} ok, ${fail.length} fail`);
-process.exit(fail.length || crash ? 1 : 0);
+await srv.close();
+process.exit(R.finish(crash));

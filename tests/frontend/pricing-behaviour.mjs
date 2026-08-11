@@ -1,8 +1,4 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
-import fs from "node:fs";
-import path from "node:path";
+import { ROOT, serve, openPage, report } from "./_harness.mjs";
 // Beteendekontrakt för pricing.html.
 //
 // Skrivet FÖRE ombyggnaden i Del C steg 2 och kört mot den oförändrade sidan.
@@ -34,23 +30,11 @@ import path from "node:path";
 //
 // Användning:  node tests/frontend/pricing-behaviour.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
-const PORT = 4619;
+const srv = await serve(ROOT, { indexFile: "pricing.html" });
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/pricing.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(PORT, r));
-
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("pricing-behaviour");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const browser = await chromium.launch();
 let crash = null;
@@ -66,34 +50,23 @@ const weekStart = new Date(new Date(now).setHours(0, 0, 0, 0)).getTime() - wd * 
 // framtiden — annars beror testet på vilken veckodag det körs.
 const inWeek = n => Array.from({ length: n }, (_, i) => ({ ts: weekStart + 3600e3 + i * 60e3, course: "Biologi 1", pct: 70 }));
 
-/* seed: { role, history, profileRole, session, width } */
-async function mk(seed = {}) {
-  const ctx = await browser.newContext({ viewport: { width: seed.width || 1280, height: 900 }, reducedMotion: "reduce" });
-  const page = await ctx.newPage();
-  await page.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
-  // Efter den generella — sist registrerad vinner, se fälla 1.
-  await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: seed.role || "gratis", approved: true } }));
-  await page.route("**/auth/v1/**", r => r.fulfill({ json: { id: "u1", email: "t@t.se" } }));
-  await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-  // EFTER den generella. Sist registrerad vinner.
-  await page.route("**/rest/v1/profiles**", r => r.fulfill({ json: seed.profileRole ? [{ id: "u1", role: seed.profileRole }] : [] }));
-
-  await page.addInitScript(s => {
-    sessionStorage.setItem("pi_splash_shown", "1");
-    localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-    if (s.role) localStorage.setItem("proviaai_role", s.role); else localStorage.removeItem("proviaai_role");
-    localStorage.setItem("proviaai_history", JSON.stringify(s.history || []));
-    if (s.session) {
-      const exp = Math.floor(Date.now() / 1000) + 7200;
-      localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "u1@t.se" } }));
-    } else {
-      localStorage.removeItem("sb-mnmotdluigzeehdjbhbu-auth-token");
-    }
-  }, seed);
-
-  await page.goto(`http://localhost:${PORT}/pricing.html`, { waitUntil: "networkidle" });
-  await page.waitForTimeout(900);
-  return { ctx, page };
+/* seed: { role, history, profileRole, session, width }
+   Servern, mockarna, sessionen och splash-förbikopplingen kommer från
+   _harness.mjs; det som står kvar här är sidans egna data. */
+async function mk(s = {}) {
+  return openPage(browser, `${srv.url}/pricing.html`, {
+    width: s.width || 1280, height: 900, reducedMotion: "reduce", settle: 900,
+    mocks: {
+      role: s.role || "gratis",
+      // Registreras efter den generella **/rest/v1/**, annars äts den upp.
+      profiles: s.profileRole ? [{ id: "u1", role: s.profileRole }] : null,
+    },
+    state: {
+      signedIn: !!s.session,
+      role: s.role || null,
+      storage: { proviaai_history: s.history || [] },
+    },
+  });
 }
 
 const PLANS = [
@@ -423,10 +396,5 @@ for (const width of [360, 390, 430]) {
 } catch (e) { crash = e; }
 
 await browser.close();
-server.close();
-if (crash) console.log("  FAIL  riggen kastade — " + String(crash.stack || crash.message).split("\n").slice(0, 3).join(" / "));
-
-console.log(pass.map(p => "  ok  " + p).join("\n"));
-if (fail.length) console.log(fail.map(f => "  FAIL " + f).join("\n"));
-console.log(`\n${pass.length} ok, ${fail.length} fail`);
-process.exit(fail.length || crash ? 1 : 0);
+await srv.close();
+process.exit(R.finish(crash));
