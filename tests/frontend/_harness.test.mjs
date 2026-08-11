@@ -15,6 +15,8 @@
  */
 
 import fs from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ROOT, AUTH_KEY, serve, rectsOverlap, sessionValue, report } from "./_harness.mjs";
 
 const R = report("_harness");
@@ -113,6 +115,36 @@ okf("H8 DOMRect-formen (left/top/right/bottom) förstås",
     css.headers.get("content-type") || "");
 
   await a.close(); await b.close();
+}
+
+/* ── Spärren mot att driften börjar om ─────────────────────────────────── */
+//
+// Riggen löser ingenting varaktigt om nästa fil bygger sin egen kopia igen.
+// Det hände redan en gång: index-behaviour.mjs skrevs parallellt med riggen,
+// kunde inte känna till den, och kom in med sin egen server på fast port 4623
+// och sin egen sessionsseed. Två kopior inom samma vecka.
+//
+// Kontrollen nedan läser katalogen och letar efter de tre mönster som var
+// upphovet till alla tre lögnerna. Den är avsiktligt formulerad som "finns
+// någon annanstans än i riggen", inte som en stilregel — en fil som verkligen
+// behöver något eget får skriva det, men då syns det här och någon får ta
+// ställning i stället för att det glider in tyst.
+{
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const egna = { server: [], token: [], geometri: [] };
+  for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith(".mjs") || f === "_harness.mjs" || f === "_harness.test.mjs") continue;
+    const src = fs.readFileSync(join(dir, f), "utf8");
+    // Kommentarer räknas inte — flera filer FÖRKLARAR varför de inte längre
+    // gör det här, och en förklaring ska inte utlösa kontrollen.
+    const kod = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    if (/http\.createServer/.test(kod)) egna.server.push(f);
+    if (/sb-mnmotdluigzeehdjbhbu-auth-token/.test(kod)) egna.token.push(f);
+    if (/function\s+rectsOverlap|const\s+rectsOverlap\s*=/.test(kod)) egna.geometri.push(f);
+  }
+  okf("H20 ingen fil bygger en egen statisk server", egna.server.length === 0, egna.server.join(", "));
+  okf("H21 ingen fil seedar sessionsnyckeln själv", egna.token.length === 0, egna.token.join(", "));
+  okf("H22 ingen fil har en egen rectsOverlap", egna.geometri.length === 0, egna.geometri.join(", "));
 }
 
 /* ── Roten ──────────────────────────────────────────────────────────────── */

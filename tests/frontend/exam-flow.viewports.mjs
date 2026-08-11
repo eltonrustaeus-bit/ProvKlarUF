@@ -67,12 +67,10 @@ function add(sev, ctx, what, where, fix) { findings.push({ sev, ctx, what, where
 
 const browser = await chromium.launch();
 
-const SESSION = () => {
-  const exp = Math.floor(Date.now() / 1000) + 7200;
-  localStorage.setItem("sb-mnmotdluigzeehdjbhbu-auth-token", JSON.stringify({ access_token: "a.b.c", refresh_token: "r", expires_in: 7200, expires_at: exp, token_type: "bearer", user: { id: "u1", email: "t@t.se" } }));
-  localStorage.setItem("proviaai_role", "premium");
-  localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-};
+// SESSION() bodde här och blev död kod när seed() från _harness.mjs tog över.
+// Den låg kvar med sessionsnyckeln som literal — precis den sortens kvarleva
+// som en dag skrivs av till en ny fil och saknar ett fält. H21 i
+// _harness.test.mjs letar efter den nu.
 
 async function newPage(opts, exam) {
   const ctx = await browser.newContext(opts);
