@@ -1,8 +1,6 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { ROOT, serve, mockApis, seed, report } from "./_harness.mjs";
 // Beteendekontrakt för index.html.
 //
 // Skrivet FÖRE ombyggnaden och kört mot den oförändrade sidan. Samma skäl som i
@@ -32,25 +30,20 @@ import path from "node:path";
 //      IntersectionObserver (shared.js:initScrollReveal) bär avslöjandet, inte
 //      GSAP. Mätt: med cdnjs nere syns alla 15 .rev-block ändå.
 //
+// Fälla 1 och 2 hanteras numera av _harness.mjs, tillsammans med servern och
+// startläget i localStorage. Filen skrevs parallellt med riggen och kunde inte
+// känna till den; den byggde därför sin egen server på fast port 4623 — samma
+// kopiering som riggen finns för att ta bort. Kvar här står bara det som är
+// unikt för startsidan: de två avbrutna tredjepartsvärdarna och det anonyma
+// startläget.
+//
 // Användning:  node tests/frontend/index-behaviour.mjs
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
-const PORT = 4623;
+const srv = await serve(ROOT);
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".json": "application/json; charset=utf-8", ".webp": "image/webp" };
-const server = http.createServer((req, res) => {
-  let p = decodeURIComponent(req.url.split("?")[0]);
-  if (p === "/") p = "/index.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end("nf"); return; }
-  res.writeHead(200, { "Content-Type": MIME[path.extname(f)] || "application/octet-stream" });
-  res.end(fs.readFileSync(f));
-});
-await new Promise(r => server.listen(PORT, r));
-
-const pass = [], fail = [];
-const ok = (n, c, d = "") => (c ? pass : fail).push(n + (d ? " — " + d : ""));
+const R = report("index-behaviour");
+const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const browser = await chromium.launch();
 let crash = null;
@@ -66,24 +59,23 @@ async function mk(opts = {}) {
   const errors = [];
   page.on("pageerror", e => errors.push(String(e.message)));
 
-  await page.route("**/api/**", r => r.fulfill({ json: { ok: true } }));
-  // Efter den generella — sist registrerad vinner, se fälla 1.
-  await page.route("**/api/check-role", r => r.fulfill({ json: { allow: true, ok: true, role: "gratis", approved: true } }));
-  await page.route("**/auth/v1/**", r => r.fulfill({ json: {} }));
-  await page.route("**/rest/v1/**", r => r.fulfill({ json: [] }));
-  // Tredjepartsbilden hämtas från ungdrive.se i markupen; stoppas så att
-  // networkidle inte hänger på ett externt värdnamn.
-  await page.route("**ungdrive.se/**", r => r.abort());
-  if (opts.killCdn) await page.route("**cdnjs.cloudflare.com/**", r => r.abort());
-
-  await page.addInitScript(() => {
-    sessionStorage.setItem("pi_splash_shown", "1");
-    localStorage.setItem("proviaai_cookie_consent", JSON.stringify({ necessary: true }));
-    localStorage.removeItem("sb-mnmotdluigzeehdjbhbu-auth-token");
-    localStorage.removeItem("proviaai_role");
+  await mockApis(page, {
+    role: "gratis",
+    // `extra` registreras sist och vinner därför över baslagret.
+    // Tredjepartsbilden hämtas från ungdrive.se i markupen; stoppas så att
+    // networkidle inte hänger på ett externt värdnamn.
+    extra: [
+      ["**ungdrive.se/**", r => r.abort()],
+      ...(opts.killCdn ? [["**cdnjs.cloudflare.com/**", r => r.abort()]] : []),
+    ],
   });
+  // Startsidan möter en UTLOGGAD besökare. signedIn:false tar bort
+  // sessionsnyckeln i stället för att låta bli att sätta den, och role:null
+  // tar bort rollen — "inte satt" är inte samma sak som "borta" i en kontext
+  // som kan återanvändas.
+  await seed(page, { signedIn: false, role: null });
 
-  await page.goto(`http://localhost:${PORT}/index.html`, { waitUntil: "networkidle" });
+  await page.goto(`${srv.url}/index.html`, { waitUntil: "networkidle" });
   await page.waitForTimeout(700);
   return { ctx, page, errors };
 }
@@ -344,11 +336,7 @@ const textOf = page => page.evaluate(() => (document.body.innerText || "").repla
   crash = e;
 } finally {
   await browser.close();
-  server.close();
+  await srv.close();
 }
 
-for (const p of pass) console.log("  ok   " + p);
-for (const f of fail) console.log("  FEL  " + f);
-console.log(`\n${pass.length} ok, ${fail.length} fel`);
-if (crash) { console.error("\nRIGGEN KRASCHADE:\n", crash); process.exit(2); }
-process.exit(fail.length ? 1 : 0);
+process.exit(R.finish(crash));
