@@ -74,11 +74,14 @@
        avsiktligt korta och ska förbli det; det här är avståndet mellan zonerna
        och hur en select ställer sig under sin etikett. Inga nya färger, inga
        nya tokens — allt hämtas ur exgen-tokens.css. */
-    .xfZone{margin-bottom:var(--exgen-space-12)}
-    .xfZone:last-child{margin-bottom:0}
-    .xfZone > .xf-note{margin:-6px 0 0}
-    /* flex-end, inte center: fälten bär sin etikett ovanför sig, så det är
-       underkanterna som ska ligga i linje med knappen — inte mitten. */
+    /* Tillbakaknappen. Låg och tyst, alltid först på skärmen — det är den
+       enda vägen ut ur en skärm som inte är ingången. */
+    .xf-back{display:inline-flex;align-items:center;gap:6px;margin-bottom:var(--exgen-space-4);
+      background:none;border:0;padding:0;cursor:pointer;
+      font-family:var(--exgen-font-mono);font-size:11px;letter-spacing:var(--exgen-tracking-wide);
+      text-transform:uppercase;color:var(--xf-ink-2);transition:color .18s}
+    .xf-back:hover{color:var(--xf-accent)}
+    .xf-back:focus-visible{outline:var(--exgen-focus-ring);outline-offset:2px}
     .xfFilters{align-items:flex-end;margin:var(--exgen-space-6) 0 var(--exgen-space-4)}
     .xfField{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1 1 140px}
     .xfField > .xf-eyebrow{margin-bottom:0}
@@ -108,63 +111,12 @@
     .xfReportWrap{position:relative}
     /* Zonen P.E.R just skickade eleven till. Säger "här" en gång och bleknar —
        samma mönster och samma accent som .planCard--flash på prissidan. */
-    .xfZone--flash,.xf-act--stick.xfZone--flash{box-shadow:0 0 0 2px var(--xf-accent);border-radius:var(--exgen-radius-lg);transition:box-shadow .3s ease}
-    @media(prefers-reduced-motion:reduce){.xfZone--flash{transition:none}}
     @media(max-width:520px){.xfFilters{align-items:stretch}.xfSync{width:100%}}
     @media(max-width:600px){main.wrap{padding-bottom:48px}}
-
-    /* ── HERO ── */
-    .hero{padding-bottom:36px;border-bottom:1px solid var(--l);margin-bottom:28px}
-    .heroEye{
-      display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;
-      font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--a2);
-      letter-spacing:.08em;text-transform:uppercase;
-    }
-    .heroEye::before{content:'';width:18px;height:1px;background:var(--a2);display:block}
-    .heroTitle{
-      font-size:clamp(32px,5.5vw,58px);font-weight:700;letter-spacing:-.04em;
-      line-height:1.07;color:var(--t);margin-bottom:14px;
-    }
-    .heroTitle em{font-style:normal;color:var(--a)}
-    .heroSub{font-size:clamp(15px,1.6vw,17px);color:var(--t2);max-width:460px;line-height:1.7;margin-bottom:22px}
-    .heroMeta{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-    .heroStatusWrap{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--t3)}
-    .sDot{width:6px;height:6px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .28s ease}
-    .sDot.ok{background:var(--ok);box-shadow:0 0 7px var(--ok)}
-    .sDot.warn{background:var(--warn)} .sDot.bad{background:var(--danger)}
-
-    /* ── HOW-TO ── */
-    .howTo{
-      display:flex;align-items:flex-start;gap:10px;padding:12px 14px;
-      border-left:2px solid var(--a);background:var(--a-dim);
-      border-radius:0 var(--exgen-radius-lg) var(--exgen-radius-lg) 0;
-      margin-bottom:28px;font-size:13px;color:var(--t2);line-height:1.5;
-    }
-    .howTo strong{color:var(--t);font-weight:600}
 
     /* P.E.R:s röst kommer från exgen-ui.css (.xf-per/.xf-orb/.xf-say/.xf-sub).
        Sidan hade en egen kopia här tills det delade lagret bröts ut. */
 
-    /* ── SECTIONS ── */
-    .section{
-      border:1px solid var(--l);border-radius:var(--exgen-radius-lg);background:var(--s);
-      margin-bottom:8px;overflow:hidden;
-      transition:border-color .18s ease,background .28s ease;
-    }
-    .fLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase}
-    select{
-      padding:6px 28px 6px 10px;border-radius:var(--exgen-radius-md);border:1px solid var(--l);
-      background:var(--s);color:var(--t2);font-family:var(--font);font-size:12.5px;font-weight:500;
-      cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b8f7c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat:no-repeat;background-position:right 8px center;
-      transition:border-color .15s ease,color .28s ease,background .28s ease;
-    }
-    select:focus{border-color:var(--a-border2)}
-    select:hover{border-color:var(--l2)}
-    .dLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
-    .dValue{font-size:13px;font-weight:500;color:var(--t);line-height:1.45}
-    @media(max-width:560px){}
     .coachText{font-size:13px;color:var(--t2);line-height:1.72;white-space:pre-wrap}
 
     /* ── CHART ── */
@@ -239,44 +191,29 @@
     .emptyTitle{font-size:14px;font-weight:600;color:var(--t);letter-spacing:-.01em}
     .emptyDesc{font-size:12.5px;color:var(--t3);max-width:280px;line-height:1.6}
 
-    /* ── REVEAL ── */
-    .reveal{opacity:0;transform:translateY(14px);transition:opacity .32s cubic-bezier(.22,.61,.36,1),transform .32s cubic-bezier(.22,.61,.36,1)}
-    .reveal.in{opacity:1;transform:none}
-
     /* ── FOOTER ── */
     footer{border-top:1px solid var(--l);padding:22px clamp(16px,4vw,36px);text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--t3);letter-spacing:.03em;transition:border-color .28s ease,color .28s ease}
 
     /* ── RESPONSIVE ── */
     @media(max-width:620px){
-      .heroTitle{font-size:24px}
       .mistakeGrid,.dataGrid{grid-template-columns:1fr}
     }
     @media(prefers-reduced-motion:reduce){
       *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
-      .reveal{opacity:1;transform:none}
-    }
-    /* CUSTOM CURSOR */
-    @media(pointer:fine){
-      *{cursor:none!important}
-      #cursorDot{position:fixed;top:0;left:0;z-index:99999;width:6px;height:6px;border-radius:50%;background:var(--a);pointer-events:none;opacity:0;transition:transform .08s ease,opacity .15s;will-change:transform}
-      #cursorRing{position:fixed;top:0;left:0;z-index:99998;width:28px;height:28px;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}
-      #cursorRing>div{width:100%;height:100%;border-radius:50%;border:1.5px solid rgba(0,183,217,.5);transition:transform .18s cubic-bezier(.22,.61,.36,1),opacity .2s ease}
-      #cursorRing.rHov>div{transform:scale(1.57);opacity:.3}
-      #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
     }
   </style>
   <!-- Sidlokal post i menyarket. "Rensa all data" är en handling på den
        här sidan, inte en destination, så den hamnar under avdelaren. -->
   <script>window.XG_MENU_EXTRA = [
-    /* Språkväxlaren står kvar tills uppgift 4 river hela i18n-lagret. Den
-       här omgången flyttar bara huvudet och ska inte ändra vad sidan gör.
-       Etiketten uppdateras inte längre av applyLang (#langLabel/#langPill
-       bodde i det handskrivna huvudet) — en kosmetisk brist i en knapp som
-       försvinner om en uppgift. */
-    { label: "English",         id: "langBtn",  pill: "SV" },
-    { label: "Rensa all data",  id: "resetBtn", pill: "!" }
+    { label: "Rensa all data", id: "resetBtn", pill: "!" }
   ];</script>
   <script src="js/exgen-shell.js" defer></script>
+  <!-- INTE defer. Modulen definierar bara window.XfScreens och rör ingen
+       DOM vid laddning, medan sidans egna skript ligger sist i <body> och
+       körs UNDER parsningen — alltså före varje defer-skript. Med defer
+       blev det ReferenceError: XfScreens is not defined, och sidan byggde
+       noll skärmar utan att något annat gick sönder. -->
+  <script src="js/xf-screens.js"></script>
   <script src="shared.js" defer></script>
   <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
   
@@ -284,8 +221,6 @@
 
 <body>
 <a href="#main-content" class="skip-link">Hoppa till innehåll</a>
-<div id="cursorDot" aria-hidden="true"></div>
-<div id="cursorRing" aria-hidden="true"><div></div></div>
 
 <!-- Den inbyggda inloggningsrutan är borttagen: shared.js-dialogen är
      enda inloggnings-UI:t nu, och den enda med lösenordsåterställning. -->
@@ -295,160 +230,15 @@
 
   <!-- MAIN -->
   <main class="wrap" id="main-content">
-
-    <!-- Kolumnen. Samma mått som provskaparen: .xf-inner i exam-flow.css och
-         .xf-measure i exgen-ui.css delar token --xf-measure (580px) och är i
-         övrigt identiska så när som på en vertikal automarginal som bara finns
-         för att centrera en wizardskärm. Vi tar .xf-measure och slipper ladda
-         exam-flow.css, som hade dragit med sig .xf-screen{display:none} och en
-         position:fixed-.xf-exam över hela viewporten på en sida utan prov. -->
-    <div class="xf-measure">
-
-    <!-- P.E.R:S RÖST
-         Ersätter den gamla marknadsföringsrubriken ("Din progress på ett
-         ställe"). En verktygssida ska öppna med ett faktum om eleven, inte med
-         en slogan som är likadan för varenda besökare — samma öppning som
-         provskaparen i app.html, samma orb och samma proportioner.
-         Texten sätts av setVoice() från historik och felbank. -->
-    <div class="hero reveal">
-      <div class="xf-per">
-        <div class="xf-orb" aria-hidden="true"></div>
-        <div style="flex:1;min-width:0">
-          <h1 class="xf-say" id="pageTitle">Din utveckling.</h1>
-          <p class="xf-sub" id="pageSub">Bygger på prov du rättat i appen.</p>
-        </div>
-      </div>
-      <div class="heroMeta">
-        <div class="heroStatusWrap">
-          <div class="sDot" id="statusDot"></div>
-          <span id="topStatusText">—</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Kroppen. .xf-body har ingen egen CSS — den är en ren grupperingsdiv
-         också i app.html. Den finns för att strukturen ska vara densamma. -->
-    <div class="xf-body">
-
-    <!-- HOW-TO -->
-    <div class="howTo reveal" id="howToBanner">
-      <div id="howToText"><strong>Så här:</strong> Synka dina prov → markera i felbanken → träna exakt det du missat.</div>
-    </div>
-
-    <!-- Ikonraden som låg här (01-05) öppnade exakt samma fem sektioner som
-         listan nedan. Två navigeringar för samma sak, staplade på varandra.
-         Sektionsrubrikerna är kvar och gör hela jobbet. -->
-
-    <!-- SECTION 01 – PROV -->
-    <!-- ZON 1 — PROV. Vägen in. Dess egen undertext säger "klicka för att se
-         felbank", så den matar zon 2; den är inte ett eget mål i sig. -->
-    <section class="xfZone reveal" id="zonProv">
-      <div class="xf-eyebrow" id="examListTitle">Prov</div>
-      <p class="xf-note" id="examListSub">Filtrera per kurs · klicka för att se felbank</p>
-
-      <div class="xf-act xfFilters">
-        <label class="xfField">
-          <span class="xf-eyebrow" id="courseFilterLabel">Kurs</span>
-          <select class="xf-input" id="courseFilter" aria-labelledby="courseFilterLabel"></select>
-        </label>
-        <label class="xfField">
-          <span class="xf-eyebrow" id="showModeLabel">Visa</span>
-          <select class="xf-input" id="showMode" aria-labelledby="showModeLabel">
-            <option value="mistakes" selected>Felbank</option>
-            <option value="all">Alla prov</option>
-          </select>
-        </label>
-        <button class="xf-btn ghost xfSync" id="syncBtn" type="button">↻ <span id="syncBtnLabel">Synka</span></button>
-      </div>
-
-      <div class="statusText" id="examListStatus" aria-live="polite"></div>
-      <div class="xf-opts" id="examList"></div>
-    </section>
-
-    <!-- SECTION 02 – COACH -->
-    <!-- ZON 3 — COACH. En avläsning, inte en yta man arbetar i. -->
-    <section class="xfZone reveal" id="zonCoach">
-      <div class="xf-eyebrow" id="coachTitle">Coach</div>
-      <p class="xf-note" id="coachSub">AI-analys baserad på din historik och felbank</p>
-
-      <div class="xf-card">
-        <div class="xf-eyebrow" id="coachHeader">P.E.R · Rekommendation</div>
-        <div class="coachText" id="coachText">—</div>
-        <div class="xf-act xfCoachAct">
-          <button class="xf-btn ghost" id="perCoachBtn" type="button" style="display:none">Hämta P.E.R-analys</button>
-        </div>
-      </div>
-
-      <!-- Tre nyckeltal som etikett/värde. .xf-row är en dt/dd-rad och är
-           precis vad det här är — inte en generisk flexrad. -->
-      <dl class="xf-card xfStats">
-        <div class="xf-row"><dt id="lastTitle">Senaste</dt><dd id="lastText">—</dd></div>
-        <div class="xf-row"><dt id="trendTitle">Trend</dt><dd id="trendText">—</dd></div>
-        <div class="xf-row"><dt id="focusTitle">Fokus</dt><dd id="focusText">—</dd></div>
-      </dl>
-
-      <div class="xf-card chartWrap" id="chartWrap" style="display:none">
-        <div class="xf-eyebrow" id="chartTitle">Resultatutveckling</div>
-        <canvas id="progressChart"></canvas>
-      </div>
-    </section>
-
-    <!-- ZON 3 — LÄRARRAPPORT. Också en avläsning, men med en knapp. -->
-    <section class="xfZone reveal" id="zonRapport">
-      <div class="xf-eyebrow" id="reportTitle">Lärarrapport</div>
-      <p class="xf-note" id="reportSub">Kräver minst 3 genomförda prov</p>
-
-      <div class="statusText" id="reportStatus" aria-live="polite"></div>
-      <div class="xf-act xfReportAct">
-        <button class="xf-btn" id="genReportBtn" type="button">Skapa rapport</button>
-        <button class="xf-btn ghost" id="copyReportBtn" type="button" disabled>Kopiera</button>
-        <span class="xf-chip" id="reportPill" style="display:none">—</span>
-      </div>
-
-      <div class="xfReportWrap">
-        <!-- Laddningsöverlägget behålls som det är. Det är redan återhållsamt
-             och har ingen motsvarighet i vokabulären att tvinga in sig i. -->
-        <div class="loadOv" id="reportLoadingOverlay">
-          <div class="spinner"></div>
-          <div class="loadSteps">
-            <div class="loadStep" id="loadStep1">Analyserar historik…</div>
-            <div class="loadStep" id="loadStep2">Identifierar mönster…</div>
-            <div class="loadStep" id="loadStep3">Skriver rapport…</div>
-          </div>
-        </div>
-        <div class="xf-card reportBox" id="reportBox">—</div>
-      </div>
-    </section>
-
-    <!-- ZON 2 — FELBANK. Kärnan. Åtgärdsraden bodde tidigare i en egen
-         hopfälld sektion OVANFÖR den här, med två knappar och "0 valda" men
-         utan någonting att markera i synfältet. Den hade ingen egen data —
-         den opererar på LS_TRAIN_PICK, som fylls här nere. Nu sitter den
-         ovanpå listan den handlar om. -->
-    <section class="xfZone reveal" id="zonFelbank">
-      <div class="xf-eyebrow" id="mistakesTitle">Felbank</div>
-      <p class="xf-note" id="mistakesSub">Frågor du tappat poäng på · med modellsvar</p>
-
-      <div class="xf-act xf-act--stick xfTrainBar" id="trainActions">
-        <span class="xf-chip" id="selCountPill">0 valda</span>
-        <button class="xf-btn ghost xfTrainClear" id="clearSelectionBtn" type="button">Rensa val</button>
-        <button class="xf-btn" id="trainSelectedBtn" type="button">Träna markerade</button>
-      </div>
-
-      <div class="statusText" id="mistakeStatus" aria-live="polite"></div>
-      <div id="mistakeList"></div>
-    </section>
-
-    </div><!-- /.xf-body -->
-    </div><!-- /.xf-measure -->
+    <!-- Skärmarna byggs av skärmväxlaren. Sidan var fyra zoner uppe
+         samtidigt, i en ordning som motsade sina egna kommentarer. -->
+    <div id="xf"></div>
   </main>
 
   <footer class="xg-footer" id="footerText">ExGen är studiestöd och ger ingen officiell betygssättning.</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script>
     /* ── STORAGE KEYS ── */
     const LS_HISTORY='proviaai_history',LS_MISTAKES='proviaai_mistakes',LS_LAST='proviaai_last_result',
@@ -501,114 +291,6 @@
     function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');}
     const $=id=>document.getElementById(id);
 
-    /* ── I18N ── */
-    let LANG=localStorage.getItem('proviaai_lang')||'sv';
-    const T={
-      sv:{
-        tag:'Studieplattform för skolan',toApp:'Till appen',reset:'Rensa',sync:'Synka',
-        sub:'Bygger på prov du rättat i appen. Synka, analysera och träna det som faktiskt behöver förbättras.',
-        howTo:'<strong>Så här:</strong> Synka dina prov → markera i felbanken → träna exakt det du missat.',
-        noData:'Ingen provdata hittades. Gör ett prov i appen och tryck Rätta prov.',
-        coachTitle:'Coach',coachSub:'AI-analys baserad på din historik och felbank',coachHeader:'Rekommendation',
-        lastTitle:'Senaste',trendTitle:'Trend',focusTitle:'Fokus',
-        trainSelected:'Träna markerade',clearSel:'Rensa val',
-        mistakesTitle:'Felbank',mistakesSub:'Frågor du tappat poäng på · med modellsvar',
-        mistakesEmpty:'Felbanken är tom!',mistakesEmptyDesc:'Inga tappade poäng just nu. Fortsätt träna.',
-        footer:'ExGen är studiestöd och ger ingen officiell betygssättning.',english:'English',
-        examListTitle:'Prov',examListSub:'Filtrera per kurs · klicka för att se felbank',
-        course:'Kurs',show:'Visa',allCourses:'Alla kurser',selected:'valda',doneBtn:'Klar ✓',pick:'Välj',
-        showingAll:(n,c)=>`${n} misstag${c?' · '+c:''}`,showingExams:(n,c)=>`${n} prov${c?' · '+c:''}`,
-        removedOne:'Borttagen från felbanken.',open:'Öppna',close:'Stäng',
-        concepts:'Begrepp',allConcepts:'Alla begrepp',noConcept:'Otaggade',
-        errLabels:{
-          definition_missing:'Definition saknas',concept_confusion:'Begreppsförväxling',
-          calculation_error:'Räknefel',units_missing:'Enhet saknas',
-          method_missing:'Metod saknas',reasoning_gap:'Resonemangsglapp',
-          missing_steps:'Steg saknas',structure_weak:'Svag struktur',
-          example_missing:'Exempel saknas',language_unclear:'Otydligt språk',
-          off_topic:'Utanför ämnet',insufficient_material:'För tunt material',
-          mc_wrong:'Fel alternativ',answer_key_unverified:'Facit ej verifierat',
-        },
-        smartTips:'P.E.R-tips',smartTipsLoading:'P.E.R analyserar…',smartTipsError:'Kunde inte hämta tips — försök igen.',smartTipsCached:'cache',
-        reportNav:'Rapport',reportTitle:'Lärarrapport',reportSub:'Kräver minst 3 genomförda prov',
-        reportNeed3:n=>`Minst 3 prov krävs. Du har ${n}.`,reportReady:n=>`Redo – ${n} prov`,
-        reportGenerating:'Skapar rapport…',reportError:'Kunde inte skapa rapport.',
-        reportCreate:'Skapa rapport',reportCopy:'Kopiera',reportCopied:'Kopierad ✓',reportBasedOn:n=>`${n} prov`,
-        chartTitle:'Resultatutveckling',
-        syncingLabel:'Synkar…',syncDone:'Synkat',
-      },
-      en:{
-        tag:'A study platform for school',toApp:'Go to app',reset:'Clear',sync:'Sync',
-        sub:'Built from exams you graded in the app. Sync, analyze and train what actually needs work.',
-        howTo:'<strong>How to:</strong> Sync your exams → mark in the library → train exactly what you missed.',
-        noData:'No exam data found. Create an exam in the app and click Grade.',
-        coachTitle:'Coach',coachSub:'AI analysis based on your history and mistake library',coachHeader:'Recommendation',
-        lastTitle:'Latest',trendTitle:'Trend',focusTitle:'Focus',
-        trainSelected:'Train selected',clearSel:'Clear',
-        mistakesTitle:'Mistakes',mistakesSub:'Questions where you lost points · with model answers',
-        mistakesEmpty:'Library is empty!',mistakesEmptyDesc:'No lost points right now. Keep training.',
-        footer:'ExGen is study support and does not provide official grades.',english:'Svenska',
-        examListTitle:'Exams',examListSub:'Filter by course · click to see mistakes',
-        course:'Course',show:'Show',allCourses:'All courses',selected:'selected',doneBtn:'Done ✓',pick:'Pick',
-        showingAll:(n,c)=>`${n} mistakes${c?' · '+c:''}`,showingExams:(n,c)=>`${n} exams${c?' · '+c:''}`,
-        removedOne:'Removed from library.',open:'Open',close:'Close',
-        concepts:'Concepts',allConcepts:'All concepts',noConcept:'Untagged',
-        errLabels:{
-          definition_missing:'Definition missing',concept_confusion:'Concept confusion',
-          calculation_error:'Calculation error',units_missing:'Units missing',
-          method_missing:'Method missing',reasoning_gap:'Reasoning gap',
-          missing_steps:'Missing steps',structure_weak:'Weak structure',
-          example_missing:'Example missing',language_unclear:'Unclear language',
-          off_topic:'Off topic',insufficient_material:'Insufficient material',
-          mc_wrong:'Wrong option',answer_key_unverified:'Answer key unverified',
-        },
-        smartTips:'P.E.R tips',smartTipsLoading:'P.E.R analysing…',smartTipsError:'Could not fetch tips — try again.',smartTipsCached:'cache',
-        reportNav:'Report',reportTitle:'Teacher report',reportSub:'Requires at least 3 completed exams',
-        reportNeed3:n=>`At least 3 exams required. You have ${n}.`,reportReady:n=>`Ready – ${n} exams`,
-        reportGenerating:'Generating…',reportError:'Could not generate report.',
-        reportCreate:'Generate report',reportCopy:'Copy',reportCopied:'Copied ✓',reportBasedOn:n=>`${n} exams`,
-        chartTitle:'Progress over time',
-        syncingLabel:'Syncing…',syncDone:'Synced',
-      }
-    };
-
-    /* ── ATT HOPPA TILL EN ZON ──
-       Ersätter dragspelen. Inget är hopfällt längre, så det finns inget att
-       öppna — bara att ta sig till, och att säga "här" en gång när man kommit
-       fram. Samma mönster som .planCard--flash på prissidan (Del A): en ring i
-       befintlig accent som bleknar av sig själv, ingen ny färg och inget
-       permanent tillstånd. */
-    function goZone(sel,focusSel){
-      const zone=document.querySelector(sel);if(!zone)return;
-      const mark=(focusSel&&document.querySelector(focusSel))||zone;
-      zone.scrollIntoView({behavior:'smooth',block:'start'});
-      mark.classList.add('xfZone--flash');
-      setTimeout(()=>mark.classList.remove('xfZone--flash'),1600);
-    }
-
-    /* Mål P.E.R kan skicka eleven till inuti sidan. Deklareras separat från
-       datainläsningen nedan: zonerna finns i markupen från början och ska
-       gå att hoppa till även för en elev som inte hunnit göra ett prov än. */
-    const PER_TARGETS=[
-      { id:'prov',    label:'Prov',          hint:'alla rättade prov',                         go:function(){goZone('#zonProv');} },
-      { id:'coach',   label:'Coach',         hint:'personlig studieplan från misstagen',       go:function(){goZone('#zonCoach');} },
-      { id:'rapport', label:'Lärarrapport',  hint:'sammanfattning att visa läraren',           go:function(){goZone('#zonRapport');} },
-      /* Landar i felbanken med åtgärdsraden markerad. Det är den ändring som
-         gör målet sant: eleven kommer dit markeringen görs, inte till två
-         knappar utan sammanhang. */
-      { id:'trana',   label:'Träna misstag', hint:'nytt prov på det du tappat poäng på',       go:function(){goZone('#zonFelbank','#trainActions');} },
-      { id:'felbank', label:'Felbank',       hint:'frågor du tappat poäng på, med modellsvar', go:function(){goZone('#zonFelbank');} }
-    ];    document.addEventListener('DOMContentLoaded',function(){
-      if(window.setPerContext) window.setPerContext({page:'förbättring',targets:PER_TARGETS});
-    });
-
-    /* ── STATUS ── */
-    function setTopStatus(text,cls){
-      const dot=$('statusDot'),span=$('topStatusText');
-      if(span)span.textContent=text;
-      if(dot){dot.className='sDot';if(cls)dot.classList.add(cls);}
-    }
-
     /* ── LOGIN OVERLAY ── */
     function showLoginOverlay(){
       // shared.js is deferred, so wait briefly for it. If it never arrives the
@@ -656,25 +338,43 @@
         return(role==='premium'||role==='admin')?{ok:true,role}:{ok:false,reason:'no_access',role};
       }catch(e){return{ok:false,reason:'api_error',detail:String(e)};}
     }
+    /* Åtkomstfel skrivs i P.E.R:s röst på ingången i stället för i en egen
+       statusrad. Raden visade dessutom eleven sin egen roll ("Åtkomst OK
+       (premium)") — en felsökningsutskrift. Att allt gick bra behöver ingen
+       text; då säger ingången redan vad som gäller. */
+    function sayGate(text){
+      flow.say('hem','Kommer inte åt din utveckling.',text);
+    }
     async function gatePage(){
       const a=await mustHaveAccess();
-      if(a.ok){enablePage();hideLoginOverlay();setTopStatus(LANG==='sv'?`Åtkomst OK (${a.role})`:`Access OK (${a.role})`,'ok');return true;}
+      if(a.ok){enablePage();hideLoginOverlay();return true;}
       disablePage();
       if(a.reason==='not_logged_in'){
         showLoginOverlay();
-        setTopStatus(LANG==='sv'?'Logga in för att fortsätta':'Log in to continue','warn');
+        sayGate('Logga in för att fortsätta.');
       }
-      else if(a.reason==='no_access')setTopStatus(LANG==='sv'?`Ingen åtkomst – uppgradera till Premium`:`No access – upgrade to Premium`,'warn');
-      else if(a.reason==='no_db')setTopStatus('Supabase client missing','bad');
-      else setTopStatus(LANG==='sv'?`Fel: ${a.detail||'okänt'}`:`Error: ${a.detail||'unknown'}`,'bad');
+      else if(a.reason==='no_access')sayGate('Din plan ger inte åtkomst än — uppgradera till Premium.');
+      else if(a.reason==='no_db')sayGate('Ingen kontakt med databasen just nu.');
+      else sayGate(`Något gick fel: ${a.detail||'okänt fel'}.`);
       return false;
     }
 
     /* ── COACH LOGIC ── */
     function avgPct(arr){const a=(arr||[]).map(x=>Number(x.percent)||0).filter(n=>Number.isFinite(n));if(!a.length)return 0;return Math.round(a.reduce((s,n)=>s+n,0)/a.length);}
     function computeTrend(h){if(h.length<2)return null;const l=h.slice(-3),p=h.slice(-6,-3),avg=a=>a.reduce((s,x)=>s+(Number(x.percent)||0),0)/Math.max(1,a.length),a1=avg(l);if(!p.length)return{delta:a1-(Number(h[0].percent)||0)};return{delta:a1-avg(p)};}
-    function countMistakeDays(m,d){const since=Date.now()-(d*86400000);return(m||[]).filter(x=>Number(x.ts||0)>=since).length;}
     function mostMistakeCourse(m){const map=new Map();(m||[]).forEach(x=>{const c=String(x.course||'').trim();if(c)map.set(c,(map.get(c)||0)+1);});let best={course:'',n:0};for(const[c,n]of map.entries())if(n>best.n)best={course:c,n};return best;}
+
+    /* Etiketter för grade.js:s error_tags. Bodde i i18n-tabellen tills den
+       revs — sidan är svensk. */
+    const ERR_LABELS={
+      definition_missing:'Definition saknas', concept_confusion:'Begreppsförväxling',
+      calculation_error:'Räknefel',           units_missing:'Enhet saknas',
+      method_missing:'Metod saknas',          reasoning_gap:'Resonemangsglapp',
+      missing_steps:'Steg saknas',            structure_weak:'Svag struktur',
+      example_missing:'Exempel saknas',       language_unclear:'Otydligt språk',
+      off_topic:'Utanför ämnet',              insufficient_material:'För tunt material',
+      mc_wrong:'Fel alternativ',              answer_key_unverified:'Facit ej verifierat',
+    };
 
     /* ── CONCEPT TAGS (level 2 under course) ──
        grade.js tags every mistake with concept_tag + error_tags. The sentinels
@@ -689,7 +389,7 @@
       return Array.isArray(m?.error_tags)?m.error_tags.map(x=>String(x||'').trim()).filter(Boolean):[];
     }
     function errLabel(tag){
-      const map=T[LANG]?.errLabels||{};
+      const map=ERR_LABELS;
       return map[tag]||String(tag).replaceAll('_',' ');
     }
     /* Counts concepts within an already course-filtered list, most frequent first. */
@@ -698,49 +398,6 @@
       (list||[]).forEach(m=>{const c=conceptOf(m);if(c)map.set(c,(map.get(c)||0)+1);});
       return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
     }
-    function deriveMethods(m){
-      const f=(m||[]).slice(-30).map(x=>(String(x.feedback||'')+' '+String(x.question||'')).toLowerCase());
-      const methods=[];const add=(sv,en)=>methods.push({sv,en});
-      if(f.some(s=>s.includes('steg')||s.includes('metod')||s.includes('visa')))add('Skriv full metod: varje steg på egen rad.','Show full method: each step on its own line.');
-      if(f.some(s=>s.includes('enhet')||s.includes('units')))add('Skriv alltid enhet där det behövs.','Always include units where needed.');
-      if(f.some(s=>s.includes('motiver')||s.includes('förklara')||s.includes('reason')))add('Motivera med 1–2 meningar.','Add 1–2 sentences: why you take that step.');
-      if(f.some(s=>s.includes('slutsvar')||s.includes('final')))add("Markera slutsvar tydligt ('Svar: ...').",'Clearly mark final answer.');
-      if(!methods.length)add('Checklista: metod → mellanresultat → slutsvar.','Checklist: method → intermediate results → final answer.');
-      return methods.slice(0,4);
-    }
-    function deriveTips(m){
-      const tips=[];const add=(sv,en)=>tips.push({sv,en});
-      add('Återskapa lösningen utan att titta på facit, sen jämför.','Recreate the solution without looking, then compare.');
-      add('Träna 3 liknande uppgifter i rad (samma typ).','Do 3 similar problems in a row (same type).');
-      add("Skriv en 'miniregel' efter varje misstag (1 mening).",'Write your own mini-rule after each mistake (1 sentence).');
-      if((m||[]).some(x=>(x.points||0)===0))add('Börja med enklare nivå och bygg upp.','Start at an easier level and build up.');
-      return tips.slice(0,4);
-    }
-    function buildCoachText(h,m,last){
-      const t=T[LANG];if(!h.length)return t.noData;
-      const name=USER_NAME||getNameLocal();
-      const hello=name?(LANG==='sv'?`Hej ${name}!`:`Hi ${name}!`):(LANG==='sv'?'Hej!':'Hi!');
-      const lastP=Number(last?.percent||h[h.length-1]?.percent||0);
-      const last5=avgPct(h.slice(-5)),m30=countMistakeDays(m,30);
-      const trend=computeTrend(h),tD=trend?Math.round(trend.delta):null;
-      const mostC=mostMistakeCourse(m),methods=deriveMethods(m),tips=deriveTips(m);
-      const sv=LANG==='sv',p=[];
-      p.push(hello);
-      p.push(sv?`Data: ${h.length} prov · Snitt (5): ${last5}% · Misstag (30d): ${m30}`:`Data: ${h.length} exams · Avg (5): ${last5}% · Mistakes (30d): ${m30}`);
-      if(Number.isFinite(tD))p.push(sv?`Trend: ${tD>=0?'+':''}${tD} p.p.`:`Trend: ${tD>=0?'+':''}${tD} p.p.`);
-      p.push('');p.push(sv?'Prioritet:':'Priority:');
-      if(mostC.course)p.push(sv?`• ${mostC.course} (${mostC.n} misstag)`:`• ${mostC.course} (${mostC.n} mistakes)`);
-      else p.push(sv?'• Välj 3 misstag och träna dem.':'• Pick 3 mistakes and train them.');
-      p.push('');p.push(sv?'Metoder:':'Methods:');
-      methods.forEach(x=>p.push('• '+(sv?x.sv:x.en)));
-      p.push('');p.push(sv?'Tips & tricks:':'Tips & tricks:');
-      tips.forEach(x=>p.push('• '+(sv?x.sv:x.en)));
-      p.push('');p.push(sv?'Nästa pass (15–25 min):':'Next session (15–25 min):');
-      sv?(p.push('• Markera 5 misstag i felbanken.'),p.push('• Träna markerade misstag.'),p.push('• Skriv om 2 modellsvar med egna ord.')):(p.push('• Select 5 mistakes.'),p.push('• Train selected mistakes.'),p.push('• Rewrite 2 model answers in your own words.'));
-      p.push('');p.push(sv?`Senaste prov: ${lastP}%.`:`Latest exam: ${lastP}%.`);
-      return p.join('\n');
-    }
-
     /* Second-level filter inside the selected course. Deliberately not persisted:
        it is a drill-down on the current view, and a stale concept from a course
        the student has since left would silently hide their whole mistake list. */
@@ -756,45 +413,13 @@
       return normName(meta.full_name||meta.name||meta.username||'');
     }
 
-    /* ── APPLY LANG ── */
-    function applyLang(){
-      const t=T[LANG];
-      if($('tagLine'))$('tagLine').textContent=t.tag;
-      const _ta=$('toAppBtn');if(_ta){const _s=_ta.querySelector('span:first-child');if(_s)_s.textContent=t.toApp;else _ta.textContent=t.toApp;}
-      const _rb=$('resetBtn');if(_rb){const _s=_rb.querySelector('span:first-child');if(_s)_s.textContent=t.reset;else _rb.textContent=t.reset;}
-      const h=$('howToText');if(h)h.innerHTML=t.howTo;
-      $('coachTitle').textContent=t.coachTitle;$('coachSub').textContent=t.coachSub;$('coachHeader').textContent=t.coachHeader;
-      $('lastTitle').textContent=t.lastTitle;$('trendTitle').textContent=t.trendTitle;$('focusTitle').textContent=t.focusTitle;
-      $('reportTitle').textContent=t.reportTitle;$('reportSub').textContent=t.reportSub;
-      $('genReportBtn').textContent=t.reportCreate;$('copyReportBtn').textContent=t.reportCopy;
-      $('trainSelectedBtn').textContent=t.trainSelected;$('clearSelectionBtn').textContent=t.clearSel;
-      $('mistakesTitle').textContent=t.mistakesTitle;$('mistakesSub').textContent=t.mistakesSub;
-      $('footerText').textContent=t.footer;
-      /* #langLabel och #langPill bodde i det handskrivna huvudet. Hela
-         i18n-lagret rivs i uppgift 4; tills dess får raden inte kasta —
-         gjorde den det avbröts applyLang(), och därmed renderAll(), så
-         varken historik eller felbank ritades alls. */
-      if($('langLabel'))$('langLabel').textContent=t.english;
-      if($('langPill'))$('langPill').textContent=LANG.toUpperCase();
-      $('examListTitle').textContent=t.examListTitle;$('examListSub').textContent=t.examListSub;
-      $('courseFilterLabel').textContent=t.course;$('showModeLabel').textContent=t.show;$('syncBtnLabel').textContent=t.sync;
-      if($('chartTitle'))$('chartTitle').textContent=t.chartTitle;
-    }
-    /* Språkväxlaren rivs i uppgift 4 tillsammans med hela i18n-lagret.
-       Knappen renderas av js/exgen-shell.js (defer) och finns inte när det
-       här skriptet körs under parsningen — därför DOMContentLoaded. Ett ?.
-       hade gjort knappen tyst död i stället för att kasta. */
-    document.addEventListener('DOMContentLoaded',()=>{
-      $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
-    });
-
     /* ── PICK / SELECTION ── */
     function mKey(m){return`${Number(m.ts||0)}:${m.course||''}:${m.id||''}:${m.question||''}`;}
     function getPick(){return lsObj(LS_TRAIN_PICK)||{ids:[],course:''};}
     function setPick(p){lsSet(LS_TRAIN_PICK,p);updateSelPill();}
     function togglePickId(id){const p=getPick(),ids=Array.isArray(p.ids)?p.ids.map(x=>String(x)):[],sid=String(id),set=new Set(ids);if(set.has(sid))set.delete(sid);else set.add(sid);p.ids=Array.from(set);p.course=String($('courseFilter')?.value||'');setPick(p);}
     function clearPick(){setPick({ids:[],course:String($('courseFilter')?.value||'')});}
-    function updateSelPill(){const p=getPick();const n=Array.isArray(p.ids)?p.ids.length:0;$('selCountPill').textContent=`${n} ${T[LANG].selected}`;}
+    function updateSelPill(){const p=getPick();const n=Array.isArray(p.ids)?p.ids.length:0;$('selCountPill').textContent=`${n} valda`;}
     function removeMistake(m){const all=lsArr(LS_MISTAKES),k=mKey(m);lsSet(LS_MISTAKES,all.filter(x=>mKey(x)!==k));const p=getPick(),ids=(Array.isArray(p.ids)?p.ids:[]).map(String),sid=String(m.id);if(ids.includes(sid)){p.ids=ids.filter(x=>x!==sid);setPick(p);}}
 
     /* ── PER COACH ── */
@@ -830,33 +455,12 @@
           topic:'studiecoach',
           context,
           weakAreas,
-          userQuestion:LANG==='sv'
-            ?'Analysera min provhistorik och ge mig en personlig rekommendation för att förbättra mina resultat.'
-            :'Analyse my exam history and give me a personal recommendation to improve my results.'
+          userQuestion:'Analysera min provhistorik och ge mig en personlig rekommendation för att förbättra mina resultat.'
         })
       });
       const data=await r.json();
       if(!r.ok)throw new Error(data?.error||'failed');
       return data?.answer||null;
-    }
-
-    function renderCoachSection(h,m,last){
-      const t=T[LANG],btn=$('perCoachBtn');
-      if(!h.length){
-        $('coachText').textContent=t.noData;
-        if(btn)btn.style.display='none';
-        return;
-      }
-      const cache=getCoachCache();
-      if(isCoachCacheFresh(cache)){
-        $('coachText').textContent=cache.text;
-        if(btn)btn.style.display='none';
-        return;
-      }
-      $('coachText').textContent=LANG==='sv'
-        ?'P.E.R är redo att analysera din progress. Klicka för att hämta personlig coaching.'
-        :'P.E.R is ready to analyse your progress. Click to get personal coaching.';
-      if(btn)btn.style.display='inline-flex';
     }
 
     /* ── SMART TIPS ── */
@@ -917,7 +521,7 @@
 
     /* ── RENDER MISTAKES ── */
     function renderMistakes(mistakes,courseFilter){
-      const t=T[LANG],list=$('mistakeList'),st=$('mistakeStatus');
+      const list=$('mistakeList'),st=$('mistakeStatus');
       list.innerHTML='';
       const course=(courseFilter||'').trim();
       const inCourse=course?mistakes.filter(m=>String(m.course||'').trim()===course):mistakes;
@@ -930,7 +534,7 @@
       if(!inCourse.length){
         st.textContent='';st.className='statusText';
         const es=document.createElement('div');es.className='emptyState';
-        es.innerHTML=`<div class="emptyIcon">🎉</div><div class="emptyTitle">${t.mistakesEmpty}</div><div class="emptyDesc">${t.mistakesEmptyDesc}</div>`;
+        es.innerHTML=`<div class="emptyIcon">🎉</div><div class="emptyTitle">Felbanken är tom!</div><div class="emptyDesc">Inga tappade poäng just nu. Fortsätt träna.</div>`;
         list.appendChild(es);return;
       }
 
@@ -948,10 +552,10 @@
 
       if(counts.length){
         const bar=document.createElement('div');bar.className='conceptBar';
-        const chips=[['',t.allConcepts,inCourse.length]]
+        const chips=[['','Alla begrepp',inCourse.length]]
           .concat(counts.map(c=>[c[0],c[0],c[1]]));
-        if(untagged)chips.push(['__none__',t.noConcept,untagged]);
-        bar.innerHTML=`<span class="conceptBarLabel">${esc(t.concepts)}</span>`+chips.map(c=>
+        if(untagged)chips.push(['__none__','Otaggade',untagged]);
+        bar.innerHTML=`<span class="conceptBarLabel">${'Begrepp'}</span>`+chips.map(c=>
           `<button type="button" class="conceptChip${CONCEPT_FILTER===c[0]?' active':''}" data-concept="${esc(c[0])}" aria-pressed="${CONCEPT_FILTER===c[0]?'true':'false'}">${esc(c[1])}<span class="conceptChipN">${c[2]}</span></button>`
         ).join('');
         bar.querySelectorAll('.conceptChip').forEach(btn=>{
@@ -960,9 +564,9 @@
         list.appendChild(bar);
       }
 
-      const shownConcept=CONCEPT_FILTER==='__none__'?t.noConcept:CONCEPT_FILTER;
+      const shownConcept=CONCEPT_FILTER==='__none__'?'Otaggade':CONCEPT_FILTER;
       const scope=[course,shownConcept].filter(Boolean).join(' › ');
-      st.textContent=t.showingAll(filtered.length,scope);st.className='statusText';
+      st.textContent=`${filtered.length} misstag${scope?' · '+scope:''}`;st.className='statusText';
       const pick=getPick(),pickSet=new Set((Array.isArray(pick.ids)?pick.ids:[]).map(x=>String(x)));
       const tc=getTipsCache();
       const grid=document.createElement('div');grid.className='mistakeGrid';
@@ -983,20 +587,20 @@
           <button type="button" class="xf-opt xfMissRow${isPicked?' sel':''}" data-id="${esc(m.id)}"
                   aria-pressed="${isPicked?'true':'false'}">
             ${esc(m.question||'')}
-            <small>${date} · ${esc((m.course||'').trim()||(LANG==='sv'?'ingen kurs':'no course'))} · ${m.points}/${m.max_points}p</small>
+            <small>${date} · ${esc((m.course||'').trim()||'ingen kurs')} · ${m.points}/${m.max_points}p</small>
           </button>
           ${tagsHtml}
           <div class="xfMissMore">
-            <button type="button" class="xfDisclose" aria-expanded="false">${LANG==='sv'?'Visa svar':'Show answer'}</button>
-            <button class="xfDisclose doneBtn" type="button">${t.doneBtn}</button>
-            <button class="xfDisclose tipsBtnEl" type="button">${t.smartTips}${hasCached?` <span class="xfCached">${t.smartTipsCached}</span>`:''}</button>
+            <button type="button" class="xfDisclose" aria-expanded="false">Visa svar</button>
+            <button class="xfDisclose doneBtn" type="button">Klar ✓</button>
+            <button class="xfDisclose tipsBtnEl" type="button">P.E.R-tips${hasCached?' <span class="xfCached">cache</span>':''}</button>
           </div>
           <div class="xf-note xfMissDetail" hidden>
-            <div class="mFL">${LANG==='sv'?'Ditt svar':'Your answer'}</div>
+            <div class="mFL">Ditt svar</div>
             <div class="mFV">${esc(m.user_answer||'—')}</div>
             <div class="mFL">Feedback</div>
             <div class="mFV">${esc(m.feedback||'—')}</div>
-            <div class="mFL">${LANG==='sv'?'Modellsvar':'Model answer'}</div>
+            <div class="mFL">Modellsvar</div>
             <div class="mFV">${esc(m.model_answer||'—')}</div>
           </div>
           <div class="tipsBox tipsBoxEl" style="display:none"></div>`;
@@ -1012,32 +616,22 @@
           const open=det.hasAttribute('hidden');
           if(open)det.removeAttribute('hidden');else det.setAttribute('hidden','');
           disc.setAttribute('aria-expanded',open?'true':'false');
-          disc.textContent=open?(LANG==='sv'?'Dölj svar':'Hide answer'):(LANG==='sv'?'Visa svar':'Show answer');
+          disc.textContent=open?'Dölj svar':'Visa svar';
         });
-        d.querySelector('.doneBtn')?.addEventListener('click',()=>{removeMistake(m);setTopStatus(t.removedOne,'ok');renderAll();});
+        d.querySelector('.doneBtn')?.addEventListener('click',()=>{removeMistake(m);renderAll();});
         const tBtn=d.querySelector('.tipsBtnEl'),tBox=d.querySelector('.tipsBoxEl');
         const isTipsVis=()=>tBox.style.display!=='none';
         tBtn?.addEventListener('click',async()=>{
-          const tt=T[LANG];
           if(isTipsVis()){tBox.style.display='none';tBox.textContent='';return;}
           const cache=getTipsCache(),cached=cache[cKey];
           if(cached){tBox.style.display='block';tBox.textContent=String(cached);return;}
-          tBtn.setAttribute('disabled','disabled');tBox.style.display='block';tBox.textContent=tt.smartTipsLoading;
-          try{const text=await fetchTips(m),norm=String(text||'').trim();if(!norm){tBox.textContent=tt.smartTipsError;}else{const c2=getTipsCache();c2[cKey]=norm;setTipsCache(c2);tBox.textContent=norm;}}
-          catch{tBox.textContent=tt.smartTipsError;}
+          tBtn.setAttribute('disabled','disabled');tBox.style.display='block';tBox.textContent='P.E.R analyserar…';
+          try{const text=await fetchTips(m),norm=String(text||'').trim();if(!norm){tBox.textContent='Kunde inte hämta tips — försök igen.';}else{const c2=getTipsCache();c2[cKey]=norm;setTipsCache(c2);tBox.textContent=norm;}}
+          catch{tBox.textContent='Kunde inte hämta tips — försök igen.';}
           finally{tBtn.removeAttribute('disabled');}
         });
         grid.appendChild(d);
       });
-      if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
-        const cards=list.querySelectorAll(".mCard");
-        cards.forEach(function(c,i){
-          c.style.opacity="0";c.style.transform="translateY(8px)";
-          c.style.transition="opacity .22s ease,transform .22s cubic-bezier(.22,.61,.36,1)";
-          c.style.transitionDelay=(i*45)+"ms";
-          requestAnimationFrame(function(){requestAnimationFrame(function(){c.style.opacity="1";c.style.transform="none";});});
-        });
-      }
     }
 
     /* ── BUILD COURSE OPTIONS ── */
@@ -1048,14 +642,14 @@
        to the picked course and the filter could not be cleared. */
     let COURSE_OPTS_INIT=false;
     function buildCourseOpts(h,m){
-      const t=T[LANG],set=new Set();
+      const set=new Set();
       h.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
       m.forEach(x=>{const c=String(x.course||'').trim();if(c)set.add(c);});
       const arr=Array.from(set).sort((a,b)=>a.localeCompare(b));
       const sel=$('courseFilter');
       const current=String(sel.value||'').trim();
       sel.innerHTML='';
-      const o=document.createElement('option');o.value='';o.textContent=t.allCourses;sel.appendChild(o);
+      const o=document.createElement('option');o.value='';o.textContent='Alla kurser';sel.appendChild(o);
       arr.forEach(c=>{const o2=document.createElement('option');o2.value=c;o2.textContent=c;sel.appendChild(o2);});
       const pick=getPick();
       sel.value=(!COURSE_OPTS_INIT&&pick?.course&&arr.includes(pick.course))?pick.course
@@ -1065,20 +659,31 @@
 
     /* ── RENDER EXAM LIST ── */
     function renderExamList(h,courseFilter){
-      const t=T[LANG],wrap=$('examList'),st=$('examListStatus');
+      const wrap=$('examList'),st=$('examListStatus');
       wrap.innerHTML='';
       const course=(courseFilter||'').trim();
       const filtered=course?h.filter(x=>String(x.course||'').trim()===course):h;
-      if(!filtered.length){st.textContent=LANG==='sv'?'Inga prov matchar filtret.':'No exams match the filter.';st.className='statusText warn';return;}
-      st.textContent=t.showingExams(filtered.length,course);st.className='statusText ok';
+      if(!filtered.length){st.textContent='Inga prov matchar filtret.';st.className='statusText warn';return;}
+      st.textContent=`${filtered.length} prov${course?' · '+course:''}`;st.className='statusText ok';
       filtered.slice(-12).reverse().forEach(x=>{
         // Hela raden är kontrollen. Tidigare låg en liten "Visa felbank"-knapp
         // inuti ett kort — två träffytor för en handling, och den lilla var den
         // som gjorde något.
         const b=document.createElement('button');b.type='button';b.className='xf-opt';
         const date=new Date(x.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
-        b.innerHTML=`${esc(x.course||(LANG==='sv'?'Ingen kurs':'No course'))}<small>${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</small>`;
-        b.addEventListener('click',()=>{$('courseFilter').value=String(x.course||'').trim();CONCEPT_FILTER='';renderAll();goZone('#zonFelbank');});
+        b.innerHTML=`${esc(x.course||'Ingen kurs')}<small>${date} · ${esc(x.level||'—')} · ${Number(x.percent||0)}%</small>`;
+        b.addEventListener('click',()=>{
+          /* Kursväljaren bor i felbank-skärmen, som ritas om av skärmbytet.
+             Värdet måste därför sparas i valet, inte skrivas i en select som
+             är på väg att ersättas — buildCourseOpts läser tillbaka det.
+             COURSE_OPTS_INIT nollas så att just den återläsningen sker. */
+          const p=getPick();
+          p.course=String(x.course||'').trim();
+          setPick(p);
+          COURSE_OPTS_INIT=false;
+          CONCEPT_FILTER='';
+          flow.show('felbank');
+        });
         wrap.appendChild(b);
       });
       if(!window.matchMedia("(prefers-reduced-motion:reduce)").matches){
@@ -1094,121 +699,40 @@
 
     /* ── TEACHER REPORT STATE ── */
     function renderReportState(h){
-      const t=T[LANG],n=Array.isArray(h)?h.length:0;
-      if(n<3){setReportStatus(t.reportNeed3(n),'warn');setGenEnabled(false);setCopyEnabled(false);setReportPill('',false);setReportText('—');return;}
-      setReportStatus(t.reportReady(n),'ok');setGenEnabled(true);
+      const n=Array.isArray(h)?h.length:0;
+      if(n<3){setReportStatus(`Minst 3 prov krävs. Du har ${n}.`,'warn');setGenEnabled(false);setCopyEnabled(false);setReportPill('',false);setReportText('—');return;}
+      setReportStatus(`Redo – ${n} prov`,'ok');setGenEnabled(true);
       const cache=getReportCache(),key=reportCacheKey(),cached=cache[key];
-      if(cached&&typeof cached.text==='string'&&cached.text.trim()){setReportText(cached.text);setCopyEnabled(true);setReportPill(t.reportBasedOn(Number(cached.n||n)),true);}
+      if(cached&&typeof cached.text==='string'&&cached.text.trim()){setReportText(cached.text);setCopyEnabled(true);setReportPill(`${Number(cached.n||n)} prov`,true);}
       else{setReportText('—');setCopyEnabled(false);setReportPill('',false);}
     }
 
     /* ── GENERATE REPORT ── */
     async function generateReport(){
-      const t=T[LANG],h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),n=h.length;
-      if(n<3){setReportStatus(t.reportNeed3(n),'warn');setReportText('—');setCopyEnabled(false);setReportPill('',false);return;}
-      setGenEnabled(false);setCopyEnabled(false);setReportStatus(t.reportGenerating,'');setReportText('');setReportPill('',false);showLoad();
+      const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),n=h.length;
+      if(n<3){setReportStatus(`Minst 3 prov krävs. Du har ${n}.`,'warn');setReportText('—');setCopyEnabled(false);setReportPill('',false);return;}
+      setGenEnabled(false);setCopyEnabled(false);setReportStatus('Skapar rapport…','');setReportText('');setReportPill('',false);showLoad();
       const course=String($('courseFilter')?.value||'').trim();
       const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
       const fM=course?m.filter(x=>String(x.course||'').trim()===course):m;
       const rN=fH.length;
-      if(rN<3){setReportStatus(t.reportNeed3(rN),'warn');setReportText('—');setGenEnabled(true);hideLoad();return;}
+      if(rN<3){setReportStatus(`Minst 3 prov krävs. Du har ${rN}.`,'warn');setReportText('—');setGenEnabled(true);hideLoad();return;}
       try{
         const text=await fetchReport({course:course||'',exams_count:rN,history:fH.slice(-10),mistakes:fM.slice(-50)});
         const norm=String(text||'').trim();
-        if(!norm){setReportStatus(t.reportError,'bad');setReportText('—');setGenEnabled(true);return;}
+        if(!norm){setReportStatus('Kunde inte skapa rapport.','bad');setReportText('—');setGenEnabled(true);return;}
         const cache=getReportCache(),key=reportCacheKey();cache[key]={ts:Date.now(),n:rN,text:norm};setReportCache(cache);
-        setReportStatus(t.reportReady(rN),'ok');setReportText(norm);setCopyEnabled(true);setReportPill(t.reportBasedOn(rN),true);
-      }catch{setReportStatus(t.reportError,'bad');setReportText('—');}
+        setReportStatus(`Redo – ${rN} prov`,'ok');setReportText(norm);setCopyEnabled(true);setReportPill(`${rN} prov`,true);
+      }catch{setReportStatus('Kunde inte skapa rapport.','bad');setReportText('—');}
       finally{hideLoad();setGenEnabled(true);}
     }
     async function copyReport(){
-      const t=T[LANG],text=String($('reportBox')?.textContent||'').trim();
+      const text=String($('reportBox')?.textContent||'').trim();
       if(!text||text==='—')return;
       try{
-        await navigator.clipboard.writeText(text);setReportPill(t.reportCopied,true);
-        setTimeout(()=>{const cache=getReportCache(),key=reportCacheKey(),cached=cache[key],based=cached?.n?Number(cached.n):lsArr(LS_HISTORY).length;if(based>=3)setReportPill(t.reportBasedOn(based),true);else setReportPill('',false);},1400);
+        await navigator.clipboard.writeText(text);setReportPill('Kopierad ✓',true);
+        setTimeout(()=>{const cache=getReportCache(),key=reportCacheKey(),cached=cache[key],based=cached?.n?Number(cached.n):lsArr(LS_HISTORY).length;if(based>=3)setReportPill(`${based} prov`,true);else setReportPill('',false);},1400);
       }catch{}
-    }
-
-    /* P.E.R:s öppningsrad. Säger något bara den kan veta om just den här
-       eleven, i stället för en rubrik som är likadan för alla. Bygger på
-       historik och felbank som redan finns i localStorage — inga nya anrop.
-       Det vanligaste begreppet i felbanken plockas ur frågetexterna på samma
-       sätt som materialläsningen i js/exam-flow.js: ord som återkommer. */
-    function setVoice(h,m){
-      const say=$('pageTitle'),sub=$('pageSub');
-      if(!say||!sub)return;
-      if(!h.length){
-        say.textContent='Här samlas det du missar.';
-        sub.textContent='Rätta ett prov i appen så börjar jag hålla räkningen åt dig.';
-        return;
-      }
-      const recent=h.slice(-5);
-      const avg=Math.round(recent.reduce((a,x)=>a+(Number(x.percent)||0),0)/recent.length);
-      say.textContent=`Du har ${m.length} sparade fel.`;
-      // Vanligaste ämnet i felbanken — det är där repetitionen ger mest.
-      const tally={};
-      m.forEach(x=>{const c=String(x.course||'').trim();if(c)tally[c]=(tally[c]||0)+1;});
-      const top=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];
-      sub.textContent = top && tally[top]>1
-        ? `${tally[top]} av dem i ${top}. Du ligger på ${avg} % över dina senaste prov.`
-        : `Du ligger på ${avg} % över dina senaste ${recent.length} prov.`;
-    }
-
-    /* ── RENDER ALL ── */
-    function renderAll(){
-      const t=T[LANG];applyLang();
-      const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),last=lsObj(LS_LAST);
-      setVoice(h,m);
-      buildCourseOpts(h,m);
-      const course=String($('courseFilter')?.value||'').trim();
-      if(!h.length){
-        setTopStatus(t.noData,'warn');
-        $('coachText').textContent=t.noData;
-        const _btn=$('perCoachBtn');if(_btn)_btn.style.display='none';
-        $('lastText').textContent='—';$('trendText').textContent='—';$('focusText').textContent='—';
-        renderMistakes([],course);renderExamList([],course);renderChart([]);updateSelPill();renderReportState([]);return;
-      }
-      setTopStatus(LANG==='sv'?`${h.length} prov synkade`:`${h.length} exams synced`,'ok');
-      const lastA=(last&&last.attempt)?last.attempt:h[h.length-1],trend=computeTrend(h);
-
-      // Inject P.E.R context so the floating widget understands improvement page state.
-      // weakAreas is sent as "course › concept" so the widget sees the same second
-      // level the student does — course alone is a label the student typed, while
-      // concept_tag is what the grader actually derived from the answer.
-      if (window.setPerContext) {
-        const avg5=avgPct(h.slice(-5));
-        const recent=m.slice(-30);
-        const areaCounts=recent.reduce(function(acc,x){
-          const c=String(x.course||'').trim(),cn=conceptOf(x);
-          const key=[c,cn].filter(Boolean).join(' › ');
-          if(key)acc[key]=(acc[key]||0)+1;
-          return acc;
-        },{});
-        const weakAreas=Object.entries(areaCounts)
-          .sort(function(a,b){return b[1]-a[1];}).slice(0,5).map(function(e){return e[0];});
-        window.setPerContext({
-          page:'förbättring',
-          userScore: avg5 / 100,
-          weakAreas: weakAreas,
-          examState: { answered: h.length, remaining: 0 },
-          targets: PER_TARGETS
-        });
-      }
-
-      renderCoachSection(h,m,lastA);
-      const lastP=Number(lastA?.percent||0),lastC=(lastA?.course||'').trim();
-      $('lastText').textContent=LANG==='sv'?`${lastP}% · ${lastA?.level||'—'} · ${lastC||'Ingen kurs'}`:`${lastP}% · ${lastA?.level||'—'} · ${lastC||'No course'}`;
-      if(trend){const sign=trend.delta>=0?'+':'',delta=Math.round(trend.delta);$('trendText').textContent=`${sign}${delta} ${LANG==='sv'?'p.p.':'p.p.'}`;}else $('trendText').textContent='—';
-      const mc=mostMistakeCourse(m);
-      if(mc.course){
-        // Narrow the focus stat to the top concept inside the worst course.
-        const topC=conceptCounts(m.filter(x=>String(x.course||'').trim()===mc.course))[0];
-        $('focusText').textContent=topC?`${mc.course} › ${topC[0]} (${topC[1]})`:`${mc.course} (${mc.n})`;
-      } else $('focusText').textContent=(LANG==='sv'?'Markera 5 misstag':'Select 5 mistakes');
-      renderExamList(h,course);renderMistakes(m,course);renderChart(h);updateSelPill();
-      const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
-      renderReportState(fH);
     }
 
     /* ── SYNC ── */
@@ -1230,8 +754,8 @@
     }
     async function syncFromAccount(){
       const st=$('examListStatus'),syncBtn=$('syncBtn');
-      if(!db){if(st){st.textContent=LANG==='sv'?'Supabase ej konfigurerad.':'Supabase not configured.';st.className='statusText warn';}return;}
-      if(st){st.textContent=T[LANG].syncingLabel;st.className='statusText';}
+      if(!db){if(st){st.textContent='Supabase ej konfigurerad.';st.className='statusText warn';}return;}
+      if(st){st.textContent='Synkar…';st.className='statusText';}
       if(syncBtn)syncBtn.setAttribute('disabled','disabled');
       const r=await fetchUserExams();
       if(!r.ok){if(st){st.textContent=String(r.error||'Sync error');st.className='statusText bad';}if(syncBtn)syncBtn.removeAttribute('disabled');return;}
@@ -1242,76 +766,351 @@
       if(last2){lsSet(LS_LAST,{ts:Date.parse(last2.created_at)||Date.now(),attempt:h[h.length-1],exam:last2.exam,result:last2.result});if(typeof last2.material==='string')localStorage.setItem(LS_MATERIAL,last2.material);}
       else localStorage.removeItem(LS_LAST);
       lsSet(LS_MISTAKES,mergeMistakes(rows));
-      if(st){st.textContent=T[LANG].syncDone;st.className='statusText ok';}
+      if(st){st.textContent='Synkat';st.className='statusText ok';}
       if(syncBtn)syncBtn.removeAttribute('disabled');
       renderAll();
     }
 
-    /* ── EVENTS ── */
-    $('perCoachBtn')?.addEventListener('click',async()=>{
-      const btn=$('perCoachBtn');
-      if(btn){btn.disabled=true;btn.textContent=LANG==='sv'?'P.E.R analyserar…':'P.E.R analysing…';}
-      const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES);
+
+    /* ── SKÄRMARNA ────────────────────────────────────────────────────────
+       Sidan var fyra zoner uppe samtidigt, i en ordning som motsade sina egna
+       kommentarer: DOM:en gav Prov, Coach, Rapport, Felbank medan
+       kommentarerna numrerade dem 1, 3, 3, 2. Felbanken kallades "kärnan" i
+       sin egen kommentar och låg sist, under en lärarrapport som kräver tre
+       prov. Nu en skärm i taget, med en ingång som säger vad som gäller för
+       just den här eleven innan den erbjuder något. */
+    const flow=XfScreens.create({
+      root:document.getElementById('xf'),
+      screens:['hem','felbank','prov','coach','rapport'],
+      title:'Min utveckling',
+      hash:true
+    });
+
+    function data(){
+      return { h:lsArr(LS_HISTORY), m:lsArr(LS_MISTAKES), last:lsObj(LS_LAST) };
+    }
+
+    /* Varje skärm utom ingången börjar med vägen tillbaka. */
+    function backBtn(body){
+      const b=document.createElement('button');
+      b.type='button'; b.className='xf-back'; b.textContent='← Tillbaka';
+      b.addEventListener('click',()=>flow.show('hem'));
+      body.appendChild(b);
+    }
+
+    /* ── INGÅNGEN ──
+       Vägarna bär sitt eget tillstånd i undertexten. En väg som inte går att
+       ta säger varför — en spärrad knapp utan skäl är en återvändsgränd. */
+    function renderHem(){
+      const {h,m}=data();
+      const recent=h.slice(-5);
+      const avg=recent.length?Math.round(recent.reduce((a,x)=>a+(Number(x.percent)||0),0)/recent.length):0;
+
+      if(!h.length){
+        flow.say('hem','Här samlas det du missar.',
+          'Rätta ett prov i appen så börjar jag hålla räkningen åt dig.');
+      }else{
+        const tally={};
+        m.forEach(x=>{const c=String(x.course||'').trim();if(c)tally[c]=(tally[c]||0)+1;});
+        const top=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];
+        flow.say('hem',`Du har ${m.length} sparade fel.`,
+          (top&&tally[top]>1)
+            ? `${tally[top]} av dem i ${top}. Du ligger på ${avg} % över dina senaste prov.`
+            : `Du ligger på ${avg} % över dina senaste ${recent.length} prov.`);
+      }
+
+      const body=flow.body('hem');
+      const opts=document.createElement('div');
+      opts.className='xf-opts';
+      body.appendChild(opts);
+
+      const mostC=mostMistakeCourse(m);
+      const lastP=h.length?Number(h[h.length-1].percent||0):0;
+      const cache=getCoachCache();
+
+      [
+        { go:'felbank', label:'Träna det du missat',
+          small:m.length?`${m.length} fel${mostC.course?' · flest i '+mostC.course:''}`:'Inga sparade fel just nu',
+          av:!m.length },
+        { go:'prov', label:'Se dina prov',
+          small:h.length?`${h.length} prov · senaste ${lastP} %`:'Inga prov ännu',
+          av:!h.length },
+        { go:'coach', label:'Fråga P.E.R vad du ska göra',
+          small:isCoachCacheFresh(cache)?'analys från senaste dygnet':'ny analys av din historik',
+          av:!h.length },
+        { go:'rapport', label:'Rapport till läraren',
+          small:h.length>=3?`${h.length} prov · redo`:`kräver 3 prov, du har ${h.length}`,
+          av:h.length<3 }
+      ].forEach(v=>{
+        const b=document.createElement('button');
+        b.type='button'; b.className='xf-opt'; b.dataset.go=v.go; b.disabled=!!v.av;
+        b.appendChild(document.createTextNode(v.label));
+        const sm=document.createElement('small'); sm.textContent=v.small; b.appendChild(sm);
+        if(!v.av)b.addEventListener('click',()=>flow.show(v.go));
+        opts.appendChild(b);
+      });
+
+      if(!h.length){
+        const act=document.createElement('div'); act.className='xf-act';
+        const a=document.createElement('a');
+        a.className='xf-btn primary'; a.href='app.html'; a.textContent='Gör ett prov i appen';
+        act.appendChild(a); body.appendChild(act);
+      }
+    }
+
+    /* ── FELBANK ── kärnan, ett klick från ingången. Kursväljaren och
+       begreppschipsen sitter direkt ovanför listan de filtrerar; förut satt
+       väljaren i zon 1 och listan i zon 4. */
+    function renderFelbank(){
+      const d=data();
+      flow.say('felbank','Felbank', d.m.length
+        ? `${d.m.length} frågor du tappat poäng på. Markera dem du vill träna.`
+        : 'Inga sparade fel just nu.');
+
+      const body=flow.body('felbank');
+      backBtn(body);
+
+      const filt=document.createElement('div');
+      filt.className='xf-act xfFilters';
+      filt.innerHTML='<label class="xfField">'+
+        '<span class="xf-eyebrow" id="courseFilterLabel">Kurs</span>'+
+        '<select class="xf-input" id="courseFilter" aria-labelledby="courseFilterLabel"></select>'+
+        '</label>';
+      body.appendChild(filt);
+
+      const bar=document.createElement('div');
+      bar.className='xf-act xf-act--stick xfTrainBar'; bar.id='trainActions';
+      bar.innerHTML='<span class="xf-chip" id="selCountPill">0 valda</span>'+
+        '<button class="xf-btn ghost xfTrainClear" id="clearSelectionBtn" type="button">Rensa val</button>'+
+        '<button class="xf-btn" id="trainSelectedBtn" type="button">Träna markerade</button>';
+      body.appendChild(bar);
+
+      const st=document.createElement('div');
+      st.className='statusText'; st.id='mistakeStatus'; st.setAttribute('aria-live','polite');
+      body.appendChild(st);
+      const list=document.createElement('div'); list.id='mistakeList';
+      body.appendChild(list);
+
+      buildCourseOpts(d.h,d.m);
+      const kurs=()=>String($('courseFilter').value||'').trim();
+      renderMistakes(d.m,kurs());
+      updateSelPill();
+
+      /* Ritar bara om sin EGEN lista. renderAll() hade ritat om fem skärmar
+         och flyttat fokus för att en rad markerades. */
+      const om=()=>{ renderMistakes(lsArr(LS_MISTAKES),kurs()); updateSelPill(); };
+      $('courseFilter').addEventListener('change',()=>{CONCEPT_FILTER='';om();});
+      $('clearSelectionBtn').addEventListener('click',()=>{clearPick();om();});
+      $('trainSelectedBtn').addEventListener('click',()=>{
+        const p=getPick();
+        if(!p.ids||!p.ids.length)lsSet(LS_TRAIN_PICK,{ids:[],course:kurs()});
+        window.location.href='app.html#train';
+      });
+    }
+
+    /* ── PROV ── resultatgrafen flyttar hit från Coach-zonen. Den handlar om
+       prov. */
+    function renderProv(){
+      const d=data();
+      flow.say('prov','Dina prov', d.h.length
+        ? `${d.h.length} rättade prov. Klicka ett för att se vad du tappade poäng på.`
+        : 'Inga prov ännu.');
+
+      const body=flow.body('prov');
+      backBtn(body);
+
+      const act=document.createElement('div');
+      act.className='xf-act';
+      act.innerHTML='<button class="xf-btn ghost" id="syncBtn" type="button">↻ Synka</button>';
+      body.appendChild(act);
+
+      const st=document.createElement('div');
+      st.className='statusText'; st.id='examListStatus'; st.setAttribute('aria-live','polite');
+      body.appendChild(st);
+
+      const chart=document.createElement('div');
+      chart.className='xf-card chartWrap'; chart.id='chartWrap'; chart.style.display='none';
+      chart.innerHTML='<div class="xf-eyebrow">Resultatutveckling</div><canvas id="progressChart"></canvas>';
+      body.appendChild(chart);
+
+      const wrap=document.createElement('div'); wrap.className='xf-opts'; wrap.id='examList';
+      body.appendChild(wrap);
+
+      renderExamList(d.h,'');
+      renderChart(d.h);
+      $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();});
+    }
+
+    /* ── COACH ── analysen hämtas vid inträde. Den satt förut bakom en knapp
+       med texten "Hämta P.E.R-analys" — på en skärm eleven öppnat just för att
+       få den. Dygnscachen behålls: det är samma historik. */
+    function renderCoach(){
+      const {h,m,last}=data();
+      flow.say('coach','P.E.R läser din historik.',
+        'Rekommendationen bygger på dina senaste prov och din felbank.');
+
+      const body=flow.body('coach');
+      backBtn(body);
+
+      const card=document.createElement('div');
+      card.className='xf-card';
+      card.innerHTML='<div class="xf-eyebrow">P.E.R · Rekommendation</div>'+
+        '<div class="coachText" id="coachText"></div>';
+      body.appendChild(card);
+
+      const stats=document.createElement('dl');
+      stats.className='xf-card xfStats';
+      stats.innerHTML=
+        '<div class="xf-row"><dt>Senaste</dt><dd id="lastText">—</dd></div>'+
+        '<div class="xf-row"><dt>Trend</dt><dd id="trendText">—</dd></div>'+
+        '<div class="xf-row"><dt>Fokus</dt><dd id="focusText">—</dd></div>';
+      body.appendChild(stats);
+
+      const lastA=(last&&last.attempt)?last.attempt:h[h.length-1];
+      if(lastA){
+        $('lastText').textContent=`${Number(lastA.percent||0)} % · ${lastA.level||'—'} · `+
+          ((lastA.course||'').trim()||'Ingen kurs');
+      }
+      const tr=computeTrend(h);
+      $('trendText').textContent=tr?`${tr.delta>=0?'+':''}${Math.round(tr.delta)} p.p.`:'—';
+      const mc=mostMistakeCourse(m);
+      if(mc.course){
+        const topC=conceptCounts(m.filter(x=>String(x.course||'').trim()===mc.course))[0];
+        $('focusText').textContent=topC?`${mc.course} › ${topC[0]} (${topC[1]})`:`${mc.course} (${mc.n})`;
+      }else $('focusText').textContent='Markera 5 misstag';
+
+      loadCoach(h,m);
+    }
+
+    async function loadCoach(h,m){
+      const box=$('coachText');
+      if(!box)return;
+      if(!h.length){box.textContent='Ingen provdata än. Gör ett prov i appen och tryck Rätta prov.';return;}
+      const cache=getCoachCache();
+      if(isCoachCacheFresh(cache)){box.textContent=cache.text;return;}
+      box.textContent='P.E.R läser…';
+      flow.busy('coach',true);
       try{
         const text=await fetchPERCoach(h,m);
-        if(text){
-          $('coachText').textContent=text;
-          setCoachCache({ts:Date.now(),text});
-          if(btn)btn.style.display='none';
-        }else{
-          if(btn){btn.disabled=false;btn.textContent='Hämta P.E.R-analys';}
-        }
-      }catch{
-        if(btn){btn.disabled=false;btn.textContent='Hämta P.E.R-analys';}
-      }
-    });
-    $('courseFilter').addEventListener('change',()=>{CONCEPT_FILTER='';renderAll();});
-    $('showMode').addEventListener('change',()=>{goZone($('showMode').value==='all'?'#zonProv':'#zonFelbank');});
-    $('syncBtn').addEventListener('click',async()=>{await syncFromAccount();goZone('#zonProv');});
-    $('trainSelectedBtn').addEventListener('click',()=>{const p=getPick();if(!p.ids?.length)lsSet(LS_TRAIN_PICK,{ids:[],course:String($('courseFilter')?.value||'')});window.location.href='app.html#train';});
-    $('clearSelectionBtn').addEventListener('click',()=>{clearPick();renderAll();});
-    $('genReportBtn').addEventListener('click',async()=>await generateReport());
-    $('copyReportBtn').addEventListener('click',async()=>await copyReport());
-    /* #resetBtn kommer från window.XG_MENU_EXTRA och renderas av
-       js/exgen-shell.js, som är defer. Det här skriptet körs under parsningen,
-       alltså före det — knappen finns inte än. */
-    document.addEventListener('DOMContentLoaded',()=>{
-    $('resetBtn').addEventListener('click',async()=>{
-      $('resetBtn').setAttribute('disabled','disabled');
-      setTopStatus(LANG==='sv'?'Rensar…':'Clearing…','');
-
-      // 1. Radera från Supabase först
-      if(db){
-        try{
-          const r=await deleteAllUserExamsFromAccount();
-          if(!r.ok) console.warn('Supabase delete failed:',r.error);
-        }catch(e){ console.warn('Supabase delete error:',e); }
-      }
-
-      // 2. Rensa localStorage (UTAN att sätta LS_CLEAR_TS)
-      [LS_HISTORY,LS_MISTAKES,LS_LAST,LS_TRAIN_PICK,LS_SMART_TIPS_CACHE,LS_TEACHER_REPORT_CACHE,LS_PER_COACH_CACHE,LS_CLEAR_TS].forEach(k=>localStorage.removeItem(k));
-
-      renderAll();
-      setTopStatus(LANG==='sv'?'Historik rensad (lokalt + konto).':'History cleared (local + account).','ok');
-      $('resetBtn').removeAttribute('disabled');
-    });
-    });
-
-    /* ── BIND TOGGLES ── */
-
-
-    /* ── REVEAL ── */
-    function initReveal(){
-      const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const els=Array.from(document.querySelectorAll('.reveal'));
-      if(reduce){els.forEach(el=>el.classList.add('in'));return;}
-      const io=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:0.07,rootMargin:'0px 0px -3% 0px'});
-      els.forEach((el,i)=>{el.style.transitionDelay=`${Math.min(i*40,160)}ms`;io.observe(el);});
+        if(text){box.textContent=text;setCoachCache({ts:Date.now(),text});}
+        else coachError(box);
+      }catch(_){coachError(box);}
+      finally{flow.busy('coach',false);}
     }
+
+    /* Ett misslyckat anrop säger det och går att göra om, i stället för att
+       lämna ett streck som inte går att skilja från "inte hämtat än". */
+    function coachError(box){
+      box.textContent='Kunde inte hämta analysen just nu.';
+      if($('perCoachRetry'))return;
+      const b=document.createElement('button');
+      b.type='button'; b.id='perCoachRetry'; b.className='xf-btn ghost'; b.textContent='Försök igen';
+      b.addEventListener('click',()=>{b.remove();loadCoach(lsArr(LS_HISTORY),lsArr(LS_MISTAKES));});
+      box.parentNode.appendChild(b);
+    }
+
+    /* ── LÄRARRAPPORT ── */
+    function renderRapport(){
+      const d=data(), n=d.h.length;
+      flow.say('rapport','Rapport till läraren', n>=3
+        ? `En sammanfattning av ${n} prov som du kan kopiera och visa.`
+        : `Kräver minst tre rättade prov. Du har ${n}.`);
+
+      const body=flow.body('rapport');
+      backBtn(body);
+
+      const st=document.createElement('div');
+      st.className='statusText'; st.id='reportStatus'; st.setAttribute('aria-live','polite');
+      body.appendChild(st);
+
+      const act=document.createElement('div');
+      act.className='xf-act xfReportAct';
+      act.innerHTML='<button class="xf-btn" id="genReportBtn" type="button">Skapa rapport</button>'+
+        '<button class="xf-btn ghost" id="copyReportBtn" type="button" disabled>Kopiera</button>'+
+        '<span class="xf-chip" id="reportPill" style="display:none">—</span>';
+      body.appendChild(act);
+
+      const wrap=document.createElement('div');
+      wrap.className='xfReportWrap';
+      wrap.innerHTML=
+        '<div class="loadOv" id="reportLoadingOverlay"><div class="spinner"></div>'+
+        '<div class="loadSteps">'+
+        '<div class="loadStep" id="loadStep1">Analyserar historik…</div>'+
+        '<div class="loadStep" id="loadStep2">Identifierar mönster…</div>'+
+        '<div class="loadStep" id="loadStep3">Skriver rapport…</div></div></div>'+
+        '<div class="xf-card reportBox" id="reportBox">—</div>';
+      body.appendChild(wrap);
+
+      renderReportState(d.h);
+      $('genReportBtn').addEventListener('click',()=>generateReport());
+      $('copyReportBtn').addEventListener('click',()=>copyReport());
+    }
+
+    /* ── P.E.R ──
+       Målen navigerar nu på riktigt. De skrollade tidigare till en zon, och
+       två av de fem pekade på samma zon. */
+    const PER_TARGETS=[
+      { id:'felbank', label:'Felbank',      hint:'frågor du tappat poäng på, med modellsvar', go:function(){flow.show('felbank');} },
+      { id:'prov',    label:'Prov',         hint:'alla rättade prov och resultatgrafen',      go:function(){flow.show('prov');} },
+      { id:'coach',   label:'Coach',        hint:'personlig studieplan från misstagen',       go:function(){flow.show('coach');} },
+      { id:'rapport', label:'Lärarrapport', hint:'sammanfattning att visa läraren',           go:function(){flow.show('rapport');} }
+    ];
+
+    function pushPerContext(){
+      if(!window.setPerContext)return;
+      const {h,m}=data();
+      const areaCounts=m.slice(-30).reduce((acc,x)=>{
+        const c=String(x.course||'').trim(), cn=conceptOf(x);
+        const key=[c,cn].filter(Boolean).join(' › ');
+        if(key)acc[key]=(acc[key]||0)+1;
+        return acc;
+      },{});
+      const weakAreas=Object.keys(areaCounts).sort((a,b)=>areaCounts[b]-areaCounts[a]).slice(0,5);
+      window.setPerContext({
+        page:'förbättring',
+        userScore:avgPct(h.slice(-5))/100,
+        weakAreas,
+        examState:{answered:h.length,remaining:0},
+        targets:PER_TARGETS
+      });
+      /* Exponeras bara för riggen. setPerContext sväljer manifestet och det
+         finns ingen väg tillbaka ut. */
+      window.__perManifestForTest={targets:PER_TARGETS};
+    }
+
+    function renderAll(){
+      renderHem(); renderFelbank(); renderProv(); renderCoach(); renderRapport();
+      pushPerContext();
+    }
+
+    /* Skärmen som just öppnades ska visa aktuell data — annars står coachen
+       kvar på siffror från innan senaste synk. */
+    flow.on(()=>renderAll());
+
+    /* ── RENSA ALL DATA ──
+       Knappen kommer från window.XG_MENU_EXTRA och renderas av
+       js/exgen-shell.js, som är defer — det här skriptet körs under parsningen
+       och hittar den inte än. */
+    document.addEventListener('DOMContentLoaded',()=>{
+      const btn=$('resetBtn');
+      if(!btn)return;
+      btn.addEventListener('click',async()=>{
+        btn.setAttribute('disabled','disabled');
+        if(db){
+          try{
+            const r=await deleteAllUserExamsFromAccount();
+            if(!r.ok)console.warn('Supabase delete failed:',r.error);
+          }catch(e){console.warn('Supabase delete error:',e);}
+        }
+        [LS_HISTORY,LS_MISTAKES,LS_LAST,LS_TRAIN_PICK,LS_SMART_TIPS_CACHE,
+         LS_TEACHER_REPORT_CACHE,LS_PER_COACH_CACHE,LS_CLEAR_TS].forEach(k=>localStorage.removeItem(k));
+        renderAll();
+        btn.removeAttribute('disabled');
+      });
+    });
 
     /* ── INIT ── */
     (async()=>{
-      applyLang();initReveal();
       renderAll();
       const ok=await gatePage();
       if(!ok) return;
@@ -1323,35 +1122,7 @@
       })();
     })();
 
-    /* ── GSAP + CURSOR ── */
-    (function(){
-      const rm=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-      if(!rm&&window.gsap){
-        gsap.registerPlugin(ScrollTrigger);
-        const hero=document.querySelector('.hero');
-        if(hero){
-          hero.classList.add('in');
-          gsap.from('.hero > *',{y:18,opacity:0,duration:.55,ease:'power2.out',stagger:.1,delay:.1});
-        }
-      }
-      const dot=document.getElementById('cursorDot'),ring=document.getElementById('cursorRing');
-      if(!dot||!ring||rm||!window.matchMedia('(pointer:fine)').matches)return;
-      let mx=0,my=0,rx=0,ry=0,vis=false;
-      const lerp=(a,b,t)=>a+(b-a)*t;
-      (function raf(){rx=lerp(rx,mx,.12);ry=lerp(ry,my,.12);ring.style.transform=`translate(${rx-14}px,${ry-14}px)`;requestAnimationFrame(raf);})();
-      document.addEventListener('mousemove',e=>{
-        mx=e.clientX;my=e.clientY;
-        dot.style.transform=`translate(${mx-3}px,${my-3}px)`;
-        if(!vis){vis=true;dot.style.opacity='1';ring.style.opacity='1';}
-      });
-      document.addEventListener('mouseleave',()=>{dot.style.opacity='0';ring.style.opacity='0';vis=false;});
-      document.querySelectorAll('a,button,[role="button"]').forEach(el=>{
-        el.addEventListener('mouseenter',()=>ring.classList.add('rHov'));
-        el.addEventListener('mouseleave',()=>ring.classList.remove('rHov'));
-      });
-      document.addEventListener('mousedown',()=>ring.classList.add('rDown'));
-      document.addEventListener('mouseup',()=>ring.classList.remove('rDown'));
-    })();
+
   </script>
 
 <!-- VISITOR BOTTOM NAV -->

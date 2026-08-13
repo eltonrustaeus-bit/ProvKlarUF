@@ -28,6 +28,12 @@
  * mount() skriver raden i skärmen eleven just lämnade. Här tar varje anrop sitt
  * skärmnamn som argument, så fällan kan inte uppstå.
  *
+ * LADDA INTE MED defer. Filen definierar bara window.XfScreens och rör ingen
+ * DOM vid laddning, men en sida vars egen kod ligger sist i <body> körs UNDER
+ * parsningen — alltså före varje defer-skript. Med defer blev det
+ * "ReferenceError: XfScreens is not defined" på förbättring.html, och sidan
+ * byggde noll skärmar utan att något annat gick sönder.
+ *
  * Kontrakt och motiveringar: tests/frontend/xf-screens.mjs.
  */
 (function (global) {
