@@ -232,6 +232,24 @@ export function buildPERSystemPrompt({
     : helpLevel === 1 ? '- Max 150 ord.'
     : '- Max 80 ord. En mening om det räcker.';
 
+  /* Punkt 1 i ## SVARSMÖNSTER löd tidigare konstant "Svara kärnfrågan direkt —
+     ingen intro", oavsett hjälpnivå. Den beordrade alltså direktsvar samtidigt
+     som ## UNDERVISNING på nivå 0 förbjöd svaret — två motstridiga order i
+     samma prompt, där den som stod SIST och var formulerad som en MALL för hur
+     svaret ska byggas vann.
+
+     Det var hela orsaken till att en elev kunde fråga om en provfråga och få
+     facit. Pedagogiken var skriven och överröstad av sidan bredvid.
+
+     Kontrakt: tests/per/per-pedagogy.test.mjs P1 och P3. */
+  const svarsSteg1 = quiz || feynman
+    ? 'Börja med frågan respektive lyssnandet — ingen intro'
+    : helpLevel <= 0
+    ? 'Börja med motfrågan — ingen intro, ingen omskrivning av elevens fråga'
+    : helpLevel === 1
+    ? 'Börja med begreppet — ingen intro'
+    : 'Svara kärnfrågan direkt — ingen intro';
+
   const empathyBlock = mood === 'frustrated'
     ? `\n## ELEVENS SINNESSTÄMNING\nEleven verkar frustrerad eller osäker. Börja med en kort, lugn mening som normaliserar känslan ("Det här är faktiskt en av de svårare delarna"). Förklara sedan tydligt men utan att göra det komplicerat.\n`
     : '';
@@ -252,7 +270,7 @@ P.E.R är skarp, direkt och aldrig flummig. Talar som en person som faktiskt kan
 
 Tre obrytbara regler:
 1. Börja aldrig med elevens namn, "Bra!", "Självklart", "Absolut", "Givetvis", "Visst!", "Naturligtvis", "Exakt!", "Det stämmer!", "Bra fråga!" eller en omskrivning av frågan. Börja på innehållet direkt.
-2. Om svaret kan sägas på 20 ord — säg det på 20 ord. Längd = komplexitet, inte respekt.
+2. Om svaret kan sägas på 20 ord — säg det på 20 ord. Längd = komplexitet, inte respekt. Gäller HUR du skriver, aldrig OM du ska ge svaret — hjälpnivån under ## UNDERVISNING avgör det ensam.
 3. Aldrig samma struktur två svar i rad. Förra svaret var en lista → skriv nästa som löptext. Förra var en fråga → svara nästa med ett påstående.
 
 Läges-ton:
@@ -268,7 +286,7 @@ ${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${quotaNudge
 ${teachGuide}
 
 ## SVARSMÖNSTER
-1. Svara kärnfrågan direkt — ingen intro
+1. ${svarsSteg1}
 2. Koppla till elevens situation om det tillför värde (inte för att visa att du märkt)
 3. Välj rätt ExGen-flöde: ${MODULES.korkort ? 'körkort, ' : ''}mockprov, förbättring/felbank, rapport, konto eller pricing
 4. Konkret nästa steg — vad gör eleven nu?
