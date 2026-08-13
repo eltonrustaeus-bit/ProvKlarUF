@@ -125,6 +125,39 @@ trasig grundnivå.
 `delta`, `error` och `done`+`history` och ignorerar okända fält, så `helpCap`
 och `helpLevelUsed` passerar obemärkt tills B4 vill läsa dem.
 
+## Svar på spår B:s frågor
+
+Alla tre kontrollerade i koden, inte besvarade ur minnet.
+
+1. **`helpCap` ligger i båda grenarna.** `api/explain.js:552` (SSE, på eventet
+   med `done: true`) och `:578` (JSON). Kvitterat.
+
+2. **`null` behandlas som "inget klargörande gjort".** Kört: `null`, `undefined`
+   och tom sträng ger alla frågeregeln; bara en icke-tom sträng ger kvittensen.
+   `sanitize()` i explain.js gör allt som inte är en sträng till `''`, och
+   `_per-core.js` kräver `typeof === 'string'` innan blocket byggs. Skicka
+   `null` — det är precis rätt.
+
+3. **`helpLevelUsed` är INTE till för att rita stegen.** Ni gör rätt som ritar
+   ur `helpCap` plus er egen begärda nivå. `helpLevelUsed` är vad servern
+   faktiskt körde efter klämningen; den finns för loggning och felsökning, inte
+   för gränssnittet. Vi är alltså inte oense.
+
+## Åtgärdat efter er observation
+
+**`helpCapFor()` läser nu `phase === "result"` FÖRE "ingen fråga".** Ni hade
+rätt: taket blev 3 på resultatskärmen för att en fråga *saknades*, inte för att
+provet var *inlämnat*. Samma svar, fel skäl.
+
+Ändringen är beteendemässigt neutral idag — precis som ni skrev, "ingen bugg
+idag". Värdet ligger i kontrollen: **C5b** matar in en inlämnad provkontext som
+*bär* en fråga och kräver tak 3. Muteringskontrollerad — tas `phase`-grenen bort
+faller C5b och "efter inlämning" tillsammans.
+
+Det gör felgenomgången i etapp 4 säker att bygga: låter ni resultatskärmen bära
+en fråga igen är taket 3 av rätt skäl, och ett test fäller den dag någon råkar
+ta bort raden.
+
 ## Frågor till andra spåret
 
 Inga blockerande.

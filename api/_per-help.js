@@ -37,17 +37,25 @@
 export function helpCapFor(pageContext) {
   const q = pageContext && pageContext.currentQuestion;
 
+  // Inlämnat prov först. Ordningen är inte kosmetisk: läses "ingen fråga" före
+  // "inlämnat" sätts taket av att en fråga SAKNAS i stället för av att provet är
+  // ÖVER, och de två är inte samma sak. Idag ger båda vägarna 3, eftersom
+  // closeExam() i js/exam-flow.js nollställer manifestet vid inlämning — men den
+  // dag resultatskärmen bär en fråga igen (felgenomgången i etapp 4: "förklara
+  // fråga 4 som du fick fel på") ska svaret komma ur rätt skäl.
+  // Fyndet kommer från spår B. Kontrakt: C5b.
+  //
+  // Jämförelsen kräver en riktig sträng. En klient som skickar ett objekt med
+  // toString() === "result" ska inte kunna öppna facit; === mot en sträng ger
+  // false för allt som inte ÄR strängen.
+  const phase = pageContext && pageContext.examState && pageContext.examState.phase;
+  if (phase === "result") return 3;
+
   // Ingen provfråga i sikte — eleven pluggar fritt, inget att skydda.
   // Kravet på en icke-tom text är inte kosmetiskt: ett tomt frågeobjekt är
   // inte ett prov, och att behandla det som ett hade låst hjälpen på sidor
   // som inte har med prov att göra.
   if (!q || typeof q.text !== "string" || !q.text.trim()) return 3;
-
-  // Jämförelsen kräver en riktig sträng. En klient som skickar ett objekt med
-  // toString() === "result" ska inte kunna öppna facit; === mot en sträng ger
-  // false för allt som inte ÄR strängen.
-  const phase = pageContext.examState && pageContext.examState.phase;
-  if (phase === "result") return 3;
 
   // Strikt true. "true" som sträng, 1, eller ett sanningsvärde som råkar vara
   // sant räknas inte som ett äkta försök — annars sänker en slarvig klient

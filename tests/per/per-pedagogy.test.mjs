@@ -169,6 +169,24 @@ const ctxMed = (phase, answered) => ({
   }
 }
 
+// ── C5b: inlämnat prov SOM BÄR EN FRÅGA. Fyndet kommer från spår B:
+//        `closeExam()` nollställer manifestet, så resultatskärmen har idag ingen
+//        currentQuestion — taket blir 3 för att en fråga SAKNAS, inte för att
+//        provet är INLÄMNAT. Samma svar, fel skäl.
+//
+//        Skillnaden får betydelse den dag resultatskärmen bär en fråga igen,
+//        vilket etapp 4:s felgenomgång pekar mot ("förklara fråga 4 som du fick
+//        fel på"). Kontrollen nedan spikar att det är `phase` som avgör.
+{
+  const inlämnadMedFråga = {
+    page: "resultat",
+    currentQuestion: { text: "Vad är derivatan av x²?", answered: false },
+    examState: { phase: "result" },
+  };
+  const tak = helpCapFor(inlämnadMedFråga);
+  ok("C5b inlämnat prov med en fråga i fokus ger fullt tak", tak === 3, `fick ${tak}`);
+}
+
 // ── C6: en klient som ber om nivå 3 mitt i ett prov får den inte. ──────────
 {
   const tak = helpCapFor(ctxMed("exam", true));
