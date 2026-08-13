@@ -8,7 +8,7 @@
 
 ## Status
 
-A1 och A2 klara. A3 (klargörande fråga) står näst på tur.
+A1, A2 och A3 klara. A4 (rösten) står näst på tur.
 
 Gren: `feat/per-pedagogik`.
 
@@ -49,9 +49,24 @@ inte nämns det inte alls.
 Test: 25 kontroller i `tests/per/per-pedagogy.test.mjs` (P1-P8 prompten,
 C1-C9 taket).
 
+### A3 — den klargörande frågan (`d925755`)
+
+Prompten bär nu regeln, formulerad som forskningen säger fungerar: tänk ut två
+tolkningar, fråga bara om de skulle ge olika svar. Högst en per elevfråga,
+aldrig när frågan är entydig. `quiz` och `feynman` utesluts — de ställer redan
+egna frågor.
+
+Markören är `[CLARIFY:alternativ ett|alternativ två]`, samma form som befintliga
+`[GOTO:]`.
+
+`api/explain.js` läser `clarifyReply` ur kroppen och skickar den vidare. Är den
+satt byts frågeregeln mot en kvittens: fråga inte igen, svara utifrån valet.
+
+Test: 41 kontroller totalt (P1-P8, C1-C9, L1-L7).
+
 ## Pågår
 
-A3 — den klargörande frågan. Rör `api/_per-core.js` och `api/explain.js`.
+A4 — rösten som känner eleven. Rör `api/_per-core.js` och `api/_per-memory.js`.
 
 ## Frågor till andra spåret
 
@@ -67,9 +82,21 @@ prov, vilket är säkert men aldrig 1 och aldrig 3. Först när `phase` kommer f
 kan eleven få full lösning efter inlämning. Ingen brådska — inget går sönder
 under tiden.
 
-**`clarifyReply` finns i KONTRAKTET men läses ännu inte av servern.** Den kommer
-i A3. Skicka den gärna redan nu om det passar din ordning; den ignoreras tyst
-tills A3 landat.
+**`clarifyReply` läses nu av servern.** Skickar du den ställs ingen ny
+klargörande fråga i samma vända.
+
+**B5, läs det här innan du ritar knapparna.** Alternativen i `[CLARIFY:a|b]`
+skrivs av MODELLEN, inte av oss. De är alltså text vi inte kontrollerar, på väg
+in i DOM:en som knappetiketter.
+
+- Sätt dem med `textContent`, aldrig med `innerHTML`. Ett alternativ som
+  innehåller `<img onerror=...>` ska bli synlig text, inte ett element.
+- Servern sanerar `clarifyReply` på vägen TILLBAKA in (radbrytningar och allt
+  utanför bokstäver/siffror/enkel skiljetecken faller bort, kapas till 80
+  tecken), så du behöver inte sanera för serverns skull — bara för DOM:ens.
+- Markören ska bort ur den synliga texten, precis som `[GOTO:]` redan tas bort.
+  Ett `[CLARIFY:...]` som läcker ut i chattbubblan är fult men ofarligt;
+  ett som renderas som HTML är det inte.
 
 ## Observationer om andra spåret
 
