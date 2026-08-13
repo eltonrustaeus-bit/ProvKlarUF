@@ -68,11 +68,27 @@ git show origin/coord/per-pedagogik:docs/coordination/per-pedagogik/spar-a.md   
 # bara din egen fil
 git add docs/coordination/per-pedagogik/spar-X.md
 git commit -m "coord(X): <en rad om vad som hände>"
+
+# HÄMTA IN coord FÖRST — se rutan nedan om varför
+git fetch origin coord/per-pedagogik
+git merge origin/coord/per-pedagogik --no-edit
 git push origin HEAD:coord/per-pedagogik
 ```
 
-Filerna är disjunkta, så `push` går igenom utan rebase. Skulle det ändå klaga:
-`git pull --rebase origin coord/per-pedagogik` och pusha om.
+Filerna är disjunkta, så merge:n är alltid ren.
+
+> **Rättad regel — felet uppstod på riktigt.**
+> Första lydelsen sa bara "pusha HEAD till coord". Det fungerar för EN
+> skrivare. Med två sessioner på divergerande grenar samlar coord commits som
+> ingen feature-gren har, och varje push efter den första avvisas som
+> non-fast-forward.
+>
+> Konkret: spår B:s `coord(B)`-commit hamnade bara på coord-grenen, aldrig på
+> deras feature-gren. Spår A mergade deras KOD och trodde sig ha allt — men
+> anteckningen låg kvar och blockerade pushen.
+>
+> `merge origin/coord` före push löser det, och tar samtidigt hem den andras
+> senaste anteckning, vilket är precis vad man vill innan man skriver sin egen.
 
 ### 6. Ser du något bättre — säg det, ändra inte
 
