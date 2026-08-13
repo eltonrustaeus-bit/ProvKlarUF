@@ -381,6 +381,91 @@ const ctxMed = (phase, answered) => ({
     informell && informell.tone === "informell", JSON.stringify(informell));
 }
 
+
+/* ══ STUDIETEKNIKERNA ═══════════════════════════════════════════════════════
+   Dunlosky m.fl. (242 studier, 169 179 deltagare) rangordnar teknikerna.
+   Practice testing och distributed practice har högst nytta; överstrykning och
+   omläsning lägst. quiz-läget ÄR retrieval practice och feynman-läget ÄR
+   self-explanation — båda fanns redan byggda men triggades bara av att eleven
+   råkade skriva rätt fras. */
+
+// ── T1: efter rättat prov erbjuds retrieval practice. ─────────────────────
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 3,
+    pageContext: { page: "prov", currentQuestion: { text: "q", answered: true }, examState: { phase: "result" } },
+    weakAreas: ["Derivata", "Ekvationer"],
+  });
+  ok("T1 studietekniken erbjuds efter rättat prov", /## STUDIETEKNIK/.test(p));
+  ok("T1 det som erbjuds är att träna frågor, inte att läsa om", /fråga|quiz|träna/i.test(p.match(/## STUDIETEKNIK\n[\s\S]*?\n\n/)?.[0] || ""));
+}
+
+// ── T2: men aldrig mitt i ett pågående prov. Ett förslag om att plugga ────
+//        vidare medan eleven sitter i provet är en distraktion, inte en
+//        studieteknik.
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 1,
+    pageContext: { page: "prov", currentQuestion: { text: "q", answered: false }, examState: { phase: "exam" } },
+    weakAreas: ["Derivata", "Ekvationer"],
+  });
+  ok("T2 inget studietekniksförslag mitt i provet", !/## STUDIETEKNIK/.test(p));
+}
+
+// ── T3: interleaving. Förslaget ska BLANDA svaga områden i stället för att ─
+//        borra i ett. Måttlig nytta hos Dunlosky, men gratis att få rätt.
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 3,
+    pageContext: { page: "förbättring" },
+    weakAreas: ["Derivata", "Ekvationer", "Integraler"],
+  });
+  const block = p.match(/## STUDIETEKNIK\n[\s\S]*?\n\n/)?.[0] || "";
+  ok("T3 förslaget blandar områden i stället för att borra", /blanda|väx(la|el)|olika områden/i.test(block), block.slice(0, 90));
+}
+
+// ── T4: de lågnyttiga teknikerna föreslås aldrig. ─────────────────────────
+{
+  const p = buildPERSystemPrompt({ helpLevel: 3, pageContext: { page: "förbättring" }, weakAreas: ["Derivata"] });
+  ok("T4 överstrykning och omläsning föreslås aldrig",
+    /aldrig.*(stryk|läs om|läsa om)|(stryk|läs om|läsa om).*aldrig/i.test(p));
+}
+
+// ── T5: samma spärr som V4. Studietekniken får inte överrösta hjälpnivån. ─
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 0,
+    pageContext: { page: "prov", currentQuestion: { text: "q", answered: false }, examState: { phase: "exam" } },
+    weakAreas: ["Derivata"],
+  });
+  ok("T5 studietekniken lyfter inte förbudet", /Ge INTE svaret/.test(p));
+  ok("T5 studietekniken beordrar inte direktsvar", !BEORDRAR_DIREKTSVAR.test(p));
+}
+
+// ── T7: motstridigt manifest. En klient kan publicera page "förbättring"
+//        med en kvarhängande examState.phase "exam" — sidan har bytts men
+//        provstatusen är inte nollställd. Provet vinner: sitter eleven i ett
+//        prov ska ingen studieteknik föreslås, oavsett vad sidan heter.
+//
+//        Kontrollen finns för att spärren ska gå att FÄLLA. Utan den var
+//        !påProv en rad som aldrig kunde bevisas göra något, och en spärr som
+//        inte går att fälla är en spärr ingen vet fungerar.
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 1,
+    pageContext: { page: "förbättring", examState: { phase: "exam" } },
+    weakAreas: ["Derivata", "Ekvationer"],
+  });
+  ok("T7 pågående prov slår sidnamnet", !/## STUDIETEKNIK/.test(p));
+}
+
+// ── T6: inget block när det inte finns något att erbjuda. Ett tomt avsnitt ─
+//        är brus som modellen ändå försöker tolka.
+{
+  const p = buildPERSystemPrompt({ helpLevel: 1 });
+  ok("T6 inget block utan underlag", !/## STUDIETEKNIK/.test(p));
+}
+
 console.log(`\nper-pedagogy: ${pass} ok, ${fail.length} fail`);
 if (fail.length) console.log("röda: " + fail.join(", "));
 process.exit(fail.length ? 1 : 0);

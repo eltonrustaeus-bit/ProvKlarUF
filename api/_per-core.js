@@ -312,6 +312,32 @@ export function buildPERSystemPrompt({
     ? `\n## ELEVENS STIL\n${stilRader.join('\n')}\nDet här påverkar aldrig hjälpnivån och aldrig vad du säger — stilen styr inte innehållet, bara formen.\n`
     : '';
 
+  /* ── Studietekniken ────────────────────────────────────────────────────
+     Dunlosky m.fl. rangordnar teknikerna: practice testing och distributed
+     practice högst, överstrykning och omläsning lägst. quiz-läget ÄR retrieval
+     practice och feynman-läget ÄR self-explanation — båda fanns redan byggda
+     men triggades bara av att eleven råkade skriva rätt fras ("quizza mig").
+     Blocket får P.E.R att erbjuda dem själv.
+
+     Byggs bara när det finns något att erbjuda OCH eleven inte sitter mitt i
+     ett prov. Ett förslag om att plugga vidare medan provet pågår är en
+     distraktion, inte en studieteknik — och varje block som inte bär något
+     konkurrerar om uppmärksamheten med hjälpnivån. */
+  const påProv = pageContext?.examState?.phase === 'exam';
+  const efterProv = pageContext?.examState?.phase === 'result';
+  const påFörbättring = pageContext?.page === 'förbättring';
+  const teknikRader = [];
+  if (!påProv && (efterProv || påFörbättring) && weakAreas.length) {
+    teknikRader.push('Erbjud att ställa några frågor på det eleven tappat poäng på — att plocka fram ur minnet ger mer än att läsa igenom.');
+    if (weakAreas.length > 1) {
+      teknikRader.push('Blanda områden i förslaget i stället för att borra i ett; växla mellan dem eleven är svag i.');
+    }
+    teknikRader.push('Svarade eleven rätt men verkar osäker — be hen förklara varför det stämmer, med egna ord.');
+  }
+  const teknikBlock = teknikRader.length
+    ? `\n## STUDIETEKNIK\n${teknikRader.join('\n')}\nFöreslå aldrig att stryka under eller läsa om — det är de tekniker som mäter sämst.\nErbjud, kräv inte, och aldrig i stället för svaret på det eleven faktiskt frågade.\n`
+    : '';
+
   const quotaNudge = (quotaRemaining !== null && quotaRemaining <= 1)
     ? `\n## KVOTINFO (intern)\nEleven har ${quotaRemaining} P.E.R-fråga kvar denna period. Nämn diskret mot slutet av svaret — en mening — att Premium ger obegränsat. Inga hårda säljargument, bara en naturlig notis.\n`
     : '';
@@ -339,7 +365,7 @@ Läges-ton:
 - sales: Ärlig och konkret. Pitchar för att du tror på produkten.
 
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
-${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${styleBlock}${quotaNudge}
+${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${styleBlock}${teknikBlock}${quotaNudge}
 ## UNDERVISNING
 ${teachGuide}
 
