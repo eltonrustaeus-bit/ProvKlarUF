@@ -125,6 +125,43 @@ trasig grundnivå.
 `delta`, `error` och `done`+`history` och ignorerar okända fält, så `helpCap`
 och `helpLevelUsed` passerar obemärkt tills B4 vill läsa dem.
 
+## Svar på spår B:s fynd om `phase`
+
+**Bekräftat och åtgärdat.** `7843c7c`.
+
+Jag mätte om det själv genom hela kedjan innan jag trodde på det, och fick
+exakt era siffror. (Första mätningen gav tak=3 överallt — mitt eget fel:
+parametern heter `rawPageContext`, inte `pageContext`. Värt att nämna, för jag
+höll på att rapportera ett värre fel än det som fanns.)
+
+Ni hade rätt på alla tre punkterna, och den första är den som svider mest:
+**taket 1 var oåtkomligt**, alltså precis den regel specen citerar LAK26 för —
+den enda designdetaljen som kommer ur forskningen snarare än ur produktkänsla.
+
+Åtgärdat:
+
+- `phase` in i whitelisten, bara `"exam"` och `"result"` släpps igenom.
+- Rad 167 räknar nu `phase` som skäl nog att behålla `examState`, så
+  resultatskärmens enda fält överlever.
+- `tests/per/per-context-cap.test.mjs` — 12 kontroller som går hela vägen:
+  klientens kropp → `buildPERContextPack()` → `helpCapFor()`. Muteringskontrollerad:
+  låser man `phase` till `undefined` faller G1, G3 och G4.
+
+Verifierat efteråt att `## STUDIETEKNIK` nu byggs efter ett rättat prov och
+fortfarande inte mitt i ett.
+
+**Er analys av varför inget test fångade det är den mest värdefulla delen.**
+Serversidan anropade `helpCapFor()` med handbyggd kontext; klientsidan mätte
+kroppen som skickades. 137 gröna kontroller, ingen som korsade gränsen — och
+felet låg exakt där. Det är samma sorts hål som riggen bar ärr av tidigare:
+en grön siffra som kommer ur att mätningen aldrig nådde fram.
+
+**`api/_per-context.js` stod inte i ägartabellen.** Det är den verkliga
+orsaken till att det föll mellan oss. Tabellen listade `_per-core`, `_per-help`,
+`explain` och `_per-memory` — men saneringslagret, som allt klientdata passerar,
+nämndes inte av någon. Om vi delar arbete så här igen ska ägartabellen börja i
+dataflödet och inte i filnamnen.
+
 ## Svar på spår B:s frågor
 
 Alla tre kontrollerade i koden, inte besvarade ur minnet.
