@@ -69,6 +69,75 @@ Inget. Spår B är klart mot planen.
 
 _(ser du något bättre: skriv det här med rad och skäl, ändra inte)_
 
+### `phase` når aldrig fram — `api/_per-context.js:159–172`
+
+**Taket 1 går inte att nå i produktion. `## STUDIETEKNIK` byggs aldrig efter ett
+prov.** Båda av samma orsak.
+
+`buildPERContextPack()` bygger om `examState` ur en whitelist:
+
+```js
+const examState = {
+  answered:  cleanNumber(raw.examState.answered, 0, 500),
+  remaining: cleanNumber(raw.examState.remaining, 0, 500),
+  elapsed:   cleanText(raw.examState.elapsed, 12) || undefined,
+};
+```
+
+`phase` står inte där. Klienten skickar den (bevisat i
+`tests/frontend/per-exam-context.test.mjs` T4f, som läser den faktiska
+fetch-kroppen) — den faller bort på vägen in, före `helpCapFor()`.
+
+Mätt, inte läst. Klientens riktiga kropp genom serverns egen sanering, på
+`c778f8a`:
+
+```
+FEL  prov pågår, inget svar   tak=2 (väntat 1)  phase=undefined  answered=undefined
+ok   prov pågår, svar givet   tak=2 (väntat 2)  phase=undefined  answered=true
+ok   resultatskärmen          tak=3 (väntat 3)  phase=undefined  answered=undefined
+```
+
+Tre följder:
+
+1. **Raden "prov pågår, inget försök → 1" är oåtkomlig.** `phase === "exam"` är
+   aldrig sant, så grenen faller till `return 2`. En elev som inte skrivit ett
+   tecken kan be om "Visa metoden" — precis det oproduktiva ledtrådsbeteende
+   specen citerar LAK26 för att bygga bort. Det är den enda designdetaljen i
+   specen som kommer ur forskningen snarare än ur produktkänsla.
+
+2. **Resultatskärmen ger 3 av fel skäl.** `6f3d2e8` flyttade `phase === "result"`
+   före `!q` — rätt gjort, och tack. Men med `phase === undefined` avgörs det
+   fortfarande av att en fråga *saknas*. Ordningen är rättad, signalen kommer
+   fortfarande inte fram. (Tredje raden i mätningen ovan: `answered=undefined`,
+   för `examState` släpps helt när bara `phase` skickas — rad 167 kräver att
+   `answered`, `remaining` eller `elapsed` finns.)
+
+3. **`## STUDIETEKNIK` byggs aldrig efter ett prov.** `påProv` och `efterProv` i
+   `api/_per-core.js` läser samma `pageContext?.examState?.phase`. Båda är alltid
+   falska, så blocket kan bara byggas via `påFörbättring`. A5:s "erbjud quiz
+   efter rättat prov" — kärnan i etapp 4 — är död kod i produktion.
+
+**Varför inget test fångade det.** `tests/per/per-pedagogy.test.mjs` C1–C9 anropar
+`helpCapFor()` med ett handbyggt `pageContext`, aldrig genom
+`buildPERContextPack()`. Frontendtesterna mäter kroppen som skickas, aldrig vad
+servern gör med den. Ingen av de 137 gröna kontrollerna korsar den gränsen, och
+felet ligger exakt där.
+
+Det är samma felklass som planens egen självgranskning varnade för under
+*"Fällan värd att läsa två gånger"* — en whitelist som tyst slänger fältet, med
+2 som utfall, vilket ser rimligt ut och därför aldrig märks. Varningen gällde
+`PER_STATE_KEYS` i `shared.js`. Den utökade jag (B1). Ingen tittade på serverns
+motsvarande filter, och `api/_per-context.js` står inte i ägartabellen.
+
+**Jag har inte rört `api/`** — regel 2. Förslag, inte ändring:
+
+- `phase` in i whitelisten, med samma två tillåtna värden som klienten godtar
+  (`"exam"` / `"result"`), allt annat bort.
+- Rad 167 behöver då räkna `phase` som skäl nog att behålla `examState` —
+  annars försvinner resultatskärmens enda fält.
+- Ett kontraktstest som går **hela** vägen: klientens kropp → `buildPERContextPack()`
+  → `helpCapFor()`. Det är den enda nivån som hade fällt det här.
+
 - **`helpCapFor()` returnerar 3 på resultatskärmen via fel gren.** Planens
   utkast (A2 steg 3) kollar `if (!q || !q.text) return 3;` **före**
   `if (phase === "result") return 3;`. `closeExam()` i `js/exam-flow.js`
