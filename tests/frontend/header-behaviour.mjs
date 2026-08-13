@@ -66,7 +66,7 @@ const open = (url, width) =>
 // ligger under ett överlägg är exakt den sortens fel riggen finns för att
 // hitta. Kort timeout, och felet returneras i stället för att kastas.
 async function openMenu(page) {
-  const btn = page.locator(".mWrap button, .menuWrap button").first();
+  const btn = page.locator(".xg-menu-btn, .mWrap button, .menuWrap button").first();
   if (!(await btn.count())) return "ingen knapp";
   if (!(await btn.isVisible())) return "knappen är dold";
   try { await btn.click({ timeout: 5000 }); } catch (e) { return String(e.message).split("\n")[0]; }
@@ -102,7 +102,13 @@ const links = page => page.evaluate(() => {
 
 const navVisible = page => page.evaluate(() => {
   const box = el => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
-  return { full: box(document.querySelector(".xg-nav")), burger: box(document.querySelector(".mWrap, .menuWrap")) };
+  // .xg-menu-btn är renderarens knapp; .mWrap/.menuWrap är de handskrivna
+  // huvudena på sidor som ännu inte migrerat. Båda tas tills den sista är
+  // flyttad — korkortet.html blir kvar tills modulen släpps.
+  return {
+    full: box(document.querySelector(".xg-nav")),
+    burger: box(document.querySelector(".xg-menu-btn, .mWrap, .menuWrap")),
+  };
 });
 
 for (const url of PAGES) {

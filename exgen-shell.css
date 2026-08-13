@@ -183,3 +183,120 @@ html {
 .xg-footer a { color: var(--exgen-text-secondary, #667085); text-decoration: underline; text-underline-offset: 2px; }
 .xg-footer a:hover { color: var(--exgen-text, #1B2430); }
 .xg-footer a:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
+
+/* ── Menyknappen ─────────────────────────────────────────────────────────────
+   Ersätter .mBtn/.menuBtn i style.css. Halva den dubbleringen raderas när
+   sidorna migrerats; .menuWrap-halvan står kvar tills korkortet.html följer med
+   — se kommentaren i style.css.
+
+   var(--a) nedan är avsiktlig och ska inte "rättas" till en --exgen-token. Den
+   bor i style.css, laddas av varje sida, och är samma val .xg-login-btn redan
+   gör med sin motivering på plats: --exgen-teal klarar inte AA för vit text,
+   --a (#00768F) är verifierad på 5,27:1. */
+.xg-menu-btn {
+  width: 44px; height: 44px; padding: 0; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+  border-radius: var(--exgen-radius-sm, 8px);
+  background: transparent; color: var(--exgen-text-secondary, #667085);
+  cursor: pointer; touch-action: manipulation;
+  transition: border-color var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease),
+              background var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease),
+              color var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-menu-btn:hover { border-color: var(--exgen-text-secondary, #667085); color: var(--exgen-text, #1B2430); }
+.xg-menu-btn:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: var(--exgen-focus-offset, 2px); }
+.xg-menu-btn[aria-expanded="true"] { border-color: var(--a, #00768F); color: var(--a, #00768F); }
+.xg-menu-bars { display: grid; gap: 3.5px; width: 16px; }
+.xg-menu-bars span { display: block; height: 1.5px; background: currentColor; border-radius: 1px; }
+
+/* Komplementet till .xg-nav-regeln ovan: exakt en av de två syns vid varje
+   bredd, aldrig båda och aldrig ingen. */
+@media (min-width: 861px) { .xg-menu-btn, .xg-menu, .xg-menu-dim { display: none !important; } }
+
+.xg-header-right { display: flex; align-items: center; gap: 6px; }
+
+
+/* ── Mobilarket ──────────────────────────────────────────────────────────────
+   Den gamla panelen var en skrivbordsdropdown på telefon: position:absolute,
+   right:0, min-width:240px, border-radius:14px och en skugga på
+   0 16px 48px rgba(0,0,0,.5) — 50 % svart, en rest från ett mörkt tema på en
+   vit sida. Det här är byggt för handen i stället. */
+.xg-menu {
+  /* Ankrat UNDER headern, inte över den. Med top:0 låg arket över hamburgaren
+     man just tryckte på — knappen som stänger det igen — och över märket. Då
+     krävs ett eget ✕ inuti arket, alltså en till kontroll för något knappen
+     redan gör.
+
+     position:absolute mot .xg-header, som är position:sticky och därmed en
+     positionerad förälder. top:100% ger exakt underkanten vid varje brytpunkt,
+     utan att mäta headerns höjd i JS — den ändras både när verktygsraden döljs
+     (≤480px) och när vaddering krymper (≤640px). */
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 5000;
+  max-height: calc(100dvh - 100%); overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--exgen-bg, #FFFFFF);
+  border-bottom: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+  /* --exgen-shadow-md är den största skuggan som finns i skalan (sm/md). Det
+     räcker och är rätt register — poängen var att bli av med den gamla. */
+  box-shadow: var(--exgen-shadow-md, 0 4px 16px rgba(14,27,42,.08));
+  padding: var(--exgen-space-2, 8px) var(--exgen-space-3, 12px)
+           calc(var(--exgen-space-4, 16px) + env(safe-area-inset-bottom, 0px));
+  transform: translateY(-8px); opacity: 0;
+  transition: transform var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease),
+              opacity var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-menu.on { transform: none; opacity: 1; }
+.xg-menu[hidden] { display: none; }
+
+.xg-menu-dim {
+  /* Dimmern täcker SIDAN, inte huvudet. Med inset:0 låg den över hamburgaren
+     och märket — mätt med elementFromPoint, som returnerade dimmern där
+     knappen skulle ha varit. Att i stället lyfta headerraden över dimmern hade
+     gett texten en odimmad rad på en dimmad bakgrund, eftersom .xg-header:s
+     egen bakgrund målas i botten av samma stackningskontext.
+
+     Ankrad på samma sätt som arket: absolut mot den sticky headern, från dess
+     underkant och nedåt. */
+  position: absolute; top: 100%; left: 0; right: 0; height: 100dvh; z-index: 4900;
+  background: rgba(14, 27, 42, .32);
+  opacity: 0;
+  transition: opacity var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-menu-dim.on { opacity: 1; }
+.xg-menu-dim[hidden] { display: none; }
+
+.xg-menu-item {
+  width: 100%; min-height: 52px;
+  display: flex; align-items: center; gap: var(--exgen-space-3, 12px);
+  padding: 0 var(--exgen-space-3, 12px);
+  border: 0; border-radius: var(--exgen-radius-sm, 8px);
+  background: transparent; text-align: left; cursor: pointer;
+  font: 500 15px var(--exgen-font, sans-serif);
+  color: var(--exgen-text, #1B2430); text-decoration: none;
+  transition: background var(--exgen-motion-fast, 150ms) var(--exgen-motion-ease, ease);
+}
+.xg-menu-item:hover { background: var(--exgen-bg-secondary, #F8FAFC); }
+.xg-menu-item:focus-visible { outline: var(--exgen-focus-ring, 2px solid #00B7D9); outline-offset: -2px; }
+/* Etiketten tar mellanrummet, piller trycks åt höger. */
+.xg-menu-item > span:nth-child(2) { flex: 1; }
+.xg-menu-item.active { font-weight: 600; }
+.xg-menu-item.active .xg-menu-ico { color: var(--a, #00768F); }
+.xg-menu-ico {
+  display: grid; place-items: center; width: 24px; flex-shrink: 0;
+  color: var(--exgen-text-secondary, #667085);
+}
+.xg-menu-pill {
+  font: 500 10px var(--exgen-font-mono, monospace);
+  color: var(--exgen-text-secondary, #667085); letter-spacing: var(--exgen-tracking-wide, .06em);
+  border: var(--exgen-border-width, 1px) solid var(--exgen-border, #E4E7EC);
+  /* radius-skalan är sm/md/lg/pill — det finns ingen xs. */
+  border-radius: var(--exgen-radius-sm, 8px); padding: 2px 7px; flex-shrink: 0;
+}
+.xg-menu-sep {
+  height: 1px; background: var(--exgen-border, #E4E7EC);
+  margin: var(--exgen-space-2, 8px) var(--exgen-space-3, 12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xg-menu, .xg-menu-dim { transition: none; }
+}
