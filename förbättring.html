@@ -477,7 +477,14 @@
     /* ── TEACHER REPORT ── */
     function getReportCache(){const o=lsObj(LS_TEACHER_REPORT_CACHE);return(o&&typeof o==='object')?o:{};}
     function setReportCache(c){lsSet(LS_TEACHER_REPORT_CACHE,c);}
-    function reportCacheKey(){return String($('courseFilter')?.value||'').trim()||'__all__';}
+    /* Vilken kurs eleven tittar på. Väljaren bor i felbank-skärmen, men alla
+       fem skärmar ritas av renderAll() så elementet finns i DOM:en oavsett
+       vilken som är framme. Beroendet är osynligt och därför samlat här och
+       kontrollerat av forbattring-flow.mjs F19 — utan det kunde rapporten
+       tyst börja omfatta alla kurser om felbanken en dag ritas lazily. */
+    function currentCourse(){ return String($('courseFilter')?.value||'').trim(); }
+    window.__reportScopeForTest=()=>currentCourse();
+    function reportCacheKey(){return currentCourse()||'__all__';}
     async function fetchReport(payload){
       const res=await fetch('/api/teacher-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
       const data=await res.json();if(!res.ok)throw new Error(data?.error||'failed');return String(data?.report||data?.tips||'');
@@ -712,7 +719,7 @@
       const h=lsArr(LS_HISTORY),m=lsArr(LS_MISTAKES),n=h.length;
       if(n<3){setReportStatus(`Minst 3 prov krävs. Du har ${n}.`,'warn');setReportText('—');setCopyEnabled(false);setReportPill('',false);return;}
       setGenEnabled(false);setCopyEnabled(false);setReportStatus('Skapar rapport…','');setReportText('');setReportPill('',false);showLoad();
-      const course=String($('courseFilter')?.value||'').trim();
+      const course=currentCourse();
       const fH=course?h.filter(x=>String(x.course||'').trim()===course):h;
       const fM=course?m.filter(x=>String(x.course||'').trim()===course):m;
       const rN=fH.length;

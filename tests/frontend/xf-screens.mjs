@@ -30,11 +30,17 @@ try {
 // integritetspolicy.html är den minsta sidan som bär huvudet och har ingen egen
 // JS som kan störa mätningen. Vilken sida det är spelar ingen roll — kroppen
 // byts ut mot en tom rot innan modulen får något att göra.
+//
+// exgen-ui.css laddas in för hand: den sidan laddar den inte själv, och utan
+// den gäller ingen av modulens egna regler. S14 stod röd mot en oformaterad
+// sida trots att regeln fanns — måttet gällde en sida där den aldrig lästes.
+// Varje framtida kontroll som rör utseende behöver stilmallen här.
 async function boot(opts = {}) {
   const { ctx, page } = await openPage(browser, `${srv.url}/integritetspolicy.html`, {
     width: 1280, height: 900, reducedMotion: "reduce",
     waitUntil: "domcontentloaded", settle: 300,
   });
+  await page.addStyleTag({ url: "/exgen-ui.css" });
   await page.addScriptTag({ url: "/js/xf-screens.js" });
   await page.evaluate((o) => {
     document.body.innerHTML = '<div id="xf"></div>';
@@ -224,6 +230,25 @@ async function boot(opts = {}) {
   });
   ok("S13 on() ropar en gång per faktiskt byte",
     JSON.stringify(v) === '["a","b"]', JSON.stringify(v));
+  await ctx.close();
+}
+
+
+// S14: fokus flyttas till rubriken, men utan att måla en ring. Rubriken är inte
+// interaktiv — tabindex="-1" finns bara för att gå att fokusera programmatiskt
+// — men Chromium låter den ändå matcha :focus-visible och rita sin egen ram.
+// För den som ser är hela skärmbytet återkopplingen. Kontrollen kräver båda:
+// fokus MÅSTE flytta (annars tappar skärmläsaren var den är) och ringen får
+// INTE synas.
+{
+  const { ctx, page } = await boot();
+  await page.evaluate(() => window.flow.show("a"));
+  const v = await page.evaluate(() => {
+    const h = document.querySelector('[data-screen="a"] .xf-say');
+    return { fokuserad: document.activeElement === h, outline: getComputedStyle(h).outlineStyle };
+  });
+  ok("S14 fokus flyttas till rubriken utan att rita en ring",
+    v.fokuserad && v.outline === "none", JSON.stringify(v));
   await ctx.close();
 }
 

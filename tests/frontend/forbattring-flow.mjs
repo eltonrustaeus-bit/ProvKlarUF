@@ -251,6 +251,115 @@ for (const mål of ["felbank", "prov", "coach", "rapport"]) {
   await ctx.close();
 }
 
+
+// F14: filtret filtrerar på plats. Ett filter som byter skärm hade varit en
+// navigering förklädd till en inställning — det var precis vad showMode-selecten
+// gjorde innan den togs bort.
+{
+  const { ctx, page } = await open("#felbank");
+  const före = await page.evaluate(() => document.querySelectorAll("#mistakeList .xf-opt").length);
+  await page.selectOption("#courseFilter", "Svenska 1");
+  await page.waitForTimeout(500);
+  const v = await page.evaluate(() => ({
+    n: document.querySelectorAll("#mistakeList .xf-opt").length,
+    skärm: [...document.querySelectorAll(".xf-screen")]
+      .filter(s => s.getBoundingClientRect().height > 0).map(s => s.dataset.screen)[0],
+  }));
+  ok("F14 filtret filtrerar utan att byta skärm",
+    före === 3 && v.n === 1 && v.skärm === "felbank", JSON.stringify({ före, ...v }));
+  await ctx.close();
+}
+
+// F15: coachen hämtar vid inträde. Analysen satt förut bakom en knapp med
+// texten "Hämta P.E.R-analys" — på en skärm eleven öppnat just för att få den.
+{
+  const { ctx, page } = await open();
+  await page.route("**/api/explain", r => r.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ answer: "Träna derivata i tre pass." }),
+  }));
+  await page.click('[data-screen="hem"] .xf-opt[data-go="coach"]');
+  await page.waitForTimeout(1500);
+  const v = await page.evaluate(() => ({
+    text: (document.getElementById("coachText") || {}).textContent,
+    knapp: !!document.getElementById("perCoachBtn"),
+  }));
+  ok("F15 coachen hämtar vid inträde, utan en extra knapp",
+    v.text === "Träna derivata i tre pass." && !v.knapp, JSON.stringify(v));
+  await ctx.close();
+}
+
+// F16: ett misslyckat anrop säger det och går att göra om. Ett streck går inte
+// att skilja från "inte hämtat än".
+{
+  const { ctx, page } = await open();
+  let anrop = 0;
+  await page.route("**/api/explain", r => {
+    anrop++;
+    if (anrop === 1) return r.fulfill({ status: 500, contentType: "application/json", body: "{}" });
+    return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ answer: "Andra försöket gick." }) });
+  });
+  await page.click('[data-screen="hem"] .xf-opt[data-go="coach"]');
+  await page.waitForTimeout(1500);
+  const fel = await page.evaluate(() => ({
+    text: (document.getElementById("coachText") || {}).textContent,
+    retry: !!document.getElementById("perCoachRetry"),
+  }));
+  await page.click("#perCoachRetry");
+  await page.waitForTimeout(1200);
+  const efter = await page.evaluate(() => ({
+    text: (document.getElementById("coachText") || {}).textContent,
+    retry: !!document.getElementById("perCoachRetry"),
+  }));
+  ok("F16 ett misslyckat anrop säger det och går att göra om",
+    fel.retry && fel.text !== "—" && fel.text.length > 3 &&
+    efter.text === "Andra försöket gick." && !efter.retry,
+    JSON.stringify({ fel, efter }));
+  await ctx.close();
+}
+
+// F17: nyckeltalen står som etikett och värde. De låg förut i samma zon som
+// coach-texten och resultatgrafen — tre sorters avläsning i en hög.
+{
+  const { ctx, page } = await open("#coach");
+  await page.waitForTimeout(800);
+  const v = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-screen="coach"] .xf-row')].map(r => ({
+      dt: (r.querySelector("dt") || {}).textContent,
+      dd: (r.querySelector("dd") || {}).textContent,
+    })));
+  ok("F17 tre nyckeltal som etikett och värde, alla ifyllda",
+    v.length === 3 && v.every(x => x.dt && x.dd && x.dd !== "—"), JSON.stringify(v));
+  await ctx.close();
+}
+
+// F18: rapporten säger varför den inte går än, i stället för att bara spärra
+// knappen.
+{
+  const { ctx, page } = await open("#rapport", { nExams: 2 });
+  const v = await page.evaluate(() => ({
+    sub: document.querySelector('[data-screen="rapport"] .xf-sub').textContent,
+    status: (document.getElementById("reportStatus") || {}).textContent,
+    av: (document.getElementById("genReportBtn") || {}).disabled,
+  }));
+  ok("F18 rapporten säger varför den inte går än",
+    /3|tre/.test(v.sub) && /3/.test(v.status) && v.av === true, JSON.stringify(v));
+  await ctx.close();
+}
+
+// F19: rapporten följer kursen eleven tittar på. Nyckeln lästes ur
+// #courseFilter, som numera bor i felbank-skärmen — den finns i DOM:en hela
+// tiden eftersom alla fem skärmar ritas, men beroendet är osynligt och värt
+// en kontroll.
+{
+  const { ctx, page } = await open("#felbank");
+  await page.selectOption("#courseFilter", "Svenska 1");
+  await page.waitForTimeout(400);
+  const v = await page.evaluate(() => window.__reportScopeForTest && window.__reportScopeForTest());
+  ok("F19 rapportens omfattning följer kursvalet", v === "Svenska 1", String(v));
+  await ctx.close();
+}
+
 } catch (e) { crash = e; }
 await browser.close();
 await srv.close();

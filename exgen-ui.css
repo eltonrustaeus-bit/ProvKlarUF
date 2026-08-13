@@ -445,6 +445,17 @@ body.per-focused .xf-orb { --xf-breathe: 2s; }
   animation: xf-rise var(--exgen-motion-slow) var(--exgen-motion-ease) both;
 }
 
+/* Skärmbytet flyttar fokus till rubriken så att en skärmläsare annonserar den
+   nya skärmen. Rubriken är inte interaktiv — den bär tabindex="-1" enbart för
+   att gå att fokusera programmatiskt — men Chromium låter den ändå matcha
+   :focus-visible och målar sin egen ring (auto 1px rgb(0,95,204), mätt).
+
+   Ringen tas bort. För den som ser är hela skärmbytet återkopplingen; en ram
+   runt rubriken tillför ingenting och läser som ett renderingsfel. Fokus
+   flyttas fortfarande, så annonseringen och tangentbordsordningen är oförändrade.
+   Det här gällde app.html redan innan förbättringssidan fick skärmar. */
+.xf-say:focus { outline: none; }
+
 /* Keyframe-varaktigheter går inte genom --exgen-motion-*, som exgen-tokens.css
    nollar under reduced-motion. Lyftet stoppas därför här, bredvid det det
    stänger av. Regeln följde med från exam-flow.css:s samlade motion-block. */
