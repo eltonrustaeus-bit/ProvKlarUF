@@ -210,7 +210,12 @@ menyn olika beroende på var man står.
 Kontodelen: *Mitt konto* / *Logga in* (`shared.js` byter redan etikett på
 `.xg-login-btn` när en session finns) och *Logga ut*.
 
-`data-module="korkort"` behålls på körkortsraden så `exgen-modules.js` kan dölja den.
+Körkortsraden **behålls i listan** med sitt `data-module="korkort"`, trots att
+`korkortet.html` inte migreras. `exgen-modules.js` döljer den redan innan sidan
+målas första gången, och hela poängen med den filen är att en enda flagga ska
+återställa modulen överallt utan att någon markup rörs. Tar man bort raden ur den
+delade listan bryts det kontraktet — då krävs en kodändring den dagen körkorten
+släpps, i stället för ett `true`.
 
 ### Klasserna
 
@@ -223,21 +228,42 @@ ur `style.css` — inklusive `.dropdown.open`, den tredje öppna-klassen.
 
 ### Sidorna
 
-Nio sidor får huvudet: **index, pricing, app, konto, korkortet, förbättring,
-integritetspolicy, admin, larare.** `admin.html` behöver `exgen-tokens.css` +
-`exgen-shell.css` tillagda; `larare.html` byter ut sin `.topNav`.
+**Bara sidor som är officiellt släppta rörs.** `js/exgen-modules.js` är den enda
+källan för vad som är släppt, och den säger `korkort: false`, `hp: false`,
+`demo: false`. Avstängda moduler är inte "sidor som råkar sakna huvud" — de är
+sidor som inte finns för besökaren. `korkortet.html` och `provia-hp.html`
+omdirigerar till startsidan så länge flaggan är av.
 
-Repot har 15 HTML-filer. De sex som inte får huvudet:
+Åtta sidor får huvudet:
+
+**index, pricing, app, konto, förbättring, integritetspolicy, larare, admin.**
+
+`admin.html` behöver `exgen-tokens.css` + `exgen-shell.css` tillagda (den laddar
+i dag bara `style.css`). `larare.html` byter ut sin `.topNav`.
+
+Repot har 15 HTML-filer. De sju som står utanför:
 
 | Fil | Varför inte |
 |---|---|
-| `live-demo.html` | Helskärms-scriptad demo, ingen header i dag. Att lägga en meny över den vore en ny sak, inte en samordning. |
-| `snart.html`, `aterstall.html` | Enskärmssidor utan navigering i dag (kommer-snart, lösenordsåterställning). Ett huvud där ger en väg *bort* från det enda sidan ber om. |
-| `juridik.html` | Har ingen navigering i dag. Kan få huvudet — men den syns inte i naven, så den är inte en del av samordningen. |
+| `korkortet.html` | Modulen `korkort` är av. Orörd tills den släpps. |
+| `provia-hp.html` | Modulen `hp` är av. Orörd tills den släpps. |
+| `live-demo.html` | Modulen `demo` är av. Dessutom en helskärms-scriptad demo utan header i dag. |
+| `snart.html`, `aterstall.html` | Enskärmssidor utan navigering (kommer-snart, lösenordsåterställning). Ett huvud där ger en väg *bort* från det enda sidan ber om. |
+| `juridik.html` | Ingen navigering i dag och syns inte i naven — inte en del av samordningen. |
 | `google52ca1d3d9412d7b8.html` | Verifieringsstub. |
-| **`provia-hp.html`** | **Öppen fråga.** Högskoleprovsappen har i dag *ingen* navigering alls — varken header, nav eller hamburgare. Det är inte en samordningsfråga utan ett hål: en elev som landar där kommer inte tillbaka. Den ingår inte i den här omgången om du inte säger till, men den bör tas. |
 
-*Överrulla gärna om avsikten var en annan avgränsning.*
+**Namngiven skuld:** `korkortet.html` behåller sin egen header, sin egen
+menyanimation (`korkortet.html:2727`) och sina egna `.ddItem`-klasser. `style.css`
+kan därför inte tömmas helt — `.menuWrap/.menuBtn/.barsIcon/.dropdown/.ddItem/
+.ddPill` och `.dropdown.open` måste stå kvar tills körkortsmodulen antingen
+släpps och migreras, eller tas bort. Bara `.mWrap/.mBtn/.bars/.drop/.ddi/.dpill`-
+halvan och det oanvända `.mPageTitle` kan raderas nu. Kommentaren i `style.css`
+ska säga att resten väntar på `korkort`-flaggan, så nästa läsare inte tror att
+dubbleringen är slarv.
+
+Samma gäller `provia-hp.html`: den har i dag ingen navigering alls — varken
+header, nav eller hamburgare. Det är ett hål, men det är ett hål bakom en avstängd
+flagga, så det tas den dag modulen släpps.
 
 ---
 
@@ -253,13 +279,17 @@ fullbrett ark under headern i stället för en 240px-dropdown i hörnet:
 │  Hem                    │
 │  Mockprov          App  │
 │  Min utveckling  Coach  │
-│  Körkortsteorin   Nytt  │
 │  Priser         29/79   │
 ├─────────────────────────┤
 │  Mitt konto             │
 │  Logga ut          Lås  │
 └─────────────────────────┘
 ```
+
+Körkortsraden finns i markupen men är dold av `exgen-modules.js` så länge
+`korkort: false` — därför står den inte i skissen. Den ska inte byggas som synlig
+och sedan gömmas i efterhand; regeln injiceras före första målningen, och raden
+ska aldrig hinna blinka till.
 
 - Full bredd, fäst under headern, egen skroll om innehållet är högre än skärmen.
 - `padding-bottom: env(safe-area-inset-bottom)` så sista raden inte hamnar under
@@ -280,9 +310,13 @@ Utanför den här omgången:
 
 - Färger, typsnitt, radie och skuggor ändras inte. Inga nya tokens.
 - `js/exam-flow.js` rörs inte.
+- Avstängda moduler rörs inte: `korkortet.html`, `provia-hp.html`, `live-demo.html`.
+  `js/exgen-modules.js` avgör vad som är släppt, och den är oförändrad efter det
+  här arbetet. Vill man flytta en av dem hit är det ett eget beslut samma dag
+  flaggan sätts till `true`.
 - Egen muspekare tas bort på `förbättring.html` (sidan skrivs om) men lämnas kvar
-  på `pricing.html`. Att den finns på två sidor av nio är inkonsekvent — det är en
-  egen fråga, inte en del av den här.
+  på `pricing.html`. Att den finns på exakt två sidor av femton är inkonsekvent —
+  det är en egen fråga, inte en del av den här.
 - `app.html`s gamla `#material`/`#settings`/`#exam`/`#result`-sektioner och dess
   `wizardRail` lämnas som de är. Sidhuvudet får bära deras skrollankare i det
   sidlokala facket precis som i dag.
@@ -294,7 +328,7 @@ Utanför den här omgången:
 
 Testriggen (`tests/frontend/_harness.mjs`) finns och används.
 
-**`header-behaviour.mjs`** byggs ut till att köra över alla nio sidorna och hävda:
+**`header-behaviour.mjs`** byggs ut till att köra över alla åtta sidorna och hävda:
 
 - exakt en navigering i DOM:en per sida
 - identisk länkuppsättning på varenda sida
@@ -327,6 +361,6 @@ avsikten. Övriga sidor ska ligga inom brusgolvet utom där huvudet faktiskt byt
 |---|---|
 | Struktur på förbättringssidan | P.E.R-skärmflöde med ingångsskärm |
 | Mobilmenyn | Fullbrett ark |
-| Omfattning | Alla sidor med ett huvud (nio; live-demo undantagen, se Del 3) |
+| Omfattning | Bara officiellt släppta sidor — åtta. Avstängda moduler (`korkort`, `hp`, `demo`) rörs inte. |
 | Språkväxlaren | Tas bort helt — sajten är svensk |
 | Skärmmotorn | Ny delad fil `js/xf-screens.js`; `exam-flow.js` orörd |
