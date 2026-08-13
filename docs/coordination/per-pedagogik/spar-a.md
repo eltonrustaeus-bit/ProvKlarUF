@@ -8,7 +8,7 @@
 
 ## Status
 
-A1, A2 och A3 klara. A4 (rösten) står näst på tur.
+A1-A4 klara. A5 (studieteknikerna) är sista uppgiften på spår A.
 
 Gren: `feat/per-pedagogik`.
 
@@ -64,9 +64,22 @@ satt byts frågeregeln mot en kvittens: fråga inte igen, svara utifrån valet.
 
 Test: 41 kontroller totalt (P1-P8, C1-C9, L1-L7).
 
+### A4 — rösten som känner eleven (`0c2e611`)
+
+Namnregeln förbjuder nu **berömmet, inte namnet**. "Okej Elton, då tar vi det
+härifrån" är tillåtet; "Bra fråga, Elton!" är det inte.
+
+`deriveStyleSignals()` i `api/_per-memory.js` härleder ton och längd ur elevens
+egna meddelanden. Ren funktion, exporterad, ingen databas. Returnerar `null` vid
+för tunt underlag och sätter tonen bara vid tydlig majoritet.
+
+Ingen schemaändring, inget nytt skrivet till `per_long_memory` — RLS orört.
+
+Test: 57 kontroller totalt (P1-P8, C1-C9, L1-L7, V1-V6).
+
 ## Pågår
 
-A4 — rösten som känner eleven. Rör `api/_per-core.js` och `api/_per-memory.js`.
+A5 — studieteknikerna. Sista på spår A. Rör bara `api/_per-core.js`.
 
 ## Frågor till andra spåret
 
@@ -101,6 +114,10 @@ in i DOM:en som knappetiketter.
 ## Observationer om andra spåret
 
 Inga än — B har inte börjat.
+
+**Om B vill visa stilen i gränssnittet:** gör det inte utan att fråga Elton
+först. Signalen är avsiktligt tyst — en elev som ser "P.E.R tror att du skriver
+informellt" börjar skriva för systemet i stället för att fråga det den undrar.
 
 ## Antaganden jag gjort
 
