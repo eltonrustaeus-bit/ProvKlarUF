@@ -35,6 +35,7 @@ const { buildPERSystemPrompt } = await import(ROOT + "/api/_per-core.js");
    sig är en spärr ingen testar. `_`-prefixet gör dessutom att filen inte är en
    Vercel-rutt — taket på 12 är orört. */
 const { helpCapFor } = await import(ROOT + "/api/_per-help.js");
+const { deriveStyleSignals } = await import(ROOT + "/api/_per-memory.js");
 
 let pass = 0;
 const fail = [];
@@ -285,6 +286,99 @@ const ctxMed = (phase, answered) => ({
     !/## NÄR FRÅGAN ÄR OTYDLIG/.test(buildPERSystemPrompt({ quiz: true })));
   ok("L6 feynman-läget får ingen extra frågeregel",
     !/## NÄR FRÅGAN ÄR OTYDLIG/.test(buildPERSystemPrompt({ feynman: true })));
+}
+
+
+/* ══ RÖSTEN ═════════════════════════════════════════════════════════════════
+   Beslutet är TON OCH LÄNGD, inte ordval och meningsrytm. Skälet är
+   pedagogiskt: en lärare som härmar eleven tappar den auktoritet som gör att
+   man litar på rättningen. P.E.R ska låta som någon som känner dig — inte som
+   dig. */
+
+// ── V1: namnet får inledas med när det bär något. ─────────────────────────
+//        Den gamla regeln förbjöd namnet helt, vilket gjorde "Okej Elton, då
+//        tar vi det härifrån" omöjligt. Regeln fanns för att stoppa
+//        "Bra fråga, Elton!" — alltså beröm utan innehåll, inte namnet.
+{
+  const p = buildPERSystemPrompt({ helpLevel: 0, studentName: "Elton" });
+  ok("V1 namnet är inte längre förbjudet i öppningen", !/Börja aldrig med elevens namn/.test(p));
+  ok("V1 beröm utan innehåll är fortfarande förbjudet",
+    /Bra fråga!/.test(p) && /Börja aldrig med beröm/.test(p));
+}
+
+// ── V2: stilsignalerna når prompten när de finns. ─────────────────────────
+{
+  const p = buildPERSystemPrompt({ helpLevel: 1, style: { length: "kort", tone: "informell" } });
+  ok("V2 stilsignalerna når prompten", /## ELEVENS STIL/.test(p));
+}
+
+// ── V3: och nämns inte alls när de saknas. Ett tomt avsnitt är brus som ────
+//        modellen ändå försöker tolka.
+{
+  for (const stil of [null, undefined, {}, { length: null, tone: null }]) {
+    const p = buildPERSystemPrompt({ helpLevel: 1, style: stil });
+    ok(`V3 ingen stilsektion när signalen saknas (${JSON.stringify(stil)})`, !/## ELEVENS STIL/.test(p));
+  }
+}
+
+// ── V4: REGRESSIONEN som är värd mest. Stilen får aldrig överrösta ────────
+//        hjälpnivån. "Eleven vill ha korta svar" får inte bli en ursäkt att
+//        hoppa över pedagogiken och slänga fram facit — det är exakt samma
+//        sorts motsägelse som A1 tog bort.
+{
+  const p = buildPERSystemPrompt({
+    helpLevel: 0,
+    style: { length: "kort", tone: "informell" },
+    pageContext: provKontext(),
+  });
+  ok("V4 stilen lyfter inte förbudet mot att ge svaret", /Ge INTE svaret/.test(p));
+  ok("V4 stilen beordrar inte direktsvar", !BEORDRAR_DIREKTSVAR.test(p));
+  ok("V4 prompten säger uttryckligen att stilen inte styr innehållet",
+    /stilen styr inte|aldrig vad du säger|påverkar aldrig hjälpnivån/i.test(p));
+}
+
+// ── V5: signalen härleds ur elevens EGNA meddelanden. Ren funktion. ───────
+{
+  const msgs = (...t) => t.map(c => ({ role: "user", content: c }));
+
+  ok("V5 för få meddelanden ger ingen signal",
+    deriveStyleSignals(msgs("hej")) === null, JSON.stringify(deriveStyleSignals(msgs("hej"))));
+
+  const kort = deriveStyleSignals(msgs("hur", "vadå", "ok", "varför", "nä"));
+  ok("V5 en elev som skriver kort vill ha kort", kort && kort.length === "kort", JSON.stringify(kort));
+
+  const utförlig = deriveStyleSignals(msgs(
+    "Kan du förklara mer utförligt hur derivatan fungerar?",
+    "Jag förstår inte riktigt steget där emellan, kan du utveckla?",
+    "Vill gärna ha en längre förklaring med exempel om du kan."));
+  ok("V5 ett uttryckligt önskemål om mer väger tyngst",
+    utförlig && utförlig.length === "utförlig", JSON.stringify(utförlig));
+
+  // Assistentens egna meddelanden ska inte räknas — annars mäter signalen
+  // P.E.R:s stil och inte elevens, och profilen driver iväg av sig själv.
+  const blandat = [
+    { role: "assistant", content: "En lång och utförlig förklaring som fortsätter en bra bit till." },
+    { role: "user", content: "ok" }, { role: "user", content: "hur" }, { role: "user", content: "nä" },
+    { role: "user", content: "vadå" }, { role: "user", content: "varför" },
+  ];
+  const bara = deriveStyleSignals(blandat);
+  ok("V5 assistentens meddelanden räknas inte", bara && bara.length === "kort", JSON.stringify(bara));
+}
+
+// ── V6: tonen sätts bara när bevisningen är tydlig. Ett gissat "informell" ─
+//        på en elev som skriver formellt låter som att P.E.R läst fel person.
+{
+  const msgs = (...t) => t.map(c => ({ role: "user", content: c }));
+  const formell = deriveStyleSignals(msgs(
+    "Hur beräknar man derivatan av en produkt?",
+    "Kan du visa ett exempel på kedjeregeln?",
+    "Tack, det klargjorde saken."));
+  ok("V6 formell text ger inte tonen informell",
+    formell && formell.tone !== "informell", JSON.stringify(formell));
+
+  const informell = deriveStyleSignals(msgs("va", "hur fan gör man", "asså jag fattar inte", "näe", "vadå menar du"));
+  ok("V6 tydligt informell text känns igen",
+    informell && informell.tone === "informell", JSON.stringify(informell));
 }
 
 console.log(`\nper-pedagogy: ${pass} ok, ${fail.length} fail`);

@@ -2,7 +2,7 @@
 import { requireAuth } from "./_auth.js";
 import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt } from "./_per-core.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
-import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData } from "./_per-memory.js";
+import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
 import { helpCapFor } from "./_per-help.js";
@@ -443,6 +443,13 @@ export default async function handler(req, res) {
 
     /* Taket avgörs av servern ur provkontexten. helpLevel från klienten är ett
        önskemål — se api/_per-help.js för hela tabellen och skälet. */
+    /* Stilen härleds ur samtalshistoriken som redan finns i kroppen — samma
+       rader som skickas till modellen. Historiken kapas till de åtta senaste,
+       så signalen bygger på det senaste samtalet och inte på hela elevens
+       livstid. Det är en medveten begränsning: en stil som ändrats ska hinna
+       märkas, och en enstaka udda session ska inte fastna för alltid. */
+    const style = deriveStyleSignals(history);
+
     const helpCap = helpCapFor(pageContext);
     const helpLevel = Math.min(requestedLevel, helpCap);
 
@@ -454,6 +461,7 @@ export default async function handler(req, res) {
       requestedLevel,
       helpCap,
       clarifyReply,
+      style,
       pageContext,
       intent,
       mood,

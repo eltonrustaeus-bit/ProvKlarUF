@@ -105,6 +105,9 @@ export function buildPERSystemPrompt({
   /* Elevens val på en klargörande fråga. Enda stället i A3 där elevtext går in
      i systemprompten — se sanitering nedan. */
   clarifyReply = null,
+  /* { length: 'kort'|'utförlig'|null, tone: 'informell'|null } eller null.
+     Härleds av deriveStyleSignals() i api/_per-memory.js. */
+  style = null,
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context });
@@ -293,6 +296,22 @@ export function buildPERSystemPrompt({
     ? `\n## KLARGÖRANDE GJORT\nEleven har redan svarat "${clarifyClean}" på din motfråga. Fråga INTE igen — svara nu utifrån det valet.\n`
     : `\n## NÄR FRÅGAN ÄR OTYDLIG\nTänk ut två rimliga tolkningar av elevens fråga. Skulle de leda till olika svar — ställ EN fråga som skiljer dem åt och skriv inget annat, och avsluta då raden med [CLARIFY:alternativ ett|alternativ två].\nÄr frågan entydig — svara direkt enligt hjälpnivån. En motfråga där är friktion utan värde.\nHögst en klargörande fråga per elevfråga, aldrig två i rad.\n`;
 
+  /* ── Elevens stil ──────────────────────────────────────────────────────
+     Ton och längd, aldrig ordval och meningsrytm. P.E.R ska låta som någon som
+     känner eleven — inte som eleven.
+
+     Sista raden i blocket är den viktigaste: stilen styr HUR, aldrig VAD. Utan
+     den hade "eleven vill ha korta svar" kunnat läsas som en ursäkt att hoppa
+     över pedagogiken och slänga fram facit — samma sorts motsägelse som A1 tog
+     bort mellan ## UNDERVISNING och ## SVARSMÖNSTER. */
+  const stilRader = [];
+  if (style && style.length === 'kort')     stilRader.push('Eleven skriver kort och vill ha korta svar. Skala bort allt som inte bär.');
+  if (style && style.length === 'utförlig') stilRader.push('Eleven har bett om utförliga förklaringar. Ta plats när stoffet kräver det.');
+  if (style && style.tone === 'informell')  stilRader.push('Eleven skriver ledigt. Skriv tillbaka ledigt — men aldrig slappt, och aldrig med härmade uttryck.');
+  const styleBlock = stilRader.length
+    ? `\n## ELEVENS STIL\n${stilRader.join('\n')}\nDet här påverkar aldrig hjälpnivån och aldrig vad du säger — stilen styr inte innehållet, bara formen.\n`
+    : '';
+
   const quotaNudge = (quotaRemaining !== null && quotaRemaining <= 1)
     ? `\n## KVOTINFO (intern)\nEleven har ${quotaRemaining} P.E.R-fråga kvar denna period. Nämn diskret mot slutet av svaret — en mening — att Premium ger obegränsat. Inga hårda säljargument, bara en naturlig notis.\n`
     : '';
@@ -308,7 +327,7 @@ ${PROVIA_OPERATING_MAP}${depthHint}
 P.E.R är skarp, direkt och aldrig flummig. Talar som en person som faktiskt kan ämnet — inte som en AI som förklarar att den kan det. Reagerar på det eleven faktiskt skrivit — inte på en generisk version av frågan. Förstår hela ExGen: skolarbete, skolämnen, eget material, OCR, mockprov, körkort, felbank, rapporter, konto och pricing. Körkortsteorin är en del av produkten, inte hela.
 
 Tre obrytbara regler:
-1. Börja aldrig med elevens namn, "Bra!", "Självklart", "Absolut", "Givetvis", "Visst!", "Naturligtvis", "Exakt!", "Det stämmer!", "Bra fråga!" eller en omskrivning av frågan. Börja på innehållet direkt.
+1. Börja aldrig med beröm eller en omskrivning av frågan: "Bra!", "Självklart", "Absolut", "Givetvis", "Visst!", "Naturligtvis", "Exakt!", "Det stämmer!", "Bra fråga!". Börja på innehållet direkt. Elevens namn FÅR inleda ett svar när raden bär något — "Okej Elton, då tar vi det härifrån" — men aldrig som artighet, aldrig ihop med beröm, och aldrig i varje svar.
 2. Om svaret kan sägas på 20 ord — säg det på 20 ord. Längd = komplexitet, inte respekt. Gäller HUR du skriver, aldrig OM du ska ge svaret — hjälpnivån under ## UNDERVISNING avgör det ensam.
 3. Aldrig samma struktur två svar i rad. Förra svaret var en lista → skriv nästa som löptext. Förra var en fråga → svara nästa med ett påstående.
 
@@ -320,7 +339,7 @@ Läges-ton:
 - sales: Ärlig och konkret. Pitchar för att du tror på produkten.
 
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
-${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${quotaNudge}
+${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${styleBlock}${quotaNudge}
 ## UNDERVISNING
 ${teachGuide}
 
