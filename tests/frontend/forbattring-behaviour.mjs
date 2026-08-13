@@ -77,10 +77,13 @@ const ROWS = [
 // proviaai_history och proviaai_mistakes med vad Supabase svarade. Att seeda
 // dem i localStorage fungerar inte — datan måste komma via user_exams, vilket
 // också gör att testet går genom mergeMistakes().
-async function mk(nExams = 3) {
+// Sidan är ett skärmflöde sedan Del E: en skärm i taget, med location.hash som
+// sanning. En kontroll som mäter felbanken måste alltså öppna felbanken —
+// annars mäter den ingången, där #mistakeList inte har någon yta.
+async function mk(nExams = 3, screen = "") {
   const rows = ROWS.slice(0, nExams);
-  return openPage(browser, `${srv.url}/förbättring.html`, {
-    height: 900, settle: 1200,
+  return openPage(browser, `${srv.url}/förbättring.html${screen ? "#" + screen : ""}`, {
+    height: 900, settle: 1400,
     mocks: { extra: [["**/rest/v1/user_exams**", r => r.fulfill({ json: rows })]] },
   });
 }
@@ -129,7 +132,7 @@ async function mark(page, id) {
 // ── 0: sidan har den data testet tror ────────────────────────────────────
 // Utan den här hade fälla 3 gett sex gröna kontroller på en tom sida.
 {
-  const { ctx, page } = await mk();
+  const { ctx, page } = await mk(3, "felbank");
   const st = await page.evaluate(() => ({
     hist: JSON.parse(localStorage.getItem("proviaai_history") || "[]").length,
     mist: JSON.parse(localStorage.getItem("proviaai_mistakes") || "[]").length,
@@ -141,17 +144,20 @@ async function mark(page, id) {
   // Kolumnen är hela poängen med "samma format som app-sidan". Utan en
   // kontroll här kan den glida tillbaka till sidans gamla bredd utan att något
   // annat test märker det.
+  //
+  // .xf-measure ersattes av skärmväxlarens .xf-inner. Samma mått, samma token
+  // (--xf-measure) — och nu samma element som provskaparen bygger.
   const col = await page.evaluate(() => {
-    const e = document.querySelector(".xf-measure");
+    const e = document.querySelector(".xf-screen.on .xf-inner");
     if (!e) return null;
     return { w: Math.round(e.getBoundingClientRect().width), token: getComputedStyle(document.documentElement).getPropertyValue("--xf-measure").trim() };
   });
-  ok("0d innehållet ligger i .xf-measure", !!col, "ingen .xf-measure");
+  ok("0d innehållet ligger i skärmens .xf-inner", !!col, "ingen .xf-inner");
   ok("0d2 kolumnen är app-sidans 580px", col && col.w === 580, JSON.stringify(col));
   await ctx.close();
 }
 
-// ── 1: alla fem mål leder till något synligt ─────────────────────────────
+// ── 1: alla fyra mål leder till något synligt ────────────────────────────
 // Drivs genom P.E.R:s riktiga väg — [GOTO:#id] i ett svar, sedan klick på
 // knappen som dyker upp. __perTestCtx().targets bär id och etikett men INTE
 // go(); funktionen överlever inte kontextpaketeringen, så ett test som anropar
@@ -159,8 +165,10 @@ async function mark(page, id) {
 {
   const { ctx, page } = await mk();
   const ids = await page.evaluate(() => (window.__perTestCtx().targets || []).map(t => t.id));
-  ok("1a fem mål deklareras", ids.length === 5, JSON.stringify(ids));
-  ok("1b rätt id", ["prov", "coach", "rapport", "trana", "felbank"].every(i => ids.includes(i)), JSON.stringify(ids));
+  // Fyra mål sedan Del E, ett per skärm. Av de gamla fem pekade "trana" och
+  // "felbank" på samma zon — ett mål som inte kunde skilja sig från ett annat.
+  ok("1a fyra mål deklareras", ids.length === 4, JSON.stringify(ids));
+  ok("1b rätt id", ["felbank", "prov", "coach", "rapport"].every(i => ids.includes(i)), JSON.stringify(ids));
 
   await page.click("#perBubble");
   for (const id of ids) {
@@ -177,24 +185,23 @@ async function mark(page, id) {
       // Svagaste kravet som ändå utesluter en no-op: ett ankare som hör till
       // målet finns i DOM:en och har en yta. Listan täcker både dagens
       // dragspel och Del B:s zoner, så kontrollen överlever ombyggnaden.
-      const anchors = ["#examSection", "#coachSection", "#reportSection", "#trainSection", "#mistakeSection",
-        "#zonProv", "#zonCoach", "#zonRapport", "#zonFelbank", "#trainActions"];
-      const shown = anchors.filter(sel => {
-        const el = document.querySelector(sel);
-        if (!el) return false;
-        const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0;
-      });
-      return { shown: shown.length };
+      // Svagaste kravet som ändå utesluter en no-op: målets EGEN skärm är
+      // den som syns. Förut räckte "något ankare har yta", eftersom alla
+      // zoner låg uppe samtidigt och en no-op inte gick att skilja från en
+      // träff. Nu är exakt en skärm synlig, så kravet kan vara skarpt.
+      const på = [...document.querySelectorAll(".xf-screen")]
+        .filter(s => s.getBoundingClientRect().height > 0)
+        .map(s => s.dataset.screen);
+      return { shown: på.length, skärm: på[0] || null, ville: tid };
     }, id);
-    ok(`1c målet "${id}" är ingen no-op`, !res.err && res.shown > 0, JSON.stringify(res));
+    ok(`1c målet "${id}" öppnar sin egen skärm`, !res.err && res.shown === 1 && res.skärm === id, JSON.stringify(res));
   }
   await ctx.close();
 }
 
 // ── 2: markering uppdaterar räknare och lagring ──────────────────────────
 {
-  const { ctx, page } = await mk();
+  const { ctx, page } = await mk(3, "felbank");
   const p0 = await pick(page);
   ok("2a inget markerat från start", !p0 || !p0.ids || p0.ids.length === 0, JSON.stringify(p0));
 
@@ -214,7 +221,7 @@ async function mark(page, id) {
 
 // ── 3: "Träna markerade" tar med exakt de markerade ──────────────────────
 {
-  const { ctx, page } = await mk();
+  const { ctx, page } = await mk(3, "felbank");
   await mark(page, "m2");
   await page.waitForTimeout(300);
   // Urvalet ska ligga i lagringen NÄR knappen trycks — det är överlämningen.
@@ -233,7 +240,7 @@ async function mark(page, id) {
 
 // ── 4: "Rensa val" nollar både markering och räknare ─────────────────────
 {
-  const { ctx, page } = await mk();
+  const { ctx, page } = await mk(3, "felbank");
   await mark(page, "m1");
   await page.waitForTimeout(300);
   await reveal(page, "#clearSelectionBtn");
@@ -247,7 +254,7 @@ async function mark(page, id) {
 
 // ── 5: kursfiltret filtrerar prov och felbank samtidigt ──────────────────
 {
-  const { ctx, page } = await mk();
+  const { ctx, page } = await mk(3, "felbank");
   await reveal(page, "#courseFilter");
   await page.selectOption("#courseFilter", "Matematik 2b");
   await page.waitForTimeout(700);
@@ -261,83 +268,51 @@ async function mark(page, id) {
   ok("5c biologifrågan syns igen", bAll.includes("mitokondrien"));
   ok("5d mattefrågan är borta", !bAll.includes("Derivatan"));
 
-  // Provlistan är vägen in till felbanken — dess egen undertext lovar "klicka
-  // för att se felbank". Hela raden är kontrollen numera; tidigare låg en liten
-  // knapp inuti ett kort. Att klicka den ska sätta kursfiltret.
-  await page.selectOption("#courseFilter", "");
-  await page.waitForTimeout(500);
-  const rows = page.locator("#examList .xf-opt, #examList .dataCard");
+  await ctx.close();
+}
+
+// ── 5e: provlistan är vägen in till felbanken ────────────────────────────
+// Egen sida sedan Del E: provlistan bor i prov-skärmen och kursväljaren i
+// felbank-skärmen, så kontrollen måste börja på den ena och sluta på den
+// andra. Hela raden är kontrollen; tidigare låg en liten knapp inuti ett kort.
+{
+  const { ctx, page } = await mk(3, "prov");
+  const rows = page.locator("#examList .xf-opt");
   if (await rows.count()) {
     const label = (await rows.first().innerText()).split("\n")[0].trim();
-    await reveal(page, "#examList");
     await rows.first().click({ force: true });
-    await page.waitForTimeout(600);
-    const val = await page.inputValue("#courseFilter");
-    ok("5e klick på provrad sätter kursfiltret", val === label, `rad "${label}" → filter "${val}"`);
+    await page.waitForTimeout(800);
+    const v = await page.evaluate(() => ({
+      skärm: [...document.querySelectorAll(".xf-screen")]
+        .filter(s => s.getBoundingClientRect().height > 0).map(s => s.dataset.screen)[0],
+      kurs: document.getElementById("courseFilter")?.value,
+    }));
+    ok("5e klick på provrad öppnar felbanken med kursen vald",
+      v.skärm === "felbank" && v.kurs === label, `rad "${label}" → ${JSON.stringify(v)}`);
   } else {
-    ok("5e klick på provrad sätter kursfiltret", false, "inga provrader renderade");
+    ok("5e klick på provrad öppnar felbanken med kursen vald", false, "inga provrader renderade");
   }
   await ctx.close();
 }
 
 // ── 6: rapportgrinden går vid tre prov ───────────────────────────────────
 {
-  const { ctx, page } = await mk(2);
+  const { ctx, page } = await mk(2, "rapport");
   ok("6a avstängd vid två prov", await page.isDisabled("#genReportBtn"));
   await ctx.close();
 }
 {
-  const { ctx, page } = await mk(3);
+  const { ctx, page } = await mk(3, "rapport");
   ok("6b påslagen vid tre prov", await page.isEnabled("#genReportBtn"));
   await ctx.close();
 }
 
-// ── 7: språkväxlingen byter varje etikett den byter idag ─────────────────
-// Ingen jämförelse mot hårdkodade strängar och ingen testkrok i produktionen.
-// I stället: mät VILKA id:n som byter text när språket växlas. Den mängden är
-// kontraktet. Tappar Del B en etikett ur applyLang() faller dess id ur mängden
-// och testet blir rött — vilket är precis det tysta felet som annars bara
-// visar sig som en svensk rad mitt i en engelsk sida.
-// Golvet är MÄTT, inte valt. Sjunker siffran har en etikett tappats ur
-// applyLang() — vilket aldrig ger ett fel, bara en svensk rad mitt i en engelsk
-// sida.
-//
-// 30 mätt före Del B. Sedan 28: readyTitle och readySub togs bort med flit i
-// zon 2, eftersom träningssektionen upphörde som eget område. Sedan 32, när
-// ögonblicksbilden slutade bara titta på lövnoder och fick med howToText,
-// courseFilter, resetBtn och toAppBtn — fyra etiketter som bytte språk hela
-// tiden utan att någon mätte det.
-//
-// Golvet flyttas bara tillsammans med en sådan motivering — aldrig för att få
-// en körning grön.
-const LANG_IDS_FLOOR = 32;
-{
-  const { ctx, page } = await mk();
-  const changed = await page.evaluate(async () => {
-    // Tar med varje id-bärande element som inte innehåller ett ANNAT id — inte
-    // bara lövnoder. howToText har ett <strong> inuti sig och missades helt av
-    // en lövnodsregel, trots att hela dess text byter språk.
-    const snap = () => {
-      const o = {};
-      document.querySelectorAll("[id]").forEach(el => {
-        if (el.querySelector("[id]")) return;
-        const t = (el.textContent || "").trim();
-        if (t.length && t.length < 300) o[el.id] = t;
-      });
-      return o;
-    };
-    const before = snap();
-    document.getElementById("langBtn").click();
-    await new Promise(r => setTimeout(r, 600));
-    const after = snap();
-    return Object.keys(before).filter(k => k in after && before[k] !== after[k] && (before[k] || after[k]));
-  });
-  ok("7a språkknappen byter många etiketter", changed.length >= LANG_IDS_FLOOR, `${changed.length} bytte, golv ${LANG_IDS_FLOOR}`);
-  // Skrivs ut varje körning så att en tappad etikett går att peka ut, inte bara
-  // räkna. Diffa listan mot en tidigare körning när siffran sjunker.
-  console.log(`  info  språkbytande id:n (${changed.length}): ${changed.sort().join(" ")}`);
-  await ctx.close();
-}
+// ── 7 är borta ───────────────────────────────────────────────────────────
+// Kontrollen mätte att språkväxlingen bytte minst 28 etiketter. Hela i18n-
+// lagret på sidan är rivet i Del E — beslutet var att ta bort språkväxlaren
+// helt, eftersom den fanns på två sidor av femton och de övriga aldrig
+// översattes. Det finns ingenting kvar att mäta, så kontrollen tas bort i
+// stället för att sänkas till noll och stå kvar som ett tomt löfte.
 
 } catch (e) { crash = e; }
 

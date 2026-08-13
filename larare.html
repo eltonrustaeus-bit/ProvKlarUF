@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="exgen-shell.css" />
   <!-- ExGens delade formspråk: rösten, kortet, knapparna, måttet. -->
   <link rel="stylesheet" href="exgen-ui.css" />
+  <script src="js/exgen-shell.js" defer></script>
   <script src="shared.js" defer></script>
   <style>
   /* ── LÄRARPANEL — matches konto.html design system ── */
@@ -173,17 +174,8 @@
   </style>
 </head>
 <body>
+<div data-xg-header></div>
   <div class="wrap">
-    <nav class="topNav">
-      <div class="xg-brand-name" style="display:flex;align-items:center;gap:6px"><img src="image/exgen-logo.png" alt="ExGen" style="height:18px;width:auto"> · Lärare</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <a class="btn ghost" href="/app.html">← Appen</a>
-        <!-- data-pv-auth opens the shared modal while logged out; shared.js
-             relabels .xg-login-btn to "Mitt konto" once a session exists. This
-             page previously had no login control of any kind. -->
-        <a class="btn ghost xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
-      </div>
-    </nav>
 
     <!-- Samma form som provskaparen och de andra sidorna: orben och rösten i
          stället för en egen rubrikvärld. Texten är beskrivande och inte en

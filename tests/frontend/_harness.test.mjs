@@ -142,6 +142,40 @@ okf("H8 DOMRect-formen (left/top/right/bottom) förstås",
     if (/sb-mnmotdluigzeehdjbhbu-auth-token/.test(kod)) egna.token.push(f);
     if (/function\s+rectsOverlap|const\s+rectsOverlap\s*=/.test(kod)) egna.geometri.push(f);
   }
+/* Skärmväxlaren är det andra delade lagret efter riggen. Samma resonemang:
+   att js/xf-screens.js och js/exam-flow.js har var sin implementation av samma
+   idé är ett medvetet och avgränsat beslut — provflödet rörs inte — men en
+   tredje ska inte kunna glida in tyst. Kontrollen letar efter en egen
+   skärmväxlare: något som togglar .xf-screen-klassen. */
+{
+  const jsDir = join(dirname(fileURLToPath(import.meta.url)), "../../js");
+  const tillåtna = new Set(["xf-screens.js", "exam-flow.js"]);
+  const egna = [];
+  for (const f of fs.readdirSync(jsDir)) {
+    if (!f.endsWith(".js") || tillåtna.has(f)) continue;
+    const kod = fs.readFileSync(join(jsDir, f), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    if (/xf-screen/.test(kod) && /classList/.test(kod)) egna.push(f);
+  }
+  okf("H23 ingen fil bygger en egen skärmväxlare", egna.length === 0, egna.join(", "));
+}
+
+/* Sidhuvudet renderas av js/exgen-shell.js. En sida som skriver sitt eget
+   header-block igen är exakt hur de åtta divergerade versionerna uppstod.
+   korkortet.html och de andra avstängda modulerna är undantagna — de migreras
+   den dag flaggan i js/exgen-modules.js sätts till true. */
+{
+  const rot = join(dirname(fileURLToPath(import.meta.url)), "../..");
+  const undantag = new Set(["korkortet.html", "provia-hp.html", "live-demo.html",
+    "snart.html", "aterstall.html", "juridik.html", "google52ca1d3d9412d7b8.html"]);
+  const egna = [];
+  for (const f of fs.readdirSync(rot)) {
+    if (!f.endsWith(".html") || undantag.has(f)) continue;
+    if (/<header[^>]*class="[^"]*xg-header/.test(fs.readFileSync(join(rot, f), "utf8"))) egna.push(f);
+  }
+  okf("H24 ingen sida skriver sitt eget sidhuvud", egna.length === 0, egna.join(", "));
+}
+
   okf("H20 ingen fil bygger en egen statisk server", egna.server.length === 0, egna.server.join(", "));
   okf("H21 ingen fil seedar sessionsnyckeln själv", egna.token.length === 0, egna.token.join(", "));
   okf("H22 ingen fil har en egen rectsOverlap", egna.geometri.length === 0, egna.geometri.join(", "));

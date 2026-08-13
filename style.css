@@ -292,11 +292,23 @@ header:not(.xg-header) {
 /* Hide brand tag on small screens to save header space */
 @media (max-width: 640px) { .bTag, .brandTag { display: none; } }
 
-/* ── MENU ── */
-/* supports: .mWrap (index/pricing) and .menuWrap (app/korkortet) */
-.mWrap, .menuWrap { position: relative; z-index: 4000; }
-/* supports: .mBtn (index/pricing) and .menuBtn (app/korkortet) */
-.mBtn, .menuBtn {
+/* ── MENY — bara korkortet.html ──
+   Huvudet renderas numera av js/exgen-shell.js med klasser i xg-namnrymden,
+   och åtta sidor är migrerade. Reglerna nedan står kvar av exakt ett skäl:
+   korkortet.html är inte migrerad, eftersom modulen "korkort" är avstängd i
+   js/exgen-modules.js och sidan omdirigerar till startsidan.
+
+   Det här är alltså inte dubblering som glömts bort — det är den sista
+   användaren av en gammal vokabulär. Halvan som hörde till de migrerade
+   sidorna (.mWrap, .mBtn, .bars, .drop, .ddi, .ddi-ico, .dpill) är raderad,
+   liksom .mPageTitle, som var stylad och användes på noll sidor. Resten ska
+   bort samma dag korkortsmodulen antingen släpps och migreras, eller tas bort.
+
+   .dropdown.open är korkortets egen öppna-klass (korkortet.html:2729). Två
+   andra stöddes tidigare samtidigt — .drop.on och .dropdown.is-open — och
+   båda är borta med sina sidor. */
+.menuWrap { position: relative; z-index: 4000; }
+.menuBtn {
   width: 44px; height: 44px; padding: 0;
   display: grid; place-items: center;
   border: 1px solid var(--l); border-radius: var(--r);
@@ -304,29 +316,22 @@ header:not(.xg-header) {
   touch-action: manipulation; user-select: none;
   transition: border-color .15s ease, background .15s ease, color .15s ease;
 }
-.mBtn:hover, .menuBtn:hover { border-color: var(--l2); background: var(--a-dim); color: var(--t); }
-.mBtn:focus-visible, .menuBtn:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
-/* supports: .bars (index/pricing) and .barsIcon (app/korkortet) */
-.bars, .barsIcon { display: grid; gap: 3.5px; width: 16px; }
-.bars span, .barsIcon span { display: block; height: 1.5px; background: currentColor; border-radius: 1px; }
-/* supports: .drop (index/pricing) and .dropdown (app/korkortet) */
-.drop, .dropdown {
+.menuBtn:hover { border-color: var(--l2); background: var(--a-dim); color: var(--t); }
+.menuBtn:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+.barsIcon { display: grid; gap: 3.5px; width: 16px; }
+.barsIcon span { display: block; height: 1.5px; background: currentColor; border-radius: 1px; }
+.dropdown {
   position: absolute; right: 0; top: calc(100% + 8px); min-width: 240px;
   background: var(--s); border: 1px solid var(--l2); border-radius: 14px;
+  /* Ja, 50 % svart på en vit sida — en rest från ett mörkt tema. Den lagas
+     inte här: korkortet.html är utanför den här omgången, och att ändra hur
+     dess meny ser ut vore en ändring ingen bett om på en sida som just nu
+     omdirigerar. Tas när modulen släpps. */
   box-shadow: 0 16px 48px rgba(0,0,0,.5); padding: 6px;
   display: none; opacity: 0; transform: translateY(-5px) scale(.99); z-index: 5000;
 }
-.drop.on, .dropdown.is-open {
-  display: block; opacity: 1; transform: none;
-  transition: opacity .15s cubic-bezier(.22,.61,.36,1), transform .15s cubic-bezier(.22,.61,.36,1);
-}
-.drop.off, .dropdown.is-closing {
-  display: block; opacity: 0; transform: translateY(-4px);
-  transition: opacity .11s, transform .11s;
-}
 .dropdown.open { display: block; opacity: 1; transform: none; animation: fadeIn .15s ease; }
-/* supports: .ddi (index/pricing) and .ddItem (app/korkortet) */
-.ddi, .ddItem {
+.ddItem {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 11px 14px; min-height: 46px; border-radius: 8px; border: 1px solid transparent;
   background: transparent; cursor: pointer;
@@ -334,19 +339,13 @@ header:not(.xg-header) {
   color: var(--t2); text-align: left;
   transition: background .12s, border-color .12s, color .12s;
 }
-.ddi:hover, .ddItem:hover { background: var(--a-dim); border-color: var(--l); color: var(--t); }
-.ddi:focus-visible, .ddItem:focus-visible { outline: 2px solid var(--a); outline-offset: 1px; }
-/* Drop item icon — icon stays adjacent to text, pill pushed right */
-.ddi-ico { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; line-height: 1; }
-.ddi-ico + span { flex: 1; }
-/* Hamburger active state */
-.mBtn.open, .menuBtn.open { border-color: var(--a); background: var(--a-dim); color: var(--a); }
-/* Mobile page title in header */
-.mPageTitle { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: .08em; text-transform: uppercase; display: none; }
-@media (max-width: 720px) { .mPageTitle { display: block; } }
+.ddItem:hover { background: var(--a-dim); border-color: var(--l); color: var(--t); }
+.ddItem:focus-visible { outline: 2px solid var(--a); outline-offset: 1px; }
+.ddItem .ddi-ico { font-size: 16px; flex-shrink: 0; width: 24px; text-align: center; line-height: 1; }
+.ddItem .ddi-ico + span { flex: 1; }
+.menuBtn.open { border-color: var(--a); background: var(--a-dim); color: var(--a); }
 
-/* supports: .dpill (index/pricing) and .ddPill (app/korkortet) */
-.dpill, .ddPill {
+.ddPill {
   font-family: var(--mono); font-size: 10px; font-weight: 500;
   color: var(--t3); letter-spacing: .06em;
   border: 1px solid var(--l); border-radius: var(--r2); padding: 2px 7px;
@@ -502,7 +501,7 @@ select option { background: var(--s); color: var(--t); }
 .hNavLink:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
 
 /* ── ACTIVE DROPDOWN ITEM ── */
-.ddi.active, .ddItem.active {
+.ddItem.active {
   background: var(--a-dim);
   color: var(--a);
   border-color: var(--l2);

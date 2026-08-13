@@ -74,7 +74,9 @@ async function mk(path) {
 {
   const { ctx, page } = await mk("/förbättring.html");
   const t2 = await page.evaluate(() => (window.__perTestCtx().targets || []).map(t => t.id));
-  ok("T2a fem sektionsmål", t2.length === 5, JSON.stringify(t2));
+  // Fyra sedan Del E, ett per skärm. Av de gamla fem pekade "trana" och
+  // "felbank" på samma zon — ett mål som inte kunde skilja sig från ett annat.
+  ok("T2a fyra sektionsmål, ett per skärm", t2.length === 4, JSON.stringify(t2));
   ok("T2b felbank finns med", t2.indexOf("felbank") !== -1, JSON.stringify(t2));
 
   // de gamla fälten överlevde utökningen
@@ -84,8 +86,6 @@ async function mk(path) {
 
   // Målet tar eleven till felbanken. Kontrollerade tidigare att #mistakeSection
   // tappade sin .collapsed — men Del B tog bort dragspelen, så det finns inget
-  // att fälla ut längre. Zonen ligger alltid framme och målet markerar den i
-  // stället, samma .xfZone--flash-mönster som .planCard--flash ovan.
   await page.click("#perBubble");
   await page.evaluate(() => {
     const msgs = document.getElementById("perMessages");
@@ -95,8 +95,16 @@ async function mk(path) {
   });
   await page.click("#perMessages .per-nav-cta >> nth=-1");
   await page.waitForTimeout(400);
-  const flashed = await page.evaluate(() => !!document.querySelector("#zonFelbank.xfZone--flash"));
-  ok("T2e målet markerar felbankszonen", flashed === true);
+  // Sidan är ett skärmflöde sedan Del E. Målet markerar inte längre en zon som
+  // ligger framme — det NAVIGERAR, vilket är ett skarpare krav: exakt en skärm
+  // syns, och det är felbanken.
+  const v = await page.evaluate(() => ({
+    på: [...document.querySelectorAll(".xf-screen")]
+      .filter(s => s.getBoundingClientRect().height > 0).map(s => s.dataset.screen),
+    hash: location.hash,
+  }));
+  ok("T2e målet öppnar felbanksskärmen", v.på.length === 1 && v.på[0] === "felbank" && v.hash === "#felbank",
+    JSON.stringify(v));
   await ctx.close();
 }
 

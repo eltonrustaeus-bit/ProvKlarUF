@@ -15,6 +15,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
+  <script src="js/exgen-shell.js" defer></script>
   <style>
   .pageHero{padding:32px 0 24px;border-bottom:1px solid var(--l);margin-bottom:24px}
   .pageSub{font-size:13px;color:var(--t2);line-height:1.7}
@@ -140,33 +143,7 @@
   </div>
 </div>
 
-<!-- HEADER -->
-<header>
-  <div class="hWrap">
-    <a class="brand" href="index.html">
-      <div>
-        <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto;display:block">
-        <div class="bTag">Admin · Användare</div>
-      </div>
-    </a>
-    <div class="hR">
-      <span class="aiStatus">
-        <span id="adminLabel">Kontrollerar åtkomst…</span>
-      </span>
-      <div class="mWrap">
-        <button class="mBtn" id="mBtn" type="button" aria-label="Meny" aria-expanded="false">
-          <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-        </button>
-        <div class="drop" id="drop">
-          <a class="ddi" href="index.html"><span>Startsidan</span><span class="dpill">Hem</span></a>
-          <a class="ddi" href="app.html"><span>Starta ExGen</span><span class="dpill">App</span></a>
-          <a class="ddi" href="pricing.html"><span>Priser</span><span class="dpill">29/79</span></a>
-          <a class="ddi" href="förbättring.html"><span>Min utveckling</span><span class="dpill">Coach</span></a>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
+<div data-xg-header></div>
 
 <main>
 <div class="wrap">
@@ -175,6 +152,9 @@
     <div class="eyebrow">Admin</div>
     <h1 class="pageTitle">Användarhantering</h1>
     <p class="pageSub">Hantera roller och åtkomst för alla ExGen-användare.</p>
+    <!-- Stod tidigare i sidhuvudet. En status om åtkomst hör hemma vid det
+         den gäller, inte i sajtens navigering. -->
+    <p class="pageSub" id="adminLabel">Kontrollerar åtkomst…</p>
   </div>
 
   <!-- ADMIN TOOLS -->

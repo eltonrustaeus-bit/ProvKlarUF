@@ -409,3 +409,56 @@ body.per-focused .xf-orb { --xf-breathe: 2s; }
   margin-top: var(--exgen-space-3);
   min-height: 18px;
 }
+
+/* ── Skärmar ─────────────────────────────────────────────────────────────── */
+/* Bodde i exam-flow.css tills js/xf-screens.js gav dem en andra användare.
+   Förbättringssidan kan inte ladda exam-flow.css — den drar med sig .xf-exam
+   som position:fixed över hela viewporten på en sida utan prov. app.html laddar
+   båda filerna, så flytten syns inte där.
+
+   Behållaren ägs INTE här. exam-flow.css sätter #xf till min-height:100dvh och
+   display:flex för provflödets räkning; en annan konsument bestämmer själv.
+   flex:1 nedan är helt enkelt inert om föräldern inte är en flexbehållare. */
+
+.xf-screen {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(24px, 6vh, 72px) 20px calc(96px + env(safe-area-inset-bottom, 0px));
+}
+
+.xf-screen.on { display: flex; }
+
+.xf-inner {
+  width: 100%;
+  max-width: var(--xf-measure);
+  /* auto-marginal i stället för justify-content:center. Båda centrerar när
+     innehållet får plats, men centrering klipper toppen när det inte gör det —
+     och resultatskärmen med tolv frågor gör det aldrig. */
+  margin: auto 0;
+}
+
+/* Varje skärm kommer in genom att lyfta sig själv. Kort och en gång — rörelse
+   som säger "ny skärm", inte rörelse som underhållning. */
+.xf-screen.on > .xf-inner {
+  animation: xf-rise var(--exgen-motion-slow) var(--exgen-motion-ease) both;
+}
+
+/* Skärmbytet flyttar fokus till rubriken så att en skärmläsare annonserar den
+   nya skärmen. Rubriken är inte interaktiv — den bär tabindex="-1" enbart för
+   att gå att fokusera programmatiskt — men Chromium låter den ändå matcha
+   :focus-visible och målar sin egen ring (auto 1px rgb(0,95,204), mätt).
+
+   Ringen tas bort. För den som ser är hela skärmbytet återkopplingen; en ram
+   runt rubriken tillför ingenting och läser som ett renderingsfel. Fokus
+   flyttas fortfarande, så annonseringen och tangentbordsordningen är oförändrade.
+   Det här gällde app.html redan innan förbättringssidan fick skärmar. */
+.xf-say:focus { outline: none; }
+
+/* Keyframe-varaktigheter går inte genom --exgen-motion-*, som exgen-tokens.css
+   nollar under reduced-motion. Lyftet stoppas därför här, bredvid det det
+   stänger av. Regeln följde med från exam-flow.css:s samlade motion-block. */
+@media (prefers-reduced-motion: reduce) {
+  .xf-screen.on > .xf-inner { animation: none !important; opacity: 1 !important; transform: none !important; }
+}

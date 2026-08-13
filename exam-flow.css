@@ -47,31 +47,11 @@
 }
 
 /* ── Skärm ───────────────────────────────────────────────────────────────── */
-
-.xf-screen {
-  flex: 1;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  padding: clamp(24px, 6vh, 72px) 20px calc(96px + env(safe-area-inset-bottom, 0px));
-}
-
-.xf-screen.on { display: flex; }
-
-.xf-inner {
-  width: 100%;
-  max-width: var(--xf-measure);
-  /* auto-marginal i stället för justify-content:center. Båda centrerar när
-     innehållet får plats, men centrering klipper toppen när det inte gör det —
-     och resultatskärmen med tolv frågor gör det aldrig. */
-  margin: auto 0;
-}
-
-/* Varje skärm kommer in genom att lyfta sig själv. Kort och en gång — rörelse
-   som säger "ny skärm", inte rörelse som underhållning. */
-.xf-screen.on > .xf-inner {
-  animation: xf-rise var(--exgen-motion-slow) var(--exgen-motion-ease) both;
-}
+/* .xf-screen och .xf-inner bor numera i exgen-ui.css, tillsammans med resten av
+   det delade formspråket. De flyttade när js/xf-screens.js gav dem en andra
+   användare: förbättringssidan kan inte ladda den här filen, eftersom den drar
+   med sig .xf-exam som position:fixed över hela viewporten på en sida utan
+   prov. app.html laddar båda filerna, så flytten syns inte här. */
 
 /* ── Läsraden under materialet ───────────────────────────────────────────── */
 /* Växer medan eleven skriver. Det enda stället där appen visar att den redan
@@ -640,7 +620,8 @@ body.xf-in-exam.xf-per-open #perWidget {
 @media (prefers-reduced-motion: reduce) {
   .xf-orb::after,
   .xf-say.typing::after { animation: none !important; }
-  .xf-screen.on > .xf-inner,
+  /* .xf-screen.on > .xf-inner stängs av i exgen-ui.css, där animationen numera
+     står — regeln hör ihop med det den stänger av. */
   .xf-sheet,
   .xf-log div,
   .xf-nudge { animation: none !important; opacity: 1 !important; transform: none !important; }

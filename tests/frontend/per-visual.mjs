@@ -152,6 +152,20 @@ async function shot(base, page, view, tag) {
   return file;
 }
 
+/* Returnerar -1 när bilderna har olika mått, eftersom en jämförelse pixel för
+ * pixel då inte betyder något.
+ *
+ * ATT LÄSA: -1 i kolumnen "skillnad" betyder oftast en verklig höjdändring,
+ * men INTE alltid. Helsidesskärmdumpar fångar sidans höjd vid utlösningen, och
+ * den kan skilja en pixel mellan två skott av exakt samma träd — mätt: en
+ * körning gav -1 på pricing.html, nästa gav 2930 på samma sida med oförändrad
+ * kod, och samma körning gav -1 i BRUSGOLVET för index.html, alltså main mot
+ * main. Ett -1 i brusgolvskolumnen är själva beviset: instrumentet höll inte
+ * höjden stilla mot sig självt.
+ *
+ * Innan ett -1 tolkas som en ändring: kör om, eller mät höjden direkt i två
+ * träd. En pixel kan förskjuta hela sidan och få varje rad under att skilja
+ * sig, vilket ser ut som en total omritning. */
 async function diff(a, b) {
   const [ia, ib] = await Promise.all([
     sharp(a).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
