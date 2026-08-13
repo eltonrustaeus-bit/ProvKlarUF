@@ -163,8 +163,28 @@ export function buildPERContextPack({
       // Sträng på formen "12:40" — räknar UPPÅT från provstart, inte tid kvar.
       // Går genom cleanText som allt annat klientinnehåll (BLOCKED_CONTEXT_REGEX gäller).
       elapsed: cleanText(raw.examState.elapsed, 12) || undefined,
+      /* phase avgör hjälptaket i api/_per-help.js: om provet pågår eller är
+         inlämnat. Fältet saknades här, och föll därför bort på vägen in — före
+         helpCapFor() någonsin såg det. Följden var att taket 1 ("prov pågår,
+         inget försök") var oåtkomligt i produktion och att ## STUDIETEKNIK
+         aldrig kunde byggas efter ett rättat prov.
+
+         Inget test fångade det: serversidans kontroller anropade helpCapFor()
+         med ett handbyggt pageContext, och klientsidans mätte bara kroppen som
+         skickades. Ingen korsade gränsen där felet låg. Nu gör
+         tests/per/per-context-cap.test.mjs det.
+
+         Bara de två strängvärden klienten godtar släpps igenom. Allt annat —
+         objekt med toString(), påhittade lägen, tal — faller bort, precis som
+         helpCapFor räknar med. Fyndet kommer från spår B. */
+      phase: (raw.examState.phase === "exam" || raw.examState.phase === "result")
+        ? raw.examState.phase
+        : undefined,
     };
-    if (examState.answered !== undefined || examState.remaining !== undefined || examState.elapsed !== undefined) {
+    /* phase räknas som skäl nog att behålla examState. Resultatskärmen skickar
+       INGA provsiffror — bara phase — och utan den här raden slängdes hela
+       objektet, vilket var den andra halvan av samma fel. */
+    if (examState.answered !== undefined || examState.remaining !== undefined || examState.elapsed !== undefined || examState.phase !== undefined) {
       pageContext.examState = examState;
       const elapsedPart = examState.elapsed ? `, ${examState.elapsed} på provet` : "";
       summaryLines.push(`Provstatus: ${examState.answered ?? "?"} besvarade, ${examState.remaining ?? "?"} kvar${elapsedPart}`);
