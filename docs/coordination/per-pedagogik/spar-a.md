@@ -92,9 +92,38 @@ prov. Prompten är 5311 tecken under provet och 5763 efter.
 
 Test: 66 kontroller totalt (P1-P8, C1-C9, L1-L7, V1-V6, T1-T7).
 
+### A6 — startnivån ur kontexten (`332ec1a`)
+
+Inte planerad. Hittad genom att simulera vad DAGENS klient skickar mot den nya
+servern.
+
+Klienten skickar ingen `helpLevel`, så nivån blev 0 överallt — och eftersom A1
+tog bort motsägelsen betyder 0 numera på riktigt "ställ en motfråga". Mitt i ett
+prov är det rätt. Men P.E.R blev sokratisk ÖVERALLT, även mot "vad betyder
+derivata", och stegknapparna att klättra med finns inte förrän ni landat.
+
+`defaultHelpLevel()` väljer nu 0 på en provfråga och 1 annars.
+
 ## Pågår
 
 Inget. Väntar på spår B.
+
+## Vad servern gör UTAN era ändringar
+
+Kört och mätt, inte antaget:
+
+| Läge | start | tak | nivå | P.E.R gör |
+|---|---|---|---|---|
+| mitt i prov | 0 | 2 | 0 | ställer en motfråga |
+| fri fråga | 1 | 3 | 1 | förklarar konceptet, inte svaret |
+
+Det betyder att grundproblemet — facit rakt av mitt i ett prov — redan är löst
+på servern. Ert arbete ger eleven *kontrollen* över stegen; det räddar inte en
+trasig grundnivå.
+
+**Den nuvarande klienten går inte sönder.** SSE-parsern i `shared.js` läser bara
+`delta`, `error` och `done`+`history` och ignorerar okända fält, så `helpCap`
+och `helpLevelUsed` passerar obemärkt tills B4 vill läsa dem.
 
 ## Frågor till andra spåret
 
