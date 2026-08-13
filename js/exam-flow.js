@@ -928,7 +928,11 @@
       state: {
         answered: answered,
         remaining: qs.length - answered,
-        elapsed: (UI.time && UI.time.textContent) || ""
+        elapsed: (UI.time && UI.time.textContent) || "",
+        /* Signalen servern räknar hjälptaket ur. Så länge den här funktionen
+           kör står eleven i ett pågående prov, och då når hjälpen högst
+           "visa metoden" — aldrig facit. Se stepResult() för motsatsen. */
+        phase: "exam"
       }
     });
   }
@@ -1289,6 +1293,18 @@
 
   function stepResult(r) {
     var b = mount("result");
+
+    /* closeExam() har redan nollställt manifestet — frågan som stod på skärmen
+       hör inte hit. Men "inget manifest" säger bara att P.E.R inte vet var
+       eleven är, och servern tolkar okänt läge strängt: taket fastnar på
+       "visa metoden" trots att provet är inlämnat och rättat.
+
+       Här är det inlämnat. Ingen focus, inga targets — de gällde frågorna —
+       men phase sägs rakt ut, så att hjälpen öppnas för att den ska öppnas och
+       inte för att servern råkar sakna en fråga att hålla igen på. */
+    if (window.PER && window.PER.describe) {
+      window.PER.describe({ page: "resultat", state: { phase: "result" } });
+    }
     var qs = S.exam.questions;
     var byId = {};
     qs.forEach(function (q, n) { byId[qid(q, n)] = q; });

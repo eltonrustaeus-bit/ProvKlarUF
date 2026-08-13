@@ -59,6 +59,12 @@ await page.waitForTimeout(300);
 const t1 = await page.evaluate(() => window.__perTestCtx());
 ok("T1a fokus satt utan knapptryck", t1.currentQuestion?.number === 1, JSON.stringify(t1.currentQuestion));
 ok("T1b targets finns för alla frågor", t1.targets?.length === 3 && t1.targets[2].id === "q3", JSON.stringify(t1.targets));
+// phase är signalen servern räknar hjälptaket ur (api/explain.js helpCapFor).
+// Saknas den tolkas provet som pågående med taket 2 — vilket ser rimligt ut och
+// därför aldrig märks. Den måste finnas, och den måste vara "exam" här.
+ok("T1c phase är exam under provet", t1.examState?.phase === "exam", JSON.stringify(t1.examState));
+ok("T1d answered är falskt innan eleven rört frågan", t1.currentQuestion?.answered === false,
+   String(t1.currentQuestion?.answered));
 
 // ── T2: fokus följer frågebyte utan hjälpknapp ────────────────────────────
 await page.click(".xf-mc-opt >> nth=1");   // svar B på fråga 1, går vidare själv
@@ -88,6 +94,12 @@ ok("T4d targets i kroppen utan go", Array.isArray(lastExplain?.pageContext?.targ
    && lastExplain.pageContext.targets.every(t => t.go === undefined),
    JSON.stringify(lastExplain?.pageContext?.targets));
 ok("T4e provstatus i kroppen", typeof lastExplain?.pageContext?.examState?.answered === "number",
+   JSON.stringify(lastExplain?.pageContext?.examState));
+// Det som räknas är inte att phase finns i manifestet utan att den överlever
+// hela vägen ut på nätverket. shared.js städar manifestet mot PER_STATE_KEYS
+// och SLÄNGER okända nycklar — glöms whitelisten försvinner phase tyst här,
+// och bara här.
+ok("T4f phase följer med ut på nätverket", lastExplain?.pageContext?.examState?.phase === "exam",
    JSON.stringify(lastExplain?.pageContext?.examState));
 
 // ── T5: påhittat id ritar ingen knapp ─────────────────────────────────────
@@ -217,7 +229,20 @@ await page.waitForSelector("#xf .xf-screen[data-screen='result'].on", { timeout:
 await page.waitForTimeout(200);
 const afterSubmit = await page.evaluate(() => window.__perTestCtx());
 ok("T9b currentQuestion är borta på resultatskärmen", !afterSubmit.currentQuestion, JSON.stringify(afterSubmit.currentQuestion));
-ok("T9c examState är borta på resultatskärmen", !afterSubmit.examState, JSON.stringify(afterSubmit.examState));
+/* T9c löd tidigare "examState är borta på resultatskärmen" och krävde att hela
+   objektet var null. Den formuleringen var en approximation av det som
+   verkligen var fel: att P.E.R trodde att en fråga stod på skärmen och svarade
+   om den i stället för om resultatet. Från och med phase behöver servern veta
+   att provet är INLÄMNAT — det är villkoret som öppnar hjälptaket till 3
+   (api/explain.js helpCapFor). Ett tomt examState säger inte "inlämnat", det
+   säger "vet inte", och taket fastnar då på det strängare 2.
+
+   Kravet skärps därför i stället för att tas bort: examState får finnas, men
+   får bara bära phase. answered/remaining/elapsed hörde till frågorna på
+   skärmen och är exakt den sortens gamla sanning T9 finns för att döda. */
+const t9state = afterSubmit.examState || {};
+ok("T9c examState bär phase result på resultatskärmen", t9state.phase === "result", JSON.stringify(afterSubmit.examState));
+ok("T9c2 inga kvarlämnade provsiffror i examState", Object.keys(t9state).join(",") === "phase", JSON.stringify(afterSubmit.examState));
 ok("T9d targets är borta på resultatskärmen", !afterSubmit.targets, JSON.stringify(afterSubmit.targets));
 
 // ── T10: debouncad publish() återuppväcker inte manifestet (Fynd A) ───────
@@ -292,7 +317,10 @@ await page2.waitForTimeout(200);
 const t10ctx = await page2.evaluate(() => window.__perTestCtx());
 const t10sees = await page2.evaluate(() => { var el = document.getElementById("perSees"); return el ? el.textContent : ""; });
 ok("T10a currentQuestion är borta på resultatskärmen (kortsvar, direkt inlämning)", !t10ctx.currentQuestion, JSON.stringify(t10ctx.currentQuestion));
-ok("T10b examState är borta på resultatskärmen (kortsvar, direkt inlämning)", !t10ctx.examState, JSON.stringify(t10ctx.examState));
+// Samma skärpning som T9c: examState får bära phase, ingenting annat.
+const t10state = t10ctx.examState || {};
+ok("T10b examState bär bara phase result (kortsvar, direkt inlämning)",
+   t10state.phase === "result" && Object.keys(t10state).join(",") === "phase", JSON.stringify(t10ctx.examState));
 ok("T10c perSees ljuger inte uppåt efter att debounce-fönstret passerat", t10sees === "ser: den här sidan", t10sees);
 
 // ── T11: closeExam() rensar draftTimer, inte bara publishTimer (Fynd 1) ───
@@ -307,6 +335,23 @@ ok("T10c perSees ljuger inte uppåt efter att debounce-fönstret passerat", t10s
 // erbjuds då "Fortsätt provet du började" för ett prov som redan är rättat.
 const t11draft = await page2.evaluate(() => localStorage.getItem("exgen_flow_draft_u1"));
 ok("T11 utkastet återuppstår inte efter inlämning", t11draft === null, String(t11draft));
+
+// ── T12: bara de två kända phase-värdena släpps igenom ────────────────────
+// Whitelisten är hela poängen. Servern har ett tak per läge, och ett okänt
+// läge måste falla tillbaka på "saknas" — vilket helpCapFor() tolkar som det
+// strängaste rimliga (prov pågår). Släpptes en godtycklig sträng igenom skulle
+// en klientbugg kunna skicka något servern inte har en gren för, och vilken
+// gren som då vinner är en fråga om tur.
+const t12 = await page2.evaluate(() => {
+  const läs = () => window.__perTestCtx().examState;
+  window.PER.describe({ page: "prov", state: { phase: "halvvägs" } });
+  const okänd = läs();
+  window.PER.describe({ page: "prov", state: { phase: "result" } });
+  const känd = läs();
+  return { okänd: okänd, känd: känd };
+});
+ok("T12a okänt phase-värde slängs", !(t12.okänd && t12.okänd.phase), JSON.stringify(t12.okänd));
+ok("T12b känt phase-värde behålls", t12.känd?.phase === "result", JSON.stringify(t12.känd));
 
 await ctx2.close();
 
