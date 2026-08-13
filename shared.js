@@ -125,7 +125,7 @@
      Fyra tillåtna toppnycklar, och en okänd nyckel VARNAR i stället för att
      försvinna. Instansen var focus; klassen är tyst nyckelkassering. */
   var PER_MANIFEST_KEYS = ['page', 'focus', 'targets', 'state'];
-  var PER_STATE_KEYS = ['answered', 'remaining', 'elapsed'];
+  var PER_STATE_KEYS = ['answered', 'remaining', 'elapsed', 'phase'];
   var _perManifest = null;
 
   function perWarnKeys(obj, allowed, prefix) {
@@ -165,6 +165,13 @@
       if (typeof m.state.answered === 'number') st.answered = m.state.answered;
       if (typeof m.state.remaining === 'number') st.remaining = m.state.remaining;
       if (typeof m.state.elapsed === 'string') st.elapsed = m.state.elapsed.slice(0, 12);
+      /* phase avgör hur mycket hjälp servern släpper fram (api/explain.js
+         helpCapFor): "exam" håller taket nere, "result" öppnar det helt.
+         Därför godtas bara de två värdena — en okänd sträng faller igenom som
+         "saknas", och saknad phase tolkas serversidigt som prov pågår, alltså
+         det strängaste. Ett fält som styr en spärr får inte kunna bära ett
+         värde ingen har en gren för. */
+      if (m.state.phase === 'exam' || m.state.phase === 'result') st.phase = m.state.phase;
     }
     _perManifest = {
       page: typeof m.page === 'string' ? m.page : '',
