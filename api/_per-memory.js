@@ -400,3 +400,57 @@ ${histText || "Ingen chathistorik tillgänglig."}`;
     // Best-effort; never block the main P.E.R request.
   }
 }
+
+/* ── Elevens stil ───────────────────────────────────────────────────────────
+ *
+ * Härleder TON och LÄNGD ur elevens egna meddelanden. Ordval och meningsrytm
+ * härleds med flit INTE: beslutet i specen är att P.E.R ska låta som någon som
+ * känner eleven, inte som eleven. En lärare som härmar tappar den auktoritet
+ * som gör att man litar på rättningen.
+ *
+ * Returnerar null när underlaget är för tunt. Det är avsiktligt: ingen signal
+ * är bättre än en gissad, eftersom en felläst stil får P.E.R att låta som att
+ * han pratar med någon annan. Fälten kan var för sig vara null av samma skäl.
+ *
+ * Ren funktion, inget nätverk. Kontrakt: tests/per/per-pedagogy.test.mjs V5-V6.
+ */
+const STIL_MIN_MEDDELANDEN = 3;
+const BER_OM_MER   = /utförlig|mer detalj|förklara mer|längre förklaring|utveckla|mer ingående/i;
+const BER_OM_KORT  = /kortare|kort svar|fatta dig kort|kortfattat|snabbt svar/i;
+const SLANG        = /\b(va|vadå|asså|alltså typ|näe|nä|fan|typ|liksom|ba|iaf|nåt|nån)\b/i;
+
+export function deriveStyleSignals(messages) {
+  const egna = (Array.isArray(messages) ? messages : [])
+    /* Bara elevens egna rader. Räknades assistentens med mätte signalen P.E.R:s
+       stil i stället för elevens, och profilen hade drivit iväg av sig själv. */
+    .filter(m => m && m.role === "user" && typeof m.content === "string")
+    .map(m => m.content.trim())
+    .filter(Boolean);
+
+  if (egna.length < STIL_MIN_MEDDELANDEN) return null;
+
+  // ── Längd ──
+  let length = null;
+  if (egna.some(t => BER_OM_MER.test(t)))       length = "utförlig";
+  else if (egna.some(t => BER_OM_KORT.test(t))) length = "kort";
+  else {
+    // Median, inte medel: ett enda långt inklistrat stycke ska inte kunna
+    // förvandla en kortskrivare till en långskrivare.
+    const längder = egna.map(t => t.length).sort((a, b) => a - b);
+    const median  = längder[Math.floor(längder.length / 2)];
+    if (median <= 25) length = "kort";
+    else if (median >= 120) length = "utförlig";
+  }
+
+  // ── Ton ──
+  // Sätts bara vid tydlig majoritet. Ett gissat "informell" på en elev som
+  // skriver formellt är värre än ingen signal alls.
+  const informella = egna.filter(t => {
+    const inledsGement = /^[a-zåäö]/.test(t);
+    const saknarSlut   = !/[.!?]$/.test(t);
+    return SLANG.test(t) || (inledsGement && saknarSlut);
+  }).length;
+  const tone = informella / egna.length >= 0.6 ? "informell" : null;
+
+  return { length, tone };
+}

@@ -2,9 +2,10 @@
 import { requireAuth } from "./_auth.js";
 import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt } from "./_per-core.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
-import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData } from "./_per-memory.js";
+import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
+import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
 const FRUSTRATION_REGEX = /fattar inte|förstår inte|helt lost|ger upp|hopplöst|omöjligt|förvirrad|inte alls|ingen koll|jag fattar|hjälp mig|wtf|ugh/i;
@@ -347,8 +348,14 @@ export default async function handler(req, res) {
     const context      = sanitize(body.context, 400);
     const rawAreas     = Array.isArray(body.weakAreas) ? body.weakAreas : [];
     const weakAreas    = rawAreas.slice(0, 10).map(a => sanitize(String(a), 80));
-    const helpLevel    = (typeof body.helpLevel === 'number' && Number.isFinite(body.helpLevel))
-      ? Math.min(3, Math.max(0, Math.floor(body.helpLevel))) : 0;
+    /* Elevens val på en klargörande fråga. Saneras en gång till i
+       buildPERSystemPrompt innan den når prompten — det här är bara längd. */
+    const clarifyReply = sanitize(body.clarifyReply, 120);
+    /* Vad eleven BAD om. Klämd till ett heltal 0-3 innan den rör något annat.
+       Saknas den helt väljer servern en startnivå ur sidkontexten — se
+       defaultHelpLevel() för varför det inte alltid är 0. */
+    const badOmNivå = (typeof body.helpLevel === 'number' && Number.isFinite(body.helpLevel))
+      ? Math.min(3, Math.max(0, Math.floor(body.helpLevel))) : null;
     const rawHist = Array.isArray(body.history) ? body.history : [];
     const history = rawHist
       .filter(m => m && (m.role === "user" || m.role === "assistant"))
@@ -436,11 +443,28 @@ export default async function handler(req, res) {
       ? rawNamePart.charAt(0).toUpperCase() + rawNamePart.slice(1).toLowerCase()
       : null;
 
+    /* Taket avgörs av servern ur provkontexten. helpLevel från klienten är ett
+       önskemål — se api/_per-help.js för hela tabellen och skälet. */
+    /* Stilen härleds ur samtalshistoriken som redan finns i kroppen — samma
+       rader som skickas till modellen. Historiken kapas till de åtta senaste,
+       så signalen bygger på det senaste samtalet och inte på hela elevens
+       livstid. Det är en medveten begränsning: en stil som ändrats ska hinna
+       märkas, och en enstaka udda session ska inte fastna för alltid. */
+    const style = deriveStyleSignals(history);
+
+    const helpCap = helpCapFor(pageContext);
+    const requestedLevel = badOmNivå !== null ? badOmNivå : defaultHelpLevel(pageContext);
+    const helpLevel = Math.min(requestedLevel, helpCap);
+
     const systemContent = buildPERSystemPrompt({
       context: ctxParts.join('\n'),
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,
+      requestedLevel,
+      helpCap,
+      clarifyReply,
+      style,
       pageContext,
       intent,
       mood,
@@ -513,9 +537,19 @@ export default async function handler(req, res) {
       ].slice(-20);
       await savePerHistory(user.id, newHistory);
       maybeRefreshLongMemory(supabase, user.id, newHistory, callAI, learningSignals).catch(() => {});
-      updateHelpLevelSignal(supabase, user.id, helpLevel).catch(() => {});
+      /* badOmNivå, inte helpLevel och inte requestedLevel.
+         Signalen lär sig vilket förklaringsdjup eleven FÖREDRAR. Två saker får
+         därför inte hamna här:
+           taket   — det är en spärr, inte en preferens. Sparades den klämda
+                     nivån hade systemet successivt lärt sig att en elev som
+                     alltid ber om full lösning vill ha mindre hjälp än hen vill.
+           default — serverns startnivå är vår gissning, inte elevens val. Så
+                     länge klienten inte skickar någon nivå finns det ingen
+                     preferens att mäta, och då ska ingenting sparas.
+         badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
+      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
 
-      res.write(`data: ${JSON.stringify({ done: true, history: newHistory })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true, history: newHistory, helpCap, helpLevelUsed: helpLevel })}\n\n`);
       return res.end();
     }
 
@@ -530,8 +564,18 @@ export default async function handler(req, res) {
       ].slice(-20);
       await savePerHistory(user.id, newHistory);
       maybeRefreshLongMemory(supabase, user.id, newHistory, callAI, learningSignals).catch(() => {});
-      updateHelpLevelSignal(supabase, user.id, helpLevel).catch(() => {});
-      return res.json({ answer, history: newHistory });
+      /* badOmNivå, inte helpLevel och inte requestedLevel.
+         Signalen lär sig vilket förklaringsdjup eleven FÖREDRAR. Två saker får
+         därför inte hamna här:
+           taket   — det är en spärr, inte en preferens. Sparades den klämda
+                     nivån hade systemet successivt lärt sig att en elev som
+                     alltid ber om full lösning vill ha mindre hjälp än hen vill.
+           default — serverns startnivå är vår gissning, inte elevens val. Så
+                     länge klienten inte skickar någon nivå finns det ingen
+                     preferens att mäta, och då ska ingenting sparas.
+         badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
+      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
+      return res.json({ answer, history: newHistory, helpCap, helpLevelUsed: helpLevel });
     } catch (err) {
       return res.status(500).json({ error: err.message || "AI error" });
     }

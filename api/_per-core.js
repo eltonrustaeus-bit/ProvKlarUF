@@ -98,6 +98,16 @@ export function buildPERSystemPrompt({
   sessionContext = null,
   preferredHelpLevel = null,
   learningSignals = '',
+  /* Vad eleven BAD om och vad servern släppte igenom. Skiljer de sig har
+     api/_per-help.js sänkt nivån, och eleven förtjänar ett skäl. */
+  requestedLevel = null,
+  helpCap = null,
+  /* Elevens val på en klargörande fråga. Enda stället i A3 där elevtext går in
+     i systemprompten — se sanitering nedan. */
+  clarifyReply = null,
+  /* { length: 'kort'|'utförlig'|null, tone: 'informell'|null } eller null.
+     Härleds av deriveStyleSignals() i api/_per-memory.js. */
+  style = null,
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context });
@@ -232,8 +242,100 @@ export function buildPERSystemPrompt({
     : helpLevel === 1 ? '- Max 150 ord.'
     : '- Max 80 ord. En mening om det räcker.';
 
+  /* Punkt 1 i ## SVARSMÖNSTER löd tidigare konstant "Svara kärnfrågan direkt —
+     ingen intro", oavsett hjälpnivå. Den beordrade alltså direktsvar samtidigt
+     som ## UNDERVISNING på nivå 0 förbjöd svaret — två motstridiga order i
+     samma prompt, där den som stod SIST och var formulerad som en MALL för hur
+     svaret ska byggas vann.
+
+     Det var hela orsaken till att en elev kunde fråga om en provfråga och få
+     facit. Pedagogiken var skriven och överröstad av sidan bredvid.
+
+     Kontrakt: tests/per/per-pedagogy.test.mjs P1 och P3. */
+  const svarsSteg1 = quiz || feynman
+    ? 'Börja med frågan respektive lyssnandet — ingen intro'
+    : helpLevel <= 0
+    ? 'Börja med motfrågan — ingen intro, ingen omskrivning av elevens fråga'
+    : helpLevel === 1
+    ? 'Börja med begreppet — ingen intro'
+    : 'Svara kärnfrågan direkt — ingen intro';
+
   const empathyBlock = mood === 'frustrated'
     ? `\n## ELEVENS SINNESSTÄMNING\nEleven verkar frustrerad eller osäker. Börja med en kort, lugn mening som normaliserar känslan ("Det här är faktiskt en av de svårare delarna"). Förklara sedan tydligt men utan att göra det komplicerat.\n`
+    : '';
+
+  /* Nekandet får aldrig vara tyst. Slår taket säger P.E.R varför — en gång,
+     kort, utan pekpinne — och ger sedan den hjälp som ryms. Blocket byggs bara
+     när taket faktiskt sänkte något; annars nämns det inte alls, och en elev
+     som inte stött på gränsen får aldrig höra att den finns. */
+  const capBlock = (typeof helpCap === 'number' && typeof requestedLevel === 'number' && helpCap < requestedLevel)
+    ? `\n## HJÄLPTAK\nEleven bad om mer hjälp än provläget tillåter. Säg det EN gång, kort och utan pekpinne — ungefär "det får du när du lämnat in, annars mäter provet inte dig" — och ge sedan den hjälp som ryms inom nivån. Upprepa det aldrig i samma samtal, och gör ingen poäng av det.\n`
+    : '';
+
+  /* ── Den klargörande frågan ────────────────────────────────────────────
+     Regeln kommer ur forskningen på uppgiftsdisambiguering: modeller som
+     resonerar över FLERA kandidattolkningar och sedan ställer den SÄRSKILJANDE
+     frågan slår dem som frågar på måfå. Därför "tänk ut två tolkningar; skulle
+     de ge olika svar — fråga", inte "fråga om du är osäker".
+
+     quiz och feynman utesluts. Båda ställer redan egna frågor, och en andra
+     frågeregel där hade gett två instruktioner som drar åt olika håll — exakt
+     det fel A1 tog bort på ett annat ställe i samma prompt. */
+
+  /* clarifyReply är elevtext på väg in i systemprompten. Radbrytningar tas bort
+     eftersom en injicerad "\n## NÅGOT" annars hade sett ut som en egen sektion,
+     och allt utanför bokstäver, siffror och enkel skiljetecken faller bort.
+     Kapas till 80 tecken — ett knappval, inte ett meddelande. */
+  const clarifyClean = typeof clarifyReply === 'string'
+    ? clarifyReply.replace(/[\r\n\t]+/g, ' ').replace(/[^\p{L}\p{N} ,.\-–—:?!()]/gu, '').trim().slice(0, 80)
+    : '';
+
+  const clarifyBlock = (quiz || feynman)
+    ? ''
+    : clarifyClean
+    ? `\n## KLARGÖRANDE GJORT\nEleven har redan svarat "${clarifyClean}" på din motfråga. Fråga INTE igen — svara nu utifrån det valet.\n`
+    : `\n## NÄR FRÅGAN ÄR OTYDLIG\nTänk ut två rimliga tolkningar av elevens fråga. Skulle de leda till olika svar — ställ EN fråga som skiljer dem åt och skriv inget annat, och avsluta då raden med [CLARIFY:alternativ ett|alternativ två].\nÄr frågan entydig — svara direkt enligt hjälpnivån. En motfråga där är friktion utan värde.\nHögst en klargörande fråga per elevfråga, aldrig två i rad.\n`;
+
+  /* ── Elevens stil ──────────────────────────────────────────────────────
+     Ton och längd, aldrig ordval och meningsrytm. P.E.R ska låta som någon som
+     känner eleven — inte som eleven.
+
+     Sista raden i blocket är den viktigaste: stilen styr HUR, aldrig VAD. Utan
+     den hade "eleven vill ha korta svar" kunnat läsas som en ursäkt att hoppa
+     över pedagogiken och slänga fram facit — samma sorts motsägelse som A1 tog
+     bort mellan ## UNDERVISNING och ## SVARSMÖNSTER. */
+  const stilRader = [];
+  if (style && style.length === 'kort')     stilRader.push('Eleven skriver kort och vill ha korta svar. Skala bort allt som inte bär.');
+  if (style && style.length === 'utförlig') stilRader.push('Eleven har bett om utförliga förklaringar. Ta plats när stoffet kräver det.');
+  if (style && style.tone === 'informell')  stilRader.push('Eleven skriver ledigt. Skriv tillbaka ledigt — men aldrig slappt, och aldrig med härmade uttryck.');
+  const styleBlock = stilRader.length
+    ? `\n## ELEVENS STIL\n${stilRader.join('\n')}\nDet här påverkar aldrig hjälpnivån och aldrig vad du säger — stilen styr inte innehållet, bara formen.\n`
+    : '';
+
+  /* ── Studietekniken ────────────────────────────────────────────────────
+     Dunlosky m.fl. rangordnar teknikerna: practice testing och distributed
+     practice högst, överstrykning och omläsning lägst. quiz-läget ÄR retrieval
+     practice och feynman-läget ÄR self-explanation — båda fanns redan byggda
+     men triggades bara av att eleven råkade skriva rätt fras ("quizza mig").
+     Blocket får P.E.R att erbjuda dem själv.
+
+     Byggs bara när det finns något att erbjuda OCH eleven inte sitter mitt i
+     ett prov. Ett förslag om att plugga vidare medan provet pågår är en
+     distraktion, inte en studieteknik — och varje block som inte bär något
+     konkurrerar om uppmärksamheten med hjälpnivån. */
+  const påProv = pageContext?.examState?.phase === 'exam';
+  const efterProv = pageContext?.examState?.phase === 'result';
+  const påFörbättring = pageContext?.page === 'förbättring';
+  const teknikRader = [];
+  if (!påProv && (efterProv || påFörbättring) && weakAreas.length) {
+    teknikRader.push('Erbjud att ställa några frågor på det eleven tappat poäng på — att plocka fram ur minnet ger mer än att läsa igenom.');
+    if (weakAreas.length > 1) {
+      teknikRader.push('Blanda områden i förslaget i stället för att borra i ett; växla mellan dem eleven är svag i.');
+    }
+    teknikRader.push('Svarade eleven rätt men verkar osäker — be hen förklara varför det stämmer, med egna ord.');
+  }
+  const teknikBlock = teknikRader.length
+    ? `\n## STUDIETEKNIK\n${teknikRader.join('\n')}\nFöreslå aldrig att stryka under eller läsa om — det är de tekniker som mäter sämst.\nErbjud, kräv inte, och aldrig i stället för svaret på det eleven faktiskt frågade.\n`
     : '';
 
   const quotaNudge = (quotaRemaining !== null && quotaRemaining <= 1)
@@ -251,8 +353,8 @@ ${PROVIA_OPERATING_MAP}${depthHint}
 P.E.R är skarp, direkt och aldrig flummig. Talar som en person som faktiskt kan ämnet — inte som en AI som förklarar att den kan det. Reagerar på det eleven faktiskt skrivit — inte på en generisk version av frågan. Förstår hela ExGen: skolarbete, skolämnen, eget material, OCR, mockprov, körkort, felbank, rapporter, konto och pricing. Körkortsteorin är en del av produkten, inte hela.
 
 Tre obrytbara regler:
-1. Börja aldrig med elevens namn, "Bra!", "Självklart", "Absolut", "Givetvis", "Visst!", "Naturligtvis", "Exakt!", "Det stämmer!", "Bra fråga!" eller en omskrivning av frågan. Börja på innehållet direkt.
-2. Om svaret kan sägas på 20 ord — säg det på 20 ord. Längd = komplexitet, inte respekt.
+1. Börja aldrig med beröm eller en omskrivning av frågan: "Bra!", "Självklart", "Absolut", "Givetvis", "Visst!", "Naturligtvis", "Exakt!", "Det stämmer!", "Bra fråga!". Börja på innehållet direkt. Elevens namn FÅR inleda ett svar när raden bär något — "Okej Elton, då tar vi det härifrån" — men aldrig som artighet, aldrig ihop med beröm, och aldrig i varje svar.
+2. Om svaret kan sägas på 20 ord — säg det på 20 ord. Längd = komplexitet, inte respekt. Gäller HUR du skriver, aldrig OM du ska ge svaret — hjälpnivån under ## UNDERVISNING avgör det ensam.
 3. Aldrig samma struktur två svar i rad. Förra svaret var en lista → skriv nästa som löptext. Förra var en fråga → svara nästa med ett påstående.
 
 Läges-ton:
@@ -263,12 +365,12 @@ Läges-ton:
 - sales: Ärlig och konkret. Pitchar för att du tror på produkten.
 
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
-${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${quotaNudge}
+${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${styleBlock}${teknikBlock}${quotaNudge}
 ## UNDERVISNING
 ${teachGuide}
 
 ## SVARSMÖNSTER
-1. Svara kärnfrågan direkt — ingen intro
+1. ${svarsSteg1}
 2. Koppla till elevens situation om det tillför värde (inte för att visa att du märkt)
 3. Välj rätt ExGen-flöde: ${MODULES.korkort ? 'körkort, ' : ''}mockprov, förbättring/felbank, rapport, konto eller pricing
 4. Konkret nästa steg — vad gör eleven nu?
