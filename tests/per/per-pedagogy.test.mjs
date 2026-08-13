@@ -29,6 +29,12 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const { buildPERSystemPrompt } = await import(ROOT + "/api/_per-core.js");
+/* Taket bor i api/_per-help.js och inte i api/explain.js, som skapar en
+   Supabase-klient på modulnivå och därför kastar "supabaseUrl is required" vid
+   import utan env. En spärr som bara går att köra med en riktig databas bakom
+   sig är en spärr ingen testar. `_`-prefixet gör dessutom att filen inte är en
+   Vercel-rutt — taket på 12 är orört. */
+const { helpCapFor } = await import(ROOT + "/api/_per-help.js");
 
 let pass = 0;
 const fail = [];
@@ -133,6 +139,76 @@ const FÖRBJUDER_SVARET    = /ge inte svaret|inte svaret|inte facit/i;
   const f = buildPERSystemPrompt({ feynman: true });
   ok("P8 quiz-läget skriver fortfarande inte svaret", /Skriv INTE svaret/.test(q));
   ok("P8 feynman-läget lyssnar fortfarande", /FEYNMAN-LÄGE/.test(f));
+}
+
+
+/* ══ TAKET ══════════════════════════════════════════════════════════════════
+   helpLevel från klienten är ett önskemål, inte ett beslut. Att låta klienten
+   avgöra vore att låta den part som har intresse av att kringgå spärren
+   bestämma om den gäller. Tabellen nedan är normativ och står i specen. */
+
+const ctxMed = (phase, answered) => ({
+  page: "prov",
+  currentQuestion: { text: "Vad är derivatan av x²?", answered },
+  examState: phase ? { phase } : {},
+});
+
+// ── C1-C5: hela taktabellen ────────────────────────────────────────────────
+{
+  const fall = [
+    ["prov pågår, inget försök", ctxMed("exam", false), 1],
+    ["prov pågår, försök gjort", ctxMed("exam", true), 2],
+    ["efter inlämning",          ctxMed("result", true), 3],
+    ["ingen provkontext",        null, 3],
+    ["phase saknas, prov finns", ctxMed(null, true), 2],
+  ];
+  for (const [namn, ctx, vänta] of fall) {
+    const fick = helpCapFor(ctx);
+    ok(`C ${namn} → tak ${vänta}`, fick === vänta, fick === vänta ? "" : `fick ${fick}`);
+  }
+}
+
+// ── C6: en klient som ber om nivå 3 mitt i ett prov får den inte. ──────────
+{
+  const tak = helpCapFor(ctxMed("exam", true));
+  ok("C6 begärd nivå 3 mitt i prov kläms till taket", Math.min(3, tak) === 2, `tak ${tak}`);
+}
+
+// ── C7: skräpindata sänker aldrig skyddet. En trasig eller fientlig ────────
+//        pageContext ska ge det STRÄNGASTE taket, aldrig det lösaste.
+{
+  const skräp = [
+    ["null", null],
+    ["tom", {}],
+    ["fråga utan text", { currentQuestion: {}, examState: { phase: "exam" } }],
+    ["phase som objekt", { currentQuestion: { text: "q", answered: true }, examState: { phase: { toString: () => "result" } } }],
+    ["phase påhittad", { currentQuestion: { text: "q", answered: true }, examState: { phase: "klar" } }],
+    ["answered som sträng", { currentQuestion: { text: "q", answered: "true" }, examState: { phase: "exam" } }],
+  ];
+  for (const [namn, ctx] of skräp) {
+    const tak = helpCapFor(ctx);
+    const rimligt = tak >= 1 && tak <= 3;
+    // Har vi en provfråga får taket ALDRIG bli 3 utan ett äkta "result".
+    const harFråga = !!(ctx && ctx.currentQuestion && ctx.currentQuestion.text);
+    const äktaResult = ctx?.examState?.phase === "result";
+    const säkert = rimligt && (!harFråga || äktaResult || tak <= 2);
+    ok(`C7 skräpindata "${namn}" ger ett säkert tak`, säkert, `tak ${tak}`);
+  }
+}
+
+// ── C8: prompten säger varför när taket slår, och bara då. ────────────────
+{
+  const slår = buildPERSystemPrompt({ helpLevel: 2, requestedLevel: 3, helpCap: 2, pageContext: ctxMed("exam", true) });
+  const slårInte = buildPERSystemPrompt({ helpLevel: 2, requestedLevel: 2, helpCap: 2, pageContext: ctxMed("exam", true) });
+  ok("C8 taket förklaras när det slår", /## HJÄLPTAK/.test(slår));
+  ok("C8 taket nämns inte när det inte slår", !/## HJÄLPTAK/.test(slårInte));
+}
+
+// ── C9: förklaringen får inte bli en pekpinne som upprepas. ───────────────
+{
+  const p = buildPERSystemPrompt({ helpLevel: 1, requestedLevel: 3, helpCap: 1, pageContext: ctxMed("exam", false) });
+  ok("C9 förklaringen ska sägas en gång, utan pekpinne",
+    /EN gång/.test(p) && /aldrig i samma samtal|Upprepa det aldrig/i.test(p));
 }
 
 console.log(`\nper-pedagogy: ${pass} ok, ${fail.length} fail`);

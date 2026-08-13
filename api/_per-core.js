@@ -98,6 +98,10 @@ export function buildPERSystemPrompt({
   sessionContext = null,
   preferredHelpLevel = null,
   learningSignals = '',
+  /* Vad eleven BAD om och vad servern släppte igenom. Skiljer de sig har
+     api/_per-help.js sänkt nivån, och eleven förtjänar ett skäl. */
+  requestedLevel = null,
+  helpCap = null,
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context });
@@ -254,6 +258,14 @@ export function buildPERSystemPrompt({
     ? `\n## ELEVENS SINNESSTÄMNING\nEleven verkar frustrerad eller osäker. Börja med en kort, lugn mening som normaliserar känslan ("Det här är faktiskt en av de svårare delarna"). Förklara sedan tydligt men utan att göra det komplicerat.\n`
     : '';
 
+  /* Nekandet får aldrig vara tyst. Slår taket säger P.E.R varför — en gång,
+     kort, utan pekpinne — och ger sedan den hjälp som ryms. Blocket byggs bara
+     när taket faktiskt sänkte något; annars nämns det inte alls, och en elev
+     som inte stött på gränsen får aldrig höra att den finns. */
+  const capBlock = (typeof helpCap === 'number' && typeof requestedLevel === 'number' && helpCap < requestedLevel)
+    ? `\n## HJÄLPTAK\nEleven bad om mer hjälp än provläget tillåter. Säg det EN gång, kort och utan pekpinne — ungefär "det får du när du lämnat in, annars mäter provet inte dig" — och ge sedan den hjälp som ryms inom nivån. Upprepa det aldrig i samma samtal, och gör ingen poäng av det.\n`
+    : '';
+
   const quotaNudge = (quotaRemaining !== null && quotaRemaining <= 1)
     ? `\n## KVOTINFO (intern)\nEleven har ${quotaRemaining} P.E.R-fråga kvar denna period. Nämn diskret mot slutet av svaret — en mening — att Premium ger obegränsat. Inga hårda säljargument, bara en naturlig notis.\n`
     : '';
@@ -281,7 +293,7 @@ Läges-ton:
 - sales: Ärlig och konkret. Pitchar för att du tror på produkten.
 
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
-${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${quotaNudge}
+${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${quotaNudge}
 ## UNDERVISNING
 ${teachGuide}
 
