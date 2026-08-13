@@ -348,6 +348,9 @@ export default async function handler(req, res) {
     const context      = sanitize(body.context, 400);
     const rawAreas     = Array.isArray(body.weakAreas) ? body.weakAreas : [];
     const weakAreas    = rawAreas.slice(0, 10).map(a => sanitize(String(a), 80));
+    /* Elevens val på en klargörande fråga. Saneras en gång till i
+       buildPERSystemPrompt innan den når prompten — det här är bara längd. */
+    const clarifyReply = sanitize(body.clarifyReply, 120);
     /* Vad eleven BAD om. Klämd till ett heltal 0-3 innan den rör något annat. */
     const requestedLevel = (typeof body.helpLevel === 'number' && Number.isFinite(body.helpLevel))
       ? Math.min(3, Math.max(0, Math.floor(body.helpLevel))) : 0;
@@ -450,6 +453,7 @@ export default async function handler(req, res) {
       helpLevel,
       requestedLevel,
       helpCap,
+      clarifyReply,
       pageContext,
       intent,
       mood,

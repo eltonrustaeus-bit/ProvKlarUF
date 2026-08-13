@@ -102,6 +102,9 @@ export function buildPERSystemPrompt({
      api/_per-help.js sänkt nivån, och eleven förtjänar ett skäl. */
   requestedLevel = null,
   helpCap = null,
+  /* Elevens val på en klargörande fråga. Enda stället i A3 där elevtext går in
+     i systemprompten — se sanitering nedan. */
+  clarifyReply = null,
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context });
@@ -266,6 +269,30 @@ export function buildPERSystemPrompt({
     ? `\n## HJÄLPTAK\nEleven bad om mer hjälp än provläget tillåter. Säg det EN gång, kort och utan pekpinne — ungefär "det får du när du lämnat in, annars mäter provet inte dig" — och ge sedan den hjälp som ryms inom nivån. Upprepa det aldrig i samma samtal, och gör ingen poäng av det.\n`
     : '';
 
+  /* ── Den klargörande frågan ────────────────────────────────────────────
+     Regeln kommer ur forskningen på uppgiftsdisambiguering: modeller som
+     resonerar över FLERA kandidattolkningar och sedan ställer den SÄRSKILJANDE
+     frågan slår dem som frågar på måfå. Därför "tänk ut två tolkningar; skulle
+     de ge olika svar — fråga", inte "fråga om du är osäker".
+
+     quiz och feynman utesluts. Båda ställer redan egna frågor, och en andra
+     frågeregel där hade gett två instruktioner som drar åt olika håll — exakt
+     det fel A1 tog bort på ett annat ställe i samma prompt. */
+
+  /* clarifyReply är elevtext på väg in i systemprompten. Radbrytningar tas bort
+     eftersom en injicerad "\n## NÅGOT" annars hade sett ut som en egen sektion,
+     och allt utanför bokstäver, siffror och enkel skiljetecken faller bort.
+     Kapas till 80 tecken — ett knappval, inte ett meddelande. */
+  const clarifyClean = typeof clarifyReply === 'string'
+    ? clarifyReply.replace(/[\r\n\t]+/g, ' ').replace(/[^\p{L}\p{N} ,.\-–—:?!()]/gu, '').trim().slice(0, 80)
+    : '';
+
+  const clarifyBlock = (quiz || feynman)
+    ? ''
+    : clarifyClean
+    ? `\n## KLARGÖRANDE GJORT\nEleven har redan svarat "${clarifyClean}" på din motfråga. Fråga INTE igen — svara nu utifrån det valet.\n`
+    : `\n## NÄR FRÅGAN ÄR OTYDLIG\nTänk ut två rimliga tolkningar av elevens fråga. Skulle de leda till olika svar — ställ EN fråga som skiljer dem åt och skriv inget annat, och avsluta då raden med [CLARIFY:alternativ ett|alternativ två].\nÄr frågan entydig — svara direkt enligt hjälpnivån. En motfråga där är friktion utan värde.\nHögst en klargörande fråga per elevfråga, aldrig två i rad.\n`;
+
   const quotaNudge = (quotaRemaining !== null && quotaRemaining <= 1)
     ? `\n## KVOTINFO (intern)\nEleven har ${quotaRemaining} P.E.R-fråga kvar denna period. Nämn diskret mot slutet av svaret — en mening — att Premium ger obegränsat. Inga hårda säljargument, bara en naturlig notis.\n`
     : '';
@@ -293,7 +320,7 @@ Läges-ton:
 - sales: Ärlig och konkret. Pitchar för att du tror på produkten.
 
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
-${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${quotaNudge}
+${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${quotaNudge}
 ## UNDERVISNING
 ${teachGuide}
 
