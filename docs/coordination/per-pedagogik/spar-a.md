@@ -8,7 +8,10 @@
 
 ## Status
 
-A1-A4 klara. A5 (studieteknikerna) är sista uppgiften på spår A.
+**Hela spår A är klart.** A1-A5 committade och testade på `feat/per-pedagogik`.
+
+Servern är helt redo för spår B: alla kontraktets fält läses, och inget i A väntar
+på något i B.
 
 Gren: `feat/per-pedagogik`.
 
@@ -77,9 +80,21 @@ Ingen schemaändring, inget nytt skrivet till `per_long_memory` — RLS orört.
 
 Test: 57 kontroller totalt (P1-P8, C1-C9, L1-L7, V1-V6).
 
+### A5 — studieteknikerna (`4cff4eb`)
+
+`quiz` = retrieval practice och `feynman` = self-explanation fanns redan men
+triggades bara av att eleven råkade skriva rätt fras. P.E.R erbjuder dem nu
+själv, blandar områden (interleaving) och föreslår aldrig överstrykning eller
+omläsning.
+
+Blocket byggs bara när det finns något att erbjuda och eleven inte sitter i ett
+prov. Prompten är 5311 tecken under provet och 5763 efter.
+
+Test: 66 kontroller totalt (P1-P8, C1-C9, L1-L7, V1-V6, T1-T7).
+
 ## Pågår
 
-A5 — studieteknikerna. Sista på spår A. Rör bara `api/_per-core.js`.
+Inget. Väntar på spår B.
 
 ## Frågor till andra spåret
 
