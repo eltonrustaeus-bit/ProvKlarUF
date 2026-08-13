@@ -128,6 +128,21 @@
   var PER_STATE_KEYS = ['answered', 'remaining', 'elapsed', 'phase'];
   var _perManifest = null;
 
+  /* Hjälpstegen. Nivån är ett ÖNSKEMÅL som skickas med varje anrop; servern
+     klämmer den mot sitt eget tak (api/explain.js helpCapFor) och svarar med
+     taket den använde. _perHelpCap är därför alltid serverns siffra, aldrig
+     klientens gissning — ritade gränssnittet ut ett eget tak skulle de två
+     kunna säga olika saker, och den eleven ser är den som inte gäller.
+
+     _perFocusKey är frågan stegen hör till. Byter eleven fråga börjar stegen
+     om på noll: annars bär fråga 2 med sig fråga 1:s "ge mig svaret" och eleven
+     får facit på en fråga hen aldrig bett om hjälp med. */
+  var PER_STEP_LABELS = [null, 'Förklara begreppet', 'Visa metoden', 'Ge mig svaret'];
+  var _perHelpLevel = 0;
+  var _perHelpCap = null;
+  var _perFocusKey = null;
+  var _perAskInFlight = '';
+
   function perWarnKeys(obj, allowed, prefix) {
     if (!obj) return;
     Object.keys(obj).forEach(function (k) {
@@ -179,8 +194,32 @@
       targets: perCleanTargets(m.targets),
       state: st
     };
+    perResetStepsIfNewFocus();
     if (window.PER && window.PER._resetNudge) window.PER._resetNudge();
     perPaintSees();
+  }
+
+  /* Nyckeln är frågans identitet, inte hela fokusobjektet: publish() i
+     js/exam-flow.js kör debouncat vid varje tangenttryck och skickar då ett
+     nytt focus.answer för samma fråga. Nollställdes stegen på det hade eleven
+     tappat sin nivå mitt i att skriva svaret. */
+  function perFocusKey() {
+    var f = _perManifest && _perManifest.focus;
+    if (!f) return null;
+    return String(f.number == null ? '' : f.number) + '|' + String(f.text || '').slice(0, 120);
+  }
+
+  function perResetStepsIfNewFocus() {
+    var key = perFocusKey();
+    if (key === _perFocusKey) return;
+    _perFocusKey = key;
+    _perHelpLevel = 0;
+    _perHelpCap = null;
+    /* En redan ritad rad bär förra frågans tak. Att låta den ligga kvar är
+       värre än att inte rita någon alls — den påstår något om en fråga som
+       inte längre står på skärmen. */
+    var stale = document.querySelector('#perMessages .per-steps');
+    if (stale) stale.remove();
   }
 
   function perFindTarget(id) {
@@ -662,9 +701,14 @@
       'live-demo.html': 'Se live-demo →'
     };
 
+    /* Markörerna P.E.R får skriva. Båda tas bort ur den synliga texten och
+       ersätts av knappar; ingen av dem får någonsin läcka ut som text. */
+    var PER_MARKERS = /\s*\[(?:GOTO|CLARIFY):[^\]]+\]/g;
+
     function finalizeMsg(div, text) {
       var gotoMatch = text.match(/\s*\[GOTO:([^\]]+)\]/);
-      var cleanText = text.replace(/\s*\[GOTO:[^\]]+\]/g, '').trim();
+      var clarifyMatch = text.match(/\s*\[CLARIFY:([^\]]+)\]/);
+      var cleanText = text.replace(PER_MARKERS, '').trim();
       div.className = 'per-msg teacher';
       div.innerHTML = renderMd(cleanText);
       div.title = 'Klicka för att kopiera';
@@ -726,6 +770,98 @@
         }
         if (navBtn) div.appendChild(navBtn);
       }
+
+      /* Klargörandet. P.E.R har ställt EN motfråga och lämnat två tolkningar;
+         eleven väljer, och samma fråga skickas om med valet i clarifyReply.
+         Servern ser då att klargörandet är gjort och frågar aldrig igen.
+
+         Frågan som ska skickas om läses ur _perAskInFlight, satt av send()
+         precis före anropet — inte ur knappens etikett. Etiketten är en
+         tolkning av frågan, inte frågan. */
+      if (clarifyMatch) {
+        var alts = clarifyMatch[1].split('|').map(function (s) { return s.trim(); })
+          .filter(Boolean).slice(0, 2);
+        if (alts.length === 2) {
+          var askAgain = _perAskInFlight;
+          var crow = document.createElement('div');
+          crow.className = 'per-chips per-clarify-row';
+          alts.forEach(function (alt) {
+            var cb = document.createElement('button');
+            cb.type = 'button';
+            cb.className = 'per-chip per-clarify';
+            cb.textContent = alt.slice(0, 60);
+            /* stopPropagation: div.onclick ovan kopierar hela svaret till
+               urklipp. Utan den skulle valet också innebära en kopiering. */
+            cb.onclick = function (e) {
+              e.stopPropagation();
+              crow.remove();
+              send(askAgain || alt, { clarifyReply: alt });
+            };
+            crow.appendChild(cb);
+          });
+          div.appendChild(crow);
+        }
+      }
+    }
+
+    /* Stegen under svaret.
+     *
+     * Ritas ur serverns helpCap, inte ur klientens bild av provläget. Steg över
+     * taket ritas LÅSTA, inte gömda: en elev ska se att hjälpen finns och varför
+     * den är stängd just nu. Ett gömt steg går inte att skilja från ett steg
+     * som inte finns, och då ser spärren ut som en avsaknad av funktion.
+     *
+     * Saknas helpCap i svaret ritas allt öppet. Det är inte en lucka i spärren
+     * — servern klämmer nivån oavsett vad klienten ritar — bara ett val att
+     * inte låtsas veta ett tak vi inte fått. */
+    function renderHelpSteps() {
+      var msgs = document.getElementById('perMessages');
+      if (!msgs) return;
+      var existing = msgs.querySelector('.per-steps');
+      if (existing) existing.remove();
+      if (_perHelpLevel >= 3) return;
+      var cap = (typeof _perHelpCap === 'number') ? _perHelpCap : 3;
+      var row = document.createElement('div');
+      row.className = 'per-chips per-steps';
+      var hint = document.createElement('span');
+      hint.className = 'per-steps-hint';
+      hint.textContent = 'Behöver du mer?';
+      row.appendChild(hint);
+      for (var lvl = _perHelpLevel + 1; lvl <= 3; lvl++) {
+        row.appendChild((function (n) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'per-chip per-step';
+          btn.setAttribute('data-level', String(n));
+          btn.textContent = PER_STEP_LABELS[n];
+          if (n > cap) {
+            btn.className += ' per-locked';
+            btn.disabled = true;
+            btn.title = 'Öppnas när du lämnat in provet — annars mäter provet inte dig.';
+          } else {
+            btn.onclick = function () { row.remove(); send(PER_STEP_LABELS[n], { helpLevel: n }); };
+          }
+          return btn;
+        })(lvl));
+      }
+      msgs.appendChild(row);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    /* Stegen hör till en fråga. Utan fokus finns ingen — och "Ge mig svaret"
+       under ett svar om prisplanerna är inte en hjälpnivå, bara en knapp som
+       ser ut som en.
+
+       Ett obesvarat klargörande hoppas också över: att erbjuda mer hjälp innan
+       P.E.R svarat ber eleven eskalera något som inte sagts än.
+
+       Landningsläget har sin egen väg vidare (addAnswerCTA) och ska inte få en
+       andra, konkurrerande. */
+    function stepsAfterAnswer(text, landing) {
+      if (landing) return;
+      if (!_perManifest || !_perManifest.focus) return;
+      if (/\[CLARIFY:/.test(String(text || ''))) return;
+      renderHelpSteps();
     }
 
     /* Testkrok — tests/frontend/per-exam-context.test.mjs matar in svarstexter
@@ -752,10 +888,22 @@
       return div;
     }
 
-    async function send(q) {
+    async function send(q, opts) {
       if (!q) return;
-      var chipsEl = document.querySelector('.per-chips');
-      if (chipsEl) chipsEl.remove();
+      /* Nivån är ett önskemål, klämt till 0–3 redan här. Servern klämmer om
+         den mot sitt tak — den här raden är hygien, inte spärren. */
+      var askLevel = (opts && typeof opts.helpLevel === 'number')
+        ? Math.min(3, Math.max(0, Math.floor(opts.helpLevel)))
+        : _perHelpLevel;
+      var clarifyReply = (opts && opts.clarifyReply) ? String(opts.clarifyReply).slice(0, 120) : null;
+      _perHelpLevel = askLevel;
+      _perAskInFlight = q;
+      /* Alla, inte den första. Raden fanns när .per-chips bara betydde
+         snabbsvar; nu bär klassen även stegen och klargörandets alternativ.
+         Med querySelector blev det en lottning om vilken av dem som försvann,
+         och de kvarvarande hörde till frågan innan. */
+      var chipRows = document.querySelectorAll('.per-chips');
+      for (var ci = 0; ci < chipRows.length; ci++) chipRows[ci].remove();
       var perAvEl = document.querySelector('.per-av');
       if (perAvEl) perAvEl.classList.remove('per-listening');
       var input = document.getElementById('perInput');
@@ -807,7 +955,7 @@
           weakAreas = Object.keys(courseFreq).sort(function(a,b) { return courseFreq[b]-courseFreq[a]; }).slice(0,5);
         } catch (_) {}
 
-        var fetchBodyObj = { userQuestion: q, history: hist, topic: pageTopic, pageContext: pageCtx, recentMistakes: recentMistakes, weakAreas: weakAreas };
+        var fetchBodyObj = { userQuestion: q, history: hist, topic: pageTopic, pageContext: pageCtx, recentMistakes: recentMistakes, weakAreas: weakAreas, helpLevel: askLevel, clarifyReply: clarifyReply };
         var fetchHdrs = { 'Content-Type': 'application/json' };
         if (isLandingMode) {
           fetchBodyObj.landingMode = true;
@@ -843,16 +991,21 @@
                 var ev = JSON.parse(sseLine.slice(6));
                 if (ev.delta) {
                   answerText += ev.delta;
-                  if (typing) typing.textContent = answerText.replace(/\s*\[GOTO:[^\]]+\]/g, '');
+                  if (typing) typing.textContent = answerText.replace(PER_MARKERS, '');
                   var msgsEl2 = document.getElementById('perMessages');
                   if (msgsEl2) msgsEl2.scrollTop = msgsEl2.scrollHeight;
                 }
                 if (ev.error && typing) { typing.className = 'per-msg teacher'; typing.textContent = ev.error; }
                 if (ev.done && ev.history) perSaveHist(ev.history);
+                // Taket kommer alltid härifrån, aldrig ur en egen uträkning.
+                if (typeof ev.helpCap === 'number') _perHelpCap = ev.helpCap;
               } catch (_) {}
             }
           }
-          if (typing && answerText) finalizeMsg(typing, answerText);
+          if (typing && answerText) {
+            finalizeMsg(typing, answerText);
+            stepsAfterAnswer(answerText, isLandingMode);
+          }
         } else {
           /* ── JSON fallback ── */
           var data = {};
@@ -865,9 +1018,11 @@
               typing.className = 'per-msg teacher';
               typing.textContent = data.error || 'Fel — försök igen.';
             } else {
+              if (typeof data.helpCap === 'number') _perHelpCap = data.helpCap;
               finalizeMsg(typing, data.answer || 'Inget svar.');
               if (data.history) perSaveHist(data.history);
               if (isLandingMode) addAnswerCTA(typing);
+              stepsAfterAnswer(data.answer, isLandingMode);
             }
           }
         }
@@ -1027,6 +1182,14 @@
         '.per-chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 2px}',
         '.per-chip{background:none;border:1px solid rgba(0,183,217,.32);border-radius:var(--exgen-radius-pill,999px);color:var(--exgen-text,#1B2430);font-size:11.5px;font-family:"DM Sans",sans-serif;padding:5px 11px;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}',
         '.per-chip:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.6)}',
+        /* Stegen. Ingen ny vokabulär — raden är en .per-chips och knapparna är
+           .per-chip. Det låsta läget är dämpat men kvar på skärmen: eleven ska
+           se att hjälpen finns och att den öppnas senare, inte att den saknas. */
+        '.per-steps{align-items:center;padding-top:10px;border-top:1px solid rgba(0,183,217,.14);margin-top:8px}',
+        '.per-steps-hint{font-size:11px;color:var(--exgen-text-secondary,#667085);margin-right:2px}',
+        '.per-chip[disabled]{opacity:.42;cursor:not-allowed}',
+        '.per-chip[disabled]:hover{background:none;border-color:rgba(0,183,217,.32)}',
+        '.per-clarify-row{margin-top:10px}',
         '.per-nav-cta{display:inline-flex;align-items:center;margin-top:10px;padding:8px 14px;background:none;border:1px solid rgba(0,183,217,.38);color:var(--exgen-text,#1B2430);border-radius:var(--exgen-radius-sm,8px);font-size:12px;font-family:"DM Sans",sans-serif;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}',
         '.per-nav-cta:hover{background:rgba(0,183,217,.08);border-color:rgba(0,183,217,.7)}',
         /* Tillståndsraden. P.E.R:s förtroendeproblem var inte bara att den
