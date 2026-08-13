@@ -5,7 +5,7 @@ import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
-import { helpCapFor } from "./_per-help.js";
+import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
 const FRUSTRATION_REGEX = /fattar inte|förstår inte|helt lost|ger upp|hopplöst|omöjligt|förvirrad|inte alls|ingen koll|jag fattar|hjälp mig|wtf|ugh/i;
@@ -351,9 +351,11 @@ export default async function handler(req, res) {
     /* Elevens val på en klargörande fråga. Saneras en gång till i
        buildPERSystemPrompt innan den når prompten — det här är bara längd. */
     const clarifyReply = sanitize(body.clarifyReply, 120);
-    /* Vad eleven BAD om. Klämd till ett heltal 0-3 innan den rör något annat. */
-    const requestedLevel = (typeof body.helpLevel === 'number' && Number.isFinite(body.helpLevel))
-      ? Math.min(3, Math.max(0, Math.floor(body.helpLevel))) : 0;
+    /* Vad eleven BAD om. Klämd till ett heltal 0-3 innan den rör något annat.
+       Saknas den helt väljer servern en startnivå ur sidkontexten — se
+       defaultHelpLevel() för varför det inte alltid är 0. */
+    const badOmNivå = (typeof body.helpLevel === 'number' && Number.isFinite(body.helpLevel))
+      ? Math.min(3, Math.max(0, Math.floor(body.helpLevel))) : null;
     const rawHist = Array.isArray(body.history) ? body.history : [];
     const history = rawHist
       .filter(m => m && (m.role === "user" || m.role === "assistant"))
@@ -451,6 +453,7 @@ export default async function handler(req, res) {
     const style = deriveStyleSignals(history);
 
     const helpCap = helpCapFor(pageContext);
+    const requestedLevel = badOmNivå !== null ? badOmNivå : defaultHelpLevel(pageContext);
     const helpLevel = Math.min(requestedLevel, helpCap);
 
     const systemContent = buildPERSystemPrompt({
@@ -534,12 +537,17 @@ export default async function handler(req, res) {
       ].slice(-20);
       await savePerHistory(user.id, newHistory);
       maybeRefreshLongMemory(supabase, user.id, newHistory, callAI, learningSignals).catch(() => {});
-      /* requestedLevel, inte helpLevel. Signalen lär sig vilket förklaringsdjup
-         eleven FÖREDRAR — och taket är inte en preferens, det är en spärr. Sparas
-         den klämda nivån lär sig systemet successivt att en elev som alltid ber om
-         full lösning vill ha mindre hjälp än hen vill, eftersom provspärren drar
-         ned siffran varje gång. Preferensen ska mätas på det eleven bad om. */
-      updateHelpLevelSignal(supabase, user.id, requestedLevel).catch(() => {});
+      /* badOmNivå, inte helpLevel och inte requestedLevel.
+         Signalen lär sig vilket förklaringsdjup eleven FÖREDRAR. Två saker får
+         därför inte hamna här:
+           taket   — det är en spärr, inte en preferens. Sparades den klämda
+                     nivån hade systemet successivt lärt sig att en elev som
+                     alltid ber om full lösning vill ha mindre hjälp än hen vill.
+           default — serverns startnivå är vår gissning, inte elevens val. Så
+                     länge klienten inte skickar någon nivå finns det ingen
+                     preferens att mäta, och då ska ingenting sparas.
+         badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
+      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
 
       res.write(`data: ${JSON.stringify({ done: true, history: newHistory, helpCap, helpLevelUsed: helpLevel })}\n\n`);
       return res.end();
@@ -556,12 +564,17 @@ export default async function handler(req, res) {
       ].slice(-20);
       await savePerHistory(user.id, newHistory);
       maybeRefreshLongMemory(supabase, user.id, newHistory, callAI, learningSignals).catch(() => {});
-      /* requestedLevel, inte helpLevel. Signalen lär sig vilket förklaringsdjup
-         eleven FÖREDRAR — och taket är inte en preferens, det är en spärr. Sparas
-         den klämda nivån lär sig systemet successivt att en elev som alltid ber om
-         full lösning vill ha mindre hjälp än hen vill, eftersom provspärren drar
-         ned siffran varje gång. Preferensen ska mätas på det eleven bad om. */
-      updateHelpLevelSignal(supabase, user.id, requestedLevel).catch(() => {});
+      /* badOmNivå, inte helpLevel och inte requestedLevel.
+         Signalen lär sig vilket förklaringsdjup eleven FÖREDRAR. Två saker får
+         därför inte hamna här:
+           taket   — det är en spärr, inte en preferens. Sparades den klämda
+                     nivån hade systemet successivt lärt sig att en elev som
+                     alltid ber om full lösning vill ha mindre hjälp än hen vill.
+           default — serverns startnivå är vår gissning, inte elevens val. Så
+                     länge klienten inte skickar någon nivå finns det ingen
+                     preferens att mäta, och då ska ingenting sparas.
+         badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
+      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
       return res.json({ answer, history: newHistory, helpCap, helpLevelUsed: helpLevel });
     } catch (err) {
       return res.status(500).json({ error: err.message || "AI error" });

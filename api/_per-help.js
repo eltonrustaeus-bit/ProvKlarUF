@@ -57,3 +57,20 @@ export function helpCapFor(pageContext) {
   // Provet pågår, eller så vet vi inte vilket läge klienten är i.
   return 2;
 }
+
+/** Startnivån när klienten inte skickar någon.
+ *
+ *  Väljs 0 överallt blir P.E.R sokratisk även mot "vad betyder derivata" — och
+ *  en motfråga där är friktion utan värde, samma slutsats som regeln om
+ *  klargörande frågor bygger på. Stegknapparna att klättra med finns dessutom
+ *  inte förrän klientspåret landat, så en elev som hamnar för lågt sitter fast.
+ *
+ *  Sitter eleven på en provfråga är motfrågan däremot precis rätt öppning.
+ *
+ *  Nivån är ett FÖRSLAG och kläms mot helpCapFor() som allt annat.
+ */
+export function defaultHelpLevel(pageContext) {
+  const q = pageContext && pageContext.currentQuestion;
+  const påFråga = q && typeof q.text === "string" && q.text.trim();
+  return påFråga ? 0 : 1;
+}

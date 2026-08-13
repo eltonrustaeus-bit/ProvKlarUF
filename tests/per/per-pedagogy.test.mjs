@@ -34,7 +34,7 @@ const { buildPERSystemPrompt } = await import(ROOT + "/api/_per-core.js");
    import utan env. En spärr som bara går att köra med en riktig databas bakom
    sig är en spärr ingen testar. `_`-prefixet gör dessutom att filen inte är en
    Vercel-rutt — taket på 12 är orört. */
-const { helpCapFor } = await import(ROOT + "/api/_per-help.js");
+const { helpCapFor, defaultHelpLevel } = await import(ROOT + "/api/_per-help.js");
 const { deriveStyleSignals } = await import(ROOT + "/api/_per-memory.js");
 
 let pass = 0;
@@ -464,6 +464,40 @@ const ctxMed = (phase, answered) => ({
 {
   const p = buildPERSystemPrompt({ helpLevel: 1 });
   ok("T6 inget block utan underlag", !/## STUDIETEKNIK/.test(p));
+}
+
+
+/* ══ STARTNIVÅN ═════════════════════════════════════════════════════════════
+   Skickar klienten ingen helpLevel måste servern välja en. Väljs 0 överallt
+   blir P.E.R sokratisk även mot "vad betyder derivata" — en motfråga där är
+   friktion utan värde, och stegknapparna att klättra med finns inte förrän
+   spår B landat. */
+
+// ── D1: sitter eleven på en provfråga är motfrågan rätt start. ────────────
+{
+  const n = defaultHelpLevel({ page: "prov", currentQuestion: { text: "Vad är derivatan av x²?", answered: false } });
+  ok("D1 provfråga startar på motfråga", n === 0, `fick ${n}`);
+}
+
+// ── D2: en fri fråga startar på begreppet, inte på en motfråga. ───────────
+{
+  for (const [namn, ctx] of [
+    ["förbättringssidan", { page: "förbättring" }],
+    ["ingen kontext", null],
+    ["tomt frågeobjekt", { page: "prov", currentQuestion: {} }],
+  ]) {
+    const n = defaultHelpLevel(ctx);
+    ok(`D2 fri fråga (${namn}) startar på begreppet`, n === 1, `fick ${n}`);
+  }
+}
+
+// ── D3: startnivån får aldrig ta sig förbi taket. Den är ett förslag, ─────
+//        precis som klientens egen begäran.
+{
+  const ctx = { page: "prov", currentQuestion: { text: "q", answered: false }, examState: { phase: "exam" } };
+  const start = defaultHelpLevel(ctx);
+  const tak = helpCapFor(ctx);
+  ok("D3 startnivån ryms under taket", Math.min(start, tak) === start, `start ${start}, tak ${tak}`);
 }
 
 console.log(`\nper-pedagogy: ${pass} ok, ${fail.length} fail`);
