@@ -22,6 +22,17 @@
      xf-rise som flödesfilen bygger vidare på. -->
 <link rel="stylesheet" href="exgen-ui.css" />
 <link rel="stylesheet" href="exam-flow.css" />
+<!-- Sidlokala poster i menyarket. Skrollankarna speglar wizardRail;
+     prenumerationshanteringen visas bara för betalande roller. -->
+<script>window.XG_MENU_EXTRA = [
+  { label: "01 — Material",         scroll: "#material", pill: "Text" },
+  { label: "02 — Inställningar",    scroll: "#settings", pill: "Nivå" },
+  { label: "03 — Mockprov",         scroll: "#exam",     pill: "Frågor" },
+  { label: "04 — Rättning",         scroll: "#result",   pill: "Svar" },
+  { label: "Hantera prenumeration", id: "cancelSubBtn",  pill: "Konto" },
+  { label: "English",               id: "langBtn",       pill: "SV" }
+];</script>
+<script src="js/exgen-shell.js" defer></script>
 <script src="shared.js" defer></script>
 <script src="js/exam-flow.js" defer></script>
 <style>
@@ -492,55 +503,7 @@ white-space:nowrap;
      reset. Keeping a second copy meant two forms with different validation
      and different signup endpoints. -->
 
-<div class="xg-utility-bar">
-  <div class="xg-utility-wrap">
-    <a class="xg-utility-badge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive">
-      <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="12" height="12" alt="">
-      <span>Backed by UngDrive</span>
-    </a>
-    <div class="xg-utility-right">
-      <a href="integritetspolicy.html">Integritetspolicy</a>
-    </div>
-  </div>
-</div>
-<header class="xg-header">
-<div class="xg-header-wrap">
-<a class="xg-brand" href="index.html">
-<img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
-<div>
-<div class="xg-brand-tag" id="brandTag">Studieplattform för skolan</div>
-</div>
-</a>
-<div class="hRight">
-<nav class="xg-nav" aria-label="Huvudnavigation">
-  <a class="xg-nav-link" href="index.html">Hem</a>
-  <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
-  <a class="xg-nav-link active" href="app.html" aria-current="page">Mockprov</a>
-  <a class="xg-nav-link" href="förbättring.html">Min utveckling</a>
-  <a class="xg-nav-link" href="pricing.html">Priser</a>
-</nav>
-      <a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
-<div class="menuWrap">
-<button class="menuBtn" id="menuBtn" type="button" aria-label="Meny">
-<div class="barsIcon" aria-hidden="true"><span></span><span></span><span></span></div>
-</button>
-<div class="dropdown" id="menu" aria-label="Menyval">
-<button class="ddItem" type="button" data-scroll="#material"><span id="m1">01 — Material</span><span class="ddPill">Text</span></button>
-<button class="ddItem" type="button" data-scroll="#settings"><span id="m2">02 — Inställningar</span><span class="ddPill">Nivå</span></button>
-<button class="ddItem" type="button" data-scroll="#exam"><span id="m3">03 — Mockprov</span><span class="ddPill">Frågor</span></button>
-<button class="ddItem" type="button" data-scroll="#result"><span id="m4">04 — Rättning</span><span class="ddPill">Svar</span></button>
-<div class="ddSep"></div>
-<a class="ddItem" href="förbättring.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span><span id="mImprove">Min utveckling</span><span class="ddPill">Coach</span></a>
-<a data-module="korkort" class="ddItem" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="ddPill" style="color:var(--a);border-color:var(--l2);background:rgba(0,183,217,.08)">Nytt</span></a>
-<a class="ddItem" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Uppgradera</span><span class="ddPill" id="rolePill">Gratis</span></a>
-<button class="ddItem" type="button" id="cancelSubBtn" style="display:none"><span>Hantera prenumeration</span><span class="ddPill" style="color:var(--a);border-color:var(--l2)">Konto</span></button>
-<button class="ddItem" type="button" id="langBtn"><span id="mLang">English</span><span class="ddPill" id="langPill">SV</span></button>
-<button class="ddItem" type="button" id="logoutTopBtn"><span id="mLogout">Logga ut</span><span class="ddPill">Lås</span></button>
-</div>
-</div>
-</div>
-</div>
-</header>
+<div data-xg-header></div>
 
 <div id="betaBanner" style="background:#f8fafc;border-bottom:1px solid rgba(0,183,217,.2);padding:9px 48px 9px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'DM Mono',monospace;font-size:11px;color:#667085;position:relative;flex-wrap:wrap">
   <span>ExGen är i tidig fas — småfel kan förekomma. Vi vill gärna höra vad du tycker och vad du saknar!</span>
@@ -1111,8 +1074,6 @@ async function updateMastery(result){
 function onClick(id,fn){ const el=$(id); if(!el)return false; el.addEventListener("click",(e)=>{try{fn(e);}catch(err){reportErr(err);}}); return true; }
 function onKey(fn){ document.addEventListener("keydown",(e)=>{try{fn(e);}catch(err){reportErr(err);}}); }
 
-function openMenuAnimated(){ const m=$("menu");if(!m)return;m.classList.remove("is-closing");m.style.display="block";requestAnimationFrame(()=>m.classList.add("is-open")); }
-function closeMenuAnimated(){ const m=$("menu");if(!m)return;if(!m.classList.contains("is-open")){m.style.display="none";return;}m.classList.remove("is-open");m.classList.add("is-closing");window.setTimeout(()=>{m.classList.remove("is-closing");m.style.display="none";},140); }
 function hidePageLoader(){ const l=$("pageLoader");if(!l)return;window.setTimeout(()=>l.classList.add("done"),180); }
 
 function initReveal(){
@@ -1266,7 +1227,7 @@ async function logout(){
   localStorage.removeItem(ACCESS_FLAG_KEY);
   localStorage.removeItem(LS_ROLE);
   currentRole = "gratis";
-  closeMenuAnimated();
+  window.XgShell&&window.XgShell.closeMenu();
   if(db){try{await db.auth.signOut();}catch{}}
   showLock();
   await refreshQuotaUi();
@@ -1598,20 +1559,19 @@ try{
     }
   })();
 
-  onClick("menuBtn",(e)=>{e.preventDefault();e.stopPropagation();const m=$("menu");if(!m)return;if(m.classList.contains("is-open"))closeMenuAnimated();else openMenuAnimated();});
-  document.addEventListener("click",(e)=>{const m=$("menu"),mb=$("menuBtn");if(!m||!mb)return;if(!m.classList.contains("is-open"))return;if(m.contains(e.target)||mb.contains(e.target))return;closeMenuAnimated();});
-  const menuEl=$("menu");
+  /* Öppna/stäng, klick utanför och Escape ägs av js/exgen-shell.js.
+     Kvar här: vad sidans EGNA poster i arket gör. */
+  const menuEl=document.querySelector(".xg-menu");
   if(menuEl){
     menuEl.addEventListener("click",(e)=>{
       const btn=e.target.closest("[data-scroll]"); if(!btn)return;
-      e.preventDefault(); const sel=btn.getAttribute("data-scroll"); closeMenuAnimated();
+      e.preventDefault(); const sel=btn.getAttribute("data-scroll"); window.XgShell&&window.XgShell.closeMenu();
       const stepMap={"#material":0,"#settings":1,"#exam":2,"#result":3};
       if(sel in stepMap){setWizardStep(stepMap[sel]);return;}
       const el=document.querySelector(sel); if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
     });
   }
-  onKey((e)=>{if(e.key==="Escape")closeMenuAnimated();});
-  onClick("langBtn",async()=>{LANG=(LANG==="sv")?"en":"sv";localStorage.setItem("proviaai_lang",LANG);applyLang();await refreshQuotaUi();closeMenuAnimated();runTrainModeIfRequested();});
+  onClick("langBtn",async()=>{LANG=(LANG==="sv")?"en":"sv";localStorage.setItem("proviaai_lang",LANG);applyLang();await refreshQuotaUi();window.XgShell&&window.XgShell.closeMenu();runTrainModeIfRequested();});
 
   // Show/hide account links based on login + role
   // #kontoLink är borta — kontot nås numera bara via kontoknappen i headern,
@@ -1623,7 +1583,7 @@ try{
   updateCancelBtn();
 
   onClick("cancelSubBtn", async () => {
-    closeMenuAnimated();
+    window.XgShell&&window.XgShell.closeMenu();
     try {
       const { data: { session } } = await db.auth.getSession();
       if (!session) { alert(LANG === "sv" ? "Logga in för att hantera prenumeration." : "Log in to manage subscription."); return; }
@@ -1643,7 +1603,7 @@ try{
       alert(LANG === "sv" ? "Nätverksfel. Försök igen." : "Network error. Try again.");
     }
   });
-  onClick("logoutTopBtn",async()=>{await logout();});
+  onClick("xgLogout",async()=>{await logout();});
 
   onClick("ocrBtn",async()=>{
     if(currentRole==="gratis"){window.location.href="pricing.html";return;}

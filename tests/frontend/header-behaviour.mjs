@@ -33,16 +33,24 @@ const srv = await serve(ROOT);
 const R = report("header-behaviour");
 const ok = (n, c, d = "") => R.ok(n, c, d);
 
-// korkortet.html och provia-hp.html utelämnas: modulerna är avstängda i
-// js/exgen-modules.js och sidorna omdirigerar till startsidan.
-// larare.html bär headern men ingen .xg-nav.
-const PAGES = ["index.html", "pricing.html", "app.html", "förbättring.html", "konto.html", "integritetspolicy.html"];
+// Varje sida som bär huvudet. korkortet.html, provia-hp.html och
+// live-demo.html utelämnas: modulerna är avstängda i js/exgen-modules.js och
+// sidorna omdirigerar till startsidan. larare.html och admin.html står inte
+// själva i navlistan men bär huvudet som alla andra.
+const PAGES = ["index.html", "pricing.html", "app.html", "förbättring.html", "konto.html",
+  "integritetspolicy.html", "larare.html", "admin.html"];
 
 // Sidor som SKA gå att nå från headerns navigering. Två undantag, båda med
 // sin egen kontroll längre ned: konto.html nås via kontoknappen, index.html
 // via märket. Att kräva dem här också hade betytt att samma destination måste
 // stå på två ställen — precis det testet finns för att förhindra.
 const DESTINATIONS = ["app.html", "förbättring.html", "pricing.html"];
+
+// Facit för navlistan. Sätts av den första sidan som mäts och jämförs sedan mot
+// varje annan. Det är den kontroll som saknades: "inga dubbletter" hindrar inte
+// att en sida SAKNAR en post, och det var precis felet — index utan sitt Hem,
+// förbättring utan sitt Min utveckling, admin utan Körkortsteorin.
+let NAV_FACIT = null;
 
 const browser = await chromium.launch();
 let crash = null;
@@ -174,6 +182,39 @@ for (const url of PAGES) {
     });
     ok(`${url} @390: kontoknappen syns även med menyn utfälld`,
       !!acct && acct.visible && acct.href === "konto.html", JSON.stringify(acct));
+    await ctx.close();
+  }
+
+  // ── samma lista överallt ─────────────────────────────────────────────
+  // Den här kontrollen är skälet till att divergensen inte kan komma
+  // tillbaka. Den frågar efter hela listan, i ordning, och kräver att den
+  // är IDENTISK med första sidans — inklusive de poster som är dolda av
+  // exgen-modules.js, eftersom de finns i markupen och ska finnas där.
+  {
+    const { ctx, page } = await open(url, 1280);
+    const lista = await page.evaluate(() =>
+      [...document.querySelectorAll(".xg-nav a")]
+        .map(a => decodeURIComponent(a.getAttribute("href") || "")).join(","));
+    if (!NAV_FACIT) NAV_FACIT = { url, lista };
+    ok(`${url} @1280: navlistan är identisk med övriga sidors`,
+      lista === NAV_FACIT.lista, `${lista}  ≠  ${NAV_FACIT.lista}  (facit: ${NAV_FACIT.url})`);
+    await ctx.close();
+  }
+
+  // Arket ska bära samma destinationer som listan — annars är menyn olika
+  // beroende på om man står vid 390 eller 1280px, vilket är samma fel en
+  // gång till fast i en annan riktning.
+  {
+    const { ctx, page } = await open(url, 390);
+    const menuErr = await openMenu(page);
+    const v = await page.evaluate(() => ({
+      ark: [...document.querySelectorAll(".xg-menu a[href], .drop a[href], .dropdown a[href]")]
+        .map(a => decodeURIComponent(a.getAttribute("href") || "")),
+    }));
+    const navPoster = NAV_FACIT.lista.split(",");
+    const saknas = navPoster.filter(h => !v.ark.includes(h));
+    ok(`${url} @390: arket bär varje post ur navlistan`,
+      menuErr === "" && saknas.length === 0, saknas.join(", ") || menuErr);
     await ctx.close();
   }
 }

@@ -147,8 +147,17 @@
             '<img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">' +
             '<div class="xg-brand-tag">Studieplattform för skolan</div>' +
           "</a>" +
+          /* Tre barn i wrappen, inte två: märket, naven och kontodelen.
+             .xg-header-wrap är space-between, så tre barn ger märket till
+             vänster, naven i mitten och kontot till höger — surflänkarna skilda
+             från kontohandlingen. Sidorna var oense om just det här: konto.html
+             hade tre barn och fick centrerad nav, alla andra hade två och fick
+             naven hoptryckt mot kontoknappen. Mätt i per-visual, 2751 px
+             skillnad på konto.html enbart av den anledningen.
+             På mobil är naven display:none och wrappen faller tillbaka till
+             två barn av sig själv. */
+          '<nav class="xg-nav" aria-label="Huvudnavigation">' + navHtml + "</nav>" +
           '<div class="xg-header-right">' +
-            '<nav class="xg-nav" aria-label="Huvudnavigation">' + navHtml + "</nav>" +
             '<a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>' +
             '<button class="xg-menu-btn" type="button" aria-label="Meny" aria-expanded="false" aria-controls="xgMenu">' +
               '<span class="xg-menu-bars" aria-hidden="true"><span></span><span></span><span></span></span>' +
@@ -178,6 +187,11 @@
         "</nav>" +
       "</header>";
   }
+
+  /* Sätts av bind(). Sidlokala poster i arket är knappar, inte länkar, så
+     renderarens egen "stäng vid klick på a" biter inte på dem — app.html:s
+     skrollankare och prenumerationsknapp måste kunna stänga arket själva. */
+  var closeMenu = function () {};
 
   function bind() {
     var btn = document.querySelector(".xg-menu-btn");
@@ -215,6 +229,8 @@
       if (restoreFocus !== false) btn.focus();
     }
 
+    closeMenu = close;
+
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
       if (menu.classList.contains("on")) close(); else open();
@@ -241,62 +257,17 @@
     });
   }
 
-  /* ── Brygga: sidor som ännu inte migrerat ────────────────────────────────
-     index, pricing, konto, förbättring och app laddar redan den här filen, men
-     bär fortfarande sitt handskrivna huvud med .mWrap/#mBtn respektive
-     .menuWrap/#menuBtn. Utan det här hade de fått en hamburgare som inte
-     öppnas i samma stund som filen skrevs om — ett trasigt mellanläge mellan
-     två commits.
-
-     Det här är den gamla bindningen, oförändrad, och den dör tillsammans med
-     de sista .ddi-klasserna när sidorna migreras. app.html rörs inte: den har
-     en egen fjärde variant med is-open/is-closing i sin egen JS. */
-  function bindLegacy() {
-    var btn = document.getElementById("mBtn") || document.getElementById("menuBtn");
-    var panel = document.getElementById("drop") || document.getElementById("menu");
-    if (!btn || !panel) return;
-    var closeTimer;
-
-    function open() {
-      clearTimeout(closeTimer);
-      panel.classList.remove("off");
-      panel.style.display = "block";
-      requestAnimationFrame(function () { panel.classList.add("on"); });
-      btn.setAttribute("aria-expanded", "true");
-    }
-    function close() {
-      if (!panel.classList.contains("on")) return;
-      btn.setAttribute("aria-expanded", "false");
-      panel.classList.remove("on");
-      panel.classList.add("off");
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(function () {
-        panel.classList.remove("off");
-        panel.style.display = "none";
-      }, 120);
-    }
-
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      if (panel.classList.contains("on")) close(); else open();
-    });
-    document.addEventListener("click", function (e) {
-      if (!panel.classList.contains("on")) return;
-      if (!panel.contains(e.target) && !btn.contains(e.target)) close();
-    });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
-    panel.addEventListener("click", function (e) {
-      if (e.target.closest("a")) setTimeout(close, 80);
-    });
-  }
-
   function render() {
     var slot = document.querySelector("[data-xg-header]");
-    if (!slot) { bindLegacy(); return; }
+    if (!slot) return;
     slot.innerHTML = markup();
     bind();
   }
 
-  global.XgShell = { render: render, NAV: NAV };
+  global.XgShell = {
+    render: render,
+    NAV: NAV,
+    closeMenu: function () { closeMenu(); }
+  };
   render();
 })(window);

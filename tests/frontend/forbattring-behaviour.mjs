@@ -308,9 +308,22 @@ async function mark(page, id) {
 // courseFilter, resetBtn och toAppBtn — fyra etiketter som bytte språk hela
 // tiden utan att någon mätte det.
 //
+// Sedan 28: sidhuvudet renderas numera av js/exgen-shell.js och är gemensamt
+// för alla sidor. Fyra etiketter som bytte språk bodde i sidans HANDSKRIVNA
+// huvud och finns inte längre kvar där:
+//
+//   tagLine    märkets undertext ("Studieplattform för skolan")
+//   toAppBtn   "Till appen" i den gamla menyn — destinationen finns i navlistan
+//   langLabel  språkknappens etikett
+//   langPill   språkknappens piller (SV/EN)
+//
+// Det delade huvudet är svenskt. Det är inte en förlust som smugit sig in utan
+// följden av beslutet att ta bort språkväxlaren helt; hela i18n-lagret på den
+// här sidan rivs i nästa uppgift, och då faller det här testet bort med det.
+//
 // Golvet flyttas bara tillsammans med en sådan motivering — aldrig för att få
 // en körning grön.
-const LANG_IDS_FLOOR = 32;
+const LANG_IDS_FLOOR = 28;
 {
   const { ctx, page } = await mk();
   const changed = await page.evaluate(async () => {

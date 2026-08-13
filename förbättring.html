@@ -265,10 +265,21 @@
       #cursorRing.rDown>div{transform:scale(.64);opacity:.8}
     }
   </style>
+  <!-- Sidlokal post i menyarket. "Rensa all data" är en handling på den
+       här sidan, inte en destination, så den hamnar under avdelaren. -->
+  <script>window.XG_MENU_EXTRA = [
+    /* Språkväxlaren står kvar tills uppgift 4 river hela i18n-lagret. Den
+       här omgången flyttar bara huvudet och ska inte ändra vad sidan gör.
+       Etiketten uppdateras inte längre av applyLang (#langLabel/#langPill
+       bodde i det handskrivna huvudet) — en kosmetisk brist i en knapp som
+       försvinner om en uppgift. */
+    { label: "English",         id: "langBtn",  pill: "SV" },
+    { label: "Rensa all data",  id: "resetBtn", pill: "!" }
+  ];</script>
+  <script src="js/exgen-shell.js" defer></script>
   <script src="shared.js" defer></script>
   <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
-  <script src="js/exgen-shell.js" defer></script>
-
+  
 </head>
 
 <body>
@@ -280,52 +291,7 @@
      enda inloggnings-UI:t nu, och den enda med lösenordsåterställning. -->
 
   <!-- HEADER -->
-  <div class="xg-utility-bar">
-  <div class="xg-utility-wrap">
-    <a class="xg-utility-badge" href="https://ungdrive.se" target="_blank" rel="noopener" aria-label="Backed by UngDrive">
-      <img src="https://ungdrive.se/img/icon-ios-1024@1x.png" width="12" height="12" alt="">
-      <span>Backed by UngDrive</span>
-    </a>
-    <div class="xg-utility-right">
-      <a href="integritetspolicy.html">Integritetspolicy</a>
-    </div>
-  </div>
-</div>
-<header class="xg-header">
-    <div class="xg-header-wrap">
-      <a class="xg-brand" href="index.html">
-        <img src="image/exgen-logo.png" alt="ExGen" style="height:20px;width:auto">
-        <div>
-          <div class="xg-brand-tag" id="tagLine">Studieplattform för skolan</div>
-        </div>
-      </a>
-      <nav class="xg-nav" aria-label="Huvudnavigation">
-        <a class="xg-nav-link" href="index.html">Hem</a>
-        <a data-module="korkort" class="xg-nav-link" href="korkortet.html">Körkortsteorin</a>
-        <a class="xg-nav-link" href="app.html">Mockprov</a>
-        <a class="xg-nav-link active" href="förbättring.html" aria-current="page">Min utveckling</a>
-        <a class="xg-nav-link" href="pricing.html">Priser</a>
-      </nav>
-      <div class="hRight">
-        <a class="xg-login-btn" href="konto.html" data-pv-auth="login">Logga in</a>
-        <div class="menuWrap">
-          <button class="mBtn" id="menuBtn" type="button" aria-label="Meny" aria-expanded="false">
-            <div class="bars" aria-hidden="true"><span></span><span></span><span></span></div>
-          </button>
-          <div class="drop" id="menu">
-            <a class="ddi" href="app.html" id="toAppBtn"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg></span><span>Till appen</span><span class="dpill">App</span></a>
-            <a data-module="korkort" class="ddi" href="korkortet.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11 8.5 5h7L19 11"/><rect x="2" y="11" width="20" height="8" rx="2"/><circle cx="7.5" cy="19" r="2"/><circle cx="16.5" cy="19" r="2"/></svg></span><span>Körkortsteorin</span><span class="dpill" style="color:var(--a);border-color:var(--l2)">Nytt</span></a>
-            <a class="ddi" href="pricing.html"><span class="ddi-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span>Priser</span><span class="dpill">29/79</span></a>
-            <div class="ddSep"></div>
-            <button class="ddi" id="langBtn" type="button"><span id="langLabel">English</span><span class="dpill" id="langPill">SV</span></button>
-            <button class="ddi" id="resetBtn" type="button"><span>Rensa all data</span><span class="dpill" style="color:var(--danger)">!</span></button>
-            <div class="ddSep"></div>
-            <button class="ddi" id="logoutBtn" type="button"><span>Logga ut</span><span class="dpill">Lås</span></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <div data-xg-header></div>
 
   <!-- MAIN -->
   <main class="wrap" id="main-content">
@@ -793,7 +759,7 @@
     /* ── APPLY LANG ── */
     function applyLang(){
       const t=T[LANG];
-      $('tagLine').textContent=t.tag;
+      if($('tagLine'))$('tagLine').textContent=t.tag;
       const _ta=$('toAppBtn');if(_ta){const _s=_ta.querySelector('span:first-child');if(_s)_s.textContent=t.toApp;else _ta.textContent=t.toApp;}
       const _rb=$('resetBtn');if(_rb){const _s=_rb.querySelector('span:first-child');if(_s)_s.textContent=t.reset;else _rb.textContent=t.reset;}
       const h=$('howToText');if(h)h.innerHTML=t.howTo;
@@ -803,12 +769,24 @@
       $('genReportBtn').textContent=t.reportCreate;$('copyReportBtn').textContent=t.reportCopy;
       $('trainSelectedBtn').textContent=t.trainSelected;$('clearSelectionBtn').textContent=t.clearSel;
       $('mistakesTitle').textContent=t.mistakesTitle;$('mistakesSub').textContent=t.mistakesSub;
-      $('footerText').textContent=t.footer;$('langLabel').textContent=t.english;$('langPill').textContent=LANG.toUpperCase();
+      $('footerText').textContent=t.footer;
+      /* #langLabel och #langPill bodde i det handskrivna huvudet. Hela
+         i18n-lagret rivs i uppgift 4; tills dess får raden inte kasta —
+         gjorde den det avbröts applyLang(), och därmed renderAll(), så
+         varken historik eller felbank ritades alls. */
+      if($('langLabel'))$('langLabel').textContent=t.english;
+      if($('langPill'))$('langPill').textContent=LANG.toUpperCase();
       $('examListTitle').textContent=t.examListTitle;$('examListSub').textContent=t.examListSub;
       $('courseFilterLabel').textContent=t.course;$('showModeLabel').textContent=t.show;$('syncBtnLabel').textContent=t.sync;
       if($('chartTitle'))$('chartTitle').textContent=t.chartTitle;
     }
-    $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
+    /* Språkväxlaren rivs i uppgift 4 tillsammans med hela i18n-lagret.
+       Knappen renderas av js/exgen-shell.js (defer) och finns inte när det
+       här skriptet körs under parsningen — därför DOMContentLoaded. Ett ?.
+       hade gjort knappen tyst död i stället för att kasta. */
+    document.addEventListener('DOMContentLoaded',()=>{
+      $('langBtn').addEventListener('click',()=>{LANG=LANG==='sv'?'en':'sv';localStorage.setItem('proviaai_lang',LANG);applyLang();renderAll();});
+    });
 
     /* ── PICK / SELECTION ── */
     function mKey(m){return`${Number(m.ts||0)}:${m.course||''}:${m.id||''}:${m.question||''}`;}
@@ -1294,6 +1272,10 @@
     $('clearSelectionBtn').addEventListener('click',()=>{clearPick();renderAll();});
     $('genReportBtn').addEventListener('click',async()=>await generateReport());
     $('copyReportBtn').addEventListener('click',async()=>await copyReport());
+    /* #resetBtn kommer från window.XG_MENU_EXTRA och renderas av
+       js/exgen-shell.js, som är defer. Det här skriptet körs under parsningen,
+       alltså före det — knappen finns inte än. */
+    document.addEventListener('DOMContentLoaded',()=>{
     $('resetBtn').addEventListener('click',async()=>{
       $('resetBtn').setAttribute('disabled','disabled');
       setTopStatus(LANG==='sv'?'Rensar…':'Clearing…','');
@@ -1312,6 +1294,7 @@
       renderAll();
       setTopStatus(LANG==='sv'?'Historik rensad (lokalt + konto).':'History cleared (local + account).','ok');
       $('resetBtn').removeAttribute('disabled');
+    });
     });
 
     /* ── BIND TOGGLES ── */
