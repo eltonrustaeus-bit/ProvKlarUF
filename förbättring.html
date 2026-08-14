@@ -149,10 +149,83 @@
       .xfTrainActs{width:100%;gap:var(--exgen-space-2)}
       .xfTrainGo{flex:1;text-align:center}
     }
-    .xfMiss{margin-bottom:var(--exgen-space-4)}
-    .xfMissRow{margin-bottom:0}
-    .xfMissTags{margin:8px 0 0}
-    .xfMissMore{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;padding-left:2px}
+    /* ── FELBANKENS KORT ───────────────────────────────────────────────────
+       Listan lästes som rörig, och orsaken var strukturell: frågan låg i en ram
+       medan taggarna och åtgärderna låg UTANFÖR den, direkt på sidbakgrunden.
+       Varje misstag var tre visuellt frånkopplade delar staplade på varandra.
+
+       Nu ett kort. Allt som hör till misstaget ligger inuti det, och kortet är
+       den enhet eleven markerar. */
+    .xfMiss{
+      background:var(--s);
+      border:1px solid var(--l);
+      border-radius:var(--exgen-radius-lg);
+      margin-bottom:var(--exgen-space-3);
+      overflow:hidden;
+      transition:border-color .16s ease,box-shadow .16s ease;
+    }
+    .xfMiss:hover{border-color:var(--l2)}
+    /* Markerat kort: accentkant på insidan, så kortet inte hoppar en pixel. */
+    .xfMiss.sel{border-color:var(--a);box-shadow:inset 0 0 0 1px var(--a)}
+
+    /* Frågeraden fyller kortets övre del. .xf-opt bär sin egen ram och yta i
+       det delade lagret — här är kortet ramen, så den neutraliseras. */
+    .xfMiss .xfMissRow{
+      display:block;width:100%;text-align:left;
+      background:none;border:0;border-radius:0;
+      padding:var(--exgen-space-3) var(--exgen-space-4);
+      cursor:pointer;
+    }
+    .xfMiss .xfMissRow::before{content:none}
+    .xfMiss .xfMissRow:hover{background:var(--s2)}
+
+    /* Huvudet: begreppet till vänster, poängen till höger. Två saker, inte
+       fem — det var mängden likvärdiga piller som gjorde listan rörig. */
+    .xfMissHead{display:flex;align-items:center;gap:var(--exgen-space-2);margin-bottom:6px}
+    .xfMissConcept{
+      font-family:var(--exgen-font-mono);font-size:10.5px;
+      letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+      color:var(--a2);
+    }
+    .xfMissConcept--none{color:var(--t3)}
+    /* Den enda signalen som säger vad eleven ska prioritera. */
+    .xfMissRepeat{
+      font-family:var(--exgen-font-mono);font-size:10px;
+      color:var(--warn);border:1px solid rgba(146,98,10,.28);
+      border-radius:var(--exgen-radius-pill);padding:1px 8px;white-space:nowrap;
+    }
+    .xfMissScore{
+      margin-left:auto;flex-shrink:0;
+      font-family:var(--exgen-font-mono);font-size:12px;font-weight:500;
+      color:var(--danger);
+    }
+    .xfMissQ{display:block;font-size:15px;line-height:1.45;color:var(--t);font-weight:500}
+    .xfMissMeta{display:block;margin-top:5px;font-family:var(--exgen-font-mono);font-size:10.5px;color:var(--t3)}
+
+    /* Åtgärderna var 11px versal monospace utan ram, utanför kortet — de
+       lästes som bildtext och var 12px höga. Nu en egen rad i kortets fot,
+       avdelad med en hårfin linje, med träffbar yta. */
+    .xfMissMore{
+      display:flex;border-top:1px solid var(--l);
+    }
+    .xfMissMore > button{
+      flex:1;min-height:40px;padding:0 6px;
+      background:none;border:0;border-right:1px solid var(--l);
+      cursor:pointer;
+      font-family:var(--exgen-font);font-size:12.5px;font-weight:500;
+      color:var(--t2);
+      transition:background .14s ease,color .14s ease;
+    }
+    .xfMissMore > button:last-child{border-right:0}
+    .xfMissMore > button:hover{background:var(--s2);color:var(--a2)}
+    .xfMissMore > button:focus-visible{outline:var(--exgen-focus-ring);outline-offset:-2px}
+
+    .xfMissDetail{margin:0;padding:var(--exgen-space-3) var(--exgen-space-4);
+      border-top:1px solid var(--l);background:var(--s2)}
+    /* Felkoderna bor här, hos feedbacken de förklarar. */
+    .xfMissCodes{margin:-4px 0 10px}
+    .xfMissCodes .xf-chip{font-size:11px;padding:3px 9px}
+    .tipsBoxEl{margin:0 var(--exgen-space-4) var(--exgen-space-3)}
     .xfDisclose{background:none;border:0;padding:0;cursor:pointer;font-family:var(--exgen-font-mono);
       font-size:10.5px;letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
       color:var(--xf-ink-2);transition:color .18s}
@@ -179,7 +252,9 @@
     .chartLabel{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px}
 
     /* ── MISTAKE GRID ── */
-    .mistakeGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+    /* En kolumn. Måttet är 580px, så minmax(300px,1fr) gav ändå aldrig två —
+       rutnätet var en förklädd lista. */
+    .mistakeGrid{display:block}
 
     /* ── CONCEPT BREAKDOWN (level 2 under course) ── */
     .conceptBar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
@@ -657,6 +732,12 @@
       const scope=[course,shownConcept].filter(Boolean).join(' › ');
       st.textContent=`${filtered.length} misstag${scope?' · '+scope:''}`;st.className='statusText';
       const pick=getPick(),pickSet=new Set((Array.isArray(pick.ids)?pick.ids:[]).map(x=>String(x)));
+      /* Hur många gånger varje begrepp återkommer i det eleven ser just nu.
+         Det är den enda signalen som säger vad som ska prioriteras — fyra
+         identiska kort säger ingenting om vilket misstag som är ett mönster
+         och vilket som var en engångshändelse. */
+      const begreppsAntal={};
+      filtered.forEach(x=>{const c=conceptOf(x);if(c)begreppsAntal[c]=(begreppsAntal[c]||0)+1;});
       const tc=getTipsCache();
       const grid=document.createElement('div');grid.className='mistakeGrid';
       list.appendChild(grid);
@@ -665,23 +746,37 @@
         // ::before, så raden inte hoppar en pixel när den väljs — kryssrutan
         // som låg här förut var en andra kontroll för ett tillstånd raden redan
         // kunde bära.
-        const d=document.createElement('div');d.className='xfMiss';
-        const date=new Date(m.ts||Date.now()).toLocaleDateString(undefined,{year:'numeric',month:'2-digit',day:'2-digit'});
+        const d=document.createElement('article');
+        const date=new Date(m.ts||Date.now()).toLocaleDateString(undefined,{month:'2-digit',day:'2-digit'});
         const isPicked=pickSet.has(String(m.id)),cKey=tipsCKey(m),hasCached=!!(tc[cKey]);
         const cTag=conceptOf(m),eTags=errorTagsOf(m).slice(0,3);
-        const tagsHtml=(cTag||eTags.length)?`<div class="xf-chips xfMissTags">${
-          cTag?`<span class="xf-chip">${esc(cTag)}</span>`:''
-        }${eTags.map(x=>`<span class="xf-chip">${esc(errLabel(x))}</span>`).join('')}</div>`:'';
+        const antal=cTag?(begreppsAntal[cTag]||0):0;
+        d.className='xfMiss'+(isPicked?' sel':'');
+
+        /* Begreppet står ensamt i huvudet. Felkoderna flyttade ned till
+           detaljen, bredvid feedbacken de förklarar — i huvudet var de brus:
+           samma två koder på varje kort, tyngre satta än frågan de gällde. */
+        const huvudHtml=
+          '<div class="xfMissHead">'+
+            (cTag?`<span class="xfMissConcept">${esc(cTag)}</span>`:'<span class="xfMissConcept xfMissConcept--none">Otaggad</span>')+
+            (antal>1?`<span class="xfMissRepeat">återkommer ${antal} ggr</span>`:'')+
+            `<span class="xfMissScore">${m.points}/${m.max_points}</span>`+
+          '</div>';
+
+        const kodHtml=eTags.length
+          ? `<div class="xf-chips xfMissCodes">${eTags.map(x=>`<span class="xf-chip">${esc(errLabel(x))}</span>`).join('')}</div>`
+          : '';
+
         d.innerHTML=`
-          <button type="button" class="xf-opt xfMissRow${isPicked?' sel':''}" data-id="${esc(m.id)}"
+          <button type="button" class="xf-opt xfMissRow" data-id="${esc(m.id)}"
                   aria-pressed="${isPicked?'true':'false'}">
-            ${esc(m.question||'')}
-            <small>${date} · ${esc((m.course||'').trim()||'ingen kurs')} · ${m.points}/${m.max_points}p</small>
+            ${huvudHtml}
+            <span class="xfMissQ">${esc(m.question||'')}</span>
+            <span class="xfMissMeta">${esc((m.course||'').trim()||'ingen kurs')} · ${date}</span>
           </button>
-          ${tagsHtml}
           <div class="xfMissMore">
             <button type="button" class="xfDisclose" aria-expanded="false">Visa svar</button>
-            <button class="xfDisclose doneBtn" type="button">Klar ✓</button>
+            <button class="xfDisclose doneBtn" type="button">Klar</button>
             <button class="xfDisclose tipsBtnEl" type="button">P.E.R-tips${hasCached?' <span class="xfCached">cache</span>':''}</button>
           </div>
           <div class="xf-note xfMissDetail" hidden>
@@ -689,13 +784,27 @@
             <div class="mFV">${esc(m.user_answer||'—')}</div>
             <div class="mFL">Feedback</div>
             <div class="mFV">${esc(m.feedback||'—')}</div>
+            ${kodHtml}
             <div class="mFL">Modellsvar</div>
             <div class="mFV">${esc(m.model_answer||'—')}</div>
           </div>
           <div class="tipsBox tipsBoxEl" style="display:none"></div>`;
 
         // Markering: hela raden.
-        d.querySelector('.xfMissRow')?.addEventListener('click',()=>togglePickId(m.id));
+        /* Markeringen sitter på KORTET, inte bara på frågeraden. Kortet är
+           det eleven ser som en enhet, så det är kortet som ska se valt ut.
+
+           Klicket målar om kortet DIREKT. Tidigare satte togglePickId bara
+           lagringen och räknaren, medan .sel lades på vid render — så ett klick
+           gav ingen synlig återkoppling alls förrän listan råkade ritas om.
+           Eleven markerade i blindo. */
+        const rad=d.querySelector('.xfMissRow');
+        rad?.addEventListener('click',()=>{
+          togglePickId(m.id);
+          const valt=(getPick().ids||[]).map(String).includes(String(m.id));
+          d.classList.toggle('sel',valt);
+          rad.setAttribute('aria-pressed',valt?'true':'false');
+        });
         // Detaljen: egen kontroll, egen rad under. Ingen stopPropagation
         // behövs eftersom knapparna ligger utanför .xf-opt, inte inuti den —
         // en knapp i en knapp är ogiltig HTML och hade dessutom gjort det

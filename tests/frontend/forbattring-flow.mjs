@@ -461,6 +461,167 @@ for (const mål of ["felbank", "prov", "coach", "rapport"]) {
   await ctx.close();
 }
 
+
+/* ══ FELBANKENS KORT ════════════════════════════════════════════════════════
+   Listan lästes som rörig, och orsaken var strukturell: frågan låg i en ram
+   medan taggarna och åtgärderna låg UTANFÖR den, direkt på sidbakgrunden.
+   Varje misstag var alltså tre visuellt frånkopplade delar staplade på
+   varandra. */
+
+// ── M1: ett misstag är ETT kort. Allt som hör till det ligger inuti. ──────
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => {
+    const kort = document.querySelector("#mistakeList .xfMiss");
+    if (!kort) return null;
+    const inuti = sel => !!kort.querySelector(sel);
+    return {
+      fråga:   inuti(".xfMissRow"),
+      meta:    inuti(".xfMissMeta"),
+      åtgärder:inuti(".xfMissMore"),
+      detalj:  inuti(".xfMissDetail"),
+      /* Kortet måste ha en egen yta — annars är "inuti" bara DOM-släktskap
+         och inte något eleven kan se. */
+      kant:    parseFloat(getComputedStyle(kort).borderTopWidth),
+    };
+  });
+  ok("M1 allt som hör till ett misstag ligger i samma kort",
+    v && v.fråga && v.meta && v.åtgärder && v.detalj, JSON.stringify(v));
+  ok("M1 och kortet har en egen yta", v && v.kant > 0, JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M2: åtgärderna är knappar man kan träffa, inte bildtext. ─────────────
+//        De var 11px versal monospace utan ram och låg utanför kortet.
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() =>
+    [...document.querySelectorAll("#mistakeList .xfMiss:first-child .xfMissMore button")]
+      .map(b => ({ h: Math.round(b.getBoundingClientRect().height), txt: b.textContent.trim().slice(0, 14) })));
+  ok("M2 varje åtgärd har en träffbar yta", v.length === 3 && v.every(x => x.h >= 36), JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M3: felkoderna flyttar till detaljen, där de förklarar feedbacken. ────
+//        I kortets huvud var de brus: samma två koder på varje kort.
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => {
+    const kort = document.querySelector("#mistakeList .xfMiss");
+    const huvud = kort.querySelector(".xfMissHead");
+    const detalj = kort.querySelector(".xfMissDetail");
+    const txt = el => (el ? el.textContent : "");
+    return {
+      iHuvudet: /Metod saknas|Resonemangsglapp/.test(txt(huvud)),
+      iDetaljen: /Metod saknas|Resonemangsglapp/.test(txt(detalj)),
+    };
+  });
+  ok("M3 felkoderna står inte i kortets huvud", v.iHuvudet === false, JSON.stringify(v));
+  ok("M3 utan i detaljen, hos feedbacken de förklarar", v.iDetaljen === true, JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M4: ett begrepp som återkommer märks ut. Det är den enda signalen ────
+//        som säger vad eleven ska prioritera, och den fanns inte alls.
+{
+  const { ctx, page } = await open("#felbank", { nExams: 3 });
+  const v = await page.evaluate(() => {
+    const kort = [...document.querySelectorAll("#mistakeList .xfMiss")];
+    return kort.map(k => ({
+      begrepp: (k.querySelector(".xfMissConcept") || {}).textContent || "",
+      upprepning: !!k.querySelector(".xfMissRepeat"),
+    }));
+  });
+  /* Seeden ger Matematik 2c två gånger med olika begrepp och Svenska 1 en
+     gång — ingen upprepning ska märkas ut här. */
+  ok("M4 ett begrepp som inte återkommer märks inte ut",
+    v.length === 3 && v.every(x => !x.upprepning), JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M4b: och märks ut när det FAKTISKT återkommer. M4 täcker bara att
+//        markören håller tyst — utan den här hade den kunnat vara borttagen
+//        och båda kontrollerna ändå gröna.
+{
+  const NU = Date.now();
+  const rad = (i, id, q, con) => ({
+    id: i, created_at: new Date(NU - (10 - i) * 8.64e7).toISOString(),
+    course: "Matematik 2c", level: "C", qtype: "mix", material: "",
+    exam: { questions: [{ id, question: q, type: "short" }] },
+    answers: [{ id, answer: "fel" }],
+    result: { total_points: 0, max_points: 3, per_question: [
+      { id, points: 0, max_points: 3, feedback: "Produktregeln saknas.", model_answer: "…",
+        concept_tag: con, error_tags: ["method_missing"] }] },
+  });
+  const upprepat = [
+    rad(1, "a", "Derivera x²·sin(x)", "Derivata"),
+    rad(2, "b", "Derivera 3x⁴", "Derivata"),
+    rad(3, "c", "Lös 2x+3=9", "Ekvationer"),
+  ];
+  const { ctx, page } = await openPage(browser, `${srv.url}/f%C3%B6rb%C3%A4ttring.html#felbank`, {
+    width: 1280, height: 900, reducedMotion: "reduce",
+    waitUntil: "domcontentloaded", settle: 1600,
+    mocks: { extra: [["**/rest/v1/user_exams**", r => r.fulfill({ json: upprepat })]] },
+  });
+  const v = await page.evaluate(() =>
+    [...document.querySelectorAll("#mistakeList .xfMiss")].map(k => ({
+      begrepp: (k.querySelector(".xfMissConcept") || {}).textContent || "",
+      märke: (k.querySelector(".xfMissRepeat") || {}).textContent || null,
+    })));
+  const derivata = v.filter(x => x.begrepp === "Derivata");
+  const ekvationer = v.filter(x => x.begrepp === "Ekvationer");
+  ok("M4b begrepp som återkommer märks ut med antalet",
+    derivata.length === 2 && derivata.every(x => /2/.test(x.märke || "")),
+    JSON.stringify(v));
+  ok("M4b och engångshändelsen lämnas omärkt",
+    ekvationer.length === 1 && ekvationer[0].märke === null, JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M5: markeringen syns på hela kortet, inte bara på frågeraden. ────────
+{
+  const { ctx, page } = await open("#felbank");
+  await page.click("#mistakeList .xf-opt >> nth=0");
+  await page.waitForTimeout(300);
+  const v = await page.evaluate(() => {
+    const kort = document.querySelector("#mistakeList .xfMiss");
+    return { markerat: kort.classList.contains("sel"), tryckt: kort.querySelector(".xfMissRow").getAttribute("aria-pressed") };
+  });
+  ok("M5 markeringen sitter på kortet", v.markerat === true && v.tryckt === "true", JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M6: poängen ska gå att se utan att leta. Den låg i grå småtext ───────
+//        mellan datum och kurs.
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => {
+    const el = document.querySelector("#mistakeList .xfMissScore");
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    return { txt: el.textContent.trim(), storlek: parseFloat(cs.fontSize), vikt: cs.fontWeight };
+  });
+  ok("M6 poängen har ett eget element och syns", !!v && /\d+\s*\/\s*\d+/.test(v.txt) && v.storlek >= 11,
+    JSON.stringify(v));
+  await ctx.close();
+}
+
+// ── M7: inget spill på telefon. ──────────────────────────────────────────
+{
+  const { ctx, page } = await openPage(browser, `${srv.url}/f%C3%B6rb%C3%A4ttring.html#felbank`, {
+    width: 390, height: 900, reducedMotion: "reduce",
+    waitUntil: "domcontentloaded", settle: 1600,
+    mocks: { extra: [["**/rest/v1/user_exams**", r => r.fulfill({ json: ROWS })]] },
+  });
+  const v = await page.evaluate(() => ({
+    vågrät: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    spill: Math.max(...[...document.querySelectorAll("#mistakeList .xfMiss")]
+      .map(k => Math.round(k.getBoundingClientRect().right - window.innerWidth))),
+  }));
+  ok("M7 korten spiller inte utanför skärmen", v.vågrät <= 0 && v.spill <= 0, JSON.stringify(v));
+  await ctx.close();
+}
+
 } catch (e) { crash = e; }
 await browser.close();
 await srv.close();
