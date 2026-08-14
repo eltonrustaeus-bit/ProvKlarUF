@@ -360,6 +360,107 @@ for (const mål of ["felbank", "prov", "coach", "rapport"]) {
   await ctx.close();
 }
 
+
+/* ══ ÅTGÄRDSRADEN ═══════════════════════════════════════════════════════════
+   Raden bar "0 valda", "Rensa val" och "Träna markerade" i tre nyanser av
+   grått, och primärhandlingen var den minst framträdande av dem. Den saknade
+   .primary, så den ärvde ingen bakgrund och lästes som avstängd — samtidigt
+   som den var fullt klickbar vid noll valda och skickade eleven till
+   träningsläget med ett tomt urval. */
+
+// ── A1: primärhandlingen är märkt som primär. ─────────────────────────────
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => {
+    const b = document.getElementById("trainSelectedBtn");
+    return { klasser: b.className, bakgrund: getComputedStyle(b).backgroundColor };
+  });
+  ok("A1 träningsknappen är primär", /\bprimary\b/.test(v.klasser), JSON.stringify(v));
+  ok("A1 och har en fylld bakgrund, inte transparent",
+    v.bakgrund !== "rgba(0, 0, 0, 0)" && v.bakgrund !== "transparent", v.bakgrund);
+  await ctx.close();
+}
+
+// ── A2: utan urval går den inte att trycka på. En knapp som skickar eleven ─
+//        till träningsläget med ett tomt urval är en återvändsgränd.
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => ({
+    av: document.getElementById("trainSelectedBtn").disabled,
+    rensaSyns: (() => { const r = document.getElementById("clearSelectionBtn");
+      return r ? r.getBoundingClientRect().height > 0 : false; })(),
+  }));
+  ok("A2 träningsknappen är avstängd utan urval", v.av === true, JSON.stringify(v));
+  ok("A2 'Rensa val' visas inte när det inte finns något att rensa", v.rensaSyns === false);
+  await ctx.close();
+}
+
+// ── A3: markerar man något vaknar raden. ──────────────────────────────────
+{
+  const { ctx, page } = await open("#felbank");
+  await page.click("#mistakeList .xf-opt >> nth=0");
+  await page.waitForTimeout(300);
+  const v = await page.evaluate(() => ({
+    av: document.getElementById("trainSelectedBtn").disabled,
+    rensaSyns: document.getElementById("clearSelectionBtn").getBoundingClientRect().height > 0,
+    räknare: document.getElementById("selCountPill").textContent.trim(),
+  }));
+  ok("A3 knappen vaknar vid urval", v.av === false && v.rensaSyns, JSON.stringify(v));
+  ok("A3 räknaren visar hur många av hur många", /1\D+3/.test(v.räknare), v.räknare);
+  await ctx.close();
+}
+
+// ── A4: raden får inte spilla utanför skärmen på en telefon. Den bar ──────
+//        tidigare tre kontroller på en flexrad som radbröt av sig själv, och
+//        primärhandlingen hamnade ensam längst ned till vänster.
+{
+  const { ctx, page } = await openPage(browser, `${srv.url}/f%C3%B6rb%C3%A4ttring.html#felbank`, {
+    width: 390, height: 844, reducedMotion: "reduce",
+    waitUntil: "domcontentloaded", settle: 1600,
+    mocks: { extra: [["**/rest/v1/user_exams**", r => r.fulfill({ json: ROWS })]] },
+  });
+  await page.click("#mistakeList .xf-opt >> nth=0");
+  await page.waitForTimeout(300);
+  const v = await page.evaluate(() => {
+    const bar = document.getElementById("trainActions");
+    const r = bar.getBoundingClientRect();
+    const knapp = document.getElementById("trainSelectedBtn").getBoundingClientRect();
+    const rensa = document.getElementById("clearSelectionBtn").getBoundingClientRect();
+    return {
+      spill: Math.round(r.right - window.innerWidth),
+      vågrätScroll: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      knappBredd: Math.round(knapp.width),
+      rensaBredd: Math.round(rensa.width),
+      radBredd: Math.round(r.width),
+      radHöjd: Math.round(r.height),
+    };
+  });
+  ok("A4 raden spiller inte utanför skärmen", v.spill <= 0 && v.vågrätScroll <= 0, JSON.stringify(v));
+  /* Kravet gäller RANGORDNINGEN, inte ett tal. Första utkastet krävde att
+     primärhandlingen tog hela bredden — men raden delas med "Rensa", och det
+     är rätt design: escape till vänster, handling till höger, båda nåbara med
+     tummen. Det som faktiskt betyder något är att primären dominerar. */
+  ok("A4 primärhandlingen dominerar raden på telefon",
+    v.knappBredd > v.rensaBredd * 2 && v.knappBredd > v.radBredd * 0.55, JSON.stringify(v));
+  /* Och att staplingen är avsiktlig: mätare + en rad text + en rad kontroller.
+     Den gamla radbröt av sig själv till 130px med primären ensam nederst. */
+  ok("A4 raden staplas avsiktligt och håller sig kort", v.radHöjd <= 110, `${v.radHöjd}px`);
+  await ctx.close();
+}
+
+// ── A5: raden ska gå att skilja från listan när den fastnar överst. ───────
+//        Den var vit på vit och lästes som ett glapp.
+{
+  const { ctx, page } = await open("#felbank");
+  const v = await page.evaluate(() => {
+    const cs = getComputedStyle(document.getElementById("trainActions"));
+    return { kant: cs.borderBottomWidth, bak: cs.backgroundColor, position: cs.position };
+  });
+  ok("A5 raden har en egen kant eller yta", parseFloat(v.kant) > 0, JSON.stringify(v));
+  ok("A5 och sitter kvar överst vid scroll", v.position === "sticky", v.position);
+  await ctx.close();
+}
+
 } catch (e) { crash = e; }
 await browser.close();
 await srv.close();

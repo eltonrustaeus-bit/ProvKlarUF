@@ -92,8 +92,63 @@
     .xfSync{flex:none}
     /* Åtgärdsraden får sidans bakgrund under sig, annars syns listan igenom
        när den fastnar överst. */
-    .xfTrainBar{background:var(--exgen-bg,#fff);padding:10px 0;margin-bottom:var(--exgen-space-4)}
-    .xfTrainClear{margin-left:auto}
+    /* ── ÅTGÄRDSRADEN ──────────────────────────────────────────────────────
+       Raden bar tre kontroller i tre nyanser av grått, och primärhandlingen var
+       den minst framträdande av dem — den saknade .primary och ärvde därför
+       webbläsarens egen knappgrå. Den var dessutom vit på vit, så när den
+       fastnade överst lästes den som ett glapp i listan i stället för som ett
+       verktygsfält.
+
+       Nu en egen yta med en hårfin kant, en mätare överst och en tydlig
+       ordning: vad som är valt till vänster, vad man kan göra till höger. */
+    .xfTrainBar{
+      background:var(--s);
+      border:1px solid var(--l);
+      border-radius:var(--exgen-radius-lg);
+      margin-bottom:var(--exgen-space-4);
+      overflow:hidden;
+      transition:box-shadow .2s ease,border-color .2s ease;
+    }
+    /* Skuggan kommer först när raden faktiskt klistrat fast. Utan den ser den
+       ut att sväva redan i vila. */
+    .xfTrainBar:has(#trainSelectedBtn:not(:disabled)){border-color:var(--l2)}
+
+    /* Mätaren: hur mycket av det man ser man har valt. Två pixlar, ingen text,
+       och den enda ytan på sidan som använder märkesgradienten — raden är
+       sidans enda handling, och får låta som det. */
+    .xfTrainMeter{height:2px;background:var(--l);overflow:hidden}
+    .xfTrainMeter > i{
+      display:block;height:100%;width:0;
+      background:var(--exgen-gradient,var(--a));
+      transition:width .28s cubic-bezier(.22,.61,.36,1);
+    }
+
+    .xfTrainRow{
+      display:flex;align-items:center;gap:var(--exgen-space-3);
+      padding:var(--exgen-space-3) var(--exgen-space-4);
+    }
+    .xfTrainCount{
+      flex:1;min-width:0;margin:0;
+      font-family:var(--exgen-font-mono);font-size:11.5px;
+      letter-spacing:var(--exgen-tracking-wide);text-transform:uppercase;
+      color:var(--xf-ink-2);
+    }
+    .xfTrainActs{display:flex;align-items:center;gap:var(--exgen-space-2);flex-shrink:0}
+    /* Kompaktare än den delade knappen: raden är ett verktygsfält, inte en
+       avslutning på en sida. */
+    .xfTrainGo{padding:10px 20px;font-size:var(--exgen-text-sm)}
+    .xfTrainClear{padding:10px 8px;font-size:var(--exgen-text-sm)}
+    .xfTrainClear[hidden]{display:none}
+
+    /* På telefon staplas raden med flit i stället för att radbryta av sig
+       själv. Förut hamnade primärhandlingen ensam längst ned till vänster,
+       vilket såg ut som ett fel snarare än ett val. */
+    @media(max-width:520px){
+      .xfTrainRow{flex-direction:column;align-items:stretch;gap:var(--exgen-space-2)}
+      .xfTrainCount{text-align:center}
+      .xfTrainActs{width:100%;gap:var(--exgen-space-2)}
+      .xfTrainGo{flex:1;text-align:center}
+    }
     .xfMiss{margin-bottom:var(--exgen-space-4)}
     .xfMissRow{margin-bottom:0}
     .xfMissTags{margin:8px 0 0}
@@ -419,7 +474,34 @@
     function setPick(p){lsSet(LS_TRAIN_PICK,p);updateSelPill();}
     function togglePickId(id){const p=getPick(),ids=Array.isArray(p.ids)?p.ids.map(x=>String(x)):[],sid=String(id),set=new Set(ids);if(set.has(sid))set.delete(sid);else set.add(sid);p.ids=Array.from(set);p.course=String($('courseFilter')?.value||'');setPick(p);}
     function clearPick(){setPick({ids:[],course:String($('courseFilter')?.value||'')});}
-    function updateSelPill(){const p=getPick();const n=Array.isArray(p.ids)?p.ids.length:0;$('selCountPill').textContent=`${n} valda`;}
+    /* Räknaren äger radens tillstånd: texten, mätaren, om primärhandlingen går
+       att trycka på och om "Rensa" alls syns. Ett enda ställe, så raden inte kan
+       säga en sak och bete sig som en annan.
+
+       "Träna markerade" var tidigare klickbar vid noll valda och skickade eleven
+       till träningsläget med ett tomt urval — en återvändsgränd som såg ut som
+       en väg. */
+    function updateSelPill(){
+      const el=$('selCountPill'); if(!el)return;
+      const p=getPick();
+      const n=Array.isArray(p.ids)?p.ids.length:0;
+      const totalt=document.querySelectorAll('#mistakeList .xf-opt').length;
+
+      el.textContent = n
+        ? `${n} av ${totalt} valda`
+        : (totalt ? 'Markera det du vill träna' : 'Inget att träna på just nu');
+
+      const fill=$('trainMeterFill');
+      if(fill) fill.style.width = (totalt ? Math.round((n/totalt)*100) : 0) + '%';
+
+      const go=$('trainSelectedBtn');
+      if(go) go.disabled = n === 0;
+
+      /* "Rensa" göms när det inte finns något att rensa. En knapp som inte kan
+         göra något är brus, inte en möjlighet. */
+      const clear=$('clearSelectionBtn');
+      if(clear) clear.hidden = n === 0;
+    }
     function removeMistake(m){const all=lsArr(LS_MISTAKES),k=mKey(m);lsSet(LS_MISTAKES,all.filter(x=>mKey(x)!==k));const p=getPick(),ids=(Array.isArray(p.ids)?p.ids:[]).map(String),sid=String(m.id);if(ids.includes(sid)){p.ids=ids.filter(x=>x!==sid);setPick(p);}}
 
     /* ── PER COACH ── */
@@ -886,10 +968,19 @@
       body.appendChild(filt);
 
       const bar=document.createElement('div');
-      bar.className='xf-act xf-act--stick xfTrainBar'; bar.id='trainActions';
-      bar.innerHTML='<span class="xf-chip" id="selCountPill">0 valda</span>'+
-        '<button class="xf-btn ghost xfTrainClear" id="clearSelectionBtn" type="button">Rensa val</button>'+
-        '<button class="xf-btn" id="trainSelectedBtn" type="button">Träna markerade</button>';
+      bar.className='xf-act--stick xfTrainBar'; bar.id='trainActions';
+      /* Mätaren är inte dekoration. Den svarar på "hur mycket av det jag ser
+         har jag valt", vilket är den enda frågan raden finns för — och den gör
+         att raden bär information även när man inte tittar på siffran. */
+      bar.innerHTML=
+        '<div class="xfTrainMeter" aria-hidden="true"><i id="trainMeterFill"></i></div>'+
+        '<div class="xfTrainRow">'+
+          '<p class="xfTrainCount" id="selCountPill" aria-live="polite">Inget valt än</p>'+
+          '<div class="xfTrainActs">'+
+            '<button class="xf-btn quiet xfTrainClear" id="clearSelectionBtn" type="button">Rensa</button>'+
+            '<button class="xf-btn primary xfTrainGo" id="trainSelectedBtn" type="button" disabled>Träna markerade</button>'+
+          '</div>'+
+        '</div>';
       body.appendChild(bar);
 
       const st=document.createElement('div');
@@ -910,7 +1001,9 @@
       $('clearSelectionBtn').addEventListener('click',()=>{clearPick();om();});
       $('trainSelectedBtn').addEventListener('click',()=>{
         const p=getPick();
-        if(!p.ids||!p.ids.length)lsSet(LS_TRAIN_PICK,{ids:[],course:kurs()});
+        /* Knappen är avstängd utan urval, men villkoret står kvar som andra
+           spärr: disabled är ett gränssnittstillstånd, inte en garanti. */
+        if(!p.ids||!p.ids.length)return;
         window.location.href='app.html#train';
       });
     }

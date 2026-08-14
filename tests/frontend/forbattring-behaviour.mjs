@@ -248,7 +248,16 @@ async function mark(page, id) {
   await page.waitForTimeout(500);
   const p = await pick(page);
   ok("4a lagringen är tom", !p || p.ids.length === 0, JSON.stringify(p));
-  ok("4b räknaren visar noll", /\b0\b/.test((await page.textContent("#selCountPill")) || ""));
+  /* Kontrollen krävde tidigare att texten innehöll siffran 0 ("0 valda").
+     Åtgärdsraden säger nu "Markera det du vill träna" i tomt läge — samma sak
+     sagt bättre: en instruktion i stället för en avläsning av ingenting.
+     Kravet gäller därför det den alltid handlade om: raden får inte påstå att
+     något är valt efter att urvalet rensats. */
+  {
+    const txt = (await page.textContent("#selCountPill")) || "";
+    const påstårUrval = /\d+\s*av\s*\d+\s*valda/i.test(txt);
+    ok("4b raden påstår inte längre ett urval efter rensning", !påstårUrval, txt.trim());
+  }
   await ctx.close();
 }
 

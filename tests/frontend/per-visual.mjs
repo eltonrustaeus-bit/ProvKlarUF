@@ -165,7 +165,19 @@ async function shot(base, page, view, tag) {
  *
  * Innan ett -1 tolkas som en ändring: kör om, eller mät höjden direkt i två
  * träd. En pixel kan förskjuta hela sidan och få varje rad under att skilja
- * sig, vilket ser ut som en total omritning. */
+ * sig, vilket ser ut som en total omritning.
+ *
+ * BRUSGOLVET UNDERSKATTAR IBLAND. Det mäts ur ETT skottpar (ref-a mot ref-b).
+ * Är sidans jitter inte deterministiskt kan paret råka bli identiskt och golvet
+ * rapporteras som 0, medan "ny" ändå skiljer sig med några pixlar av samma
+ * orsak. Mätt: förbättring.html gav två körningar i rad desktop-golv 0 / delta
+ * 2, medan MOBILEN på samma sida rapporterade golv 2 — alltså samma
+ * storleksordning, bara fångad i den ena vyn.
+ *
+ * Läsregeln som följer: en skillnad på några få pixlar där varje pixel avviker
+ * med 1-2 enheter i EN kanal är antialiasing, inte en ändring. Öppna bilden och
+ * titta på var de sitter innan något felsöks — sitter de i ett område som inte
+ * ens rör det som ändrats är svaret givet. */
 async function diff(a, b) {
   const [ia, ib] = await Promise.all([
     sharp(a).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
