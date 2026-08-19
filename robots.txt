@@ -3,4 +3,7 @@ Allow: /
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://proviaai.se/sitemap.xml
+# Bilderna måste vara crawlbara — Google hämtar logotypen till sökresultatet
+# därifrån via strukturerad data i index.html.
+
+Sitemap: https://exgen.se/sitemap.xml
