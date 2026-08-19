@@ -6,23 +6,72 @@
   <script src="/js/intro-splash.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="js/exgen-modules.js"></script>
-  <script>if(location.hostname.includes("vercel.app")){location.replace("https://proviaai.se"+location.pathname+location.search)}</script>
+  <script>if(location.hostname.includes("vercel.app")){location.replace("https://exgen.se"+location.pathname+location.search)}</script>
   <title>ExGen – AI-driven studieapp för elever och studenter</title>
   <meta name="description" content="ExGen är studieplattformen för grundskolan och gymnasiet. Klistra in ditt material och få ett prov med rättning, modellsvar och förklaring på varje fråga — plus en felbank som visar exakt vad du behöver träna på." />
   <meta property="og:title" content="ExGen – AI-driven studieapp för elever och studenter" />
   <meta property="og:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
-  <meta property="og:image" content="https://proviaai.se/image/proviaai-hero.jpg" />
-  <meta property="og:url" content="https://proviaai.se/" />
+  <meta property="og:image" content="https://exgen.se/image/exgen-og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="ExGen — gör prov på ditt eget material." />
+  <meta property="og:site_name" content="ExGen" />
+  <meta property="og:locale" content="sv_SE" />
+  <meta property="og:url" content="https://exgen.se/" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="ExGen – AI-driven studieapp för elever och studenter" />
   <meta name="twitter:description" content="Gör prov på ditt eget kursmaterial, få rättning med modellsvar och en felbank som visar exakt vad du behöver träna på. Gratis att starta." />
-  <meta name="twitter:image" content="https://proviaai.se/image/proviaai-hero.jpg" />
+  <meta name="twitter:image" content="https://exgen.se/image/exgen-og.jpg" />
   <link rel="icon" href="/image/favicon-32.png" sizes="32x32" type="image/png" />
   <link rel="icon" href="/image/favicon-64.png" sizes="64x64" type="image/png" />
+  <link rel="icon" href="/image/favicon-96.png" sizes="96x96" type="image/png" />
   <link rel="icon" href="/image/favicon-512.png" sizes="512x512" type="image/png" />
   <link rel="apple-touch-icon" href="/image/favicon-180.png" />
-  <link rel="canonical" href="https://proviaai.se/" />
+  <link rel="canonical" href="https://exgen.se/" />
+
+  <!-- Strukturerad data. Det är HÄR Google hämtar logotypen till sökresultatet
+       och kopplar ihop domänen med varumärkesnamnet — utan det här blocket
+       finns ingen maskinläsbar koppling mellan "ExGen" och exgen.se.
+       Två krav värda att komma ihåg vid ändring:
+       1. logo-bilden måste vara minst 112x112 px och får inte blockeras i
+          robots.txt (exgen-logo.png är 552x131 och ligger under /image/).
+       2. Varje påstående här ska vara sant och gå att verifiera på sidan.
+          Google straffar strukturerad data som säger något sidan inte gör,
+          och betyg/recensioner får aldrig hittas på. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://exgen.se/#organization",
+        "name": "ExGen",
+        "url": "https://exgen.se/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://exgen.se/image/exgen-logo.png",
+          "width": 552,
+          "height": 131
+        },
+        "image": "https://exgen.se/image/exgen-og.jpg",
+        "description": "ExGen är en AI-driven studieplattform för grundskolan och gymnasiet. Eleven laddar upp sitt eget material och får ett prov med rättning, modellsvar och en felbank på begreppsnivå.",
+        "areaServed": {
+          "@type": "Country",
+          "name": "Sverige"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://exgen.se/#website",
+        "url": "https://exgen.se/",
+        "name": "ExGen",
+        "inLanguage": "sv-SE",
+        "publisher": { "@id": "https://exgen.se/#organization" }
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />

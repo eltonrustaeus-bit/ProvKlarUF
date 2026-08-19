@@ -19,7 +19,12 @@
 // som redan har ett konto kan nå API:erna direkt. Lägg aldrig något bakom den
 // här flaggan som inte tål att ses.
 export const MAINTENANCE = Object.freeze({
-  enabled: true,
+  // Av sedan 2026-08-19. Grinden byggdes 2026-08-01 för ombyggnaden av
+  // provskaparen, förbättringssidan, startsidan och inloggningen. Den är
+  // klar, och en stängd sajt kan inte indexeras av Google — Googlebot är
+  // en utloggad besökare och skickades till /snart.html, som bär noindex.
+  // Sätt tillbaka till true för att stänga igen; inget annat behöver röras.
+  enabled: false,
   // premium finns med för att de som redan har betalat inte ska mötas av en
   // stängd dörr under ombyggnaden. Ta bort den om sajten ska vara helt privat.
   allowedRoles: Object.freeze(["admin", "premium"]),
