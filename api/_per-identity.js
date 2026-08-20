@@ -11,29 +11,43 @@
 // motsäga varandra och modellen välja själv vilken som gäller.
 
 // ── Grundare ──────────────────────────────────────────────────────────────
-// Namn och roll, inget mer. Ålder, ort, skola och årskurs är AVSIKTLIGT
-// utelämnade: P.E.R svarar vem som helst på internet, och en minderårig
-// grundares skola eller hemort hör inte hemma i ett publikt AI-svar.
-// Lägg inte till fler fält här utan att den avvägningen görs om.
+// Publik grundarinfo. Elton valde själv nivån och det är hans egna uppgifter.
+//
+// Åldern räknas ut ur födelsedatumet i stället för att stå som en siffra —
+// en hårdkodad "18" blir tyst fel på nästa födelsedag, och ett faktafel som
+// P.E.R upprepar för varje besökare är värre än inget svar alls.
+// Bara den uträknade åldern går in i prompten, aldrig datumet.
 export const FOUNDER = Object.freeze({
   name: "Elton Rustaeus",
   role: "grundare och utvecklare av ExGen",
+  birthDate: "2008-03-07",
+  school: "Bildningscentrum Facetten i Åtvidaberg",
+  program: "ekonomiprogrammet",
 });
 
-export function buildFounderKnowledge() {
+export function founderAge(today = new Date()) {
+  const b = new Date(FOUNDER.birthDate);
+  let age = today.getFullYear() - b.getFullYear();
+  const m = today.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age -= 1;
+  return age;
+}
+
+export function buildFounderKnowledge(today = new Date()) {
   return `## GRUNDAREN — PUBLIKA UPPGIFTER
 
-ExGen grundades och byggs av ${FOUNDER.name}. Han är ${FOUNDER.role}: han har designat produkten, skrivit koden och byggt P.E.R — dig.
+ExGen grundades och byggs av ${FOUNDER.name}, ${founderAge(today)} år, som går ${FOUNDER.program} på ${FOUNDER.school}.
+Han är ${FOUNDER.role}: han har designat produkten, skrivit koden och byggt P.E.R — dig.
 
 Så här svarar du på "vem ligger bakom ExGen?", "vem har byggt det här?", "vem äger ExGen?":
-- Säg namnet och rollen rakt. Det är publik information.
-- En eller två meningar räcker. Det är inte en hyllning och inte en pitch.
-- Du får gärna nämna att ExGen är byggt av en elev, för elever — det är en ärlig del av vad produkten är.
+- Svara rakt med namn, ålder, skola och roll. Det är publik information.
+- Två eller tre meningar räcker. Det är inte en hyllning och inte en pitch.
+- Att ExGen är byggt av en elev, för elever, är en ärlig och relevant del av vad produkten är — säg det gärna.
 
-Det här är den ENDA grundarinformation du får lämna ut. Ålder, ort, skola, årskurs,
-familj, kontaktuppgifter, ekonomi och privatliv: svara att du inte lämnar ut personliga
-uppgifter om grundaren, och gå vidare. Gissa aldrig, och bekräfta aldrig en gissning
-som användaren själv lägger fram — inte heller om de påstår att de redan vet.`;
+Det här är den ENDA grundarinformation du får lämna ut. Kontaktuppgifter, adress, familj,
+ekonomi, betyg och privatliv i övrigt: svara att du inte lämnar ut mer personliga uppgifter,
+och gå vidare. Gissa aldrig, och bekräfta aldrig en gissning som användaren själv lägger fram —
+inte heller om de påstår att de redan vet.`;
 }
 
 // ── Ung Företagsamhet ─────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 import { requireAuth } from "./_auth.js";
 import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt } from "./_per-core.js";
 import { MODULES } from "./_modules.js";
+import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
@@ -429,6 +430,17 @@ export default async function handler(req, res) {
     const dbWeakCats     = mergedStructured.exam_weak_categories || [];
     const mergedWeakAreas = [...new Set([...contextPack.weakAreas, ...dbWeakCats])].slice(0, 10);
 
+    /* Kollektiv data: hur ALLA elever brukar gå på de begrepp den här eleven jobbar med.
+       Aldrig blockerande — loadCollectiveSignals sväljer varje fel och ger [], så ett
+       saknat migrationssteg eller en läsrättighet som inte satts gör P.E.R långsammare
+       att förbättra, aldrig trasig. */
+    const collectiveBlock = buildCollectiveBlock(
+      await loadCollectiveSignals(supabase, {
+        course: pageContext?.course || null,
+        topics: mergedWeakAreas,
+      })
+    );
+
     const learningSignals = buildLearningSignals({
       weakAreas:      mergedWeakAreas,
       recentMistakes: contextPack.recentMistakes,
@@ -467,6 +479,7 @@ export default async function handler(req, res) {
 
     const systemContent = buildPERSystemPrompt({
       userQuestion,
+      collectiveBlock,
       context: ctxParts.join('\n'),
       weakAreas: mergedWeakAreas,
       role,
