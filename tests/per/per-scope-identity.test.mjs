@@ -93,6 +93,10 @@ const trig = [
   ["är exgen ett uf-företag?",    false, true ],
   ["hur bokför man i UF",         false, true ],
   ["vad är en uf-mässa",          false, true ],
+  ["vad är Ung Företagsamhet?",   false, true ],   // utskrivet namn, inte förkortningen
+  ["ungt företagande",            false, true ],
+  ["företagsamhet i allmänhet",   false, false],   // ordet ensamt får inte dra in UF-blocket
+  ["ung och trött",               false, false],
   ["förklara pytagoras sats",     false, false],
   ["jag surfar på nätet",         false, false],   // "uf" inuti ord får inte matcha
   ["min uppfattning är fel",      false, false],
