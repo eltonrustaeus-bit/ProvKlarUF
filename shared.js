@@ -639,7 +639,7 @@
         } catch (_) {}
         scores.push(pct / 100);
         if (scores.length < 3) { addMsg('Kör fler prov för att se redo-score.', 'teacher'); return; }
-        var t = addMsg('Räknar ut din körkortsredo-score…', 'teacher typing');
+        var t = addMsg('Räknar ut din redo-score…', 'teacher typing');
         getToken().then(function(tok) {
           return fetch('/api/explain', {
             method: 'POST',

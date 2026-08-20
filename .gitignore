@@ -31,3 +31,7 @@ tests/evals/exam-quality/results/
 
 # Testutdata (skärmbilder, rapporter)
 .test-out/
+
+# Local git worktrees created by Claude Code sessions. Only this subdirectory —
+# the rest of .claude/ (docs, commands, skills, settings) is tracked on purpose.
+.claude/worktrees/
