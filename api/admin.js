@@ -1,6 +1,6 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
-import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
 
 function buildPitchHtml(email) {
   return `<!DOCTYPE html>
@@ -477,7 +477,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: `${BRAND_NAME} <noreply@proviaai.se>`,
+        from: MAIL_FROM,
         to: user.email,
         subject: "Du pluggar på gratis. Här är vad du missar.",
         html: buildPitchHtml(user.email),

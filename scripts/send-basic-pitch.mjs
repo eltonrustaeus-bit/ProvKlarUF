@@ -35,7 +35,7 @@ function buildHtml(email) {
     <table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
 
       <tr><td style="background:#0a130d;padding:24px 32px;border-bottom:1px solid rgba(27,255,140,.12)">
-        <span style="font-size:20px;font-weight:700;color:#1bff8c">ProviaAI</span>
+        <span style="font-size:20px;font-weight:800;color:#1B2430;letter-spacing:-0.4px">ExGen</span>
       </td></tr>
 
       <tr><td style="padding:32px 32px 20px">
@@ -85,7 +85,7 @@ function buildHtml(email) {
 
       <tr><td style="padding:18px 32px;border-top:1px solid rgba(27,255,140,.08)">
         <p style="margin:0;font-size:12px;color:#6b8f7c;line-height:1.5">
-          Du får det här mailet för att du har ett konto på ProviaAI med adressen <b style="color:#a8c4b4">${email}</b>.
+          Du får det här mailet för att du har ett konto på ExGen med adressen <b style="color:#a8c4b4">${email}</b>.
         </p>
       </td></tr>
 
@@ -131,7 +131,7 @@ async function main() {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "ProviaAI <noreply@proviaai.se>",
+        from: process.env.RESEND_FROM || "ExGen <noreply@proviaai.se>",
         to: email,
         subject: "Du pluggar på gratis. Här är vad du missar.",
         html: buildHtml(email),

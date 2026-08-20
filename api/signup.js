@@ -1,5 +1,5 @@
 ﻿import { createClient } from "@supabase/supabase-js";
-import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
 import { requireAuth } from "./_auth.js";
 
 function escapeHtml(str) {
@@ -202,13 +202,13 @@ async function completeOAuth(req, res) {
 
   try {
     await sendMail({
-      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      from: MAIL_FROM,
       to: email,
       subject: `V\u00e4lkommen till ${BRAND_NAME}!`,
       html: buildWelcomeHtml(email)
     });
     await sendMail({
-      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      from: MAIL_FROM,
       to: "elton.rustaeus@gmail.com",
       subject: `Ny anv\u00e4ndare p\u00e5 ${BRAND_NAME} \u2014 ${escapeHtml(email)}`,
       html: adminNoticeHtml(email, user.id, "Google")
@@ -255,14 +255,14 @@ export default async function handler(req, res) {
   // OAuth branch uses, so the two paths cannot drift apart.
   try {
     await sendMail({
-      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      from: MAIL_FROM,
       to: "elton.rustaeus@gmail.com",
       subject: `Ny anv\u00e4ndare p\u00e5 ${BRAND_NAME} \u2014 ${escapeHtml(email)}`,
       html: adminNoticeHtml(email, userData.user.id, "E-post")
     });
     // Send welcome email to the new user
     await sendMail({
-      from: `${BRAND_NAME} <noreply@proviaai.se>`,
+      from: MAIL_FROM,
       to: email,
       subject: `V\u00e4lkommen till ${BRAND_NAME}!`,
       html: buildWelcomeHtml(email)
