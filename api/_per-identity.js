@@ -113,4 +113,4 @@ export const IDENTITY_TRIGGER_REGEX =
   /\bvem\b.{0,40}(bakom|byggt|byggde|gjort|gjorde|grundat|grundade|skapat|skapade|äger|driver|utvecklat|utvecklade)|grundare|founder|vem är elton|elton rustaeus|vems? (idé|projekt)|vem ligger bakom|who (built|made|founded|owns)/i;
 
 export const UF_TRIGGER_REGEX =
-  /\buf\b|\buf-?(företag|företagsamhet|mässa|mässan|rådgivare|året|elev|lag)/i;
+  /\buf\b|\buf-?(företag|företagsamhet|mässa|mässan|rådgivare|året|elev|lag)|ung[at]? ?företagsamhet|ungt? företagande/i;
