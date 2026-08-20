@@ -28,3 +28,7 @@ ruvector.db
 
 # eval output (regenerated, not source of truth)
 tests/evals/exam-quality/results/
+
+# Local git worktrees created by Claude Code sessions. Only this subdirectory —
+# the rest of .claude/ (docs, commands, skills, settings) is tracked on purpose.
+.claude/worktrees/
