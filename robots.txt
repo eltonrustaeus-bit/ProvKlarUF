@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://proviaai.se/sitemap.xml
+Sitemap: https://exgen.se/sitemap.xml

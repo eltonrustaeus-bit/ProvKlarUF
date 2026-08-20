@@ -1,5 +1,5 @@
 ﻿import { createClient } from "@supabase/supabase-js";
-import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { BRAND_NAME, MAIL_FROM, SITE_ORIGIN } from "./_site.js";
 
 function escapeHtml(str) {
   return String(str)
@@ -187,7 +187,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: `${BRAND_NAME} <noreply@proviaai.se>`,
+        from: MAIL_FROM,
         to: "elton.rustaeus@gmail.com",
         subject: `Ny användare på ${BRAND_NAME} — ${escapeHtml(email)}`,
         html: `
@@ -211,7 +211,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: `${BRAND_NAME} <noreply@proviaai.se>`,
+        from: MAIL_FROM,
         to: email,
         subject: `Välkommen till ${BRAND_NAME}!`,
         html: buildWelcomeHtml(email)

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
-import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { BRAND_NAME, MAIL_FROM, SITE_ORIGIN } from "./_site.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -9,7 +9,6 @@ const supabase = createClient(
 
 const PLAN_ROLES = { basic: "basic", premium: "premium" };
 const PLAN_NAMES = { basic: "Basic", premium: "Premium" };
-const RESEND_FROM = `${BRAND_NAME} <noreply@proviaai.se>`;
 const ADMIN_EMAIL = "elton.rustaeus@gmail.com";
 
 // ── Stripe signature ──
@@ -45,7 +44,7 @@ async function sendEmail(to, subject, html) {
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: RESEND_FROM, to, subject, html }),
+      body: JSON.stringify({ from: MAIL_FROM, to, subject, html }),
     });
   } catch { /* email failure never blocks webhook */ }
 }

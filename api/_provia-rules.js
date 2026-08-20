@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { MODULES } from "./_modules.js";
+import { SITE_ORIGIN } from "./_site.js";
 
 export const PLAN_RULES = Object.freeze({
   gratis: Object.freeze({
@@ -182,7 +183,7 @@ export function buildPublicProviaKnowledge() {
   return `## EXGEN - FAKTA P.E.R FÅR CITERA
 
 Vad är ExGen?
-ExGen (proviaai.se) är en studieplattform för grundskolan och gymnasiet.${korkortIntro} Elever kan använda eget material eller OCR för att skapa AI-genererade prov, få rättning, feedback, modellsvar, förbättringssida med AI-coach, felbank, lärarrapport och P.E.R.${korkortTail}
+ExGen (${SITE_ORIGIN.replace(/^https?:\/\//, "")}) är en studieplattform för grundskolan och gymnasiet.${korkortIntro} Elever kan använda eget material eller OCR för att skapa AI-genererade prov, få rättning, feedback, modellsvar, förbättringssida med AI-coach, felbank, lärarrapport och P.E.R.${korkortTail}
 
 Sidor:
 - Startsida: översikt, demo och launcher.

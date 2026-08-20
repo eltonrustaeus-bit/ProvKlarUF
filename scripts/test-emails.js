@@ -5,7 +5,10 @@
  */
 
 const TO      = "elton.rustaeus@gmail.com";
-const FROM    = "ExGen <noreply@proviaai.se>";
+// Mirrors api/_site.js MAIL_FROM. Not imported: this script runs as CommonJS
+// (no "type": "module" in package.json), so an ESM import would break it.
+const FROM    = `ExGen <noreply@${process.env.MAIL_DOMAIN || "proviaai.se"}>`;
+const ORIGIN  = process.env.SITE_ORIGIN || "https://exgen.se";
 const API_KEY = process.env.RESEND_API_KEY;
 
 if (!API_KEY) {
@@ -73,7 +76,7 @@ function welcomeHtml(email) {
           </table>
         </td></tr>
         <tr><td style="padding:0 32px 36px">
-          <a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
+          <a href="${ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:14px 28px;border-radius:5px;text-decoration:none">Starta ditt första prov →</a>
         </td></tr>
         <tr><td style="padding:28px 32px;background:#0a130d;border-top:1px solid rgba(27,255,140,.12)">
           <p style="margin:0 0 18px;font-size:13px;font-weight:700;color:#6b8f7c;text-transform:uppercase;letter-spacing:0.8px">Vad ingår i ditt konto?</p>
@@ -110,7 +113,7 @@ function welcomeHtml(email) {
             </td></tr>
           </table>
           <div style="margin-top:18px;text-align:center">
-            <a href="https://proviaai.se/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
+            <a href="${ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 24px;border-radius:5px;text-decoration:none">Se alla planer</a>
           </div>
         </td></tr>
         <tr><td style="padding:18px 32px;border-top:1px solid rgba(27,255,140,.08)">
@@ -133,7 +136,7 @@ function paymentConfirmedHtml() {
   <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">79 kr</td></tr>
   <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(TO)}</td></tr>
 </table>
-<a href="https://proviaai.se/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ExGen →</a>`);
+<a href="${ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ExGen →</a>`);
 }
 
 // ── Prenumeration förnyad ─────────────────────────────────────────────────────
@@ -146,7 +149,7 @@ function renewalHtml() {
   <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">79 kr</td></tr>
   <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(TO)}</td></tr>
 </table>
-<a href="https://proviaai.se/konto.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Hantera prenumeration</a>`);
+<a href="${ORIGIN}/konto.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Hantera prenumeration</a>`);
 }
 
 // ── Betalning misslyckades ────────────────────────────────────────────────────
@@ -155,7 +158,7 @@ function paymentFailedHtml() {
 <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#ff8484">Betalning misslyckades</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Vi kunde inte debitera ditt kort för din <strong style="color:#e8f5ee">Premium</strong>-prenumeration.</p>
 <p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Uppdatera din betalningsmetod för att behålla tillgången. Stripe försöker igen automatiskt — om det misslyckas upprepade gånger avslutas prenumerationen.</p>
-<a href="https://proviaai.se/konto.html" style="display:inline-block;background:#ff8484;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Uppdatera betalningssätt →</a>`);
+<a href="${ORIGIN}/konto.html" style="display:inline-block;background:#ff8484;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Uppdatera betalningssätt →</a>`);
 }
 
 // ── Prenumeration avslutad ────────────────────────────────────────────────────
@@ -164,7 +167,7 @@ function cancelledHtml() {
 <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#e8f5ee">Prenumeration avslutad</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Din <strong style="color:#e8f5ee">Premium</strong>-prenumeration är avslutad. Du har nu tillgång till gratisplanen.</p>
 <p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Du kan uppgradera igen när som helst.</p>
-<a href="https://proviaai.se/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Se planer</a>`);
+<a href="${ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Se planer</a>`);
 }
 
 // ── Skicka alla ───────────────────────────────────────────────────────────────
