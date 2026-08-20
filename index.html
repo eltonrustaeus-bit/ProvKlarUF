@@ -419,6 +419,21 @@
     font-size:15.5px;line-height:var(--exgen-leading-relaxed);
     color:var(--t2);margin:0 0 var(--exgen-space-6);
   }
+  /* Bokstavsförklaringen under P.E.R-ingressen. Samma mått och färgroller som .secLead
+     så den läser som en del av stycket, inte som en påklistrad lista. */
+  .perMeaning {
+    list-style:none;max-width:var(--xf-measure);
+    margin:0 0 var(--exgen-space-6);padding:0;
+    display:grid;gap:8px;
+    font-size:15px;line-height:var(--exgen-leading-relaxed);color:var(--t2);
+  }
+  .perMeaning li { padding-left:15px;position:relative; }
+  .perMeaning li b { color:var(--t); }
+  .perMeaning li::before {
+    content:"";position:absolute;left:0;top:.62em;
+    width:5px;height:5px;border-radius:50%;
+    background:var(--a);
+  }
   .secAct { display:flex;gap:10px;flex-wrap:wrap; }
   .ctaBtn--sm { height:44px;font-size:var(--exgen-text-sm);padding:0 22px; }
 
@@ -803,12 +818,18 @@
          mockprovet exakt vad de två första featurekorten redan sagt, med en
          knapp fäst vid sig, och är borta. Den här bär något eget — att svaret
          känner till frågan du står på — och är därför en riktig sektion. -->
-    <section class="perSec rev" aria-label="P.E.R — ExGens personliga AI-coach">
-      <p class="secEye">P.E.R — din AI-coach</p>
+    <section class="perSec rev" aria-label="P.E.R — ExGens Progressive Evidence Reasoning-modell">
+      <p class="secEye">P.E.R — Progressive Evidence Reasoning</p>
       <h2 class="secTitle">Ser vilken fråga du sitter på</h2>
       <p class="secLead">
         P.E.R vet vilket prov och vilken fråga du jobbar på just nu, och kommer ihåg vilka ämnen du brukar svara fel på. Svaret blir specifikt för din situation, inte ett generellt AI-svar.
       </p>
+      <!-- Bokstäverna speglar api/_per-name.js. Ändras innebörden där ska den ändras här. -->
+      <ul class="perMeaning">
+        <li><b>Progressive</b> — hjälpen trappas. Du får en motfråga först, full lösning bara när du behöver den.</li>
+        <li><b>Evidence</b> — bedömningen vilar på dina svar och din felbank, aldrig på gissningar.</li>
+        <li><b>Reasoning</b> — du får tankegången, inte bara facit.</li>
+      </ul>
       <div class="secAct">
         <button class="ctaBtn ctaBtn--sm" id="perStripBtn" type="button">Fråga P.E.R</button>
       </div>

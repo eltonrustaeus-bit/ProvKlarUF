@@ -10,6 +10,7 @@ import { buildPERContextPack } from "./_per-context.js";
 import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
+import { perRole, PER_FULL } from "./_per-name.js";
 const FRUSTRATION_REGEX = /fattar inte|förstår inte|helt lost|ger upp|hopplöst|omöjligt|förvirrad|inte alls|ingen koll|jag fattar|hjälp mig|wtf|ugh/i;
 const FEYNMAN_REGEX     = /förklara för dig|jag förklarar|testa om jag|feynman|förklara det för mig som/i;
 const QUIZ_REGEX        = /quizza mig|quiz mig|ställ.*fråga.*mig|testa mig.*fråga|välj.*fråga.*ställ/i;
@@ -87,7 +88,7 @@ async function handleTipsMode(req, res, body) {
   if (!q.trim()) return res.status(400).json({ ok: false, error: "Missing question" });
   if (!fb.trim()) return res.status(400).json({ ok: false, error: "Missing feedback" });
 
-  const systemPrompt = `Du är P.E.R — ExGens Egna AI-Resource.
+  const systemPrompt = `Du är ${PER_FULL}.
 Du ska ge korta, konkreta tips för en fråga eleven fått fel på.
 Tipsen måste anpassas efter kursen.
 
@@ -314,8 +315,8 @@ export default async function handler(req, res) {
     // inte (knappen som anropar den ligger i shared.js och är inte modulgatead), men P.E.R
     // slutar tala om teoriprov när modulen är av.
     const roleLine = MODULES.korkort
-      ? 'Du är P.E.R — ExGens AI-motor och körkortscoach. Bedöm elevens körkortsförberedelse.'
-      : 'Du är P.E.R — ExGens AI-motor. Bedöm elevens provberedskap utifrån resultatserien.';
+      ? `${perRole("körkortscoach")}. Bedöm elevens körkortsförberedelse.`
+      : `${PER_FULL}. Bedöm elevens provberedskap utifrån resultatserien.`;
     const prompt = `${roleLine}\n\nDATA:\n- Snitt senaste 5 proven: ${Math.round(avgRecent*100)}%\n- Snitt alla ${examsCount} prov: ${Math.round(avgAll*100)}%\n- Trend: ${trendSv}\n- Beräknad beredskap: ${readiness}%\n- Svaga ämnen: ${rawAreas.length ? rawAreas.join(', ') : 'inga identifierade'}\n- Variation: ${stdDev > 0.15 ? 'hög (ojämnt)' : stdDev > 0.08 ? 'måttlig' : 'låg (konsekvent)'}\n\n${MODULES.korkort ? 'Körkortsprovet kräver 52/65 rätt (80%).' : 'Godkänd nivå räknas som 80%.'} Max 100 ord. Ge: omdöme (redo/nästan redo/inte redo), viktigaste åtgärd, kort motivation. Svenska.`;
     try {
       const assessment = await callAI([{ role: 'user', content: prompt }], { timeout: 20_000 });
@@ -610,7 +611,7 @@ export default async function handler(req, res) {
 
   const opts = { A: option_a, B: option_b, C: option_c, D: option_d };
   const correctText = opts[correct] || correct;
-  const prompt = `Du är P.E.R — ExGens Egna AI-Resource. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
+  const prompt = `Du är ${PER_FULL}. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
 
 Fråga: ${question}
 A: ${option_a || "—"}
