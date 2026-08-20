@@ -114,17 +114,21 @@ check("grundarnamn saknas i orelaterat svar",          !prompts.study.includes(i
 check("UF-blocket finns när frågan gäller UF",         ufPrompt.includes("UNG FÖRETAGSAMHET"));
 check("UF-blocket saknas i orelaterat svar",           !prompts.study.includes("UNG FÖRETAGSAMHET"));
 
-// Grundarblocket får bära namn och roll — inget mer. Skulle någon lägga till ort,
-// skola eller ålder i _per-identity.js ska det här testet bli rött.
+// Grundarblocket bär namn, ålder, skola, program och roll — Eltons eget val 2026-08-20.
+// Allt UTANFÖR den listan ska förbli utelämnat: adress, telefon, mejl, betyg, familj.
 const founderBlock = ident.buildFounderKnowledge();
-// Raden som räknar upp vad som INTE får lämnas ut nämner ålder, ort och skola med flit.
-const founderClaims = founderBlock.split("\n")
-  .filter(l => !/lämnar inte ut|ENDA grundarinformation|Gissa aldrig|svara att du inte/i.test(l))
-  .join("\n");
-check("grundarblocket påstår inget om ålder, ort eller skola",
-  !/\b(19|20)\d\d\b|\b1[0-9] år\b|Åtvidaberg|gymnasi|\bskola\b|årskurs/i.test(founderClaims));
-check("grundarblocket förbjuder personliga uppgifter uttryckligen",
-  /lämnar inte ut personliga uppgifter|ENDA grundarinformation/i.test(founderBlock));
+check("grundarblocket namnger grundaren",        founderBlock.includes(ident.FOUNDER.name));
+check("grundarblocket anger skola och program",  founderBlock.includes(ident.FOUNDER.school) && founderBlock.includes(ident.FOUNDER.program));
+check("grundarblocket anger en ålder",           /\b\d{2} år\b/.test(founderBlock));
+
+// Åldern får aldrig hårdkodas — den ska följa födelsedagen, annars blir den tyst fel.
+check("åldern räknas ut, inte hårdkodad",
+  ident.founderAge(new Date("2027-03-06")) + 1 === ident.founderAge(new Date("2027-03-07")));
+
+// Födelsedatumet används för uträkningen men får aldrig nå prompten.
+check("födelsedatumet läcker inte till prompten", !founderBlock.includes(ident.FOUNDER.birthDate));
+check("grundarblocket avgränsar mot övriga personuppgifter",
+  /lämnar inte ut mer personliga uppgifter|ENDA grundarinformation/i.test(founderBlock));
 
 // UF-fakta för ExGen är obekräftade tills EXGEN_UF fylls i — P.E.R ska då säga att den
 // inte vet, inte gissa. Blir isUfCompany true måste den grenen istället lista fakta.
@@ -135,6 +139,34 @@ if (ident.EXGEN_UF.isUfCompany !== true) {
 
 // ── 4. motor- och kvalitetsblocken ─────────────────────────────────────────
 check("motorblocket finns i studieprompten",   prompts.study.includes("VAD DU SER"));
+check("differentieringsblocket finns",        prompts.study.includes("VAD DU GÖR SOM EN GENERELL AI INTE KAN"));
+
+// ── kollektiv data ─────────────────────────────────────────────────────────
+// Utan underlag ska INGEN rubrik synas. Syns den ändå börjar modellen resonera
+// om siffror den inte fått, vilket är värre än att sakna funktionen.
+const coll = await import(join(root, "api", "_per-collective.js"));
+check("tomt underlag ger tom sträng",  coll.buildCollectiveBlock([]) === "");
+check("null-underlag ger tom sträng",  coll.buildCollectiveBlock(null) === "");
+check("ingen kollektivrubrik utan underlag", !prompts.study.includes("KOLLEKTIV DATA"));
+check("kollektivblocket kommer med när underlag finns",
+  core.buildPERSystemPrompt({ collectiveBlock: "## KOLLEKTIV DATA\n- X: 38% rätt." }).includes("KOLLEKTIV DATA"));
+
+// Läsningen får aldrig kasta. Saknas vyn i databasen, saknas rättigheten eller dör
+// nätet ska P.E.R svara precis som förut — kollektiv data är en förstärkning, inte ett krav.
+check("loadCollectiveSignals utan klient → []",
+  (await coll.loadCollectiveSignals(null, { course: "Matematik 1b" })).length === 0);
+const throwingClient = { from() { throw new Error("relation does not exist"); } };
+check("loadCollectiveSignals sväljer fel → []",
+  (await coll.loadCollectiveSignals(throwingClient, { course: "Matematik 1b" })).length === 0);
+
+// Formateringen får inte påstå något om enskilda elever.
+const block = coll.buildCollectiveBlock([
+  { concept_name: "Andragradsekvationer", student_count: 41, attempt_count: 302, p_correct: 0.38, common_error_codes: ["teckenfel"] },
+]);
+check("kollektivblocket förbjuder uttalanden om enskild elev",
+  /aldrig något om en enskild annan elev/i.test(block));
+check("kollektivblocket innehåller ingen elevtext och inga id:n",
+  !/user_id|uuid|[0-9a-f]{8}-[0-9a-f]{4}/i.test(block));
 check("starkare-svar-blocket finns",           prompts.study.includes("STARKARE SVAR"));
 check("regeln mot att fråga om känd kontext",  /Be aldrig eleven upprepa/.test(prompts.study));
 

@@ -117,6 +117,22 @@ function identityBlocks(userQuestion) {
        + (UF_TRIGGER_REGEX.test(q) ? `\n${buildUfKnowledge()}\n` : '');
 }
 
+const PER_EDGE_BLOCK = `## VAD DU GÖR SOM EN GENERELL AI INTE KAN
+Det här är inte skryt att upprepa för eleven — det är fyra saker du faktiskt ska göra.
+
+1. **Öppna där eleven är, inte där ämnet börjar.** Du har sidan, frågan och felbanken. Ett svar
+   som börjar med en allmän definition slösar bort allt du vet. Börja i det konkreta fallet.
+2. **Koppla bakåt utan att bli tillsagd.** Ser du att det här är tredje gången samma begrepp
+   fäller eleven — säg det, en gång, utan dramatik. Det är den observationen ingen fristående
+   chatt kan göra, för den minns inte de två förra gångerna.
+3. **Föregrip nästa fel.** Vet du hur andra elever brukar gå fel på begreppet, flagga fällan
+   innan eleven trampar i den. Att rätta i efterhand är det alla kan.
+4. **Lämna eleven med ett steg, inte en meny.** "Du kan göra A, B eller C" flyttar arbetet
+   tillbaka till eleven. Välj åt dem och säg varför.
+
+Och en regel som väger tyngre än alla fyra: **var hellre kort och träffsäker än imponerande.**
+Ett svar som visar hur mycket du vet är ett sämre svar än ett som får eleven vidare.`;
+
 export function buildPERSystemPrompt({
   context = '',
   weakAreas = [],
@@ -146,6 +162,9 @@ export function buildPERSystemPrompt({
      Härleds av deriveStyleSignals() i api/_per-memory.js. */
   style = null,
   userQuestion = '',
+  /* Formaterat block från api/_per-collective.js. Tom sträng när underlaget saknas —
+     inget underlag ska ge ingen rubrik, annars pratar modellen om data den inte har. */
+  collectiveBlock = '',
 } = {}) {
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory, userQuestion });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context, userQuestion });
@@ -388,7 +407,9 @@ export function buildPERSystemPrompt({
 
 ${PROVIA_OPERATING_MAP}
 
-${PER_ENGINE_BLOCK}${identityBlocks(userQuestion)}${depthHint}
+${PER_ENGINE_BLOCK}
+
+${PER_EDGE_BLOCK}${collectiveBlock ? '\n\n' + collectiveBlock : ''}${identityBlocks(userQuestion)}${depthHint}
 ## RÖST
 P.E.R är skarp, direkt och aldrig flummig. Talar som en person som faktiskt kan ämnet — inte som en AI som förklarar att den kan det. Reagerar på det eleven faktiskt skrivit — inte på en generisk version av frågan. Förstår hela ExGen: skolarbete, skolämnen, eget material, OCR, mockprov, felbank, rapporter, konto och pricing.${MODULES.korkort ? ' Körkortsteorin är en del av produkten, inte hela.' : ''}
 
