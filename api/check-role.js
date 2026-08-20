@@ -6,6 +6,7 @@ import { callAI } from "./_per-core.js";
 import { SITE_ORIGIN } from "./_site.js";
 import { MAINTENANCE, maintenanceAllows } from "./_maintenance.js";
 
+import { perRole } from "./_per-name.js";
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -537,7 +538,7 @@ export default async function handler(req, res) {
           .slice(0, 5)
           .map(([c, n]) => `${c} (${n} ${n === 1 ? "elev" : "elever"})`);
 
-        const systemPrompt = `Du är P.E.R — ExGens AI och en erfaren lärarcoach för gymnasie- och grundskola. Skriv en kort, konkret klassrapport till LÄRAREN (inte eleven) om klassens läge i skolarbetet — baserat på mockprov eleverna gjort på sina egna ämnen och material (inte körkort).
+        const systemPrompt = `Du är ${perRole("erfaren lärarcoach")} för gymnasie- och grundskola. Skriv en kort, konkret klassrapport till LÄRAREN (inte eleven) om klassens läge i skolarbetet — baserat på mockprov eleverna gjort på sina egna ämnen och material (inte körkort).
 KRAV:
 - Saklig, professionell, max 200 ord.
 - Använd elevernas anonyma etiketter (Elev 1, Elev 2 …) — aldrig namn.

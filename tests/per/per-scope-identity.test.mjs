@@ -170,5 +170,40 @@ check("kollektivblocket innehåller ingen elevtext och inga id:n",
 check("starkare-svar-blocket finns",           prompts.study.includes("STARKARE SVAR"));
 check("regeln mot att fråga om känd kontext",  /Be aldrig eleven upprepa/.test(prompts.study));
 
+// ── 5. namnet: EN källa ────────────────────────────────────────────────────
+// Repot bar tidigare tre olika beskrivningar av P.E.R samtidigt. Nu ligger namnet i
+// api/_per-name.js och importeras — utom i api/grade.js, som är CommonJS och inte KAN
+// importera en ESM-modul. Där står texten literalt, och det enda som hindrar den från att
+// glida isär med källan är den här kontrollen. En kommentar hade inte hindrat någonting.
+const name = await import(join(root, "api", "_per-name.js"));
+
+check("expansionen är Progressive Evidence Reasoning", name.PER_EXPANSION === "Progressive Evidence Reasoning");
+check("P, E och R förklaras alla tre",
+  ["Progressive", "Evidence", "Reasoning"].every(w => name.PER_MEANING.includes(w)));
+
+const gradeSrc = readFileSync(join(root, "api", "grade.js"), "utf8");
+check("grade.js svenska rollrad matchar _per-name.js",
+  gradeSrc.includes(name.perRole("professionell provrättare")));
+check("grade.js engelska rollrad bär samma expansion",
+  gradeSrc.includes(`ExGen's ${name.PER_EXPANSION} model`));
+
+// Ingen prompt får bära den gamla backronymen. Den fanns i åtta prompter och två sidor.
+for (const rel of ["api/_per-core.js", "api/explain.js", "api/grade.js", "api/teacher-report.js", "api/check-role.js"]) {
+  check(`${rel}: ingen "AI-Resource" kvar`, !readFileSync(join(root, rel), "utf8").includes("AI-Resource"));
+}
+
+// Alla fem promptvarianter ska presentera sig med samma expansion.
+for (const [n, p] of Object.entries(prompts)) {
+  check(`${n}: presenterar sig som ${name.PER_EXPANSION}`, p.includes(name.PER_EXPANSION));
+}
+
+// Bokstavsblocket hör hemma i svaret på "vad står P.E.R för?" — inte i varje studiesvar.
+check("namnblocket saknas i vanligt studiesvar", !prompts.study.includes("VAD P.E.R BETYDER"));
+check("namnblocket kommer med på namnfrågan",
+  core.buildPERSystemPrompt({ userQuestion: "vad står P.E.R för?" }).includes("VAD P.E.R BETYDER"));
+for (const [q, want] of [["vad står P.E.R för?", true], ["vad betyder PER?", true], ["per dag", false], ["förklara pytagoras", false]]) {
+  check(`namntrigger "${q}" → ${want}`, name.PER_NAME_TRIGGER_REGEX.test(q) === want);
+}
+
 console.log(failures ? `\n${failures} FAIL` : "\nAll checks passed");
 process.exit(failures ? 1 : 0);

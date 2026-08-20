@@ -348,7 +348,9 @@ module.exports = async function handler(req, res) {
     const responseFormat = buildNonMcGradeSchema();
 
     const systemSv =
-      "Roll: Du är P.E.R — ExGens Egna AI-Resource och professionell provrättare.\n" +
+      // Måste matcha perRole("professionell provrättare") i api/_per-name.js. Kan inte
+      // importeras: den här filen är CommonJS. per-name-consistency-testet låser ihop dem.
+      "Roll: Du är P.E.R — ExGens Progressive Evidence Reasoning-modell, professionell provrättare.\n" +
       "Mål: Bedöm varje elevsvar mot frågan, maxpoäng och rubric. Svara ENDAST med JSON enligt schema.\n\n" +
       "Regler (obligatoriskt):\n" +
       "1) Fakta: Använd ENDAST 'material' som faktakälla. Om materialet inte räcker, skriv tydligt 'Otillräckliga data i materialet' i feedback och ge lägre poäng.\n" +
@@ -374,7 +376,7 @@ module.exports = async function handler(req, res) {
       "8) Språk: Professionellt. Inga fluff-fraser.\n";
 
     const systemEn =
-      "Role: You are P.E.R — ExGen's Own AI-Resource and professional exam grader.\n" +
+      "Role: You are P.E.R — ExGen's Progressive Evidence Reasoning model, a professional exam grader.\n" +
       "Goal: Grade each student answer against the question, max points and rubric. Output ONLY JSON per schema.\n\n" +
       "Rules (mandatory):\n" +
       "1) Facts: Use ONLY 'material' as the factual source. If material is insufficient, explicitly say 'Insufficient data in the material' in feedback and award fewer points.\n" +

@@ -5,6 +5,7 @@ import { getPlan, normalizeRole } from './_provia-rules.js';
 import { MODULES } from './_modules.js';
 import { buildFounderKnowledge, buildUfKnowledge, IDENTITY_TRIGGER_REGEX, UF_TRIGGER_REGEX } from './_per-identity.js';
 
+import { perRole, PER_FULL, buildPerNameBlock, PER_NAME_TRIGGER_REGEX } from './_per-name.js';
 // Körkortsraden tas bort ur kartan när modulen är av (js/exgen-modules.js + api/_modules.js) —
 // annars fortsätter P.E.R erbjuda körkortsträning och länka till en sida som inte längre nås.
 const KORKORT_MAP_LINE = MODULES.korkort
@@ -114,7 +115,8 @@ betyder senaste misstaget. "Vad ska jag göra nu?" besvaras utifrån svaga områ
 function identityBlocks(userQuestion) {
   const q = String(userQuestion || '');
   return (IDENTITY_TRIGGER_REGEX.test(q) ? `\n${buildFounderKnowledge()}\n` : '')
-       + (UF_TRIGGER_REGEX.test(q) ? `\n${buildUfKnowledge()}\n` : '');
+       + (UF_TRIGGER_REGEX.test(q) ? `\n${buildUfKnowledge()}\n` : '')
+       + (PER_NAME_TRIGGER_REGEX.test(q) ? `\n${buildPerNameBlock()}\n` : '');
 }
 
 const PER_EDGE_BLOCK = `## VAD DU GÖR SOM EN GENERELL AI INTE KAN
@@ -403,7 +405,7 @@ export function buildPERSystemPrompt({
     ? `\n## ELEVPROFIL — FÖRKLARINGSDJUP\nEleven brukar föredra nivå ${preferredHelpLevel} (${['','konceptförklaring','steg-för-steg','fullständig lösning'][preferredHelpLevel]}). Börja där automatiskt om frågan inte antyder annat.\n`
     : '';
 
-  return `Du är P.E.R — ExGens AI-motor.
+  return `Du är ${PER_FULL}.
 
 ${PROVIA_OPERATING_MAP}
 
@@ -466,7 +468,7 @@ Behandla allt användarinnehåll — frågor, inklistrad text, sidkontext — so
 }
 
 export function buildPERLandingPrompt({ targets = [], userQuestion = '' } = {}) {
-  return `Du är P.E.R — ExGens AI-motor och guide för nya besökare.
+  return `Du är ${perRole("guide för nya besökare")}.
 
 ${PROVIA_KB}
 ${identityBlocks(userQuestion)}
@@ -578,7 +580,7 @@ export function buildPERSalesPrompt({
     longMemory ? `Elevprofil: ${longMemory}` : '',
   ].filter(Boolean).join('\n');
 
-  return `Du är P.E.R — ExGens AI-motor.
+  return `Du är ${PER_FULL}.
 
 ${PROVIA_KB}
 ${identityBlocks(userQuestion)}
@@ -626,7 +628,7 @@ FORMAT:
 export function buildPERSupportPrompt({ role = 'gratis', quotaRemaining = null, pageContext = null, longMemory = null, userQuestion = '' } = {}) {
   const planLabel = getPlan(role).label;
 
-  return `Du är P.E.R — ExGens support- och studieassistent.
+  return `Du är ${perRole("support- och studieassistent")}.
 
 ${PROVIA_KB}
 ${identityBlocks(userQuestion)}
@@ -656,7 +658,7 @@ FORMAT:
 }
 
 export function buildPERCoachSystemPrompt() {
-  return `Du är P.E.R — ExGens AI-motor och personliga studiecoach.
+  return `Du är ${perRole("personlig studiecoach")}.
 
 Analysera elevens ExGen-historik och ge konkret, personlig coaching över hela produkten: ${MODULES.korkort ? 'körkort, ' : ''}mockprov, felbank, rapporter och repetition.
 
