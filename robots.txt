@@ -1,5 +1,22 @@
 User-agent: *
 Allow: /
+
+# /api/check-role MÅSTE vara crawlbar, och det är inte en detalj.
+#
+# js/site-gate.js ligger som första taggen i <head> på varje sida och anropar
+# /api/check-role innan sidan får målas. Grinden är byggd att fail closed:
+# uteblivet svar betyder nej, och besökaren skickas till /snart.html som bär
+# noindex.
+#
+# Med "Disallow: /api/" utan undantag lyder Googlebot robots.txt, vägrar hämta
+# check-role, och landar därför på noindex-sidan. Följden är att HELA sajten
+# blir oindexerbar — mätt 2026-08-20, och orsaken till att Search Console
+# avvisade begäran om indexering med "problem påträffades vid realtidstestet".
+#
+# Allow är mer specifik än Disallow och vinner i Googles robots-tolkning.
+# Ta aldrig bort raden utan att först ta bort site-gate.js från sidorna.
+Allow: /api/check-role
+
 Disallow: /admin.html
 Disallow: /api/
 
