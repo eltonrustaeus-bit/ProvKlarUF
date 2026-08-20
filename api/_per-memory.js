@@ -1,6 +1,8 @@
 ﻿// api/_per-memory.js - P.E.R long-term memory helpers
 // Stores a compact learning profile, not raw personal data.
 
+import { MODULES } from "./_modules.js";
+
 const REFRESH_DAYS    = 1;
 const MAX_HIST_CHARS  = 3000;
 const MEMORY_TTL_DAYS = 90;
@@ -321,7 +323,7 @@ Dataminimering:
 - Styrkor:
 - Svagheter / återkommande problem:
 - Föredragen hjälpstil:
-- Produktbehov i Provia (körkort, mockprov, felbank, rapport, konto, pricing):
+- Produktbehov i ExGen (${MODULES.korkort ? 'körkort, ' : ''}mockprov, felbank, rapport, konto, pricing):
 - Nästa bästa coachning:
 ${examSection}
 Lärsignaler:
@@ -339,9 +341,9 @@ Svara på svenska, max 130 ord. Hitta inte på data.`;
 Basera dig BARA på vad som faktiskt syns i historiken. Hitta inte på data.
 Svaga/starka ämnen: ämnesnamn på svenska (t.ex. "Korsningar", "Matematik", "Vägmärken").
 score_trajectory: lista med procenttal 0-100 i kronologisk ordning (om inga prov nämns: tom lista).
-last_module: vilken Provia-del eleven använde senast.
+last_module: vilken ExGen-del eleven använde senast.
 sessions_total: antal distinkta sessioner som syns.
-exam_count: antal prov/teoriprov som nämns.
+exam_count: antal prov som nämns.
 ${examSection}
 Historik:
 ${histText || "Ingen chathistorik tillgänglig."}`;
