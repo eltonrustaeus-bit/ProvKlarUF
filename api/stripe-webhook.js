@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
-import { BRAND_NAME, SITE_ORIGIN } from "./_site.js";
+import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -9,7 +9,7 @@ const supabase = createClient(
 
 const PLAN_ROLES = { basic: "basic", premium: "premium" };
 const PLAN_NAMES = { basic: "Basic", premium: "Premium" };
-const RESEND_FROM = `${BRAND_NAME} <noreply@proviaai.se>`;
+const RESEND_FROM = MAIL_FROM;
 const ADMIN_EMAIL = "elton.rustaeus@gmail.com";
 
 // ── Stripe signature ──
@@ -60,70 +60,125 @@ function esc(str) {
   return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
+/* Betalningsmejlens utseende.
+ *
+ * Låg fram till 2026-08-20 kvar i ProviaAIs mörkgröna palett — #08100d som
+ * botten, #1bff8c som accent — medan resten av produkten bytt namn och färg
+ * långt tidigare. Välkomstmejlet gjordes om 2026-08-01; de här fem missades,
+ * vilket är obekvämt eftersom det är just de här en BETALANDE kund får.
+ *
+ * Paletten nedan är densamma som buildWelcomeHtml() i api/signup.js och som
+ * exgen-tokens.css: ljus botten, mörk text, teal som handlingsfärg. Ändras
+ * den här ska den ändras på båda ställena, annars ser ett kvitto ut som att
+ * det kommer från ett annat företag än välkomstmejlet.
+ *
+ * Skrivet som tabeller med inline-stil för att mejlklienter inte kan
+ * förlitas på för flexbox, grid eller <style>-block. */
+const MAIL = {
+  ground: "#F8FAFC", card: "#FFFFFF", line: "#E4E7EC", hair: "#EEF1F4",
+  ink: "#1B2430", ink2: "#667085",
+  accent: "#00768F", teal: "#00B7D9", mint: "#76D76A",
+  danger: "#B91C1C",
+};
+
 function wrap(content) {
-  return `<!DOCTYPE html><html lang="sv"><body style="margin:0;padding:0;background:#08100d;font-family:'DM Sans',Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#08100d;padding:32px 16px"><tr><td align="center">
-<table width="100%" style="max-width:520px;background:#0f1a13;border:1px solid rgba(27,255,140,.18);border-radius:8px;overflow:hidden">
-<tr><td style="background:#0a130d;padding:20px 28px;border-bottom:1px solid rgba(27,255,140,.12)">
-<span style="font-size:18px;font-weight:700;color:#1bff8c">${BRAND_NAME}</span></td></tr>
-<tr><td style="padding:28px 28px 32px">${content}</td></tr>
-<tr><td style="padding:14px 28px;border-top:1px solid rgba(27,255,140,.08)">
-<p style="margin:0;font-size:12px;color:#5a7a6a">Frågor? Svara på det här mejlet.</p></td></tr>
-</table></td></tr></table></body></html>`;
+  return `<!DOCTYPE html>
+<html lang="sv">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:${MAIL.ground};font-family:Inter,'DM Sans',Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${MAIL.ground};padding:40px 16px">
+    <tr><td align="center">
+      <table width="100%" style="max-width:520px;background:${MAIL.card};border:1px solid ${MAIL.line};border-radius:10px;overflow:hidden">
+        <tr><td style="padding:0"><div style="height:3px;background:linear-gradient(90deg,${MAIL.teal},${MAIL.mint});font-size:0;line-height:0">&nbsp;</div></td></tr>
+        <tr><td style="padding:26px 32px 22px;border-bottom:1px solid ${MAIL.hair}">
+          <span style="font-size:20px;font-weight:800;color:${MAIL.ink};letter-spacing:-0.4px">${BRAND_NAME}</span>
+        </td></tr>
+        <tr><td style="padding:32px">${content}</td></tr>
+        <tr><td style="padding:18px 32px;border-top:1px solid ${MAIL.hair}">
+          <p style="margin:0;font-size:12px;color:${MAIL.ink2};line-height:1.5">Frågor? Svara på det här mejlet.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+/* Kvittorutan. Belopp och konto ska gå att läsa utan att tänka, så etiketten
+   står till vänster och värdet högerställt — samma uppställning som ett
+   pappersvitto. */
+function receipt(rows) {
+  const cells = rows.map(([label, value, strong], i) => `
+    <tr>
+      <td style="font-size:13px;color:${MAIL.ink2};padding:${i ? "8px" : "0"} 0 0">${esc(label)}</td>
+      <td align="right" style="font-size:13px;color:${MAIL.ink};font-weight:${strong ? "700" : "400"};padding:${i ? "8px" : "0"} 0 0">${esc(value)}</td>
+    </tr>`).join("");
+  return `<table cellpadding="0" cellspacing="0" width="100%" style="background:${MAIL.ground};border:1px solid ${MAIL.line};border-radius:8px;padding:16px 18px;margin:0 0 24px;box-sizing:border-box">${cells}</table>`;
+}
+
+function btn(href, label) {
+  return `<a href="${href}" style="display:inline-block;background:${MAIL.accent};color:#ffffff;font-size:15px;font-weight:700;padding:14px 28px;border-radius:8px;text-decoration:none">${label}</a>`;
+}
+
+function btnGhost(href, label) {
+  return `<a href="${href}" style="display:inline-block;border:1px solid rgba(0,183,217,.45);color:${MAIL.accent};font-size:14px;font-weight:600;padding:11px 24px;border-radius:8px;text-decoration:none">${label}</a>`;
+}
+
+function h1(text, color) {
+  return `<h1 style="margin:0 0 14px;font-size:24px;font-weight:700;color:${color || MAIL.ink};line-height:1.25">${text}</h1>`;
+}
+
+function p(text) {
+  return `<p style="margin:0 0 20px;font-size:15px;color:${MAIL.ink2};line-height:1.65">${text}</p>`;
 }
 
 function tpl_paymentConfirmed(email, planName, amountStr) {
-  return wrap(`
-<h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#e8f5ee">Betalning bekräftad ✓</h1>
-<p style="margin:0 0 20px;font-size:15px;color:#a8c4b4;line-height:1.6">Ditt <strong style="color:#1bff8c">${esc(planName)}</strong>-konto är nu aktiverat.</p>
-<table cellpadding="0" cellspacing="0" style="background:#111a15;border:1px solid rgba(27,255,140,.15);border-radius:6px;padding:16px 18px;margin-bottom:22px;width:100%;box-sizing:border-box">
-  <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Plan</td><td align="right" style="font-size:13px;font-weight:700;color:#1bff8c">${esc(planName)}</td></tr>
-  <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(amountStr)} kr</td></tr>
-  <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(email)}</td></tr>
-</table>
-<a href="${SITE_ORIGIN}/app.html" style="display:inline-block;background:#1bff8c;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Öppna ${BRAND_NAME} →</a>`);
+  return wrap(
+    h1("Betalning bekräftad") +
+    p(`Ditt <strong style="color:${MAIL.ink}">${esc(planName)}</strong>-konto är aktiverat. Du kan börja direkt.`) +
+    receipt([["Plan", planName, true], ["Belopp", `${amountStr} kr`], ["Konto", email]]) +
+    btn(`${SITE_ORIGIN}/app.html`, `Öppna ${BRAND_NAME} →`)
+  );
 }
 
 function tpl_renewalConfirmed(email, planName, amountStr) {
-  return wrap(`
-<h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#e8f5ee">Prenumeration förnyad</h1>
-<p style="margin:0 0 20px;font-size:15px;color:#a8c4b4;line-height:1.6">Din <strong style="color:#1bff8c">${esc(planName)}</strong>-prenumeration har förnyats automatiskt.</p>
-<table cellpadding="0" cellspacing="0" style="background:#111a15;border:1px solid rgba(27,255,140,.15);border-radius:6px;padding:16px 18px;margin-bottom:22px;width:100%;box-sizing:border-box">
-  <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Plan</td><td align="right" style="font-size:13px;font-weight:700;color:#1bff8c">${esc(planName)}</td></tr>
-  <tr><td style="font-size:13px;color:#6b8f7c;padding-bottom:6px">Belopp</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(amountStr)} kr</td></tr>
-  <tr><td style="font-size:13px;color:#6b8f7c">Konto</td><td align="right" style="font-size:13px;color:#e8f5ee">${esc(email)}</td></tr>
-</table>
-<a href="${SITE_ORIGIN}/konto.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Hantera prenumeration</a>`);
+  return wrap(
+    h1("Prenumerationen är förnyad") +
+    p(`Din <strong style="color:${MAIL.ink}">${esc(planName)}</strong>-prenumeration förnyades automatiskt. Ingenting behöver göras.`) +
+    receipt([["Plan", planName, true], ["Belopp", `${amountStr} kr`], ["Konto", email]]) +
+    btnGhost(`${SITE_ORIGIN}/konto.html`, "Hantera prenumeration")
+  );
 }
 
 function tpl_paymentFailed(email, planName) {
-  return wrap(`
-<h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#ff8484">Betalning misslyckades</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Vi kunde inte debitera ditt kort för din <strong style="color:#e8f5ee">${esc(planName)}</strong>-prenumeration.</p>
-<p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Uppdatera din betalningsmetod för att behålla tillgången. Stripe försöker igen automatiskt — om det misslyckas upprepade gånger avslutas prenumerationen.</p>
-<a href="${SITE_ORIGIN}/konto.html" style="display:inline-block;background:#ff8484;color:#08100d;font-size:15px;font-weight:700;padding:13px 26px;border-radius:5px;text-decoration:none">Uppdatera betalningssätt →</a>`);
+  return wrap(
+    h1("Betalningen gick inte igenom", MAIL.danger) +
+    p(`Vi kunde inte debitera kortet för din <strong style="color:${MAIL.ink}">${esc(planName)}</strong>-prenumeration.`) +
+    p("Uppdatera betalningssättet så behåller du tillgången. Stripe försöker igen automatiskt några gånger — lyckas ingen av dem avslutas prenumerationen.") +
+    btn(`${SITE_ORIGIN}/konto.html`, "Uppdatera betalningssätt →")
+  );
 }
 
 function tpl_subscriptionCancelled(planName) {
-  return wrap(`
-<h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#e8f5ee">Prenumeration avslutad</h1>
-<p style="margin:0 0 16px;font-size:15px;color:#a8c4b4;line-height:1.6">Din <strong style="color:#e8f5ee">${esc(planName)}</strong>-prenumeration är avslutad. Du har nu tillgång till gratisplanen.</p>
-<p style="margin:0 0 22px;font-size:14px;color:#a8c4b4;line-height:1.6">Du kan uppgradera igen när som helst.</p>
-<a href="${SITE_ORIGIN}/pricing.html" style="display:inline-block;border:1px solid rgba(27,255,140,.4);color:#1bff8c;font-size:14px;font-weight:600;padding:11px 22px;border-radius:5px;text-decoration:none">Se planer</a>`);
+  return wrap(
+    h1("Prenumerationen är avslutad") +
+    p(`Din <strong style="color:${MAIL.ink}">${esc(planName)}</strong>-prenumeration är avslutad. Kontot ligger kvar på gratisplanen — historiken och felbanken är orörda.`) +
+    p("Du kan uppgradera igen när du vill.") +
+    btnGhost(`${SITE_ORIGIN}/pricing.html`, "Se planer")
+  );
 }
 
+/* Internt mejl till admin. Behöver inte se ut som ett kvitto, men ska vara
+   läsbart i en notis på en telefon — därför samma typskala, ingen ram. */
 function tpl_adminNotice(label, email, planName, amountStr) {
-  return `<div style="font-family:sans-serif;max-width:480px">
-<h2 style="color:#1bff8c;margin:0 0 16px">${esc(label)} — ${BRAND_NAME}</h2>
+  const row = (k, v) => `<tr><td style="padding:6px 0;font-size:13px;color:${MAIL.ink2}">${esc(k)}</td><td style="padding:6px 0;font-size:13px;color:${MAIL.ink};font-weight:600">${esc(v)}</td></tr>`;
+  return `<div style="font-family:Inter,'DM Sans',Arial,sans-serif;max-width:480px;color:${MAIL.ink}">
+<h2 style="margin:0 0 16px;font-size:17px;font-weight:700;color:${MAIL.ink}">${esc(label)} — ${BRAND_NAME}</h2>
 <table style="width:100%;border-collapse:collapse">
-<tr><td style="padding:6px 0;color:#666">Email</td><td><b>${esc(email)}</b></td></tr>
-<tr><td style="padding:6px 0;color:#666">Plan</td><td><b>${esc(planName)}</b></td></tr>
-<tr><td style="padding:6px 0;color:#666">Belopp</td><td><b>${esc(amountStr)} kr</b></td></tr>
-<tr><td style="padding:6px 0;color:#666">Tid</td><td>${new Date().toLocaleString("sv-SE",{timeZone:"Europe/Stockholm"})}</td></tr>
+${row("E-post", email)}${row("Plan", planName)}${row("Belopp", amountStr + " kr")}${row("Tid", new Date().toLocaleString("sv-SE", { timeZone: "Europe/Stockholm" }))}
 </table></div>`;
 }
 
-// ── Supabase helpers ──
 async function getUserEmail(userId) {
   try {
     const { data } = await supabase.auth.admin.getUserById(userId);
