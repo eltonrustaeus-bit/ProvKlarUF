@@ -16,8 +16,37 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
-import { generateVerifiedQuestion, persistGeneratedQuestion, PIPELINE_VERSION, PROMPT_VERSION } from "../src/generation/legal-generation.mjs";
-import { runDiagnostic, runAnswer, runCoach, getProfile } from "../src/per/orchestrator.mjs";
+// DYNAMISK import, inte statisk. package.json saknar "type": "module", så Vercel kompilerar
+// api/*.js till CommonJS medan .mjs-filerna förblir äkta ESM. En statisk import blir då ett
+// require() av ESM och kraschar hela funktionen vid inladdning:
+//
+//   ERR_REQUIRE_ESM: require() of ES Module src/per/orchestrator.mjs
+//                    from api/knowledge.js not supported
+//
+// /api/knowledge svarade 500 på VARJE anrop i produktion på grund av det här — vilket är
+// varför elevloopens HTTP-väg aldrig skrev en enda kvotrad trots att flaggorna var på.
+// Felet syns inte i felstatistiken eftersom funktionen dör före första kodraden, och inte
+// i testerna eftersom node kör filerna som ESM lokalt.
+let _mod = null;
+async function laddaModuler() {
+  if (!_mod) {
+    const [gen, per] = await Promise.all([
+      import("../src/generation/legal-generation.mjs"),
+      import("../src/per/orchestrator.mjs"),
+    ]);
+    _mod = {
+      generateVerifiedQuestion: gen.generateVerifiedQuestion,
+      persistGeneratedQuestion: gen.persistGeneratedQuestion,
+      PIPELINE_VERSION: gen.PIPELINE_VERSION,
+      PROMPT_VERSION: gen.PROMPT_VERSION,
+      runDiagnostic: per.runDiagnostic,
+      runAnswer: per.runAnswer,
+      runCoach: per.runCoach,
+      getProfile: per.getProfile,
+    };
+  }
+  return _mod;
+}
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -85,7 +114,7 @@ async function opBlueprint(req, res, user) {
       question_mix: question_mix ?? null,
       source_material_ref: source_material_ref ?? null,
       status: "draft",
-      pipeline_version: PIPELINE_VERSION,
+      pipeline_version: (await laddaModuler()).PIPELINE_VERSION,
     })
     .select()
     .single();
@@ -100,8 +129,8 @@ async function opBlueprint(req, res, user) {
       status: "queued",
       progress_total: question_count,
       idempotency_key: idempotencyKey,
-      pipeline_version: PIPELINE_VERSION,
-      prompt_version: PROMPT_VERSION,
+      pipeline_version: (await laddaModuler()).PIPELINE_VERSION,
+      prompt_version: (await laddaModuler()).PROMPT_VERSION,
       input_json: { blueprint_id: blueprint.id, subject, course, level, question_count },
     })
     .select()
@@ -174,7 +203,7 @@ async function opGenerate(req, res, user) {
 
   let result;
   try {
-    result = await generateVerifiedQuestion({
+    result = await (await laddaModuler()).generateVerifiedQuestion({
       supabase,
       jobId: job_id,
       userId: user.id,
@@ -201,7 +230,7 @@ async function opGenerate(req, res, user) {
 
   const nextPosition = Number.isInteger(position) ? position : 0;
 
-  const persisted = await persistGeneratedQuestion({
+  const persisted = await (await laddaModuler()).persistGeneratedQuestion({
     supabase,
     blueprintId,
     position: nextPosition,
@@ -301,7 +330,7 @@ async function opPerDiagnose(req, res, user) {
   if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
 
   try {
-    const result = await runDiagnostic({
+    const result = await (await laddaModuler()).runDiagnostic({
       supabase, userId: user.id,
       level: level ?? "E",
       conceptId: concept_id ?? null,
@@ -336,7 +365,7 @@ async function opPerAnswer(req, res, user) {
   if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
 
   try {
-    const result = await runAnswer({
+    const result = await (await laddaModuler()).runAnswer({
       supabase, userId: user.id,
       questionId: question_id,
       studentAnswer: Array.isArray(answer) ? answer : answerText,
@@ -366,7 +395,7 @@ async function opPerCoach(req, res, user) {
   if (!quota.allowed) return res.status(429).json({ error: "Daglig gräns nådd. Kom tillbaka i morgon." });
 
   try {
-    const result = await runCoach({
+    const result = await (await laddaModuler()).runCoach({
       supabase, userId: user.id, conceptId: concept_id, helpLevel, questionId: question_id ?? null,
     });
     if (!result.ok) {
@@ -383,7 +412,7 @@ async function opPerCoach(req, res, user) {
 
 async function opPerProfile(req, res, user) {
   try {
-    return res.status(200).json(await getProfile(supabase, user.id));
+    return res.status(200).json(await (await laddaModuler()).getProfile(supabase, user.id));
   } catch (e) {
     console.error("per profile error:", e?.message);
     return res.status(500).json({ error: "Kunde inte läsa profilen" });
