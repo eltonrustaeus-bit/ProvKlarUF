@@ -12,7 +12,6 @@
 import { cacheAllowedFields } from "./_per-cache-guard.js";
 import { normalizeQuestion, payloadHash, fingerprintOf, slotGuardOk } from "./_per-fingerprint.js";
 import { buildCacheSkeleton } from "./_per-core.js";
-import { getEmbedding } from "../src/retrieval/legal-retrieval.mjs";
 
 const VECTOR_THRESHOLD = 0.95;  // under detta används aldrig en vektorträff
 const NEAR_MISS_FLOOR  = 0.88;  // 0.88–0.95 loggas men används inte
@@ -40,9 +39,27 @@ async function logProbe(supabase, { lane, decision, similarity = null, cacheId =
   } catch { /* sonden får aldrig påverka svaret */ }
 }
 
+// getEmbedding hämtas med DYNAMISK import, inte statisk. Det är inte en stilfråga:
+// package.json saknar "type": "module", så Vercel kompilerar api/*.js till CommonJS medan
+// .mjs-filer förblir äkta ESM. En statisk import blir då ett require() av ESM, vilket kraschar
+// hela funktionen vid inladdning — innan en enda rad kod kört, och därmed utan att felet syns
+// i felstatistiken:
+//
+//   ERR_REQUIRE_ESM: require() of ES Module src/retrieval/legal-retrieval.mjs
+//                    from api/_per-cache.js not supported
+//
+// Det tog ned /api/explain helt i produktion. Lokala tester körde filerna som ESM och kunde
+// därför aldrig se det. Dynamisk import() fungerar från både CJS och ESM.
+let _getEmbedding = null;
+async function loadEmbedder() {
+  if (!_getEmbedding) ({ getEmbedding: _getEmbedding } = await import("../src/retrieval/legal-retrieval.mjs"));
+  return _getEmbedding;
+}
+
 // getEmbedding har ingen egen timeout. Ett hängande embeddinganrop skulle annars göra cachen
 // långsammare än det anrop den ska ersätta — alltså sämre än ingen cache alls.
 async function embedWithTimeout(text) {
+  const getEmbedding = await loadEmbedder();
   let timer;
   try {
     return await Promise.race([
