@@ -200,5 +200,25 @@ check("samma utskrivna tal i olika formulering släpps",
 check("'ingen' är negation och nekas mot bekräftande fråga",
   fp.slotGuardOk("jag har tillstand att kora", "jag har ingen tillstand att kora") === false);
 
+// Finding 5: hundra- och tusental-sammansättningar saknas helt.
+check("etthundra vs tvåhundra (hundra-sammansatt) nekas",
+  fp.slotGuardOk("kostar det etthundra kr", "kostar det tvåhundra kr") === false);
+check("niohundra vs femhundra (hundra-sammansatt) nekas",
+  fp.slotGuardOk("kostar det niohundra kr", "kostar det femhundra kr") === false);
+check("etthundra vs tvåtusen (hundra vs tusen) nekas",
+  fp.slotGuardOk("kostar det etthundra kr", "kostar det tvåtusen kr") === false);
+check("ettusen vs tvåtusen (tusen-sammansatt) nekas",
+  fp.slotGuardOk("kostar det ettusen kr", "kostar det tvåtusen kr") === false);
+
+// Finding 6: Unicode-gräns för diakritiska bokstäver (å).
+check("åtta frågor vs åttio frågor (Unicode-gräns) nekas",
+  fp.slotGuardOk("åtta frågor", "åttio frågor") === false);
+
+// Finding 7: inget och inga saknas i negationslistan.
+check("'inget' är negation och nekas mot bekräftande fråga",
+  fp.slotGuardOk("vi har nyckel att kora", "vi har inget nyckel att kora") === false);
+check("'inga' är negation och nekas mot bekräftande fråga",
+  fp.slotGuardOk("inga problem med det", "problem med det") === false);
+
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);

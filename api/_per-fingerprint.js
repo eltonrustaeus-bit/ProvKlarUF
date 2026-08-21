@@ -25,6 +25,7 @@ const SEP = String.fromCharCode(0); // fältseparator mellan hash-fälten
 // utan sanering kunde ett fältvärde som råkar innehålla SEP-tecknet imitera fältgränsen och
 // låta t.ex. option_a/option_b glida i varandra. Det är detta saneringen faktiskt garanterar —
 // inte att styrtecken "inte kan förekomma" i indata, bara att de aldrig når hash-strängen.
+// Sidoeffekt: två fältvärden som skiljer sig endast i inbäddade styrtecken hashar identiskt.
 const CONTROL_CODES = [...Array(32).keys()].concat(127);
 const CONTROL_RE = new RegExp(`[${CONTROL_CODES.map((c) => String.fromCharCode(c)).join("")}]`, "gu");
 const stripControl = (s) => s.replace(CONTROL_RE, "");
@@ -101,6 +102,12 @@ NUM_TENS.forEach((tensWord, i) => {
   NUM_UNITS.slice(1).forEach((unitWord, j) => {
     NUM_WORDS.set(tensWord + unitWord, base + j + 1); // t.ex. tjugo+nio = 29, sjuttio+nio = 79
   });
+});
+
+// Hundra- och tusensammansättningar (enkel enheter + hundra/tusen).
+NUM_UNITS.slice(1).forEach((unitWord, i) => {
+  NUM_WORDS.set(unitWord + "hundra", (i + 1) * 100); // t.ex. etthundra = 100, tvåhundra = 200
+  NUM_WORDS.set(unitWord + "tusen", (i + 1) * 1000); // t.ex. ettusen = 1000, tvåtusen = 2000
 });
 
 const NUM_WORD_RE = new RegExp(
