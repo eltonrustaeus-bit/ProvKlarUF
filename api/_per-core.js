@@ -675,3 +675,49 @@ FORMAT:
 - Inga onödiga ord eller fraser
 - Actionable — eleven ska veta exakt vad de ska göra`;
 }
+
+// ── Svarscachens promptbyggare ──────────────────────────────────────────────
+// buildExplainPrompt låg tidigare inline i api/explain.js. Den bor här för att cachens
+// fingeravtryck ska kunna härledas ur SAMMA källa som det riktiga anropet — annars kan de två
+// glida isär, vilket är precis det fel fingeravtrycket finns för att förhindra.
+
+export function buildExplainPrompt({
+  question = '', correct = '', correctText = '',
+  option_a = '', option_b = '', option_c = '', option_d = '',
+} = {}) {
+  return `Du är ${PER_FULL}. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
+
+Fråga: ${question}
+A: ${option_a || "—"}
+B: ${option_b || "—"}
+C: ${option_c || "—"}
+D: ${option_d || "—"}
+
+Svara på svenska. Fokusera på trafikregeln eller principen som gäller.`;
+}
+
+/**
+ * Promptskelettet som cachens fingeravtryck hashas ur: den faktiska prompten med alla
+ * FÄLTVÄRDEN blankade, men med SAMTLIGA villkorade block framtvingade.
+ *
+ * Framtvingandet är inte kosmetika. identityBlocks() (rad 117) renderas bara när frågan matchar
+ * en trigger. Blankas frågan försvinner blocket — och därmed founderAge() ur fingeravtrycket.
+ * Ett cachat grundarsvar hade då överlevt födelsedagen den 7 mars, vilket är just det fall
+ * fingeravtrycket finns för.
+ *
+ * Följden är att fler rader ogiltigförklaras än strikt nödvändigt — en UF-ändring dödar även
+ * prisfrågor. Det är rätt avvägning: en onödig miss kostar ett AI-anrop, en missad
+ * ogiltigförklaring serverar fel fakta.
+ *
+ * @param {'landing'|'explain'} lane
+ */
+export function buildCacheSkeleton(lane, { targets = [] } = {}) {
+  if (lane === 'landing') {
+    const forced = [buildFounderKnowledge(), buildUfKnowledge(), buildPerNameBlock()].join('\n');
+    return `${buildPERLandingPrompt({ targets, userQuestion: '' })}\n${forced}`;
+  }
+  if (lane === 'explain') {
+    return buildExplainPrompt({});
+  }
+  throw new Error(`okänd cache-lane: ${lane}`);
+}

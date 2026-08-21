@@ -1,6 +1,6 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
-import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt } from "./_per-core.js";
+import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt, buildExplainPrompt } from "./_per-core.js";
 import { MODULES } from "./_modules.js";
 import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
@@ -611,15 +611,10 @@ export default async function handler(req, res) {
 
   const opts = { A: option_a, B: option_b, C: option_c, D: option_d };
   const correctText = opts[correct] || correct;
-  const prompt = `Du är ${PER_FULL}. Förklara kortfattat (max 60 ord) varför svaret på följande teorifråga är ${correct}: ${correctText}.
-
-Fråga: ${question}
-A: ${option_a || "—"}
-B: ${option_b || "—"}
-C: ${option_c || "—"}
-D: ${option_d || "—"}
-
-Svara på svenska. Fokusera på trafikregeln eller principen som gäller.`;
+  // Prompten byggs av _per-core.js, inte här. Cachens fingeravtryck härleds ur samma byggare —
+  // två kopior av samma malltext hade kunnat glida isär, vilket är just det fingeravtrycket
+  // finns för att fånga.
+  const prompt = buildExplainPrompt({ question, correct, correctText, option_a, option_b, option_c, option_d });
 
   try {
     const explanation = await callAI([{ role: "user", content: prompt }], { timeout: 30_000 });

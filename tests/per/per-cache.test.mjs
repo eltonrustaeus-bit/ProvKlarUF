@@ -24,6 +24,7 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const guard = await import(join(root, "api", "_per-cache-guard.js"));
 const fp = await import(join(root, "api", "_per-fingerprint.js"));
+const core = await import(join(root, "api", "_per-core.js"));
 
 let failures = 0;
 const check = (name, cond) => {
@@ -219,6 +220,57 @@ check("'inget' är negation och nekas mot bekräftande fråga",
   fp.slotGuardOk("vi har nyckel att kora", "vi har inget nyckel att kora") === false);
 check("'inga' är negation och nekas mot bekräftande fråga",
   fp.slotGuardOk("inga problem med det", "problem med det") === false);
+
+
+console.log("\n— PROMPTSKELETT —");
+
+const skelLanding = core.buildCacheSkeleton("landing", { targets: [] });
+const skelExplain = core.buildCacheSkeleton("explain");
+
+check("landningsskelettet innehåller ingen frågetext",
+  !/undefined|null/.test(skelLanding) && skelLanding.length > 500);
+check("explain-skelettet innehåller inga fältvärden",
+  !skelExplain.includes("Stopp") && skelExplain.length > 100);
+check("banorna ger olika skelett",
+  fp.fingerprintOf(skelLanding) !== fp.fingerprintOf(skelExplain));
+check("okänd bana kastar",
+  (() => { try { core.buildCacheSkeleton("tips"); return false; } catch { return true; } })());
+
+// Kärnan i CR-CACHE-004: priserna bor i PLAN_RULES och når prompten via PROVIA_KB.
+// En uppräkning av promptens inputs hade missat dem. Den renderade prompten gör det inte.
+const rules = await import(join(root, "api", "_provia-rules.js"));
+check("landningsskelettet bär produktkunskapen, och därmed priserna",
+  skelLanding.includes(rules.buildPublicProviaKnowledge().slice(0, 60)));
+
+// Villkorade block MÅSTE tvingas fram. identityBlocks() renderas bara när frågan matchar en
+// trigger — blankas frågan försvinner founderAge() ur fingeravtrycket, och ett cachat
+// grundarsvar hade överlevt födelsedagen. Det var just det fallet fingeravtrycket finns för.
+const ident = await import(join(root, "api", "_per-identity.js"));
+check("skelettet bär grundarblocket trots blankad fråga",
+  skelLanding.includes(ident.FOUNDER.name));
+check("skelettet bär den beräknade åldern",
+  skelLanding.includes(String(ident.founderAge())));
+check("skelettet bär UF-blocket",
+  skelLanding.includes(ident.buildUfKnowledge().slice(0, 40)));
+
+check("olika targets ger olika fingeravtryck",
+  fp.fingerprintOf(core.buildCacheSkeleton("landing", { targets: [] }))
+  !== fp.fingerprintOf(core.buildCacheSkeleton("landing", {
+        targets: [{ id: "gratis", label: "Gratisplanen" }] })));
+
+console.log("\n— EXPLAIN-PROMPTEN —");
+
+const ep = core.buildExplainPrompt({
+  question: "Vad betyder märket?", correct: "A", correctText: "Stopp",
+  option_a: "Stopp", option_b: "Kör", option_c: "Sväng", option_d: "Vänta",
+});
+check("explain-prompten bär frågan", ep.includes("Vad betyder märket?"));
+check("explain-prompten bär facittexten", ep.includes("Stopp"));
+check("explain-prompten bär alla alternativ",
+  ep.includes("Kör") && ep.includes("Sväng") && ep.includes("Vänta"));
+check("explain.js bygger inte längre prompten inline",
+  !readFileSync(join(root, "api", "explain.js"), "utf8")
+     .includes("Förklara kortfattat (max 60 ord) varför svaret"));
 
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);
