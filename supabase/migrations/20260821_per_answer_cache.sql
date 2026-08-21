@@ -116,7 +116,14 @@ returns table (cache_id uuid, question_text text, answer text, similarity real)
 language sql
 stable
 security definer
-set search_path = public
+-- extensions MÅSTE ingå i search_path här, till skillnad från de andra två funktionerna:
+-- <=> (cosine distance) bor i extensions-schemat, och `set search_path = public` ensamt gör
+-- operatorn oupptäckbar. Produktionskörningen föll på exakt det:
+--   ERROR: 42883: operator does not exist: extensions.vector <=> extensions.vector
+-- Sökvägen är fortfarande pinnad — det är hela poängen med CR-CACHE-008 — bara inte till en
+-- enda schema. Den befintliga match_knowledge_chunks fungerar för att den saknar set
+-- search_path helt och ärver Supabases default; det är svagare, inte starkare.
+set search_path = public, extensions
 as $$
   select c.id, c.question_text, c.answer, (1 - (c.embedding <=> p_embedding))::real
     from public.per_answer_cache c
