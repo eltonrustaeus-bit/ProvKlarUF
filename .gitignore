@@ -1,5 +1,11 @@
 node_modules/
 *.png
+# Undantag: ikonuppsättningen är produktionsresurser, inte skärmdumpar. Utan de här raderna
+# blir en ny favicon-storlek tyst utelämnad ur commiten och 404:ar i drift — de befintliga
+# favicon-filerna ligger i repot bara för att någon kom ihåg att köra `git add -f`.
+!image/favicon-*.png
+!image/apple-touch-icon.png
+!image/icon-maskable-*.png
 *.bak
 .env
 .env.local
