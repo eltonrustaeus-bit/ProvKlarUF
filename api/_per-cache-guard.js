@@ -9,7 +9,7 @@
 
 export const MAX_CACHEABLE_CHARS = 500;
 
-// Svenskt personnummer: valfritt sekelprefix (19/20), sex siffror (ÅMMDD), valfri
+// Svenskt personnummer: valfritt sekelprefix (19/20), sex siffror (ÅÅMMDD), valfri
 // avskiljare (bindestreck, mellanslag eller plus för hundraåringar), fyra siffror.
 // Egen exporterad funktion — testas isolerat i sina egna assertions så den aldrig kan
 // maskeras av att looksLikePhone() redan hunnit returnera i cacheAllowed() (Codex CR-CACHE-006).
@@ -23,10 +23,10 @@ const BLOCK_PATTERNS = [
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,                       // e-post
   /\b(api[ _-]?key|secret|token|password|lösenord|bearer)\b/i,     // hemligheter
   /\b(ignore (?:previous|all)|system prompt|developer message)\b/i, // engelsk injektion
-  // "strunta ... i" och "visa ... din systemprompt" tillåter ett enskilt inskjutet ord
+  // "strunta ... i" och "visa ... din systemprompt" tillåter upp till tre inskjutna ord
   // ("strunta lite i", "visa gärna din systemprompt") — ingen fraslista är uttömmande,
-  // men den enklaste evasionen (ett extra ord) ska inte räcka (Codex CR-CACHE-006).
-  /(strunta\s+(?:\S+\s+)?i|bortse från|låtsas att|agera som om|visa\s+(?:\S+\s+)?din\s+systemprompt|glöm (?:dina|alla) (?:regler|instruktioner))/i,
+  // men enkla evasioner med två-tre ord ska inte räcka (Codex CR-CACHE-006).
+  /(strunta\s+(?:\S+\s+){0,3}i|bortse från|låtsas att|agera som om|visa\s+(?:\S+\s+){0,3}din\s+systemprompt|glöm (?:dina|alla) (?:regler|instruktioner))/i,
 ];
 
 // Telefonnummer separat: ett enkelt teckenintervall matchar även datum som "2026-08-21".
