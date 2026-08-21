@@ -2,7 +2,7 @@
 -- och docs/per/CODEX_REVIEW_CACHE.md för resonemanget bakom varje spärr nedan.
 --
 -- Cachen ligger framför exakt två vägar vars prompt bevisligen saknar elevdata: landingMode
--- och EXPLAIN MODE. Identitetsbanan ströks efter granskning — api/explain.js:411 laddar
+-- och EXPLAIN MODE. Identitetsbanan ströks efter granskning — api/explain.js:412 laddar
 -- longMemory nycklat på user.id, inte på sessionen, så "tom historik" bevisar ingenting.
 --
 -- Additiv migration: bara CREATE ... IF NOT EXISTS. Säker att köra om.
@@ -15,7 +15,7 @@ create extension if not exists vector with schema extensions;
 -- ingenting här att koppla till en person, alltså ingenting att läcka och ingenting att
 -- lämna ut. Användarna är till stor del minderåriga.
 --
--- status: landingMode är OAUTENTISERAD (api/explain.js:249) och dess rate limit fail-open:ar
+-- status: landingMode är OAUTENTISERAD (api/explain.js:250) och dess rate limit fail-open:ar
 -- (api/explain.js:270). Utan grind kan en angripare via promptinjektion få ett svar cachat som
 -- sedan serveras till riktiga besökare — falska pris- och produktfakta på marknadsytan
 -- (Codex CR-CACHE-003). Nya landningsrader skrivs därför som 'pending', och ENDAST 'approved'
