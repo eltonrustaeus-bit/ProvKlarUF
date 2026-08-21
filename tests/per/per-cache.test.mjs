@@ -23,6 +23,7 @@ import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const guard = await import(join(root, "api", "_per-cache-guard.js"));
+const fp = await import(join(root, "api", "_per-fingerprint.js"));
 
 let failures = 0;
 const check = (name, cond) => {
@@ -95,6 +96,84 @@ check("datum blockeras inte som telefonnummer",
   guard.cacheAllowed("gäller erbjudandet 2026-08-21?") === true);
 check("pris med siffror blockeras inte",
   guard.cacheAllowed("kostar premium 79 kr i månaden?") === true);
+
+console.log("\n— KANONISERING —");
+
+check("versaler och blanksteg normaliseras",
+  fp.normalizeQuestion("  Vad   KOSTAR  Premium ") === "vad kostar premium");
+check("avslutande frågetecken tas bort",
+  fp.normalizeQuestion("vad kostar premium?") === "vad kostar premium");
+check("skiljetecken INUTI frågan bevaras",
+  fp.normalizeQuestion("vad kostar premium, basic?") === "vad kostar premium, basic");
+// Regel 3: svenska diakriter är betydelsebärande. "far" och "får" är olika ord.
+check("å ä ö kollapsar inte till a a o",
+  fp.normalizeQuestion("Får jag köra?") === "får jag köra");
+// Två sätt att skriva ä: ett tecken (U+00E4) eller a + kombinerande trema (U+0061 U+0308).
+// De ser identiska ut i en editor och är olika strängar utan NFC. Escape-sekvenser krävs här —
+// skrivs båda som synliga tecken blir testet tautologiskt och bevisar ingenting.
+check("NFC gör dekomponerat ä identiskt med komponerat",
+  fp.normalizeQuestion("ändra") === fp.normalizeQuestion("ändra"));
+// Regel 5: bindestreck inuti ord är betydelsebärande.
+check("A-B är inte AB",
+  fp.normalizeQuestion("gäller a-b") !== fp.normalizeQuestion("gäller ab"));
+// Regel 6: ingen HTML-avkodning.
+check("&lt; avkodas inte till <",
+  fp.normalizeQuestion("är 5 &lt; 6") !== fp.normalizeQuestion("är 5 < 6"));
+check("trunkeras till 500 tecken",
+  fp.normalizeQuestion("a".repeat(600)).length === 500);
+
+console.log("\n— PAYLOAD-HASH —");
+
+const explainBase = {
+  question: "Vad betyder märket?", correct: "A",
+  option_a: "Stopp", option_b: "Kör", option_c: "Sväng", option_d: "Vänta",
+};
+check("payload-hash är 64 hex",
+  /^[0-9a-f]{64}$/.test(fp.payloadHash("landing", { question: "vad kostar premium" })));
+check("samma fråga ger samma hash",
+  fp.payloadHash("landing", { question: "Vad kostar Premium?" })
+  === fp.payloadHash("landing", { question: "vad   kostar premium" }));
+check("olika bana ger olika hash",
+  fp.payloadHash("landing", { question: "x" }) !== fp.payloadHash("explain", { question: "x" }));
+// CR-CACHE-002: explain-prompten formas av alla sex fälten. Samma frågetext med annat facit
+// måste ge en annan nyckel, annars serveras fel förklaring.
+check("explain: ändrat facit ger annan hash",
+  fp.payloadHash("explain", explainBase)
+  !== fp.payloadHash("explain", { ...explainBase, correct: "B" }));
+check("explain: ändrat alternativ ger annan hash",
+  fp.payloadHash("explain", explainBase)
+  !== fp.payloadHash("explain", { ...explainBase, option_c: "Backa" }));
+// Fältseparatorn måste hindra att innehåll glider mellan fält.
+check("explain: fältgräns kan inte förskjutas",
+  fp.payloadHash("explain", { ...explainBase, option_a: "Stopp", option_b: "Kör" })
+  !== fp.payloadHash("explain", { ...explainBase, option_a: "StoppKör", option_b: "" }));
+check("okänd bana kastar",
+  (() => { try { fp.payloadHash("tips", { question: "x" }); return false; } catch { return true; } })());
+
+console.log("\n— FINGERAVTRYCK —");
+
+check("fingeravtryck är 64 hex",
+  /^[0-9a-f]{64}$/.test(fp.fingerprintOf("skelett", "gpt-4o-mini")));
+check("annan modell ger annat fingeravtryck",
+  fp.fingerprintOf("skelett", "gpt-4o-mini") !== fp.fingerprintOf("skelett", "gpt-5"));
+check("annat skelett ger annat fingeravtryck",
+  fp.fingerprintOf("skelett a", "m") !== fp.fingerprintOf("skelett b", "m"));
+
+console.log("\n— SLOT-GUARD —");
+
+// Kärnan i skyddet mot självsäkra felsvar. Cosinus mellan de här paren är högt.
+check("Premium vs Basic nekas",
+  fp.slotGuardOk("vad kostar premium", "vad kostar basic") === false);
+check("negation nekas",
+  fp.slotGuardOk("får jag köra om här", "får jag inte köra om här") === false);
+check("olika tal nekas",
+  fp.slotGuardOk("kostar det 29 kr", "kostar det 79 kr") === false);
+check("dubbel negation har samma paritet och släpps",
+  fp.slotGuardOk("inte utan tillstånd", "inte utan lov") === true);
+check("samma fråga, annan formulering släpps",
+  fp.slotGuardOk("vad kostar premium", "hur mycket kostar premium") === true);
+check("identisk fråga släpps",
+  fp.slotGuardOk("vad är exgen", "vad är exgen") === true);
 
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);
