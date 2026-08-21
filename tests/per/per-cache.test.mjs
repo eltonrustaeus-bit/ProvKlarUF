@@ -425,5 +425,67 @@ check("trasig databas ger cacheEnabled false, inte kastat fel",
   check("tomt svar skriver ingenting", s.spar.insert.length === 0);
 }
 
+
+console.log("\n— INKOPPLING —");
+
+const explainSrc = readFileSync(join(root, "api", "explain.js"), "utf8");
+
+check("explain.js importerar cachelagret",
+  /import \{[^}]*lookupCached[^}]*\} from ["']\.\/_per-cache\.js["']/.test(explainSrc));
+check("landningsvägen slår upp cachen",
+  /lookupCached\(supabase, \{\s*lane: ["']landing["']/.test(explainSrc));
+check("explain-vägen slår upp cachen",
+  /lookupCached\(supabase, \{\s*lane: ["']explain["']/.test(explainSrc));
+check("svar lagras på båda vägarna",
+  (explainSrc.match(/storeAnswer\(/g) || []).length >= 2);
+check("flaggan gatar båda vägarna",
+  (explainSrc.match(/cacheEnabled\(/g) || []).length >= 2);
+
+// Cachen får ALDRIG nå en väg vars prompt bär elevdata. Det här är hela säkerhetsgränsen —
+// den enda kontrollen som skiljer ett kostnadsbesparande bygge från en dataläcka.
+const forbjudnaBanor = ["tips", "legal", "teach", "readiness", "identity", "sales", "support"];
+check("ingen cache-lane utöver landing och explain",
+  !forbjudnaBanor.some(l => explainSrc.includes(`lane: "${l}"`) || explainSrc.includes(`lane: '${l}'`)));
+
+// Källkontroll, inte körningskontroll: en körningskontroll hade passerat lika glatt om cachen
+// kopplats in på fel väg med flaggan av.
+// Ankaret måste vara sektionsrubriken, inte orden "TEACH MODE". En kommentar på rad 147
+// NÄMNER TEACH MODE långt före grenen, och ett indexOf på bara orden svalde därför hela
+// landningsblocket och gjorde kontrollen röd på fel grund.
+const teachStart   = explainSrc.indexOf("── TEACH MODE: P.E.R multi-turn chat ──");
+const explainStart = explainSrc.indexOf("EXPLAIN MODE: why an answer is correct");
+check("TEACH MODE-grenen rör aldrig cachen",
+  teachStart > 0 && explainStart > teachStart
+  && !explainSrc.slice(teachStart, explainStart).includes("lookupCached"));
+
+console.log("\n— SCHEMA —");
+
+const migration = readFileSync(
+  join(root, "supabase", "migrations", "20260821_per_answer_cache.sql"), "utf8");
+// Kommentarerna FÖRKLARAR att user_id och auth.users saknas, så en rå sökning i hela filen
+// hade blivit röd på sin egen dokumentation. Testet ska granska schemat, inte prosan.
+const migrationSql = migration.split("\n").filter(r => !r.trimStart().startsWith("--")).join("\n");
+
+check("ingen user_id-kolumn i schemat",
+  !/user_id/.test(migrationSql));
+check("ingen FK till auth.users i schemat",
+  !/auth\.users/.test(migrationSql));
+check("kommentarerna nämner user_id — testet granskar schemat, inte prosan",
+  /user_id/.test(migration));
+check("explicit revoke från anon och authenticated",
+  /revoke all on table public\.per_answer_cache from public, anon, authenticated/.test(migrationSql));
+check("alla RPC:er är security definer med låst search_path",
+  (migrationSql.match(/security definer/g) || []).length >= 3
+  && (migrationSql.match(/set search_path = public/g) || []).length >= 3);
+check("bara approved rader kan läsas",
+  (migrationSql.match(/status = 'approved'/g) || []).length >= 3);
+check("flaggan är seedad som false",
+  /'per_answer_cache_enabled', false/.test(migrationSql));
+
+const harden = readFileSync(
+  join(root, "supabase", "migrations", "20260821_per_answer_cache_harden.sql"), "utf8");
+check("expires_at är bunden i databasen, inte bara i koden",
+  /expires_at > created_at and expires_at <= created_at \+ interval '90 days'/.test(harden));
+
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);

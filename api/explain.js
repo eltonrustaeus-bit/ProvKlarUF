@@ -11,6 +11,7 @@ import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
 import { perRole, PER_FULL } from "./_per-name.js";
+import { cacheEnabled, lookupCached, storeAnswer } from "./_per-cache.js";
 const FRUSTRATION_REGEX = /fattar inte|förstår inte|helt lost|ger upp|hopplöst|omöjligt|förvirrad|inte alls|ingen koll|jag fattar|hjälp mig|wtf|ugh/i;
 const FEYNMAN_REGEX     = /förklara för dig|jag förklarar|testa om jag|feynman|förklara det för mig som/i;
 const QUIZ_REGEX        = /quizza mig|quiz mig|ställ.*fråga.*mig|testa mig.*fråga|välj.*fråga.*ställ/i;
@@ -274,6 +275,21 @@ export default async function handler(req, res) {
     // är oautentiserat, så pageContext är obetrodd klientdata i ännu högre grad än annars.
     const { pageContext: landingPageContext } = buildPERContextPack({ rawPageContext: body.pageContext });
 
+    // Cacheuppslag före AI-anropet. Kvotgrinden ovan har redan kört, så en strypt anropare
+    // betalar inte för uppslaget heller. Endast approved rader kan träffas — landningsläget är
+    // oautentiserat och skrivningarna landar som pending (Codex CR-CACHE-003).
+    const useCache = await cacheEnabled(supabase);
+    let cacheKey = null;
+    if (useCache) {
+      const { answer: cached, key } = await lookupCached(supabase, {
+        lane: 'landing',
+        fields: { question },
+        targets: landingPageContext.targets || [],
+      });
+      cacheKey = key;
+      if (cached) return res.json({ answer: cached, cached: true });
+    }
+
     const msgs = [
       { role: 'system', content: buildPERLandingPrompt({ targets: landingPageContext.targets || [], userQuestion: question }) },
       { role: 'user', content: question },
@@ -281,7 +297,10 @@ export default async function handler(req, res) {
     try {
       const answer = await callAI(msgs, { timeout: 20_000 });
       if (!answer) return res.status(502).json({ error: 'No response' });
-      return res.json({ answer });
+      res.json({ answer });
+      // Efter svaret: lagringen får aldrig fördröja besökaren.
+      if (useCache && cacheKey) await storeAnswer(supabase, { key: cacheKey, answer });
+      return;
     } catch (err) { return res.status(500).json({ error: err.message || 'AI error' }); }
   }
 
@@ -616,10 +635,25 @@ export default async function handler(req, res) {
   // finns för att fånga.
   const prompt = buildExplainPrompt({ question, correct, correctText, option_a, option_b, option_c, option_d });
 
+  // Hash-only bana: nyckeln är hela payloaden (fråga, facit, alla fyra alternativen), så en
+  // påhittad fråga kan bara träffa sig själv. Därför skrivs explain-rader som approved direkt.
+  const useExplainCache = await cacheEnabled(supabase);
+  let explainKey = null;
+  if (useExplainCache) {
+    const { answer: cached, key } = await lookupCached(supabase, {
+      lane: 'explain',
+      fields: { question, correct, option_a, option_b, option_c, option_d },
+    });
+    explainKey = key;
+    if (cached) return res.json({ explanation: cached, cached: true });
+  }
+
   try {
     const explanation = await callAI([{ role: "user", content: prompt }], { timeout: 30_000 });
     if (!explanation) return res.status(502).json({ error: "No explanation generated" });
     res.json({ explanation });
+    if (useExplainCache && explainKey) await storeAnswer(supabase, { key: explainKey, answer: explanation });
+    return;
   } catch (err) {
     res.status(500).json({ error: err.message || "AI error" });
   }
