@@ -272,5 +272,158 @@ check("explain.js bygger inte längre prompten inline",
   !readFileSync(join(root, "api", "explain.js"), "utf8")
      .includes("Förklara kortfattat (max 60 ord) varför svaret"));
 
+
+console.log("\n— DATABASLAGRET —");
+
+// Stubbad Supabase. Lagret är I/O, men dess BESLUT är rena: vilken bana som får vektorsöka,
+// vad som skrivs som pending, och att ett databasfel aldrig når användaren. Utan stub hade
+// den logiken bara testats i produktion.
+const cache = await import(join(root, "api", "_per-cache.js"));
+
+function stub({ flag = true, exact = null, match = [], hit = null, kastar = false } = {}) {
+  const spar = { rpc: [], insert: [], probe: [] };
+  const api = {
+    spar,
+    from(tabell) {
+      if (kastar) return { select: () => { throw new Error("nere"); }, upsert: () => { throw new Error("nere"); }, insert: () => { throw new Error("nere"); } };
+      if (tabell === "feature_flags") {
+        return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { enabled: flag } }) }) }) };
+      }
+      if (tabell === "per_cache_probe") {
+        return { insert: async (rad) => { spar.probe.push(rad); return {}; } };
+      }
+      return { upsert: async (rad, opt) => { spar.insert.push({ rad, opt }); return {}; } };
+    },
+    async rpc(namn, args) {
+      if (kastar) throw new Error("nere");
+      spar.rpc.push(namn);
+      if (namn === "per_cache_get_exact") return { data: exact ? [exact] : [] };
+      if (namn === "per_cache_match")     return { data: match };
+      if (namn === "per_cache_hit")       return { data: hit };
+      return { data: null };
+    },
+  };
+  return api;
+}
+
+const landingFields = { question: "vad kostar premium" };
+const explainFields = { question: "Vad betyder märket?", correct: "A", option_a: "Stopp", option_b: "Kör", option_c: "Sväng", option_d: "Vänta" };
+
+check("flaggan av ger cacheEnabled false",
+  (await cache.cacheEnabled(stub({ flag: false }))) === false);
+check("flaggan på ger cacheEnabled true",
+  (await cache.cacheEnabled(stub({ flag: true }))) === true);
+check("trasig databas ger cacheEnabled false, inte kastat fel",
+  (await cache.cacheEnabled(stub({ kastar: true }))) === false);
+
+// Grinden måste stoppa uppslaget INNAN något nätverksanrop sker — annars läcker frågetexten
+// till databasen även när den nekas.
+{
+  const s = stub();
+  const r = await cache.lookupCached(s, { lane: "landing", fields: { question: "ring 070/123 45 67" } });
+  check("PII-fråga ger inget svar", r.answer === null);
+  check("PII-fråga slår aldrig mot cachen", s.spar.rpc.length === 0);
+  check("PII-fråga loggas som blocked", s.spar.probe[0]?.decision === "blocked");
+  check("PII-fråga ger key.allowed false", r.key.allowed === false);
+}
+
+{
+  const s = stub({ exact: { cache_id: "abc", answer: "cachat svar" } });
+  const r = await cache.lookupCached(s, { lane: "landing", fields: landingFields });
+  check("exakt träff returnerar svaret", r.answer === "cachat svar");
+  check("exakt träff gör ingen vektorsökning", !s.spar.rpc.includes("per_cache_match"));
+  check("exakt träff loggas som hit_exact", s.spar.probe[0]?.decision === "hit_exact");
+  check("sonden bär fingeravtryckets prefix, inte hela", s.spar.probe[0]?.fingerprint_px?.length === 12);
+}
+
+// Explain-banan är hash-only med avsikt: dess indata är klientstyrd, och utan vektormatchning
+// kan en påhittad fråga bara träffa sig själv.
+{
+  // embedFn injiceras: utan den blir kontrollen nedan grön av fel skäl. Embeddinganropet faller
+  // ändå på saknad API-nyckel innan per_cache_match nås, så en borttagen spärr och en saknad
+  // nyckel ser identiska ut utifrån. Med en fungerande embedFn testar kontrollen spärren.
+  const falskEmbedding = async () => new Array(1536).fill(0.01);
+  const s = stub();
+  await cache.lookupCached(s, { lane: "explain", fields: explainFields, embedFn: falskEmbedding });
+  check("explain-banan vektorsöker aldrig", !s.spar.rpc.includes("per_cache_match"));
+  check("explain-miss loggas som miss", s.spar.probe.at(-1)?.decision === "miss");
+
+  // Motprovet: landningsbanan MÅSTE vektorsöka när exakt-uppslaget missar. Annars bevisar
+  // kontrollen ovan bara att ingen bana söker, vilket vore lika grönt och helt fel.
+  const s2 = stub();
+  await cache.lookupCached(s2, { lane: "landing", fields: landingFields, embedFn: falskEmbedding });
+  check("landningsbanan vektorsöker vid miss", s2.spar.rpc.includes("per_cache_match"));
+}
+
+// Slot-guarden måste neka INNAN tröskeln ens övervägs. En kandidat över 0.95 med fel plannamn
+// får aldrig serveras — det är hela skyddet mot att Premium-svaret hamnar på en Basic-fråga.
+{
+  const falskEmbedding = async () => new Array(1536).fill(0.01);
+  const s = stub({
+    match: [{ cache_id: "x", question_text: "vad kostar basic", answer: "Basic kostar 29 kr", similarity: 0.99 }],
+    hit: "Basic kostar 29 kr",
+  });
+  const r = await cache.lookupCached(s, { lane: "landing", fields: { question: "vad kostar premium" }, embedFn: falskEmbedding });
+  check("slot-guarden nekar Basic-svar på Premium-fråga trots 0.99", r.answer === null);
+  check("nekad kandidat bokförs aldrig som träff", !s.spar.rpc.includes("per_cache_hit"));
+  check("nekad kandidat loggas som near_miss", s.spar.probe.at(-1)?.decision === "near_miss");
+}
+
+// Och motsatsen: samma fråga, annan formulering, över tröskeln — ska serveras.
+{
+  const falskEmbedding = async () => new Array(1536).fill(0.01);
+  const s = stub({
+    match: [{ cache_id: "y", question_text: "vad kostar premium", answer: "Premium kostar 79 kr", similarity: 0.97 }],
+    hit: "Premium kostar 79 kr",
+  });
+  const r = await cache.lookupCached(s, { lane: "landing", fields: { question: "vad kostar premium?" }, embedFn: falskEmbedding });
+  check("godkänd vektorträff serveras", r.answer === "Premium kostar 79 kr");
+  check("vektorträff loggas som hit_vector", s.spar.probe.at(-1)?.decision === "hit_vector");
+}
+
+// Under tröskeln men över golvet: loggas, används inte.
+{
+  const falskEmbedding = async () => new Array(1536).fill(0.01);
+  const s = stub({
+    match: [{ cache_id: "z", question_text: "vad kostar premium", answer: "Premium kostar 79 kr", similarity: 0.91 }],
+    hit: "Premium kostar 79 kr",
+  });
+  const r = await cache.lookupCached(s, { lane: "landing", fields: { question: "vad kostar premium?" }, embedFn: falskEmbedding });
+  check("0.91 är under tröskeln och serveras inte", r.answer === null);
+  check("0.91 loggas som near_miss för kalibrering", s.spar.probe.at(-1)?.decision === "near_miss");
+}
+
+// Fail-open är hela skillnaden mellan "cachen är trasig" och "P.E.R är trasig".
+{
+  const r = await cache.lookupCached(stub({ kastar: true }), { lane: "landing", fields: landingFields });
+  check("trasig databas ger miss, inte kastat fel", r.answer === null);
+}
+
+{
+  const s = stub();
+  await cache.storeAnswer(s, { key: { lane: "landing", allowed: true, fingerprint: "f", payloadHash: "p", question: "q", embedding: null }, answer: "svar" });
+  check("landningsrad skrivs som pending", s.spar.insert[0]?.rad.status === "pending");
+  check("skrivningen använder on conflict do nothing", s.spar.insert[0]?.opt?.ignoreDuplicates === true);
+  check("skrivningen bär ingen user_id", !("user_id" in (s.spar.insert[0]?.rad || {})));
+}
+
+{
+  const s = stub();
+  await cache.storeAnswer(s, { key: { lane: "explain", allowed: true, fingerprint: "f", payloadHash: "p", question: "q", embedding: null }, answer: "svar" });
+  check("explain-rad skrivs som approved", s.spar.insert[0]?.rad.status === "approved");
+}
+
+{
+  const s = stub();
+  await cache.storeAnswer(s, { key: { lane: "landing", allowed: false }, answer: "svar" });
+  check("nekad nyckel skriver ingenting", s.spar.insert.length === 0);
+}
+
+{
+  const s = stub();
+  await cache.storeAnswer(s, { key: { lane: "landing", allowed: true, fingerprint: "f", payloadHash: "p", question: "q" }, answer: "" });
+  check("tomt svar skriver ingenting", s.spar.insert.length === 0);
+}
+
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);
