@@ -9,18 +9,31 @@
 
 export const MAX_CACHEABLE_CHARS = 500;
 
+// Svenskt personnummer: valfritt sekelprefix (19/20), sex siffror (ÅMMDD), valfri
+// avskiljare (bindestreck, mellanslag eller plus för hundraåringar), fyra siffror.
+// Egen exporterad funktion — testas isolerat i sina egna assertions så den aldrig kan
+// maskeras av att looksLikePhone() redan hunnit returnera i cacheAllowed() (Codex CR-CACHE-006).
+const PERSONNUMMER_RE = /\b(?:19|20)?\d{6}[-+ ]?\d{4}\b/;
+
+export function looksLikePersonnummer(text) {
+  return PERSONNUMMER_RE.test(String(text ?? ""));
+}
+
 const BLOCK_PATTERNS = [
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,                       // e-post
-  /\b\d{6}[-+]\d{4}\b|\b(?:19|20)?\d{6}\d{4}\b/,                  // svenskt personnummer
   /\b(api[ _-]?key|secret|token|password|lösenord|bearer)\b/i,     // hemligheter
   /\b(ignore (?:previous|all)|system prompt|developer message)\b/i, // engelsk injektion
-  /(strunta i|bortse från|låtsas att|agera som om|visa din systemprompt|glöm (?:dina|alla) (?:regler|instruktioner))/i,
+  // "strunta ... i" och "visa ... din systemprompt" tillåter ett enskilt inskjutet ord
+  // ("strunta lite i", "visa gärna din systemprompt") — ingen fraslista är uttömmande,
+  // men den enklaste evasionen (ett extra ord) ska inte räcka (Codex CR-CACHE-006).
+  /(strunta\s+(?:\S+\s+)?i|bortse från|låtsas att|agera som om|visa\s+(?:\S+\s+)?din\s+systemprompt|glöm (?:dina|alla) (?:regler|instruktioner))/i,
 ];
 
 // Telefonnummer separat: ett enkelt teckenintervall matchar även datum som "2026-08-21".
-// Kravet är minst nio SIFFROR i samma löpa — datumet har åtta.
+// Kravet är minst nio SIFFROR i samma löpa — datumet har åtta. "/" ingår i klassen eftersom
+// svenska nummer ofta skrivs "070/123 45 67" eller "08/123 456 78" (Codex CR-CACHE-006).
 function looksLikePhone(text) {
-  const runs = text.match(/\+?[\d\s().-]{9,}/g) || [];
+  const runs = text.match(/\+?[\d\s().\/-]{9,}/g) || [];
   return runs.some(run => run.replace(/\D/g, "").length >= 9);
 }
 
@@ -33,5 +46,6 @@ export function cacheAllowed(text) {
   if (!s.trim()) return false;
   if (s.length > MAX_CACHEABLE_CHARS) return false;
   if (looksLikePhone(s)) return false;
+  if (looksLikePersonnummer(s)) return false;
   return !BLOCK_PATTERNS.some(re => re.test(s));
 }
