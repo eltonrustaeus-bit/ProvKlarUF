@@ -147,6 +147,12 @@ check("explain: ändrat alternativ ger annan hash",
 check("explain: fältgräns kan inte förskjutas",
   fp.payloadHash("explain", { ...explainBase, option_a: "Stopp", option_b: "Kör" })
   !== fp.payloadHash("explain", { ...explainBase, option_a: "StoppKör", option_b: "" }));
+// Finding 1: ett fältvärde med en bokstavlig styrtecken-kodpunkt (t.ex. NUL, som JSON tillåter
+// via en strängescape) fick tidigare imitera SEP och förskjuta gränsen mellan option_a/option_b.
+const NUL = String.fromCharCode(0);
+check("explain: styrtecken i fältvärde kan inte längre förskjuta fältgränsen",
+  fp.payloadHash("explain", { ...explainBase, option_a: `foo${NUL}bar`, option_b: "baz" })
+  !== fp.payloadHash("explain", { ...explainBase, option_a: "foo", option_b: `bar${NUL}baz` }));
 check("okänd bana kastar",
   (() => { try { fp.payloadHash("tips", { question: "x" }); return false; } catch { return true; } })());
 
@@ -174,6 +180,25 @@ check("samma fråga, annan formulering släpps",
   fp.slotGuardOk("vad kostar premium", "hur mycket kostar premium") === true);
 check("identisk fråga släpps",
   fp.slotGuardOk("vad är exgen", "vad är exgen") === true);
+
+// Finding 2: svenska skriver samman planord med resten av ordet, utan mellanslag.
+// \b-avgränsad matchning missade det helt.
+check("premiumkontot vs basickontot (sammansatt utan mellanslag) nekas",
+  fp.slotGuardOk("vad kostar premiumkontot", "vad kostar basickontot") === false);
+check("premiumabonnemang vs basicabonnemang (sammansatt) nekas",
+  fp.slotGuardOk("kostar premiumabonnemang nagot", "kostar basicabonnemang nagot") === false);
+
+// Finding 3: utskrivna tal missades helt av /\d+/-regexen.
+check("tjugo vs trettio (utskrivna tal) nekas",
+  fp.slotGuardOk("kostar det tjugo kr", "kostar det trettio kr") === false);
+check("tjugonio vs sjuttionio (sammansatta utskrivna tal) nekas",
+  fp.slotGuardOk("kostar det tjugonio kr", "kostar det sjuttionio kr") === false);
+check("samma utskrivna tal i olika formulering släpps",
+  fp.slotGuardOk("kostar det tjugonio kr idag", "hur mycket kostar tjugonio kr") === true);
+
+// Finding 4: negationslistan saknade ingen/inget/inga.
+check("'ingen' är negation och nekas mot bekräftande fråga",
+  fp.slotGuardOk("jag har tillstand att kora", "jag har ingen tillstand att kora") === false);
 
 console.log(`\n${failures === 0 ? "OK" : `${failures} FEL`}`);
 process.exit(failures === 0 ? 0 : 1);
