@@ -119,10 +119,30 @@ priserna bor. En prisändring hade inte ogiltigförklarat något.
 I stället:
 
 ```
-fingerprint = sha256( OPENAI_MODEL + "\n" + renderaPrompt(lane, { question: "", ...request }) )
+fingerprint = sha256( OPENAI_MODEL + "\n" + promptSkelett(lane, request) )
 ```
 
-Alltså **den faktiska prompten, med frågan blankad**. Då ingår `PROVIA_KB`,
+`promptSkelett` är den faktiska prompten renderad med **alla fältvärden blankade**
+— för `landing` frågan, för `explain` frågan *och* alla fyra alternativen plus
+facit. Kvar står bara det som är gemensamt för alla frågor på banan: instruktioner,
+`PROVIA_KB`, `MODULES`-beroende rader och target-listan. Fältvärdena hör hemma i
+`payload_hash`, inte här — annars blir fingeravtrycket unikt per fråga och slutar
+fungera som versionsmarkör.
+
+**Med ett undantag som måste skrivas ut.** `identityBlocks(userQuestion)`
+(`_per-core.js:117`) renderas bara när frågan matchar en trigger. Blankar skelettet
+frågan försvinner blocket — och därmed `founderAge()` ur fingeravtrycket. Då hade
+ett cachat grundarsvar överlevt födelsedagen ändå, vilket var precis det fall
+fingeravtrycket finns för.
+
+Skelettet renderas därför med **samtliga villkorade block framtvingade**: grundare,
+UF och namnblocket, oavsett fråga. Fingeravtrycket täcker då allt som *kan* forma
+ett svar på banan, inte bara det som formade just detta svar. Det gör att fler
+rader ogiltigförklaras än strikt nödvändigt — en UF-ändring dödar även
+prisfrågor — och det är rätt avvägning: en onödig miss kostar ett AI-anrop, en
+missad ogiltigförklaring serverar fel fakta.
+
+Då ingår `PROVIA_KB`,
 priser, `MODULES.korkort`, `MODULES.demo`, `targets` och `founderAge()`
 automatiskt — för alltid, utan att någon behöver komma ihåg dem.
 
@@ -153,6 +173,24 @@ Angriparen kan alltså skriva. Ingen besökare kan träffa det som skrivits.
 `lane='explain'` skrivs som `approved` direkt: prompten innehåller ingen
 angripartext som når någon annan, eftersom nyckeln är hela payloaden (nästa
 beslut) och en påhittad fråga därför bara kan träffa sig själv.
+
+**Godkännandeflödet** är manuellt och dokumenterat, ingen adminyta. Två satser,
+som läggs i `docs/per/CACHE_GODKANNANDE.md`:
+
+```sql
+-- Se vad som väntar (nyast först)
+select id, left(question_text, 120) as fraga, left(answer, 300) as svar, created_at
+  from public.per_answer_cache
+ where lane = 'landing' and status = 'pending'
+ order by created_at desc limit 50;
+
+-- Godkänn de rader du läst och står bakom
+update public.per_answer_cache set status = 'approved' where id in ('…','…');
+```
+
+Det ger en bieffekt som är värd mer än cachen just nu: listan visar vad besökare
+faktiskt frågar landningssidan om. Rader som aldrig godkänns går ut av sig själva
+via `expires_at`.
 
 ### 4. Ingen `user_id` i cachen
 
