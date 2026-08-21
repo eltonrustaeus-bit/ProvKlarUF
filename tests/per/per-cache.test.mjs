@@ -112,7 +112,7 @@ check("å ä ö kollapsar inte till a a o",
 // De ser identiska ut i en editor och är olika strängar utan NFC. Escape-sekvenser krävs här —
 // skrivs båda som synliga tecken blir testet tautologiskt och bevisar ingenting.
 check("NFC gör dekomponerat ä identiskt med komponerat",
-  fp.normalizeQuestion("ändra") === fp.normalizeQuestion("ändra"));
+  fp.normalizeQuestion("\u00e4ndra") === fp.normalizeQuestion("a\u0308ndra"));
 // Regel 5: bindestreck inuti ord är betydelsebärande.
 check("A-B är inte AB",
   fp.normalizeQuestion("gäller a-b") !== fp.normalizeQuestion("gäller ab"));
