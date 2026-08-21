@@ -42,3 +42,25 @@ Sex HIGH-fynd. Två av dem rev designbeslut som redan var tagna:
 Tre förslag följdes inte rakt av: landningsvektorn behölls bakom en status-grind i stället för
 att strykas, cachen lagrar hela svaret i stället för en preview, och den saknade
 rate-limit-migrationen lämnas som separat uppföljning i stället för att dras in i scope.
+
+---
+
+## Slutgranskning av hela grenen (2026-08-22)
+
+Granskare: Codex CLI, `codex exec --sandbox read-only`, reasoning effort high.
+Underlag: hela grendiffen (14 commits, 11 filer) mot specen och den första granskningen.
+
+Uppdraget var uttryckligen att leta efter fel som **ingen enskild task-granskning kunde se**.
+Tre av fynden var av just den sorten.
+
+| ID | Fynd | Severity | Beslut | Åtgärd |
+|---|---|---|---|---|
+| CR-FINAL-001 | Cachegrinden kördes bara på `fields.question`. Explain-prompten formas även av facit och alla fyra alternativen, och explain-rader skrivs `approved` direkt — så PII i ett svarsalternativ nådde ett cachat, direkt serverbart svar. | HIGH | **ACCEPTERAD** | Ny `cacheAllowedFields()` körs över samtliga promptbärande fält. Kontrollen går genom `lookupCached`, inte bara mot grindfunktionen — annars hade testet varit grönt även med ett lager som skickade enbart frågan, vilket var hela fyndet. |
+| CR-FINAL-002 | Grinden saknade de skol- och adressmönster specen utlovade. "Jag går på X skola" var cachebart, för en användarbas som till stor del är minderårig. | HIGH | **ACCEPTERAD, MED AVVIKELSE** | Mönstren är medvetet smala: de kräver en självidentifierande konstruktion (`jag går på`, `min skola är`) eller ett adressformat. Codex föreslog att blockera skola/adress brett; det hade tagit vanliga studiefrågor med sig — "vad läser man på ekonomiprogrammet" är ingen personuppgift. Motprov finns i testet. |
+| CR-FINAL-003 | **Tyst och permanent.** `unique (lane, fingerprint, payload_hash)` plus `on conflict do nothing` gjorde att en rad som passerat `expires_at` aldrig kunde ersättas: läsningarna filtrerade bort den, skrivningen vägrade skriva över den. Nyckeln var död för alltid och cachen slutade tyst fungera för den frågan. | MEDIUM (bedömd HIGH av oss) | **ACCEPTERAD** | Ny RPC `per_cache_store()` med `on conflict do update ... where expires_at <= now()`. Skriver över endast utgångna rader; en levande rad skyddas fortfarande, vilket var hela skälet till `do nothing` (CR-CACHE-010). Verifierat mot produktion i båda riktningarna. |
+| CR-FINAL-004 | Skelettet appendar identitetsblocken sist i stället för att rendera dem genom `buildPERLandingPrompt`:s egen anropspunkt. Flyttas blocket i den riktiga prompten ändras inte skelettet. | MEDIUM | **NOTERAD, EJ ÅTGÄRDAD** | Drift-scenariot kräver att någon flyttar blocket **utan** att ändra dess innehåll — ändras innehållet slår fingeravtrycket om ändå. Att lägga en `forceIdentityBlocks`-parameter i `buildPERLandingPrompt` rör en prompt som marknadssidan använder, för en risk som är smalare än ändringen. Dokumenterad i koden i stället. |
+| CR-FINAL-005 | `res.json()` körs före `storeAnswer()` på båda banorna. | LOW | **DELVIS ACCEPTERAD** | Skrivningen är `await`:ad, så handlern avslutas inte innan den skett — Codex bekräftar att konsekvensen vore en missad rad, inte fel data. `waitUntil()` infördes inte. Däremot kontrollerar catch-blocken nu `res.headersSent`: ett andra `res.*` efter skickat svar hade gett `ERR_HTTP_HEADERS_SENT` och maskerat det verkliga felet. |
+| CR-FINAL-006 | Testet "bara approved rader kan läsas" räknade förekomster i hela migrationen och förblev grönt om filtret togs bort ur EN funktion. | MEDIUM | **ACCEPTERAD** | Varje läs-RPC granskas nu för sig, med både `status = 'approved'` och `expires_at > now()`. Verifierat rödgående genom att ta bort filtret ur enbart `per_cache_match`. |
+| CR-FINAL-007 | RPC-anrop och SQL-signaturer stämmer. Inget fynd. | — | — | — |
+| CR-FINAL-008 | Ingen cacheinkoppling i `tipsMode`, `legalMode`, readiness eller TEACH MODE. Inget fynd. | — | — | Testet som skär ut TEACH MODE-grenen behålls. |
+| CR-FINAL-009 | Ursprungsmigrationen skapar `idx_per_answer_cache_lookup`, härdningsmigrationen droppar det. Codex föreslog att squasha paret. | LOW | **AVVISAD** | Ursprungsmigrationen är redan applicerad mot produktion. Att redigera en applicerad migration skapar drift mellan fil och databas — och det här repot har en egen arbetsgren för just migrationsdrift. Två ärliga migrationer är billigare än en tyst avvikelse. |
