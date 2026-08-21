@@ -93,6 +93,30 @@ check("datum matchar INTE personnummerregexen",
   guard.looksLikePersonnummer("2026-08-21") === false);
 
 // Datum får INTE misstas för telefonnummer — annars blockeras helt vanliga frågor.
+check("självidentifiering med skola nekas",
+  guard.cacheAllowed("jag går på Bildningscentrum Facetten i Åtvidaberg") === false);
+check("självidentifiering med bostadsort nekas",
+  guard.cacheAllowed("jag bor i Åtvidaberg") === false);
+check("gatuadress nekas",
+  guard.cacheAllowed("jag bor på Storgatan 14") === false);
+check("postnummer och ort nekas",
+  guard.cacheAllowed("skicka till 597 31 Åtvidaberg") === false);
+check("min skola nekas",
+  guard.cacheAllowed("min skola använder inte det") === false);
+// Motprovet: grinden får inte svälja vanliga studiefrågor bara för att de nämner skola.
+check("fråga om program blockeras inte",
+  guard.cacheAllowed("vad läser man på ekonomiprogrammet?") === true);
+check("fråga om skolarbete blockeras inte",
+  guard.cacheAllowed("hur fungerar ExGen för skolarbete?") === true);
+
+// Fältgrinden: explain-prompten formas av mer än frågan, och explain-rader skrivs approved.
+check("fältgrinden släpper igenom rena fält",
+  guard.cacheAllowedFields({ question: "Vad betyder märket?", correct: "A", option_a: "Stopp" }) === true);
+check("fältgrinden nekar PII i ett svarsalternativ",
+  guard.cacheAllowedFields({ question: "Vad betyder märket?", correct: "A", option_a: "ring 070/123 45 67" }) === false);
+check("fältgrinden nekar tomt fältobjekt",
+  guard.cacheAllowedFields({}) === false);
+
 check("datum blockeras inte som telefonnummer",
   guard.cacheAllowed("gäller erbjudandet 2026-08-21?") === true);
 check("pris med siffror blockeras inte",
@@ -281,7 +305,7 @@ console.log("\n— DATABASLAGRET —");
 const cache = await import(join(root, "api", "_per-cache.js"));
 
 function stub({ flag = true, exact = null, match = [], hit = null, kastar = false } = {}) {
-  const spar = { rpc: [], insert: [], probe: [] };
+  const spar = { rpc: [], rpcArgs: [], insert: [], probe: [] };
   const api = {
     spar,
     from(tabell) {
@@ -297,6 +321,8 @@ function stub({ flag = true, exact = null, match = [], hit = null, kastar = fals
     async rpc(namn, args) {
       if (kastar) throw new Error("nere");
       spar.rpc.push(namn);
+      spar.rpcArgs.push({ namn, args });
+      if (namn === "per_cache_store") { spar.insert.push({ rad: args, opt: null }); return { data: "id" }; }
       if (namn === "per_cache_get_exact") return { data: exact ? [exact] : [] };
       if (namn === "per_cache_match")     return { data: match };
       if (namn === "per_cache_hit")       return { data: hit };
@@ -325,6 +351,20 @@ check("trasig databas ger cacheEnabled false, inte kastat fel",
   check("PII-fråga slår aldrig mot cachen", s.spar.rpc.length === 0);
   check("PII-fråga loggas som blocked", s.spar.probe[0]?.decision === "blocked");
   check("PII-fråga ger key.allowed false", r.key.allowed === false);
+}
+
+// Att grindfunktionen kan neka PII i ett alternativ räcker inte — lagret måste faktiskt skicka
+// alla fält till den. Den här kontrollen går genom lookupCached och fäller alltså även en
+// korrekt grind som anropas med bara frågan (Codex CR-FINAL-001).
+{
+  const s = stub();
+  const r = await cache.lookupCached(s, {
+    lane: "explain",
+    fields: { question: "Vad betyder märket?", correct: "A", option_a: "ring 070/123 45 67", option_b: "Kör", option_c: "Sväng", option_d: "Vänta" },
+  });
+  check("PII i ett svarsalternativ stoppar hela uppslaget", r.answer === null && r.key.allowed === false);
+  check("PII i alternativ loggas som blocked", s.spar.probe[0]?.decision === "blocked");
+  check("PII i alternativ slår aldrig mot cachen", s.spar.rpc.length === 0);
 }
 
 {
@@ -402,15 +442,15 @@ check("trasig databas ger cacheEnabled false, inte kastat fel",
 {
   const s = stub();
   await cache.storeAnswer(s, { key: { lane: "landing", allowed: true, fingerprint: "f", payloadHash: "p", question: "q", embedding: null }, answer: "svar" });
-  check("landningsrad skrivs som pending", s.spar.insert[0]?.rad.status === "pending");
-  check("skrivningen använder on conflict do nothing", s.spar.insert[0]?.opt?.ignoreDuplicates === true);
-  check("skrivningen bär ingen user_id", !("user_id" in (s.spar.insert[0]?.rad || {})));
+  check("landningsrad skrivs som pending", s.spar.insert[0]?.rad.p_status === "pending");
+  check("skrivningen går genom per_cache_store", s.spar.rpc.includes("per_cache_store"));
+  check("skrivningen bär ingen user_id", !Object.keys(s.spar.insert[0]?.rad || {}).some(k => k.includes("user_id")));
 }
 
 {
   const s = stub();
   await cache.storeAnswer(s, { key: { lane: "explain", allowed: true, fingerprint: "f", payloadHash: "p", question: "q", embedding: null }, answer: "svar" });
-  check("explain-rad skrivs som approved", s.spar.insert[0]?.rad.status === "approved");
+  check("explain-rad skrivs som approved", s.spar.insert[0]?.rad.p_status === "approved");
 }
 
 {
@@ -477,8 +517,26 @@ check("explicit revoke från anon och authenticated",
 check("alla RPC:er är security definer med låst search_path",
   (migrationSql.match(/security definer/g) || []).length >= 3
   && (migrationSql.match(/set search_path = public/g) || []).length >= 3);
-check("bara approved rader kan läsas",
-  (migrationSql.match(/status = 'approved'/g) || []).length >= 3);
+// Att räkna förekomster i hela filen räcker inte (Codex CR-FINAL-006): tar man bort filtret ur
+// EN funktion finns det kvar i de andra, och kontrollen förblir grön. Varje läs-RPC granskas
+// för sig, med både status- och utgångsfiltret.
+for (const fn of ["per_cache_get_exact", "per_cache_match", "per_cache_hit"]) {
+  const start = migrationSql.indexOf(`function public.${fn}(`);
+  const kropp = start < 0 ? "" : migrationSql.slice(start, migrationSql.indexOf("$$;", start));
+  check(`${fn} filtrerar på approved`, /status = 'approved'/.test(kropp));
+  check(`${fn} filtrerar på expires_at`, /expires_at > now\(\)/.test(kropp));
+}
+
+const store = readFileSync(
+  join(root, "supabase", "migrations", "20260822_per_cache_store.sql"), "utf8");
+// Den permanenta blockeringen: en utgången rad måste kunna ersättas, en levande får inte det.
+check("per_cache_store skriver över endast utgången rad",
+  /on conflict[\s\S]*do update[\s\S]*where public\.per_answer_cache\.expires_at <= now\(\)/.test(store));
+check("per_cache_store nollställer räknarna vid överskrivning",
+  /hits\s*=\s*0/.test(store) && /last_hit_at\s*=\s*null/.test(store));
+check("per_cache_store är låst till service_role",
+  /revoke execute on function public\.per_cache_store/.test(store)
+  && /grant\s+execute on function public\.per_cache_store/.test(store));
 check("flaggan är seedad som false",
   /'per_answer_cache_enabled', false/.test(migrationSql));
 

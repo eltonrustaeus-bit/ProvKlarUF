@@ -9,7 +9,7 @@
 // Allt fail-open. Ett cachefel får göra P.E.R långsam, aldrig trasig — samma princip som
 // loadPerHistory() i api/explain.js.
 
-import { cacheAllowed } from "./_per-cache-guard.js";
+import { cacheAllowedFields } from "./_per-cache-guard.js";
 import { normalizeQuestion, payloadHash, fingerprintOf, slotGuardOk } from "./_per-fingerprint.js";
 import { buildCacheSkeleton } from "./_per-core.js";
 import { getEmbedding } from "../src/retrieval/legal-retrieval.mjs";
@@ -74,7 +74,11 @@ export async function lookupCached(supabase, { lane, fields, targets = [], embed
   const question = String(fields?.question ?? "");
   const key = { lane, allowed: false, fingerprint: null, payloadHash: null, question: "", embedding: null };
 
-  if (!cacheAllowed(question)) {
+  // Grinden körs över SAMTLIGA promptbärande fält, inte bara frågan. Explain-prompten formas
+  // även av facit och alla fyra alternativen, och explain-rader skrivs 'approved' direkt — så
+  // PII i ett svarsalternativ hade annars nått ett cachat, direkt serverbart svar
+  // (Codex CR-FINAL-001).
+  if (!cacheAllowedFields(fields)) {
     await logProbe(supabase, { lane, decision: "blocked" });
     return { answer: null, key };
   }
@@ -151,17 +155,20 @@ export async function storeAnswer(supabase, { key, answer }) {
   if (!key?.allowed || !answer) return;
   try {
     const expires = new Date(Date.now() + TTL_DAYS * 86_400_000).toISOString();
-    // ignoreDuplicates ger "on conflict do nothing". answer skrivs aldrig över: två parallella
-    // missar kan ge olika svar, och den första ska vinna (Codex CR-CACHE-010).
-    await supabase.from("per_answer_cache").upsert({
-      lane:          key.lane,
-      payload_hash:  key.payloadHash,
-      fingerprint:   key.fingerprint,
-      question_text: key.question,
-      answer:        String(answer).slice(0, MAX_ANSWER_CHARS),
-      embedding:     key.embedding,      // null för explain-banan, och för landing om embeddingen felade
-      status:        key.lane === "explain" ? "approved" : "pending",
-      expires_at:    expires,
-    }, { onConflict: "lane,fingerprint,payload_hash", ignoreDuplicates: true });
+    // Skrivningen går genom per_cache_store, inte en upsert med ignoreDuplicates. Skälet är
+    // Codex CR-FINAL-003: "on conflict do nothing" gjorde att en rad som passerat expires_at
+    // ALDRIG kunde ersättas — läsningarna filtrerade bort den, skrivningen vägrade skriva över
+    // den, och nyckeln var död för alltid. RPC:n skriver över endast när den befintliga raden
+    // är utgången. En levande rad skyddas fortfarande (Codex CR-CACHE-010).
+    await supabase.rpc("per_cache_store", {
+      p_lane:          key.lane,
+      p_payload_hash:  key.payloadHash,
+      p_fingerprint:   key.fingerprint,
+      p_question_text: key.question,
+      p_answer:        String(answer).slice(0, MAX_ANSWER_CHARS),
+      p_embedding:     key.embedding,   // null för explain-banan, och för landing om embeddingen felade
+      p_status:        key.lane === "explain" ? "approved" : "pending",
+      p_expires_at:    expires,
+    });
   } catch { /* best-effort, aldrig blockerande */ }
 }

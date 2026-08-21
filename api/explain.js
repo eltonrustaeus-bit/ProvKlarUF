@@ -298,10 +298,17 @@ export default async function handler(req, res) {
       const answer = await callAI(msgs, { timeout: 20_000 });
       if (!answer) return res.status(502).json({ error: 'No response' });
       res.json({ answer });
-      // Efter svaret: lagringen får aldrig fördröja besökaren.
+      // Efter svaret: lagringen får aldrig fördröja besökaren. Den är await:ad så att
+      // funktionsanropet inte avslutas innan skrivningen skett — annars kan Vercel frysa
+      // containern och raden tappas.
       if (useCache && cacheKey) await storeAnswer(supabase, { key: cacheKey, answer });
       return;
-    } catch (err) { return res.status(500).json({ error: err.message || 'AI error' }); }
+    } catch (err) {
+      // Svaret kan redan vara skickat (raden ovan). Ett andra res.* hade gett
+      // ERR_HTTP_HEADERS_SENT och maskerat det verkliga felet.
+      if (res.headersSent) return;
+      return res.status(500).json({ error: err.message || 'AI error' });
+    }
   }
 
   const user = await requireAuth(req, res);
@@ -655,6 +662,7 @@ export default async function handler(req, res) {
     if (useExplainCache && explainKey) await storeAnswer(supabase, { key: explainKey, answer: explanation });
     return;
   } catch (err) {
+    if (res.headersSent) return;
     res.status(500).json({ error: err.message || "AI error" });
   }
 }

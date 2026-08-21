@@ -37,6 +37,21 @@ function looksLikePhone(text) {
   return runs.some(run => run.replace(/\D/g, "").length >= 9);
 }
 
+// Självidentifiering (Codex CR-FINAL-002). Specen lovade skol- och adressmönster; grinden hade
+// dem inte. Användarna är till stor del minderåriga, och "jag går på Facetten i Åtvidaberg" är
+// en personuppgift som annars lagrats i klartext och kunnat serveras till någon annan.
+//
+// Medvetet SMALT: mönstren kräver en självidentifierande konstruktion ("jag går på", "min skola
+// är") eller ett adressformat. Att blockera varje omnämnande av en skola hade tagit helt vanliga
+// studiefrågor med sig — "vad läser man på ekonomiprogrammet" är ingen personuppgift.
+const SELF_ID_PATTERNS = [
+  /\bjag (?:går|pluggar|studerar|läser)\s+(?:\S+\s+){0,2}(?:på|i|vid)\s+\p{Lu}/u,
+  /\bjag bor\s+(?:\S+\s+){0,2}(?:på|i|vid)\s+\p{Lu}/u,
+  /\bmin (?:skola|adress|klass|lärare|mentor)\b/iu,
+  /\p{L}+(?:gatan|vägen|gränd|torget)\s+\d+/iu,
+  /\b\d{3}\s?\d{2}\s+\p{Lu}\p{L}+/u,
+];
+
 /**
  * @param {string} text frågetexten som övervägs för cachning
  * @returns {boolean} true = får lagras och slås upp mot cachen
@@ -47,5 +62,22 @@ export function cacheAllowed(text) {
   if (s.length > MAX_CACHEABLE_CHARS) return false;
   if (looksLikePhone(s)) return false;
   if (looksLikePersonnummer(s)) return false;
+  if (SELF_ID_PATTERNS.some(re => re.test(s))) return false;
   return !BLOCK_PATTERNS.some(re => re.test(s));
+}
+
+/**
+ * Kör grinden över SAMTLIGA fält som formar en prompt, inte bara frågetexten.
+ *
+ * Explain-banans prompt byggs av facit och alla fyra svarsalternativen utöver frågan, och
+ * explain-rader skrivs som 'approved' direkt. Grinden bara på `question` lät därför PII i ett
+ * svarsalternativ nå ett cachat, direkt serverbart svar (Codex CR-FINAL-001).
+ *
+ * @param {Record<string, unknown>} fields
+ * @returns {boolean} true = varje icke-tom strängvärde klarade grinden
+ */
+export function cacheAllowedFields(fields) {
+  const varden = Object.values(fields || {}).filter(v => typeof v === "string" && v.trim());
+  if (!varden.length) return false;
+  return varden.every(cacheAllowed);
 }
