@@ -349,11 +349,24 @@ export function buildPERSystemPrompt({
     ? clarifyReply.replace(/[\r\n\t]+/g, ' ').replace(/[^\p{L}\p{N} ,.\-–—:?!()]/gu, '').trim().slice(0, 80)
     : '';
 
+  /* En motfråga mitt i ett prov, om en fråga P.E.R redan har framför sig, är den dyraste
+     friktionen som finns — eleven har tidspress och svaret står i sidkontexten. Prompten
+     säger redan att kontext går före att fråga, men mätning mot riktiga modellen visade att
+     den regeln lyder ojämnt: samma fall gav motfråga i en körning och inte i nästa.
+     En garanti som håller ibland är ingen garanti. Därför stängs klargörandet av i KOD när
+     båda villkoren gäller: eleven står på en provfråga OCH frågan är kort och syftande
+     ("varför blir det så", "hur gör man här"). Då finns bara en rimlig tolkning. */
+  const kortOchSyftande = /^\s*\S+(\s+\S+){0,6}\s*\??\s*$/.test(String(userQuestion || ''))
+    && /\b(det|den|här|dendär|denna|detta|så)\b/i.test(String(userQuestion || ''));
+  const provfragaISikte = /Aktuell fråga|aktuell provfråga|Fråga \d+ av \d+/i.test(String(context || ''));
+
   const clarifyBlock = (quiz || feynman)
     ? ''
+    : (provfragaISikte && kortOchSyftande)
+    ? `\n## FRÅGAN SYFTAR PÅ PROVFRÅGAN\nEleven står på en provfråga som du ser i kontexten ovan, och frågar kort om den. "det", "den" och "här" syftar på just den frågan. Svara på DEN — ställ ingen motfråga.\n`
     : clarifyClean
     ? `\n## KLARGÖRANDE GJORT\nEleven har redan svarat "${clarifyClean}" på din motfråga. Fråga INTE igen — svara nu utifrån det valet.\n`
-    : `\n## NÄR FRÅGAN ÄR OTYDLIG\nTänk ut två rimliga tolkningar av elevens fråga. Skulle de leda till olika svar — ställ EN fråga som skiljer dem åt och skriv inget annat, och avsluta då raden med [CLARIFY:alternativ ett|alternativ två].\nÄr frågan entydig — svara direkt enligt hjälpnivån. En motfråga där är friktion utan värde.\nHögst en klargörande fråga per elevfråga, aldrig två i rad.\n`;
+    : `\n## NÄR FRÅGAN ÄR OTYDLIG\nInnan du svarar: skulle två kunniga lärare kunna tolka frågan olika och ge OLIKA svar? Då är den otydlig.\n\nDe fyra vanligaste otydligheterna i en studiefråga:\n- **Ämne utan uppgift.** "hur gör man med derivata" — räknereglerna, vad derivatan betyder, eller hjälp med en specifik funktion?\n- **Saknad referent.** "varför blir det så", "vad betyder det" — det syftar på något du inte kan se.\n- **Okänd nivå.** Samma begrepp besvaras olika på E- och A-nivå när det spelar roll för svaret.\n- **Uppgift eller förståelse.** Vill eleven ha svaret på en uppgift, eller förstå principen bakom?\n\nMEN FRÅGA ALDRIG när du redan kan veta. Ser du i ## VAD DU SER vilken provfråga eleven står på, eller har historiken nyss nämnt begreppet, så syftar "det" och "här" på just det. En motfråga mitt i ett prov, om något du redan har framför dig, är det värsta stället att lägga friktion på.\n\nÄr frågan otydlig: ställ EN fråga som skiljer tolkningarna åt, skriv inget annat, och avsluta raden med [CLARIFY:alternativ ett|alternativ två]. Alternativen ska vara det eleven faktiskt väljer mellan, korta nog att rymmas på en knapp.\n\nSÅ HÄR SER DET UT:\n\nElev: "hur gör man med derivata"\nDu: Vill du ha räknereglerna, eller hjälp med en specifik funktion? [CLARIFY:räknereglerna|en specifik funktion]\n\nElev: "hjälp med kemi"\nDu: Vad ska du jobba med? [CLARIFY:en uppgift jag fastnat på|ett begrepp jag inte förstår]\n\nElev: "förklara skillnaden mellan massa och vikt"\nDu: (entydig — svara direkt, ingen motfråga)\n\nElev: "varför blir det så" — och ## VAD DU SER visar vilken provfråga eleven står på\nDu: (sidkontexten säger vad "det" är — svara på DEN frågan, ingen motfråga)\n\nÄr frågan entydig: svara direkt enligt hjälpnivån. "vad är 2+2" ska aldrig mötas av en motfråga.\nHögst en klargörande fråga per elevfråga, aldrig två i rad.\n`;
 
   /* ── Elevens stil ──────────────────────────────────────────────────────
      Ton och längd, aldrig ordval och meningsrytm. P.E.R ska låta som någon som
@@ -433,6 +446,9 @@ ${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}$
 ${teachGuide}
 
 ## SVARSMÖNSTER
+Mönstret nedan gäller när du FAKTISKT SVARAR. Har du bedömt frågan som otydlig enligt
+"## NÄR FRÅGAN ÄR OTYDLIG" gäller det blocket i stället: en motfråga, inget annat.
+Punkt 1 här är ingen order att svara på en fråga du inte förstått.
 1. ${svarsSteg1}
 2. Koppla till elevens situation om det tillför värde (inte för att visa att du märkt)
 3. Välj rätt ExGen-flöde: ${MODULES.korkort ? 'körkort, ' : ''}mockprov, förbättring/felbank, rapport, konto eller pricing
