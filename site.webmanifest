@@ -1,0 +1,17 @@
+{
+  "name": "ExGen",
+  "short_name": "ExGen",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#00B7D9",
+  "icons": [
+    { "src": "/image/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/image/favicon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/image/favicon-512.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "/image/icon-maskable-192.png", "type": "image/png", "sizes": "192x192", "purpose": "maskable" },
+    { "src": "/image/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}
