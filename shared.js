@@ -871,6 +871,51 @@
       window.__perFinalize = finalizeMsg;
     }
 
+    /* ── Tänkindikatorn ────────────────────────────────────────────────────
+       Tre punkter som studsar säger bara "nåt händer". Den här säger VAD som
+       händer, och när eleven står på en provfråga scannar den frågan.
+
+       Faserna byter i takt med hur länge det faktiskt brukar ta. De är inte
+       påhittade: varje etikett motsvarar ett steg servern verkligen gör —
+       sidkontexten byggs, minnet och provdatan läses, sedan genereras svaret.
+       En förloppsindikator som ljuger är värre än ingen alls.
+
+       Allt stannar vid prefers-reduced-motion: texten står kvar, rörelsen
+       försvinner. Samma linje som exam-flow.css redan drar. */
+    function startThinking(node, ctx) {
+      if (!node) return function () {};
+      var harFraga = !!(ctx && ctx.currentQuestion && ctx.currentQuestion.text);
+      var faser = harFraga
+        ? ['Läser frågan…', 'Jämför med det du övat på…', 'Formulerar svaret…']
+        : ['Tänker…', 'Söker i det du gjort…', 'Formulerar svaret…'];
+
+      node.classList.add('per-thinking');
+      if (harFraga) node.classList.add('per-scanning');
+      node.innerHTML =
+        '<span class="per-think-scan" aria-hidden="true"></span>' +
+        '<span class="per-dots" aria-hidden="true"><span></span><span></span><span></span></span>' +
+        '<span class="per-think-label"></span>';
+      var label = node.querySelector('.per-think-label');
+      /* Skärmläsare ska höra ETT lugnt besked, inte tre etiketter som byter av sig. */
+      node.setAttribute('role', 'status');
+      node.setAttribute('aria-label', harFraga ? 'P.E.R läser frågan' : 'P.E.R tänker');
+
+      var i = 0;
+      if (label) label.textContent = faser[0];
+      var t = setInterval(function () {
+        i += 1;
+        if (i >= faser.length) { clearInterval(t); return; }
+        if (label) label.textContent = faser[i];
+      }, 2200);
+
+      return function stop() {
+        clearInterval(t);
+        node.classList.remove('per-thinking', 'per-scanning');
+        node.removeAttribute('role');
+        node.removeAttribute('aria-label');
+      };
+    }
+
     function addMsg(text, type) {
       var msgs = document.getElementById('perMessages');
       if (!msgs) return null;
@@ -912,7 +957,12 @@
       if (sendBtn) sendBtn.disabled = true;
 
       addMsg(q, 'user');
-      var typing = addMsg('P.E.R skriver…', 'teacher typing');
+      /* Tänkindikatorn vet om eleven står på en provfråga. Står den det scannar den frågan
+         i stället för att bara puttra — väntan får en förklaring i stället för att bara vara
+         väntan, och eleven ser att P.E.R läser just DEN frågan. */
+      var ctxForThinking = getPageContext();
+      var typing = addMsg('', 'teacher typing');
+      var stopThinking = startThinking(typing, ctxForThinking);
 
       var hist = perGetHist();
       var token = await getToken();
@@ -926,6 +976,7 @@
         if (isLandingMode) {
           var lq = getLandingQuota();
           if (lq >= 2) {
+            stopThinking();
             if (typing) {
               finalizeMsg(typing, 'Du har använt dina **2 gratisfrågor** för idag.\n\nSkapa ett gratis konto för att fortsätta — det tar 30 sekunder.');
               addAnswerCTA(typing);
@@ -977,7 +1028,7 @@
           var sseDecoder = new TextDecoder();
           var sseBuf = '';
           var answerText = '';
-          if (typing) { typing.className = 'per-msg teacher'; typing.textContent = ''; }
+          if (typing) { stopThinking(); typing.className = 'per-msg teacher'; typing.textContent = ''; }
           while (true) {
             var chunk = await reader.read();
             if (chunk.done) break;
@@ -1010,6 +1061,7 @@
           /* ── JSON fallback ── */
           var data = {};
           try { data = await r.json(); } catch (_) {}
+          stopThinking();
           if (typing) {
             if (r.status === 401) {
               typing.className = 'per-msg teacher';
@@ -1027,6 +1079,7 @@
           }
         }
       } catch (_) {
+        stopThinking();
         if (typing) { typing.className = 'per-msg teacher'; typing.textContent = 'Nätverksfel — försök igen.'; }
       }
 
@@ -1160,6 +1213,15 @@
         '.per-dots span:nth-child(2){animation-delay:.18s}',
         '.per-dots span:nth-child(3){animation-delay:.36s}',
         '@keyframes perBounce{0%,60%,100%{transform:translateY(0);opacity:.7}30%{transform:translateY(-5px);opacity:1}}',
+        '.per-msg.per-thinking{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px}',
+        '.per-think-label{font-size:12px;color:var(--exgen-text-secondary,#667085);font-family:var(--exgen-font-mono,ui-monospace,monospace);letter-spacing:.01em}',
+        /* Scanlinjen ritas bara när eleven står på en provfråga. Den sveper en gång per
+           1,6 s over hela bubblan — samma gest som en skanner, i markets egen gradient. */
+        '.per-think-scan{position:absolute;inset:0;opacity:0;pointer-events:none;background:linear-gradient(100deg,transparent 0%,transparent 44%,rgba(0,183,217,.10) 47%,rgba(0,183,217,.34) 50%,rgba(118,215,106,.30) 53%,rgba(118,215,106,.08) 56%,transparent 59%,transparent 100%);background-size:260% 100%}',
+        '.per-msg.per-scanning .per-think-scan{opacity:1;animation:perScan 1.5s cubic-bezier(.4,0,.6,1) infinite}',
+        '@keyframes perScan{0%{background-position:120% 0}100%{background-position:-120% 0}}',
+        '.per-msg.per-scanning{border-color:rgba(0,183,217,.30)}',
+        '@media(prefers-reduced-motion:reduce){.per-dots span{animation:none!important;opacity:.85}.per-msg.per-scanning .per-think-scan{animation:none!important;opacity:.35}}',
         '.per-ul{margin:4px 0 4px 14px;padding:0;list-style:disc}',
         '.per-ul li{margin:2px 0}',
         '.per-msg.teacher:hover{border-color:rgba(0,183,217,.32)}',
