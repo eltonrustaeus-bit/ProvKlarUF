@@ -447,7 +447,7 @@ ${teachGuide}
 
 ## SVARSMÖNSTER
 Mönstret nedan gäller när du FAKTISKT SVARAR. Har du bedömt frågan som otydlig enligt
-"## NÄR FRÅGAN ÄR OTYDLIG" gäller det blocket i stället: en motfråga, inget annat.
+regeln om otydliga frågor ovan gäller den i stället: en motfråga, inget annat.
 Punkt 1 här är ingen order att svara på en fråga du inte förstått.
 1. ${svarsSteg1}
 2. Koppla till elevens situation om det tillför värde (inte för att visa att du märkt)
