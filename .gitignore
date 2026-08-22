@@ -6,6 +6,10 @@ node_modules/
 !image/favicon-*.png
 !image/apple-touch-icon.png
 !image/icon-maskable-*.png
+# Arkiv, inte i bruk: ProviaAI-heron från tiden före namnbytet till ExGen. Ingen sida
+# refererar den. Den ligger här för att den annars bara fanns på grenen till PR #77 — en
+# stängd PR — och hade försvunnit helt när den grenen togs bort. 1,3 MB varumärkeshistoria.
+!image/proviaai-hero.png
 *.bak
 .env
 .env.local
