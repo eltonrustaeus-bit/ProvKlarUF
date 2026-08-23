@@ -105,7 +105,10 @@
       'transition:filter .15s,opacity .15s}',
     '.perObNext:hover{filter:brightness(1.06)}',
     '.perObNext:disabled{opacity:.4;cursor:not-allowed}',
-    '.perObSkip{background:none;border:none;cursor:pointer;font:inherit;font-size:14px;padding:8px 4px;',
+    /* min-height 44px: knappen trycks med tummen, och 14px text med 8px padding
+       ger en träffyta på ~36px — under det som går att träffa pålitligt. */
+    '.perObSkip{background:none;border:none;cursor:pointer;font:inherit;font-size:14px;',
+      'min-height:44px;padding:8px 12px;',
       'color:var(--exgen-text-secondary,#667085);text-decoration:underline;text-underline-offset:3px}',
     '.perObSkip:hover{color:var(--exgen-text,#1B2430)}',
 
@@ -187,7 +190,21 @@
       close();
     }
 
-    function onKey(e) { if (e.key === "Escape") skip(); }
+    /* aria-modal säger åt skärmläsare att ignorera sidan bakom, men det stoppar
+       inte Tab. Utan fällan vandrar fokus ut i appen bakom överlägget, och den
+       som navigerar med tangentbord tappar bort sig i en dialog de inte kan se
+       att de lämnat. */
+    function onKey(e) {
+      if (e.key === "Escape") return skip();
+      if (e.key !== "Tab") return;
+      var fokuserbara = host.querySelectorAll("button, input, [tabindex]:not([tabindex='-1'])");
+      if (!fokuserbara.length) return;
+      var först = fokuserbara[0];
+      var sist = fokuserbara[fokuserbara.length - 1];
+      if (e.shiftKey && document.activeElement === först) { e.preventDefault(); sist.focus(); }
+      else if (!e.shiftKey && document.activeElement === sist) { e.preventDefault(); först.focus(); }
+      else if (!host.contains(document.activeElement)) { e.preventDefault(); först.focus(); }
+    }
     document.addEventListener("keydown", onKey);
 
     var steps = [];
