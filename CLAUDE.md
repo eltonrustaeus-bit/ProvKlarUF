@@ -159,6 +159,19 @@ Any change to `api/` triggers security review checklist:
   `app.html`s `updateMastery()` är borttagen. Lägg aldrig tillbaka en klientskriven
   mastery: eleven kunde sätta sin egen siffra till 100, och P.E.R. använder den
   för att välja svårighetsgrad.
+- **`concept_tag` är obligatorisk i `generate-exam.js`s schema.** Faller den ur
+  `required` blir taggen valfri igen och tomma taggar smyger tillbaka utan att
+  något går sönder synligt. Uppmätt före fixen: 42 av 72 rättade frågor hade tom
+  tagg och gav noll kunskapsdata.
+- **Läs taggen med `resolveConceptTag()`, aldrig `q.concept_tag` direkt.**
+  Flervalsfrågor rättas deterministiskt och får ingen tagg från AI-rättningen;
+  äldre frågor saknar fältet helt. Uppslaget faller tillbaka på `subtopic` och
+  `topic`, men hoppar över generiska ord (`Principer`, `Allmän del`) och
+  platshållaren `Okänt` — en tagg som ser riktig ut men inte är det är värre än
+  ingen tagg.
+- **`topic` och `subtopic` följer ingen konsekvent hierarki.** Produktionsdata
+  innehåller både `{topic:"Konsumenträtt", subtopic:"Bytesrätt"}` och det omvända
+  `{topic:"Presumption", subtopic:"KKöpL"}`. Välj aldrig ett av fälten blint.
 - **Nyckeln måste normaliseras med `conceptKey()`.** Modellens `concept_tag` är
   fritext och driver isär — 99 taggar från tre elever innehöll
   `Konsumenträtt`/`Konsumenträttigheter` och `multiple_choice` som "begrepp".

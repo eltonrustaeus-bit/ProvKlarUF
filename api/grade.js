@@ -312,6 +312,9 @@ module.exports = async function handler(req, res) {
 
     // Keep a stable, question-order list and fill it as we grade
     const perById = new Map();
+    /* id → originalfrågan. Används för att slå upp topic/subtopic när
+       AI-rättningen inte kunde peka ut ett begrepp. */
+    const questionById = new Map();
     let total = 0;
     let maxTotal = 0;
 
@@ -344,7 +347,7 @@ module.exports = async function handler(req, res) {
               ? "Fel: frågans facit kunde inte verifieras och rättades inte."
               : "Error: the answer key could not be verified and was not graded.",
             model_answer: String(q.model_answer || q.rubric || ""),
-            concept_tag: typeof q.concept_tag === "string" ? q.concept_tag.slice(0, 60) : "",
+            concept_tag: (await conceptTags()).resolveConceptTag(q).slice(0, 60),
             error_tags: ["answer_key_unverified"]
           });
           continue;
@@ -380,7 +383,12 @@ module.exports = async function handler(req, res) {
 
         total += pts;
 
-        const conceptTag = typeof q.concept_tag === "string" ? q.concept_tag.slice(0, 60) : "";
+        /* Flervalsfrågor rättas deterministiskt och får ingen tagg från
+           AI-rättningen. Före 2026-08-23 satte generate-exam inte concept_tag
+           heller, så taggen blev tom — 42 av 72 rättade frågor i produktion
+           gav noll kunskapsdata. Frågan bär begreppet i subtopic/topic; det
+           räddas här. */
+        const conceptTag = (await conceptTags()).resolveConceptTag(q).slice(0, 60);
 
         perById.set(id, {
           id,
@@ -393,6 +401,12 @@ module.exports = async function handler(req, res) {
         });
       } else {
         const hasStructuredRubric = q.scoring_rubric && Array.isArray(q.scoring_rubric.parts) && q.scoring_rubric.parts.length > 0;
+        /* Originalfrågan sparas vid sidan om. nonMcPack går till modellen och
+           ska bara innehålla det den behöver för att rätta — topic och subtopic
+           hjälper inte rättningen men behövs för att kunna rädda en tom
+           begreppstagg efteråt. Att lägga dem i paketet hade betalat för dem i
+           varje rättningsanrop utan att de gjorde nytta där. */
+        questionById.set(id, q);
         nonMcPack.push({
           id,
           type,
@@ -540,10 +554,14 @@ module.exports = async function handler(req, res) {
 
         total += pts;
 
+        /* Modellen svarar "Okänt"/"Unknown" när den inte kan peka ut ett
+           begrepp — prompten ber uttryckligen om det. Den strängen är en
+           platshållare, inte ett begrepp, och blev tidigare en rad i elevens
+           kunskapsprofil. resolveConceptTag faller tillbaka på frågans egna
+           fält innan platshållaren accepteras. */
         const conceptTag =
-          (typeof got.concept_tag === "string" && got.concept_tag.trim())
-            ? got.concept_tag.trim().slice(0, 60)
-            : (lang === "sv" ? "Okänt" : "Unknown");
+          (await conceptTags()).resolveConceptTag(questionById.get(String(got.id)), got).slice(0, 60)
+          || (lang === "sv" ? "Okänt" : "Unknown");
 
         const errorTags = safeArrayStrings(got.error_tags, 8, 40);
 
