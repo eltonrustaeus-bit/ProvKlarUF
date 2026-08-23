@@ -96,6 +96,8 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_flags.js` | Funktionsflaggornas grind — `enabled` + `allowed_user_ids`. Delas av knowledge/check-role/explain (hjälpare, ingen rutt) |
 | `api/_education.js` | Utbildningskatalogen (Skolverket) + `PROFILE_FIELDS`, den stängda listan över vad P.E.R. får veta (hjälpare, ingen rutt) |
 | `api/_learner-profile.js` | Läser/skriver `learner_profile_facts` och bygger P.E.R:s elevkontext (hjälpare, ingen rutt) |
+| `api/_concept-tags.js` | Kanonisk form för modellens begreppstaggar — nyckeln till `user_profiles.mastery` (hjälpare, ingen rutt) |
+| `api/_mastery-view.js` | Läser kunskapsläget och avgör nästa steg. Enda vägen ut ur `mastery` (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
@@ -147,6 +149,26 @@ Any change to `api/` triggers security review checklist:
   uttalas. `saveInferred()` skriver aldrig över ett fält användaren själv fyllt i.
 - **`config/**` måste ligga i `includeFiles`** i `vercel.json` för varje funktion som
   läser katalogen, annars saknas filen i produktionsbundeln.
+
+## Kunskapsläge per begrepp (2026-08-23)
+- **Servern äger `user_profiles.mastery`.** `api/grade.js` skriver via
+  `apply_mock_mastery()`. Klienten har varken update- eller delete-rätt längre —
+  `app.html`s `updateMastery()` är borttagen. Lägg aldrig tillbaka en klientskriven
+  mastery: eleven kunde sätta sin egen siffra till 100, och P.E.R. använder den
+  för att välja svårighetsgrad.
+- **Nyckeln måste normaliseras med `conceptKey()`.** Modellens `concept_tag` är
+  fritext och driver isär — 99 taggar från tre elever innehöll
+  `Konsumenträtt`/`Konsumenträttigheter` och `multiple_choice` som "begrepp".
+  En onormaliserad nyckel splittrar elevens historik så att inget begrepp når
+  tröskeln för att säga något.
+- **Tre försök krävs innan P.E.R. får påstå något** (`MIN_ATTEMPTS_TO_TRUST`).
+  Under det är siffran tur eller otur, och ett påstående om vad en elev är dålig
+  på måste vara belagt.
+- **Skalan 0–100 är intern.** P.E.R. får aldrig läsa upp den för eleven —
+  promptblocket i `_mastery-view.js` förbjuder det uttryckligen.
+- **`grade.js` är CJS.** Importera `_concept-tags.js` dynamiskt, aldrig statiskt —
+  en statisk import över CJS/ESM-gränsen dödar funktionen vid inladdning
+  (`ERR_REQUIRE_ESM`, samma avbrott som tog ned `/api/explain` 2026-08-22).
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):

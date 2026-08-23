@@ -9,6 +9,7 @@ import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
 import { flagsEnabled } from "./_flags.js";
 import { loadProfile, buildProfileContext } from "./_learner-profile.js";
+import { buildMasteryContext } from "./_mastery-view.js";
 import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
@@ -454,6 +455,22 @@ export default async function handler(req, res) {
       ? buildProfileContext(await loadProfile(supabase, user.id), { topic })
       : '';
 
+    /* Kunskapsläget per begrepp, skrivet av api/grade.js efter varje rättat
+       mockprov. Till skillnad från elevprofilen ligger det INTE bakom
+       per_learner_profile_enabled: siffrorna kommer från elevens egna prov och
+       är samma data som redan visas i felbanken. Det som är nytt är att P.E.R.
+       får läsa dem.
+
+       Blocket blir tomt tills ett begrepp har tre försök bakom sig — under det
+       är siffran inte belagd, och ett påstående om vad en elev är dålig på
+       måste vara belagt. */
+    let masteryContext = '';
+    try {
+      const { data: up } = await supabase
+        .from("user_profiles").select("mastery").eq("id", user.id).maybeSingle();
+      masteryContext = buildMasteryContext(up?.mastery, { topic });
+    } catch { /* kunskapsläget är personalisering, aldrig ett skäl att fela */ }
+
     // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
     // "mjuka" fälten (study_pattern, preferred_help_level, sessions_total, m.fl.) kräver ett
     // AI-anrop att extrahera och kommer fortsatt bara från structuredMemory.
@@ -523,7 +540,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
-      learnerProfile,
+      learnerProfile: [learnerProfile, masteryContext].filter(Boolean).join('\n\n'),
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,
