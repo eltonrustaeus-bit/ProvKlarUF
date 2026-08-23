@@ -1,14 +1,34 @@
 {
   "outputDirectory": ".",
   "functions": {
-    "api/stripe-webhook.js": { "maxDuration": 10 },
-    "api/create-checkout-session.js": { "maxDuration": 15 },
-    "api/grade.js": { "maxDuration": 60 },
-    "api/generate-exam.js": { "maxDuration": 60 },
-    "api/teacher-report.js": { "maxDuration": 60 },
-    "api/check-role.js": { "maxDuration": 60 },
-    "api/ocr.js": { "maxDuration": 60 },
-    "api/explain.js": { "maxDuration": 60 },
-    "api/hp.js": { "maxDuration": 60 }
+    "api/stripe-webhook.js": {
+      "maxDuration": 10
+    },
+    "api/create-checkout-session.js": {
+      "maxDuration": 15
+    },
+    "api/grade.js": {
+      "maxDuration": 60
+    },
+    "api/generate-exam.js": {
+      "maxDuration": 60
+    },
+    "api/teacher-report.js": {
+      "maxDuration": 60
+    },
+    "api/check-role.js": {
+      "maxDuration": 60,
+      "includeFiles": "config/**"
+    },
+    "api/ocr.js": {
+      "maxDuration": 60
+    },
+    "api/explain.js": {
+      "maxDuration": 60,
+      "includeFiles": "config/**"
+    },
+    "api/hp.js": {
+      "maxDuration": 60
+    }
   }
 }

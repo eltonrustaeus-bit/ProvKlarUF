@@ -20,6 +20,10 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "config", "education-catalog.json");
+/* Webbversionen. Katalogen ovan är ~500 kB och läses bara server-side; att
+   skicka den till en elev som ska välja kurs i mobilen vore absurt. Den här
+   innehåller bara det kursväljaren och onboardingen faktiskt renderar. */
+const OUT_WEB = path.join(ROOT, "config", "education-catalog.web.json");
 const BASE = "https://api.skolverket.se/syllabus/v1";
 
 /* Gy25 slog igenom för utbildning som startar efter 2025-06-30. GY11-kurserna
@@ -201,6 +205,28 @@ function comparable(catalog) {
   return JSON.stringify(rest);
 }
 
+/* Arrayer i stället för objekt: 2192 nivåer med fyra namngivna nycklar var är
+   ~4x så många byte som samma data i positionsform, och den här filen laddas
+   av varje elev som öppnar provskaparen. Ordningen dokumenteras i
+   js/education.js som är det enda som packar upp den. */
+function webCatalog(catalog) {
+  const usedSubjects = new Set(catalog.levels.map(l => l.subjectCode));
+  return {
+    generatedAt: catalog.generatedAt,
+    source: catalog._source,
+    // [kod, namn, skolform, läroplan, aktiv]
+    subjects: catalog.subjects
+      .filter(s => s.schoolType === "GR" || usedSubjects.has(s.code))
+      .map(s => [s.code, s.name, s.schoolType, s.curriculum, s.active ? 1 : 0]),
+    // [kod, ämneskod, visningsnamn, läroplan, aktiv]
+    levels: catalog.levels.map(l => [l.code, l.subjectCode, l.displayName, l.curriculum, l.active ? 1 : 0]),
+    // [kod, namn, kategori, läroplan, [inriktningsnamn], [ämneskoder]]
+    programs: catalog.programs
+      .filter(p => p.active)
+      .map(p => [p.code, p.name, p.category, p.curriculum, p.orientations.map(o => o.name), p.subjectCodes || []]),
+  };
+}
+
 const check = process.argv.includes("--check");
 const catalog = await buildCatalog();
 
@@ -218,8 +244,9 @@ if (check) {
 } else {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(catalog, null, 0) + "\n");
-  const kb = (fs.statSync(OUT).size / 1024).toFixed(0);
-  console.log(`Skrev config/education-catalog.json (${kb} kB)`);
+  fs.writeFileSync(OUT_WEB, JSON.stringify(webCatalog(catalog), null, 0) + "\n");
+  const kb = f => (fs.statSync(f).size / 1024).toFixed(0);
+  console.log(`Skrev config/education-catalog.json (${kb(OUT)} kB) + education-catalog.web.json (${kb(OUT_WEB)} kB)`);
 }
 
 console.log(
