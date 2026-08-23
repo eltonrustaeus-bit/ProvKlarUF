@@ -7,6 +7,8 @@ import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
+import { flagsEnabled } from "./_flags.js";
+import { loadProfile, buildProfileContext } from "./_learner-profile.js";
 import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
@@ -434,10 +436,18 @@ export default async function handler(req, res) {
     // Long-term memory (AI-summarized, refreshed at most daily) och riktig prov-/felbanksdata
     // (DB-läs, alltid färsk) hämtas parallellt — annars ser P.E.R inte ett prov taget efter
     // dagens senaste minnesuppdatering förrän tidigast imorgon.
-    const [{ summary: longMemory, structured: structuredMemory }, liveExamData] = await Promise.all([
+    /* Elevprofilen hämtas i samma parallella omgång som minnet — den ligger
+       bakom sin egen flagga och kostar inget extra i väntetid. profileEnabled
+       avgörs server-side; en klient ska inte kunna be om personalisering som
+       inte är utrullad. */
+    const [{ summary: longMemory, structured: structuredMemory }, liveExamData, profile, profileEnabled] = await Promise.all([
       loadLongMemory(supabase, user.id),
       enrichMemoryFromExamData(supabase, user.id),
+      loadProfile(supabase, user.id),
+      flagsEnabled(supabase, ["per_learner_profile_enabled"], user.id),
     ]);
+
+    const learnerProfile = profileEnabled ? buildProfileContext(profile, { topic }) : '';
 
     // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
     // "mjuka" fälten (study_pattern, preferred_help_level, sessions_total, m.fl.) kräver ett
@@ -508,6 +518,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
+      learnerProfile,
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,
