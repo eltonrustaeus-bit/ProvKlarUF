@@ -146,6 +146,78 @@ function buildMockPayload(userId, course, per, total, maxTotal) {
   return { user_id: userId, course: (course || "").slice(0, 100), percent: pct, num_questions: per.length, concept_tags: conceptTags, error_tags: errorTags };
 }
 
+/* Elevens kunskapsprofil per begrepp.
+ *
+ * Skrevs tidigare av webbläsaren (app.html updateMastery). Tre fel följde av
+ * det, alla synliga i produktionsdata: eleven kunde skriva sin egen siffra,
+ * två flikar skrev över varandra, och nyckeln var modellens fritext så att
+ * "Konsumenträtt" och "Konsumenträttigheter" räknades som olika kunskap.
+ *
+ * Nu: normaliserad nyckel (_concept-tags.js) och en låsande RPC som väger in
+ * svårighetsgraden. Klientens update-rätt är borttagen i
+ * 20260823_mock_mastery_server_side.sql.
+ *
+ * DYNAMISK import, inte statisk. grade.js kompileras till CommonJS av Vercel
+ * medan _concept-tags.js är ESM. En statisk import över den gränsen blir ett
+ * require() av ESM och dödar funktionen vid inladdning, före första loggraden —
+ * exakt det avbrott som tog ned /api/explain den 22 augusti.
+ */
+let _conceptTags = null;
+async function conceptTags() {
+  if (!_conceptTags) _conceptTags = await import("./_concept-tags.js");
+  return _conceptTags;
+}
+
+// E/C/A som svårighetsgrad. Samma skala som src/per/assessment.mjs
+// LEVEL_DIFFICULTY, så mockprov och juridikmotorn väger utfall likadant.
+const LEVEL_DIFFICULTY = { E: 0.3, C: 0.55, A: 0.8 };
+
+/* Rätt på en svår fråga ska väga mer än rätt på en lätt. Utan viktningen mäter
+   mastery hur lätta prov eleven väljer, inte vad hen kan. */
+async function applyMockMastery(userId, level, per) {
+  if (!userId || !Array.isArray(per) || !per.length) return;
+  try {
+    const { conceptKey, conceptLabel } = await conceptTags();
+    const difficulty = LEVEL_DIFFICULTY[String(level || "").toUpperCase()] ?? 0.55;
+
+    /* En rad per begrepp, inte per fråga. Två frågor om samma begrepp i samma
+       prov är ett tillfälle att mäta det begreppet, inte två — annars får ett
+       prov med sex fullmaktsfrågor sex gånger så stor vikt som ett med en. */
+    const perConcept = new Map();
+    for (const q of per) {
+      const key = conceptKey(q?.concept_tag);
+      if (!key) continue;
+      const maxP = Number(q?.max_points) || 0;
+      const ratio = maxP > 0 ? Math.min(1, Math.max(0, Number(q?.points || 0) / maxP)) : 0;
+      const entry = perConcept.get(key) || { label: conceptLabel(q.concept_tag), sum: 0, n: 0 };
+      entry.sum += ratio;
+      entry.n += 1;
+      perConcept.set(key, entry);
+    }
+    if (!perConcept.size) return;
+
+    const url = process.env.SUPABASE_URL + "/rest/v1/rpc/apply_mock_mastery";
+    await Promise.all([...perConcept.entries()].slice(0, 30).map(([key, e]) =>
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY,
+          "Authorization": "Bearer " + process.env.SUPABASE_SERVICE_ROLE_KEY
+        },
+        body: JSON.stringify({
+          p_user_id: userId,
+          p_concept: key,
+          p_label: e.label,
+          p_ratio: e.sum / e.n,
+          p_difficulty: difficulty
+        }),
+        signal: AbortSignal.timeout(5000)
+      }).catch(() => {})
+    ));
+  } catch { /* kunskapsprofilen är personalisering, aldrig ett skäl att fela rättningen */ }
+}
+
 // Returns a promise — callers MUST await before sending the response.
 // On Vercel the lambda freezes once res is sent, so an un-awaited POST here
 // gets killed mid-flight (this is why mock_results stayed empty). Never throws.
@@ -227,6 +299,8 @@ module.exports = async function handler(req, res) {
     const history = sanitizeHistory(p.history);
     const mistakesCtx = sanitizeMistakes(p.mistakes);
     const course = safeString(p.course, 80) || history[history.length - 1]?.course || "";
+    // Nivån styr svårighetsviktningen i mastery. Faller tillbaka på senaste provet.
+    const level = safeString(p.level, 10) || history[history.length - 1]?.level || "C";
 
     if (!questions.length) return json(res, 400, { ok: false, error: "Missing questions" });
 
@@ -335,7 +409,10 @@ module.exports = async function handler(req, res) {
     if (nonMcPack.length === 0) {
       // Output in original question order
       const per = questions.map((q) => perById.get(String(q.id ?? ""))).filter(Boolean);
-      await saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal));
+      await Promise.all([
+        saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal)),
+        applyMockMastery(user.id, level, per),
+      ]);
       return json(res, 200, {
         ok: true,
         result: { total_points: total, max_points: maxTotal, per_question: per }
@@ -486,7 +563,10 @@ module.exports = async function handler(req, res) {
         .map((q) => perById.get(String(q.id ?? "")) || null)
         .filter(Boolean);
 
-      await saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal));
+      await Promise.all([
+        saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal)),
+        applyMockMastery(user.id, level, per),
+      ]);
       return json(res, 200, {
         ok: true,
         result: {
