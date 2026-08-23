@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="exgen-ui.css" />
   <script src="js/exgen-shell.js" defer></script>
   <script src="shared.js" defer></script>
+  <script src="js/per-onboarding.js" defer></script>
   <!-- Mobilmenyns bindning. Låg tidigare inline i fem kopior. -->
     <style>
   /* ── KONTO PAGE ── */
@@ -333,6 +334,26 @@
       </div>
     </div>
 
+    <!-- VAD P.E.R VET OM MIG -->
+    <div class="kCard" id="perKnowsCard" style="display:none">
+      <div class="kCardHead">
+        <div class="kCardIcon" aria-hidden="true">P</div>
+        <div>
+          <div class="kCardLabel">Personalisering</div>
+          <div class="kCardTitle">Vad P.E.R. vet om mig</div>
+        </div>
+      </div>
+      <div class="kCardBody">
+        <p class="kHelpText">Det här använder P.E.R. för att anpassa sina svar. Stämmer något inte kan du ta bort det direkt.</p>
+        <div id="perKnowsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+        <div class="kBtnRow">
+          <button class="kBtn kBtnOutline" id="perKnowsEdit">Ändra mina uppgifter</button>
+          <button class="kBtn kBtnDanger" id="perKnowsForgetAll">Ta bort allt</button>
+        </div>
+        <div class="kPrivacyNote">Uppgifterna används bara för att anpassa P.E.R:s svar till dig. De delas aldrig med andra elever, lärare eller föräldrar.</div>
+      </div>
+    </div>
+
     <!-- P.E.R MEMORY CARD -->
     <div class="kCard">
       <div class="kCardHead">
@@ -567,6 +588,105 @@ document.getElementById("yr").textContent=new Date().getFullYear();
       else{showMsg("Fel: "+(data.message||data.error||"Okänt fel"),"err");btn.disabled=false;btn.textContent="Hantera prenumeration →"}
     }catch{showMsg("Nätverksfel. Försök igen.","err");btn.disabled=false;btn.textContent="Hantera prenumeration →"}
   });
+
+
+  /* VAD P.E.R VET OM MIG
+     Etiketter och läsbara värden byggs server-side (api/_learner-profile.js).
+     Den här koden renderar bara det den får — annars hade ett nytt profilfält
+     kunnat dyka upp för en elev som en rå databasnyckel. */
+  const perKnows = {
+    card: document.getElementById("perKnowsCard"),
+    list: document.getElementById("perKnowsList"),
+  };
+
+  async function perKnowsCall(action, body){
+    const r=await fetch("/api/check-role",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},
+      body:JSON.stringify(Object.assign({action},body||{}))
+    });
+    return r.json().catch(()=>({}));
+  }
+
+  function perKnowsRender(facts){
+    perKnows.list.textContent="";
+    if(!facts||!facts.length){
+      const p=document.createElement("p");
+      p.className="kHelpText";
+      p.style.margin="0";
+      p.textContent="P.E.R. har inga uppgifter om dig ännu.";
+      perKnows.list.appendChild(p);
+      return;
+    }
+    for(const f of facts){
+      const row=document.createElement("div");
+      row.style.cssText="display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1px solid var(--exgen-border,#E4E7EC);border-radius:10px";
+
+      const text=document.createElement("div");
+      text.style.cssText="flex:1;min-width:0";
+
+      const label=document.createElement("div");
+      label.style.cssText="font-size:12px;color:var(--exgen-text-secondary,#667085)";
+      label.textContent=f.label;
+
+      const value=document.createElement("div");
+      value.style.cssText="font-size:14px;font-weight:600;word-break:break-word";
+      value.textContent=f.display;
+
+      const src=document.createElement("div");
+      src.style.cssText="font-size:12px;color:var(--exgen-text-secondary,#667085);margin-top:3px";
+      /* Osäkra slutsatser märks ut. Utan skillnaden går det inte att bedöma om
+         en uppgift är fel — "du föredrar korta svar" är något annat om P.E.R.
+         gissat det än om du sagt det själv. */
+      src.textContent=f.uncertain ? f.sourceLabel+" · osäkert" : f.sourceLabel;
+
+      text.appendChild(label);text.appendChild(value);text.appendChild(src);
+
+      const del=document.createElement("button");
+      del.type="button";
+      del.className="kBtn kBtnOutline";
+      del.style.cssText="flex:none;padding:6px 12px;font-size:13px";
+      del.textContent="Ta bort";
+      del.setAttribute("aria-label","Ta bort: "+f.label);
+      del.addEventListener("click",async()=>{
+        del.disabled=true;
+        const d=await perKnowsCall("profile_forget",{key:f.key});
+        if(d&&d.ok){perKnowsLoad();showMsg(f.label+" borttaget.","ok");}
+        else{del.disabled=false;showMsg("Kunde inte ta bort uppgiften.","err");}
+      });
+
+      row.appendChild(text);row.appendChild(del);
+      perKnows.list.appendChild(row);
+    }
+  }
+
+  async function perKnowsLoad(){
+    if(!perKnows.card)return;
+    const d=await perKnowsCall("profile_get");
+    if(!d||!d.ok)return;
+    /* Kortet visas bara när det finns något att visa eller introduktionen är
+       gjord. Ett tomt kort på ett konto som aldrig sett P.E.R. är brus. */
+    if(!(d.facts&&d.facts.length)&&!d.onboardedAt)return;
+    perKnows.card.style.display="";
+    perKnowsRender(d.facts);
+  }
+
+  document.getElementById("perKnowsEdit")?.addEventListener("click",()=>{
+    if(window.__perOnboarding&&window.__perOnboarding.start)window.__perOnboarding.start();
+    else showMsg("Kunde inte öppna formuläret. Ladda om sidan.","err");
+  });
+
+  document.getElementById("perKnowsForgetAll")?.addEventListener("click",async()=>{
+    if(!confirm("Ta bort allt P.E.R. vet om dig?\n\nP.E.R. slutar anpassa sina svar efter din profil. Dina prov, resultat och felbank påverkas inte."))return;
+    const btn=document.getElementById("perKnowsForgetAll");
+    btn.disabled=true;
+    const d=await perKnowsCall("profile_forget",{all:true});
+    btn.disabled=false;
+    if(d&&d.ok){perKnowsLoad();perKnowsRender([]);showMsg("Alla uppgifter borttagna.","ok");}
+    else showMsg("Kunde inte ta bort uppgifterna.","err");
+  });
+
+  perKnowsLoad();
 
   /* P.E.R MEMORY */
   document.getElementById("clearPerMemoryBtn")?.addEventListener("click",async()=>{

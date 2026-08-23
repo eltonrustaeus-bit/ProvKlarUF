@@ -137,6 +137,12 @@ Ett svar som visar hur mycket du vet är ett sämre svar än ett som får eleven
 
 export function buildPERSystemPrompt({
   context = '',
+  /* Elevprofilen kommer som ett eget färdigbyggt block, inte inbakad i
+     `context`. Två skäl: blocket har egna rubriker och regler som inte ska
+     renderas som "Kontext: ## OM ELEVEN", och `context` läses längre ner av
+     provfrågedetektorn med en regex. Profilen innehåller fritext eleven själv
+     skrivit, och den texten får inte kunna slå om provgrinden. */
+  learnerProfile = '',
   weakAreas = [],
   role = 'gratis',
   helpLevel = 0,
@@ -218,6 +224,7 @@ export function buildPERSystemPrompt({
   }
 
   if (context) lines.push(`Kontext: ${context}`);
+  if (learnerProfile) lines.push(learnerProfile);
 
   // Concept bridge: flag if current question's category matches a known weak area
   const currentCategory = pageContext?.currentQuestion?.category || '';

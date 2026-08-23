@@ -36,6 +36,7 @@
 ];</script>
 <script src="js/exgen-shell.js" defer></script>
 <script src="shared.js" defer></script>
+<script src="js/per-onboarding.js" defer></script>
 <script src="js/exam-flow.js" defer></script>
 <style>
 /* ── APP-SPECIFIC ── */
@@ -1126,18 +1127,65 @@ function initWizard(){
   setWizardStep(0,{scroll:false});
 }
 
-const STANDARD_COURSES=["Matematik (grundskola)","Svenska (grundskola)","Svenska som andraspråk (grundskola)","Engelska (grundskola)","Biologi (grundskola)","Fysik (grundskola)","Kemi (grundskola)","Geografi (grundskola)","Historia (grundskola)","Religionskunskap (grundskola)","Samhällskunskap (grundskola)","Teknik (grundskola)","Idrott och hälsa (grundskola)","Hem- och konsumentkunskap (grundskola)","Bild (grundskola)","Musik (grundskola)","Slöjd (grundskola)","Moderna språk (grundskola)","Matematik 1a","Matematik 1b","Matematik 1c","Matematik 2a","Matematik 2b","Matematik 2c","Matematik 3b","Matematik 3c","Matematik 4","Matematik 5","Svenska 1","Svenska 2","Svenska 3","Svenska som andraspråk 1","Svenska som andraspråk 2","Svenska som andraspråk 3","Engelska 5","Engelska 6","Engelska 7","Samhällskunskap 1a1","Samhällskunskap 1a2","Samhällskunskap 1b","Samhällskunskap 2","Historia 1a1","Historia 1a2","Historia 1b","Historia 2","Religionskunskap 1","Religionskunskap 2","Geografi 1","Naturkunskap 1a1","Naturkunskap 1a2","Naturkunskap 1b","Naturkunskap 2","Biologi 1","Biologi 2","Fysik 1a","Fysik 1","Fysik 2","Kemi 1","Kemi 2","Idrott och hälsa 1","Idrott och hälsa 2","Psykologi 1","Psykologi 2","Filosofi 1","Filosofi 2","Företagsekonomi 1","Företagsekonomi 2","Entreprenörskap","Entreprenörskap och företagande","Juridik 1","Juridik 2","Juridik 3","Privatjuridik","Internationell ekonomi","Marknadsföring","Redovisning","Programmering 1","Programmering 2","Webbutveckling 1","Webbutveckling 2","Dator- och nätverksteknik","Digitalt skapande 1"];
+/* Reservlista. Den riktiga kurslistan kommer från config/education-catalog.web.json
+   (Skolverkets läroplaner) och laddas när eleven börjar söka. Den här används bara
+   om hämtningen misslyckas — provskaparen får inte sluta fungera för att en
+   statisk fil inte svarar.
+
+   Sex namn som stod här tidigare finns inte i någon läroplan: Juridik 1/2/3,
+   Historia 2, Fysik 1 och Psykologi 2. Elever kunde välja dem, i ett flöde vars
+   prompt ber modellen följa Skolverkets centrala innehåll för kursen i fråga.
+   De är utbytta mot de kurser som faktiskt finns. */
+const STANDARD_COURSES=["Matematik (grundskola)", "Svenska (grundskola)", "Svenska som andraspråk (grundskola)", "Engelska (grundskola)", "Biologi (grundskola)", "Fysik (grundskola)", "Kemi (grundskola)", "Geografi (grundskola)", "Historia (grundskola)", "Religionskunskap (grundskola)", "Samhällskunskap (grundskola)", "Teknik (grundskola)", "Idrott och hälsa (grundskola)", "Hem- och konsumentkunskap (grundskola)", "Bild (grundskola)", "Musik (grundskola)", "Slöjd (grundskola)", "Moderna språk (grundskola)", "Matematik 1a", "Matematik 1b", "Matematik 1c", "Matematik 2a", "Matematik 2b", "Matematik 2c", "Matematik 3b", "Matematik 3c", "Matematik 4", "Matematik 5", "Svenska 1", "Svenska 2", "Svenska 3", "Svenska som andraspråk 1", "Svenska som andraspråk 2", "Svenska som andraspråk 3", "Engelska 5", "Engelska 6", "Engelska 7", "Samhällskunskap 1a1", "Samhällskunskap 1a2", "Samhällskunskap 1b", "Samhällskunskap 2", "Historia 1a1", "Historia 1a2", "Historia 1b", "Religionskunskap 1", "Religionskunskap 2", "Geografi 1", "Naturkunskap 1a1", "Naturkunskap 1a2", "Naturkunskap 1b", "Naturkunskap 2", "Biologi 1", "Biologi 2", "Fysik 1a", "Fysik 2", "Kemi 1", "Kemi 2", "Idrott och hälsa 1", "Idrott och hälsa 2", "Psykologi 1", "Filosofi 1", "Filosofi 2", "Företagsekonomi 1", "Företagsekonomi 2", "Entreprenörskap", "Entreprenörskap och företagande", "Privatjuridik", "Internationell ekonomi", "Marknadsföring", "Redovisning", "Programmering 1", "Programmering 2", "Webbutveckling 1", "Webbutveckling 2", "Dator- och nätverksteknik", "Digitalt skapande 1", "Historia 2a", "Historia 2b – kultur", "Fysik 1b1", "Fysik 1b2", "Psykologi 2a", "Psykologi 2b", "Affärsjuridik", "Rätten och samhället"];
 function normCourse(s){return String(s||"").trim().replace(/\s+/g," ");}
-function getAllCourses(){ const custom=lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean),std=STANDARD_COURSES.map(normCourse).filter(Boolean),set=new Set([...std,...custom]); return Array.from(set).sort((a,b)=>a.localeCompare(b,"sv")); }
-function fillCourseDatalist(){ const dl=document.getElementById("courseDatalist");if(!dl)return;dl.innerHTML="";getAllCourses().forEach(c=>{const opt=document.createElement("option");opt.value=c;dl.appendChild(opt);}); }
+/* ── Kurskatalogen ────────────────────────────────────────────────────────
+   Ämnen, kurser och nivåer kommer från Skolverkets läroplaner via
+   config/education-catalog.web.json. Både GY11 och Gy25 finns med: en elev som
+   började före ämnesbetygsreformen läser fortfarande kurser med de gamla
+   namnen, och deras provhistorik hänger på just de strängarna.
+
+   Listan är 2192 poster och läggs därför aldrig i sin helhet i en <datalist>.
+   Den filtreras på det eleven skriver, max 60 träffar — annars blir väljaren
+   trög på mobil, vilket är där de flesta pluggar. */
+let EDU_CATALOG=null,EDU_LOADING=null;
+function loadEduCatalog(){
+  if(EDU_CATALOG)return Promise.resolve(EDU_CATALOG);
+  if(EDU_LOADING)return EDU_LOADING;
+  EDU_LOADING=fetch("/config/education-catalog.web.json")
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{EDU_CATALOG=d;fillCourseDatalist(document.getElementById("courseSearch")?.value||"");return d;})
+    .catch(()=>null);
+  return EDU_LOADING;
+}
+/* Positionerna speglar webCatalog() i tools/sync-skolverket.mjs:
+   ämne [kod,namn,skolform,läroplan,aktiv] · nivå [kod,ämneskod,visningsnamn,läroplan,aktiv] */
+function catalogCourseNames(){
+  if(!EDU_CATALOG)return STANDARD_COURSES.map(normCourse).filter(Boolean);
+  const out=[];
+  for(const s of EDU_CATALOG.subjects||[])if(s[2]==="GR")out.push(s[1]+" (grundskola)");
+  for(const l of EDU_CATALOG.levels||[])out.push(l[2]);
+  return out;
+}
+function getAllCourses(){ const custom=lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean),std=catalogCourseNames().map(normCourse).filter(Boolean),set=new Set([...std,...custom]); return Array.from(set).sort((a,b)=>a.localeCompare(b,"sv")); }
+function fillCourseDatalist(query){
+  const dl=document.getElementById("courseDatalist");if(!dl)return;
+  const q=String(query||"").trim().toLowerCase();
+  const all=getAllCourses();
+  const träffar=(q?all.filter(c=>c.toLowerCase().includes(q)):all).slice(0,60);
+  dl.innerHTML="";
+  for(const c of träffar){const opt=document.createElement("option");opt.value=c;dl.appendChild(opt);}
+}
 function getSelectedCourseFromPicker(){ const useCustom=!!document.getElementById("useCustomCourse")?.checked,custom=normCourse(document.getElementById("customCourse")?.value),search=normCourse(document.getElementById("courseSearch")?.value); return useCustom?custom:search; }
 function syncPickerToHiddenCourse(){ const v=getSelectedCourseFromPicker(),hidden=courseEl();if(hidden)hidden.value=v; }
 function initCourseLibrary(){
-  fillCourseDatalist();
+  fillCourseDatalist("");
   const chk=document.getElementById("useCustomCourse"),custom=document.getElementById("customCourse"),search=document.getElementById("courseSearch"),status=document.getElementById("coursePickerStatus"),saveBtn=document.getElementById("saveCustomCourse");
   const syncEnable=()=>{ const on=!!chk?.checked;if(custom)custom.disabled=!on;if(search)search.disabled=on;if(status)status.textContent="";syncPickerToHiddenCourse(); };
   chk?.addEventListener("change",syncEnable);
-  search?.addEventListener("input",()=>syncPickerToHiddenCourse());
+  /* Katalogen hämtas först när eleven rör kursfältet — den är ~175 kB och
+     ingen som bara ska klistra in text ska behöva ladda ner den. */
+  search?.addEventListener("focus",loadEduCatalog,{once:true});
+  search?.addEventListener("input",()=>{fillCourseDatalist(search.value);syncPickerToHiddenCourse();});
   search?.addEventListener("change",()=>syncPickerToHiddenCourse());
   custom?.addEventListener("input",()=>syncPickerToHiddenCourse());
   custom?.addEventListener("change",()=>syncPickerToHiddenCourse());
@@ -1146,7 +1194,7 @@ function initCourseLibrary(){
     if(!name){if(status)status.textContent=(LANG==="sv")?"Skriv ett namn först.":"Type a name first.";return;}
     const list=lsGetArray(LS_CUSTOM_COURSES).map(normCourse).filter(Boolean);
     if(!list.includes(name))list.push(name);
-    lsSet(LS_CUSTOM_COURSES,list);fillCourseDatalist();
+    lsSet(LS_CUSTOM_COURSES,list);fillCourseDatalist(search?.value||"");
     if(status)status.textContent=(LANG==="sv")?`Sparad: ${name}`:`Saved: ${name}`;
     syncPickerToHiddenCourse();
   });

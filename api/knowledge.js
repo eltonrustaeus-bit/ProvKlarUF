@@ -16,6 +16,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
+import { flagsEnabled as sharedFlagsEnabled } from "./_flags.js";
 // DYNAMISK import, inte statisk. package.json saknar "type": "module", så Vercel kompilerar
 // api/*.js till CommonJS medan .mjs-filerna förblir äkta ESM. En statisk import blir då ett
 // require() av ESM och kraschar hela funktionen vid inladdning:
@@ -57,16 +58,10 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 // rollout_percentage används fortfarande inte — en procentuell utrullning kräver en stabil
 // hashning av user_id som ingen yta behöver än, och en oanvänd halvfärdig mekanism är sämre än
 // ingen alls. Dokumenterat i docs/per/ARCHITECTURE.md.
+// Logiken bor i api/_flags.js sedan check-role.js och explain.js behövde samma
+// grind. Wrappern behålls så att anropen nedan är oförändrade.
 async function flagsEnabled(keys, userId = null) {
-  const { data, error } = await supabase.from("feature_flags").select("key, enabled, allowed_user_ids").in("key", keys);
-  if (error || !data) return false;
-  return keys.every((k) => {
-    const row = data.find((r) => r.key === k);
-    if (!row || row.enabled !== true) return false;
-    const allowed = row.allowed_user_ids ?? [];
-    if (allowed.length === 0) return true;
-    return userId ? allowed.includes(userId) : false;
-  });
+  return sharedFlagsEnabled(supabase, keys, userId);
 }
 
 // Enkel, självständig daglig kvot (oberoende av PLAN_RULES i api/_provia-rules.js — den filen är

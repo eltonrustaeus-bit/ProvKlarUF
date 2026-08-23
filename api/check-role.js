@@ -2,6 +2,9 @@
 import { requireAuth } from "./_auth.js";
 import { currentPeriodKey, getEntitlementSnapshot, getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { clearLongMemory } from "./_per-memory.js";
+import { flagsEnabled } from "./_flags.js";
+import { PERSONAS } from "./_education.js";
+import { loadProfile, saveFacts, forgetFact, forgetAllFacts, profileForDisplay } from "./_learner-profile.js";
 import { callAI } from "./_per-core.js";
 import { SITE_ORIGIN } from "./_site.js";
 import { MAINTENANCE, maintenanceAllows } from "./_maintenance.js";
@@ -213,6 +216,111 @@ export default async function handler(req, res) {
     return ok
       ? res.status(200).json({ ok: true })
       : res.status(500).json({ ok: false, error: "Memory clear failed" });
+  }
+
+  /* ── Elevprofilen ────────────────────────────────────────────────────────
+   *
+   * Läsning och radering är ALLTID öppna, även när funktionsflaggan är av.
+   * Att se och ta bort vad som lagras om en själv är inte en funktion som
+   * rullas ut stegvis — det är förutsättningen för att få lagra något alls,
+   * och användarna är till stor del minderåriga. Skrivning är däremot grindad
+   * som allt annat oprövat.
+   */
+  if (action === "profile_get") {
+    try {
+      const profile = await loadProfile(supabase, user.id);
+      return res.status(200).json({
+        ok: true,
+        persona: profile.persona,
+        onboardedAt: profile.onboardedAt,
+        facts: profileForDisplay(profile),
+      });
+    } catch {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  if (action === "profile_forget") {
+    try {
+      if (req.body?.all === true) {
+        const ok = await forgetAllFacts(supabase, user.id);
+        return ok
+          ? res.status(200).json({ ok: true, forgot: "all" })
+          : res.status(500).json({ error: "Forget failed" });
+      }
+      const key = String(req.body?.key || "");
+      const ok = await forgetFact(supabase, user.id, key);
+      return ok
+        ? res.status(200).json({ ok: true, forgot: key })
+        : res.status(400).json({ error: "Okänd uppgift" });
+    } catch {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  if (action === "profile_set" || action === "onboarding_complete") {
+    if (!(await flagsEnabled(supabase, ["per_learner_profile_enabled"], user.id))) {
+      return res.status(403).json({ error: "Funktionen är inte påslagen" });
+    }
+    try {
+      const profile = await loadProfile(supabase, user.id);
+
+      /* persona sätts bara vid onboarding och bara till ett känt värde.
+         Att välja "Lärare" här ger INGEN behörighet — lärarpanelen kräver
+         fortfarande profiles.role = 'teacher', vilket bara en admin kan sätta
+         (api/admin.js, action "set-role"). Slås de två ihop kan vem som helst
+         klicka sig till andra elevers provdata. */
+      let persona = profile.persona;
+      if (action === "onboarding_complete") {
+        const önskad = String(req.body?.persona || "");
+        if (önskad && !PERSONAS.includes(önskad)) {
+          return res.status(400).json({ error: "Okänd roll" });
+        }
+        persona = önskad || persona || "elev";
+        const { error } = await supabase
+          .from("profiles")
+          .update({ persona, onboarded_at: new Date().toISOString() })
+          .eq("id", user.id);
+        if (error) return res.status(500).json({ error: "Kunde inte spara" });
+      }
+
+      const result = await saveFacts(supabase, user.id, req.body?.values, {
+        persona: persona || "elev",
+        source: "user",
+      });
+      if (result.error) return res.status(500).json({ error: "Kunde inte spara" });
+
+      const uppdaterad = await loadProfile(supabase, user.id);
+      return res.status(200).json({
+        ok: true,
+        persona: uppdaterad.persona,
+        onboardedAt: uppdaterad.onboardedAt,
+        saved: result.saved,
+        rejected: result.rejected,
+        facts: profileForDisplay(uppdaterad),
+      });
+    } catch {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
+  /* Om introduktionen ska visas. Klienten frågar en gång vid inloggning och
+     får ett rakt ja eller nej — beslutet fattas server-side eftersom det
+     hänger på både flaggan och om användaren redan svarat. */
+  if (action === "onboarding_state") {
+    try {
+      const [profile, flaggaPå] = await Promise.all([
+        loadProfile(supabase, user.id),
+        flagsEnabled(supabase, ["per_learner_profile_enabled"], user.id),
+      ]);
+      return res.status(200).json({
+        ok: true,
+        show: Boolean(flaggaPå) && !profile.onboardedAt,
+        persona: profile.persona,
+      });
+    } catch {
+      return res.status(500).json({ error: "Internal server error" });
+    }
   }
 
   // Save korkortet progress

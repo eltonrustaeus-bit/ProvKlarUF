@@ -93,6 +93,9 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | File | Purpose |
 |------|---------|
 | `api/_auth.js` | Auth middleware shared by all routes (hjälpare, ingen rutt) |
+| `api/_flags.js` | Funktionsflaggornas grind — `enabled` + `allowed_user_ids`. Delas av knowledge/check-role/explain (hjälpare, ingen rutt) |
+| `api/_education.js` | Utbildningskatalogen (Skolverket) + `PROFILE_FIELDS`, den stängda listan över vad P.E.R. får veta (hjälpare, ingen rutt) |
+| `api/_learner-profile.js` | Läser/skriver `learner_profile_facts` och bygger P.E.R:s elevkontext (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
@@ -124,6 +127,26 @@ Any change to `api/` triggers security review checklist:
 - [ ] Auth checked via `_auth.js` before data access
 - [ ] No secrets in response body
 - [ ] No raw SQL string interpolation
+
+## Utbildningsmodell och elevprofil (2026-08-23)
+- **Katalogen är genererad, inte skriven.** `config/education-catalog.json` (server)
+  och `education-catalog.web.json` (klient) kommer från `tools/sync-skolverket.mjs`
+  mot Skolverkets Syllabus API. Redigera aldrig filerna för hand — kör om skriptet.
+  `node tools/sync-skolverket.mjs --check` säger om de är inaktuella.
+- **GY11 och Gy25 lever parallellt.** Ämnesbetygsreformen gäller utbildning som
+  startar efter 2025-06-30, men elever som började dessförinnan läser GY11-kurser
+  och all deras provhistorik hänger på de kurskodernas namn. Ta aldrig bort GY11.
+- **Gissa aldrig ett kursnamn.** Sex namn i den gamla hårdkodade listan fanns inte i
+  någon läroplan. Slå upp namnet i katalogen i stället —
+  `tests/education/education-catalog.test.mjs` faller om ett namn inte går att lösa.
+- **`profiles.persona` ger ingen behörighet.** persona (elev/lärare/förälder) är vem
+  användaren säger sig vara. `profiles.role` är vad de får se. Lärarpanelen kräver
+  fortsatt `role='teacher'`, som bara en admin kan sätta.
+- **`learner_profile_facts.source` får inte kollapsa.** `user` och `observed` får
+  påstås av P.E.R.; `inferred` under 0.65 confidence får forma svaret men aldrig
+  uttalas. `saveInferred()` skriver aldrig över ett fält användaren själv fyllt i.
+- **`config/**` måste ligga i `includeFiles`** i `vercel.json` för varje funktion som
+  läser katalogen, annars saknas filen i produktionsbundeln.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):

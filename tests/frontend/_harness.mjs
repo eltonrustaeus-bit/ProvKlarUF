@@ -248,7 +248,11 @@ export function report(name) {
     /* Skriver ut och returnerar exit-koden. Anroparen bestämmer när processen
        ska dö — en fil som har städning kvar ska hinna göra den först. */
     finish(crash = null) {
-      if (crash) console.log("  FAIL  riggen kastade — " + String(crash.stack || crash.message).split("\n").slice(0, 3).join(" / "));
+      /* Tolv rader, inte tre. Playwrights actionability-fel skriver orsaken —
+         "intercepts pointer events", "element is not stable" — på rad fyra och
+         nedåt, så en tregransklippning visade bara "waiting for locator" och
+         fick ett övertäckt element att se ut som ett saknat. */
+      if (crash) console.log("  FAIL  riggen kastade — " + String(crash.stack || crash.message).split("\n").slice(0, 12).join(" / "));
       if (pass.length) console.log(pass.map(p => "  ok  " + p).join("\n"));
       if (fail.length) console.log(fail.map(f => "  FAIL " + f).join("\n"));
       console.log(`\n${name}: ${pass.length} ok, ${fail.length} fail`);
