@@ -110,8 +110,12 @@ check("STANDARD_COURSES går att läsa ur app.html", !!listMatch);
 if (listMatch) {
   const legacy = JSON.parse(listMatch[1]);
   const olosta = legacy.filter(c => !ed.resolveCourse(c));
-  check(`all gammal provhistorik utom de påhittade kurserna kan kopplas (olösta: ${olosta.join(", ") || "inga"})`,
-    olosta.length === PAHITTADE.length && olosta.every(c => PAHITTADE.includes(c)));
+  /* Reservlistan är städad: de sex påhittade namnen är utbytta mot kurser som
+     finns. Varje namn i den ska nu gå att slå upp — ett som inte gör det är
+     antingen felstavat eller hittat på, och båda leder eleven till ett prov mot
+     en läroplan som inte existerar. */
+  check(`varje kursnamn i reservlistan finns i en läroplan (olösta: ${olosta.join(", ") || "inga"})`,
+    olosta.length === 0);
 }
 
 console.log("\n— PROFILFÄLT —");

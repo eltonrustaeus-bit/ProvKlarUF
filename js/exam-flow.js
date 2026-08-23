@@ -317,6 +317,71 @@
     screen("start");
   }
 
+  /* ── Kurskatalogen ──────────────────────────────────────────────────────
+     Ämnen, kurser och nivåer ur Skolverkets läroplaner
+     (config/education-catalog.web.json, genererad av tools/sync-skolverket.mjs).
+     Både GY11 och Gy25 finns med: en elev som började före ämnesbetygsreformen
+     läser fortfarande "Matematik 1b", och hela hens provhistorik hänger på just
+     den strängen.
+
+     Fältet är fortfarande fritext. Katalogen föreslår, den begränsar inte —
+     eleven som pluggar något vi inte har en kod för ska inte stoppas av att en
+     lista saknar raden.
+
+     Filen är ~175 kB och hämtas därför först när ämnessteget faktiskt visas,
+     aldrig vid sidladdning. */
+  var eduCatalog = null, eduPending = null;
+
+  function loadEduCatalog() {
+    if (eduCatalog) return Promise.resolve(eduCatalog);
+    if (eduPending) return eduPending;
+    eduPending = fetch("/config/education-catalog.web.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { eduCatalog = d; return d; })
+      .catch(function () { return null; });
+    return eduPending;
+  }
+
+  /* Positionerna speglar webCatalog() i tools/sync-skolverket.mjs:
+     ämne [kod, namn, skolform, läroplan, aktiv]
+     nivå [kod, ämneskod, visningsnamn, läroplan, aktiv] */
+  function eduSuggestions(query) {
+    if (!eduCatalog) return [];
+    var q = String(query || "").trim().toLowerCase();
+    if (q.length < 2) return [];
+
+    /* Träffar som BÖRJAR på det eleven skrev går först. Utan rangordningen
+       fyllde katalogordningen listan med kurser som bara råkar innehålla ordet:
+       "Biologi" gav fyrtio rader med Bevarandebiologi och Djurens biologi innan
+       "Biologi 1" och "Biologi (grundskola)" ens syntes. Det är rätt data men
+       fel svar på frågan. */
+    var prefix = [], inuti = [], i, namn;
+
+    var levels = eduCatalog.levels || [];
+    for (i = 0; i < levels.length; i++) {
+      namn = levels[i][2];
+      var pos = namn.toLowerCase().indexOf(q);
+      if (pos === 0) prefix.push(namn);
+      else if (pos > 0) inuti.push(namn);
+    }
+
+    var subjects = eduCatalog.subjects || [];
+    for (i = 0; i < subjects.length; i++) {
+      if (subjects[i][2] !== "GR") continue;
+      namn = subjects[i][1] + " (grundskola)";
+      if (subjects[i][1].toLowerCase().indexOf(q) === 0) prefix.push(namn);
+      else if (subjects[i][1].toLowerCase().indexOf(q) > 0) inuti.push(namn);
+    }
+
+    /* Inom prefixgruppen vinner det kortaste namnet. Katalogordningen är
+       alfabetisk på ÄMNESKOD, vilket gav "Biologi – naturbruk – specialisering"
+       före "Biologi 1". Längden är en grov men träffsäker närhetsmätning: ju
+       mindre som står efter det eleven skrev, desto närmare är det det hen
+       menade. */
+    prefix.sort(function (a, b) { return a.length - b.length || a.localeCompare(b, "sv"); });
+    return prefix.concat(inuti).slice(0, 40);
+  }
+
   // ── Steg 1: ämne ─────────────────────────────────────────────────────────
 
   function stepSubject() {
@@ -349,7 +414,28 @@
     inp.value = S.course || "";
     inp.setAttribute("autocomplete", "off");
     inp.setAttribute("aria-label", "Kurs eller ämne");
+    inp.setAttribute("list", "xfCourseList");
     b.appendChild(inp);
+
+    /* En datalist och inte en egen rullgardin: den ärver systemets tangent- och
+       skärmläsarbeteende gratis, och fungerar likadant på mobil. Listan fylls om
+       vid varje tangenttryck och kapas — 2192 poster i en datalist är oanvändbart
+       på telefon, vilket är där de flesta pluggar. */
+    var dl = el("datalist");
+    dl.id = "xfCourseList";
+    b.appendChild(dl);
+
+    function paintSuggestions() {
+      var rows = eduSuggestions(inp.value);
+      dl.textContent = "";
+      for (var i = 0; i < rows.length; i++) {
+        var o = document.createElement("option");
+        o.value = rows[i];
+        dl.appendChild(o);
+      }
+    }
+
+    loadEduCatalog().then(paintSuggestions);
 
     var err = el("div", "xf-err");
     b.appendChild(err);
@@ -362,7 +448,7 @@
     }
 
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") next(); });
-    inp.addEventListener("input", function () { err.textContent = ""; });
+    inp.addEventListener("input", function () { err.textContent = ""; paintSuggestions(); });
 
     var act = el("div", "xf-act");
     var go = el("button", "xf-btn primary", "Vidare");
