@@ -52,7 +52,9 @@ check("skolform och årskurs slås ihop till en rad", /Gymnasiet, år 2 på gymn
 check("programmet skrivs med namn, inte kod",
   grund.includes("Naturvetenskapsprogrammet") && !grund.includes("NA25"));
 check("målbetyget är med", grund.includes("Målbetyg: A"));
-check("blocket förbjuder att uppgifterna nämns i onödan", /Nämn INTE uppgifterna bara för att visa/.test(grund));
+/* Instruktionen flyttade till _learner-context.js, som är det enda som sätter
+   ihop blocken. Här räcker att rubriken finns och att uppgifterna kommer med. */
+check("blocket har rätt rubrik", grund.includes("## OM ELEVEN"));
 
 console.log("\n— SÄKERT MOT OSÄKERT —");
 const säker = ctx({ help_style: { v: "kort", source: "inferred", confidence: 0.9 } });

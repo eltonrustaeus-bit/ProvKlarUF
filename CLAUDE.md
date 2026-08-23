@@ -98,6 +98,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_learner-profile.js` | Läser/skriver `learner_profile_facts` och bygger P.E.R:s elevkontext (hjälpare, ingen rutt) |
 | `api/_concept-tags.js` | Kanonisk form för modellens begreppstaggar — nyckeln till `user_profiles.mastery` (hjälpare, ingen rutt) |
 | `api/_mastery-view.js` | Läser kunskapsläget och avgör nästa steg. Enda vägen ut ur `mastery` (hjälpare, ingen rutt) |
+| `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
@@ -169,6 +170,24 @@ Any change to `api/` triggers security review checklist:
 - **`grade.js` är CJS.** Importera `_concept-tags.js` dynamiskt, aldrig statiskt —
   en statisk import över CJS/ESM-gränsen dödar funktionen vid inladdning
   (`ERR_REQUIRE_ESM`, samma avbrott som tog ned `/api/explain` 2026-08-22).
+
+## Elevkontexten är ETT block (2026-08-23)
+- **Lägg aldrig till ett eget elevavsnitt i prompten.** Allt om eleven går genom
+  `buildLearnerContext()`. Fram till 2026-08-23 byggde fyra filer var sitt avsnitt
+  utan att veta om varandra, och P.E.R. fick tre olika svar på "vad är eleven svag
+  på" — ett uppmätt och två gissade, utan rangordning.
+- **Rangordningen är uppmätt > sagt > härlett.** Ett begrepp som finns i
+  `user_profiles.mastery` med minst tre försök undertrycker AI:ns gissning om
+  samma begrepp (`dropMeasured()`). Bryt aldrig den ordningen.
+- **Härledda uppgifter måste märkas.** De ligger under en rubrik som säger att de
+  får forma svaret men aldrig påstås. Utan markeringen läses en gissning som en
+  mätning.
+- **Användningsinstruktionen står EN gång**, sist i blocket. Senare instruktioner
+  väger tyngre i en systemprompt. Lägg den inte i delblocken igen — den stod
+  tidigare i tre kopior samtidigt.
+- **Hjälpstilen bokförs bara i `learner_profile_facts`.** `recordHelpPreference()`
+  skriver den härledda signalen som `inferred`; `saveInferred()` skyddar automatiskt
+  elevens eget svar från onboardingen.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):

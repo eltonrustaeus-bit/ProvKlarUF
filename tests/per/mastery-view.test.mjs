@@ -106,9 +106,11 @@ check("svaga områden namnges", block.includes("Konsumenträtt"));
 check("starka områden namnges", block.includes("Fullmakt"));
 check("nästa steg finns med", /Nästa steg enligt elevens data/.test(block));
 /* Skalan får aldrig nå eleven. */
-check("blocket förbjuder att siffran läses upp", /säg aldrig 'din mastery är X'/.test(block));
-check("blocket förbjuder att svagheter nämns i onödan",
-  /bara när det gör svaret bättre/.test(block));
+check("blocket förbjuder att siffran läses upp", /säg aldrig\s+'din mastery är X'/.test(block));
+/* Den generella "nämn inte i onödan"-instruktionen låg tidigare även här. Den
+   samlas nu en gång i _learner-context.js och testas där — det som måste stå
+   kvar i DET HÄR blocket är skalregeln, som bara gäller dessa siffror. */
+check("skalregeln hör hemma i mastery-blocket", /Skalan 0–100 är intern/.test(block));
 
 /* Ett begrepp som eleven frågar om ska lyftas — men bara om det finns. */
 const träff = ctx({ fullmakt: rad(40, 5, "Fullmakt") }, { topic: "Fullmakt" });

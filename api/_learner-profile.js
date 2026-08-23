@@ -245,14 +245,10 @@ export function buildProfileContext(profile, { topic = "", today = new Date() } 
 
   if (!säkra.length && !osäkra.length) return "";
 
-  const rader = [
-    "## OM ELEVEN",
-    "",
-    "Använd det här för att forma svaret — nivå, längd, exempel och hur mycket du visar.",
-    "Nämn INTE uppgifterna bara för att visa att du har dem. Ta upp något om eleven",
-    "bara när det gör svaret bättre, och säg det då i en bisats, inte som en lista.",
-    "",
-  ];
+  /* Den generella användningsinstruktionen stod tidigare här OCH i
+     mastery-blocket OCH i historikblocket. Den samlas nu en gång i
+     api/_learner-context.js, som är det enda som sätter ihop dem. */
+  const rader = ["## OM ELEVEN", ""];
 
   if (säkra.length) rader.push(...säkra.map(r => `- ${r}`));
 

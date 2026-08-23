@@ -247,23 +247,18 @@ export function buildPERSystemPrompt({
   }
 
   if (studentName) lines.push(`Elevens namn: ${studentName} — använd det ibland, naturligt, inte i varje svar.`);
-  if (sessionContext) {
-    const sc = sessionContext;
-    const parts = [];
-    if (sc.sessionCount > 0)      parts.push(`${sc.sessionCount} sessioner`);
-    if (sc.examCount > 0)         parts.push(`${sc.examCount} prov genomförda`);
-    if (sc.lastActiveModule && sc.lastActiveModule !== "unknown") parts.push(`senaste modul: ${sc.lastActiveModule}`);
-    if (sc.scoreImprovement !== null && sc.scoreImprovement !== undefined) {
-      parts.push(`poängtrend: ${sc.scoreImprovement >= 0 ? "+" : ""}${sc.scoreImprovement}%`);
-    }
-    if (parts.length) lines.push(`Elevhistorik: ${parts.join(" · ")}`);
-  }
-  if (longMemory) lines.push(`## ELEVPROFIL (långtidsminne)\n${longMemory}`);
 
-  // Faktisk prov-/felbanksdata (mockprov, körkortsteori, felbank) — byggd av buildLearningSignals()
-  // i api/_per-memory.js. Detta var tidigare beräknat men ALDRIG skickat hit — bara den generella
-  // weakAreas-listan (körkortskategorier) nådde modellen, mockprov/felbank-signalerna kastades bort.
-  if (learningSignals) lines.push(`## FAKTISK PROV- OCH FELBANKSDATA\n${learningSignals}`);
+  /* "Elevhistorik", "## ELEVPROFIL (långtidsminne)" och "## FAKTISK PROV- OCH
+     FELBANKSDATA" renderades här fram till 2026-08-23. De byggdes av tre olika
+     filer som inte visste om varandra och gav upp till tre svar på samma fråga
+     om eleven — varav två var gissningar och inget rangordnade dem.
+
+     Allt tre går nu genom `learnerProfile`, byggd av api/_learner-context.js
+     med en uttalad ordning: uppmätt före sagt före härlett.
+
+     Parametrarna longMemory, sessionContext och learningSignals står kvar i
+     signaturen: buildPERSupportPrompt och buildPERSalesPrompt returneras FÖRE
+     den här punkten och tar fortfarande longMemory. */
 
   // Account status — lets PER answer account questions accurately
   const normalizedRole = normalizeRole(role);
@@ -421,9 +416,12 @@ export function buildPERSystemPrompt({
     ? `\n## KVOTINFO (intern)\nEleven har ${quotaRemaining} P.E.R-fråga kvar denna period. Nämn diskret mot slutet av svaret — en mening — att Premium ger obegränsat. Inga hårda säljargument, bara en naturlig notis.\n`
     : '';
 
-  const depthHint = (typeof preferredHelpLevel === 'number' && Number.isFinite(preferredHelpLevel) && preferredHelpLevel > 0)
-    ? `\n## ELEVPROFIL — FÖRKLARINGSDJUP\nEleven brukar föredra nivå ${preferredHelpLevel} (${['','konceptförklaring','steg-för-steg','fullständig lösning'][preferredHelpLevel]}). Börja där automatiskt om frågan inte antyder annat.\n`
-    : '';
+  /* "## ELEVPROFIL — FÖRKLARINGSDJUP" renderades här och sa samma sak som
+     elevprofilens "Föredrar: Steg för steg". Hjälpstilen bärs nu av
+     api/_learner-context.js, som utelämnar den härledda signalen helt när
+     eleven själv har svarat på frågan. Parametern står kvar i signaturen tills
+     alla anropare slutat skicka den. */
+  const depthHint = '';
 
   return `Du är ${PER_FULL}.
 
