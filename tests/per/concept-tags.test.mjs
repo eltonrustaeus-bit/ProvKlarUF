@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const { conceptKey, conceptLabel, groupConcepts, ERROR_CODES, isKnownErrorCode } =
+const { conceptKey, conceptLabel, groupConcepts, ERROR_CODES, isKnownErrorCode, resolveConceptTag } =
   await import(join(root, "api", "_concept-tags.js"));
 
 let failures = 0;
@@ -101,6 +101,50 @@ check("samma indata ger samma nyckel varje gång",
   conceptKey("Behörighet vs Befogenhet") === conceptKey("Behörighet vs Befogenhet"));
 check("nyckeln innehåller bara tecken som är säkra att lagra",
   ["Fel i varan", "KKöpL", "Ångerrätt", "35 % av x"].every(t => /^[a-zåäö0-9_]*$/.test(conceptKey(t))));
+
+console.log("\n— BEGREPPSTAGG UR EN FRÅGA —");
+/* Uppmätt i produktionsdata: 42 av 72 rättade frågor hade tom concept_tag och
+   gav noll kunskapsdata. Flervalsfrågor rättas deterministiskt (ingen AI sätter
+   taggen) och generate-exam satte inte fältet före 2026-08-23. Frågorna bär
+   ändå begreppet i subtopic/topic — men de två följer INGEN konsekvent
+   hierarki, så fältet kan inte väljas blint. */
+const rt = (q, g) => resolveConceptTag(q, g);
+
+check("concept_tag vinner när den finns",
+  rt({ topic: "X", subtopic: "Y", concept_tag: "Fotosyntes" }) === "Fotosyntes");
+check("rättningens egen tagg vinner över frågans",
+  rt({ concept_tag: "Gammal" }, { concept_tag: "Derivata" }) === "Derivata");
+check("subtopic används när concept_tag saknas",
+  rt({ topic: "Konsumenträtt", subtopic: "Bytesrätt" }) === "Bytesrätt");
+
+/* Hierarkin är omvänd i produktionsdata: {topic:"Presumption", subtopic:"KKöpL"}.
+   Regeln kan inte veta vilken som är begreppet — den tar den mest specifika
+   som DUGER, och normaliseringen gör resten. */
+check("omvänd hierarki ger ändå en användbar tagg",
+  rt({ topic: "Presumption", subtopic: "KKöpL" }) === "KKöpL");
+
+/* Det dyra fallet: ett generiskt subtopic ser ut som en riktig tagg men säger
+   ingenting om vad eleven kan. "Principer" som begrepp är sämre än inget. */
+for (const [generisk, väntat] of [
+  ["Principer", "Garanti och öppet köp"],
+  ["Allmän del", "Garanti och öppet köp"],
+  ["Övrigt", "Garanti och öppet köp"],
+  ["Sammanfattning", "Garanti och öppet köp"],
+  ["teori", "Garanti och öppet köp"],
+]) {
+  check(`generiskt subtopic "${generisk}" hoppas över`,
+    rt({ topic: "Garanti och öppet köp", subtopic: generisk }) === väntat);
+}
+
+check("frågetyp som subtopic hoppas över",
+  rt({ topic: "Ekvationer", subtopic: "multiple_choice" }) === "Ekvationer");
+/* Modellen svarar "Okänt" när den inte kan peka ut ett begrepp. Den strängen är
+   en platshållare och blev tidigare en rad i elevens kunskapsprofil. */
+check("platshållaren Okänt hoppas över till förmån för frågan",
+  rt({ topic: "Ekvationer" }, { concept_tag: "Okänt" }) === "Ekvationer");
+check("allt tomt ger tom tagg", rt({ topic: "", subtopic: "" }) === "");
+check("allt generiskt ger tom tagg", rt({ topic: "Övrigt", subtopic: "Principer" }) === "");
+check("saknad fråga kraschar inte", rt(undefined, undefined) === "" && rt(null, null) === "");
 
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);

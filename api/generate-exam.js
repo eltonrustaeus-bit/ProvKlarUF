@@ -82,7 +82,7 @@ function buildMockExamSchema(numQuestions) {
             required: [
               "id", "type", "points", "question", "options", "correct_index",
               "rubric", "model_answer",
-              "topic", "subtopic", "learning_objective", "source_references",
+              "topic", "subtopic", "concept_tag", "learning_objective", "source_references",
               "cognitive_level", "accepted_answers", "estimated_answer_length",
               "scoring_rubric"
             ],
@@ -97,6 +97,17 @@ function buildMockExamSchema(numQuestions) {
               model_answer: { type: "string" },
               topic: { type: "string" },
               subtopic: { type: "string" },
+              /* Begreppet frågan mäter, som en tagg. Skilt från topic/subtopic
+                 därför att de två har visat sig inkonsekventa i hierarkin —
+                 uppmätt i produktionsdata förekom både
+                 {topic:"Konsumenträtt", subtopic:"Bytesrätt"} och det omvända
+                 {topic:"Presumption", subtopic:"KKöpL"}, plus tomma subtopics
+                 som "Principer" och "Allmän del".
+
+                 concept_tag är det fält elevens kunskapsprofil byggs på
+                 (user_profiles.mastery via api/_concept-tags.js), så en
+                 inkonsekvent hierarki blev tyst fel data. */
+              concept_tag: { type: "string" },
               learning_objective: { type: "string" },
               source_references: { type: "array", items: { type: "string" }, maxItems: 5 },
               cognitive_level: { type: "string", enum: ["minnas", "förstå", "tillämpa", "analysera", "värdera"] },
@@ -446,6 +457,10 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     "4) rubric ska vara kort och poängfokuserad. " +
     "5) model_answer ska alltid finnas. För mc: förklara varför rätt alternativ är rätt. För short: skriv ett fullpoängssvar. " +
     "6) topic/subtopic/learning_objective ska kort beskriva vad frågan mäter. " +
+    "6b) concept_tag ska vara SJÄLVA BEGREPPET frågan prövar, som en kort substantivfras på 1-4 ord — inte en beskrivning och inte en fråga. " +
+    "Skriv samma begrepp likadant varje gång det återkommer. Exempel: 'Bytesrätt', 'Konjugatregeln', 'Fotosyntes', 'Derivatans definition', 'Ohms lag'. " +
+    "Skriv ALDRIG frågetypen ('flerval', 'kortsvar'), ett kapitelnummer, ett generiskt ord ('Principer', 'Allmän del', 'Övrigt') eller ett tomt värde. " +
+    "Kan du inte peka ut ett begrepp: använd det mest specifika ämnesordet i frågan. " +
     "7) source_references ska lista vilken del av det inskickade materialet frågan bygger på (kort citat eller rubrik) — hitta ALDRIG på fakta som inte finns i materialet. " +
     "8) cognitive_level ska vara ett av: minnas, förstå, tillämpa, analysera, värdera — matchat mot nivå (se separat instruktion). " +
     "9) Om type=='short': scoring_rubric.parts ska bryta ner poängen i konkreta delmoment (t.ex. 'Definition: 1p', 'Villkor: 2p') som tillsammans summerar till points. full_score_requirements ska säga EXAKT vad som krävs för full poäng — fråga aldrig i hemlighet efter mer än vad question-texten bad om. accepted_answers ska lista alternativa godtagbara formuleringar. " +
@@ -498,6 +513,8 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     "4) rubric must be short and point-focused. " +
     "5) model_answer must always exist. For mc: explain why the correct option is correct. For short: provide a full-score answer. " +
     "6) topic/subtopic/learning_objective must briefly describe what the question measures. " +
+    "6b) concept_tag must be THE CONCEPT the question tests, as a short noun phrase of 1-4 words — not a description, not a question. " +
+    "Write the same concept identically every time it recurs. Never write the question type, a chapter number, a generic word ('Principles', 'General'), or an empty value. " +
     "7) source_references must list which part of the provided material the question is based on (brief quote or heading) — NEVER invent facts not in the material. " +
     "8) cognitive_level must be one of: minnas, förstå, tillämpa, analysera, värdera — matched to the level (see separate instruction). " +
     "9) If type=='short': scoring_rubric.parts must break down the points into concrete sub-components (e.g. 'Definition: 1p', 'Conditions: 2p') that sum to points. full_score_requirements must state EXACTLY what is required for full marks — never secretly ask for more than what the question text requested. accepted_answers must list alternative acceptable phrasings. " +

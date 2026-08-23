@@ -150,3 +150,65 @@ export const ERROR_CODES = Object.freeze([
 export function isKnownErrorCode(code) {
   return ERROR_CODES.includes(String(code || ""));
 }
+
+/* ── Begreppstagg ur en fråga ──────────────────────────────────────────────
+ *
+ * concept_tag lades till i generate-exams schema 2026-08-23. Frågor genererade
+ * före det saknar fältet helt, och flervalsfrågor rättas deterministiskt — de
+ * får alltså ingen tagg från AI-rättningen heller. Uppmätt i produktionsdata:
+ * 42 av 72 rättade frågor hade tom concept_tag och gav noll kunskapsdata.
+ *
+ * Men frågorna bär redan begreppet, under andra namn. Problemet är att topic
+ * och subtopic INTE följer någon konsekvent hierarki. Uppmätt förekom både
+ *
+ *     { topic: "Konsumenträtt", subtopic: "Bytesrätt" }      hierarkiskt rätt
+ *     { topic: "Presumption",   subtopic: "KKöpL" }          omvänt
+ *     { topic: "Garanti och öppet köp", subtopic: "Principer" }  tomt subtopic
+ *
+ * Att blint ta subtopic hade gett "KKöpL" och "Principer" som begrepp — sämre
+ * än ingenting, eftersom de ser ut som riktiga taggar.
+ *
+ * Regeln nedan är därför: ta det första fält som ger en ANVÄNDBAR nyckel, och
+ * hoppa över de generiska orden som inte betyder något som begrepp.
+ */
+
+/* Subtopics som beskriver var i materialet frågan hör hemma, inte vad den
+   prövar. Som begreppstagg är de meningslösa — "Principer" säger ingenting om
+   vad eleven kan. */
+const GENERIC_SECTION = new Set([
+  "principer", "allmän del", "allmänt", "allmän", "grunder", "grundläggande",
+  "inledning", "introduktion", "översikt", "övrigt", "diverse", "del 1", "del 2",
+  "kapitel 1", "kapitel 2", "teori", "begrepp", "definitioner", "sammanfattning",
+]);
+
+function usableTag(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (GENERIC_SECTION.has(text.toLocaleLowerCase("sv"))) return "";
+  // conceptKey() fångar frågetyper och platshållare ("multiple_choice", "okänt").
+  return conceptKey(text) ? text : "";
+}
+
+/**
+ * Bästa tillgängliga begreppstagg för en fråga.
+ *
+ * Ordningen är avsiktlig: concept_tag är fältet som FINNS för att bära
+ * begreppet, subtopic är oftast mer specifik än topic, och topic är sista
+ * utvägen. Returnerar tom sträng när inget fält duger — en gissad tagg är
+ * värre än ingen, eftersom den blir en rad i elevens kunskapsprofil.
+ *
+ * @param question  frågan som genererades (kan sakna fälten)
+ * @param graded    rättningsraden, om AI-rättningen satt en egen tagg
+ */
+export function resolveConceptTag(question, graded = null) {
+  for (const kandidat of [
+    graded?.concept_tag,
+    question?.concept_tag,
+    question?.subtopic,
+    question?.topic,
+  ]) {
+    const tag = usableTag(kandidat);
+    if (tag) return tag;
+  }
+  return "";
+}
