@@ -8,8 +8,12 @@ import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHel
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
 import { flagsEnabled } from "./_flags.js";
-import { loadProfile, buildProfileContext } from "./_learner-profile.js";
-import { buildMasteryContext } from "./_mastery-view.js";
+/* buildProfileContext anropas inte härifrån längre — api/_learner-context.js är
+   enda stället som sätter ihop elevblocken, och en andra väg in i prompten är
+   precis det den här sammanslagningen tog bort. */
+import { loadProfile } from "./_learner-profile.js";
+import { buildLearnerContext, helpLevelToStyle } from "./_learner-context.js";
+import { saveInferred } from "./_learner-profile.js";
 import { helpCapFor, defaultHelpLevel } from "./_per-help.js";
 import perLegalPrompt, { sanitizeLegalQuestion } from "../src/ai/prompts/per-legal/v1.js";
 
@@ -234,6 +238,32 @@ async function savePerHistory(userId, messages) {
   } catch { /* best-effort */ }
 }
 
+/* Elevens hjälpnivå, bokförd på ETT ställe.
+ *
+ * Signalen skrevs tidigare bara till per_long_memory.structured
+ * (preferred_help_level), medan elevens EGET svar från onboardingen låg i
+ * learner_profile_facts.help_style. Två fält om samma sak, i två tabeller, utan
+ * något som sa vilket som gällde när de skilde sig åt.
+ *
+ * Nu skrivs båda till learner_profile_facts. saveInferred() vägrar skriva över
+ * ett fält eleven själv fyllt i, så det uttalade valet vinner automatiskt —
+ * utan att någon regel behöver upprepas i prompten.
+ *
+ * Den gamla skrivningen står kvar: ring-bufferten help_level_log är underlaget
+ * som gör härledningen möjlig, och den behövs för att preferred_help_level ska
+ * kunna räknas om.
+ *
+ * Låg confidence med flit. Att någon klickat "visa steg för steg" tre gånger
+ * betyder att de gjorde det på de frågorna, inte att de vill ha det alltid.
+ * Under ASSERT_CONFIDENCE hamnar den bland de osäkra iakttagelserna, som P.E.R.
+ * får låta forma svaret men aldrig påstå.
+ */
+function recordHelpPreference(supabase, userId, level) {
+  updateHelpLevelSignal(supabase, userId, level).catch(() => {});
+  const style = helpLevelToStyle(level);
+  if (style) saveInferred(supabase, userId, { help_style: style }, { confidence: 0.45 }).catch(() => {});
+}
+
 export default async function handler(req, res) {
   // GET — return stored PER history for the authenticated user
   if (req.method === "GET") {
@@ -451,25 +481,21 @@ export default async function handler(req, res) {
       flagsEnabled(supabase, ["per_learner_profile_enabled"], user.id),
     ]);
 
-    const learnerProfile = profileEnabled
-      ? buildProfileContext(await loadProfile(supabase, user.id), { topic })
-      : '';
-
-    /* Kunskapsläget per begrepp, skrivet av api/grade.js efter varje rättat
-       mockprov. Till skillnad från elevprofilen ligger det INTE bakom
-       per_learner_profile_enabled: siffrorna kommer från elevens egna prov och
-       är samma data som redan visas i felbanken. Det som är nytt är att P.E.R.
-       får läsa dem.
-
-       Blocket blir tomt tills ett begrepp har tre försök bakom sig — under det
-       är siffran inte belagd, och ett påstående om vad en elev är dålig på
-       måste vara belagt. */
-    let masteryContext = '';
+    /* ETT block om eleven, byggt av api/_learner-context.js med en rangordning:
+       uppmätt före sagt före härlett. Tidigare byggdes fem separata avsnitt av
+       fyra filer som inte visste om varandra, och gav upp till tre olika svar på
+       "vad är eleven svag på" — varav två var gissningar. */
+    let learnerContext = '';
     try {
-      const { data: up } = await supabase
-        .from("user_profiles").select("mastery").eq("id", user.id).maybeSingle();
-      masteryContext = buildMasteryContext(up?.mastery, { topic });
-    } catch { /* kunskapsläget är personalisering, aldrig ett skäl att fela */ }
+      const [profile, upRes] = await Promise.all([
+        profileEnabled ? loadProfile(supabase, user.id) : Promise.resolve(null),
+        supabase.from("user_profiles").select("mastery").eq("id", user.id).maybeSingle(),
+      ]);
+      learnerContext = buildLearnerContext(
+        { profile, mastery: upRes?.data?.mastery, structured: mergedStructured, summary: longMemory },
+        { topic, profileEnabled }
+      );
+    } catch { /* elevkontexten är personalisering, aldrig ett skäl att fela */ }
 
     // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
     // "mjuka" fälten (study_pattern, preferred_help_level, sessions_total, m.fl.) kräver ett
@@ -500,23 +526,16 @@ export default async function handler(req, res) {
       })
     );
 
+    /* Går INTE till prompten längre. Enda konsumenten är
+       maybeRefreshLongMemory() nedan, som använder den som underlag när den
+       skriver om elevens sammanfattning. Prompten får sin version genom
+       buildLearnerContext ovan, avduplicerad mot det som redan är uppmätt. */
     const learningSignals = buildLearningSignals({
       weakAreas:      mergedWeakAreas,
       recentMistakes: contextPack.recentMistakes,
       pageContext,
       structured:     mergedStructured,
     });
-
-    const sessionContext = structuredMemory ? {
-      sessionCount:      structuredMemory.sessions_total ?? 0,
-      lastActiveModule:  structuredMemory.last_module !== "unknown" ? structuredMemory.last_module : null,
-      examCount:         structuredMemory.exam_count ?? 0,
-      scoreImprovement:  (() => {
-        const traj = structuredMemory.score_trajectory;
-        if (!Array.isArray(traj) || traj.length < 2) return null;
-        return Math.round(traj[traj.length - 1] - traj[0]);
-      })(),
-    } : null;
 
     const rawNamePart = (user.email || '').split('@')[0].split(/[.\-_+]/)[0];
     const studentName = /^[a-zåäöA-ZÅÄÖ]{2,15}$/.test(rawNamePart)
@@ -540,7 +559,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
-      learnerProfile: [learnerProfile, masteryContext].filter(Boolean).join('\n\n'),
+      learnerProfile: learnerContext,
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,
@@ -558,9 +577,7 @@ export default async function handler(req, res) {
       recentMistakes: contextPack.recentMistakes,
       longMemory,
       studentName,
-      sessionContext,
-      preferredHelpLevel: structuredMemory?.preferred_help_level ?? null,
-      learningSignals,
+
     });
 
     const userMsg = userQuestion
@@ -630,7 +647,7 @@ export default async function handler(req, res) {
                      länge klienten inte skickar någon nivå finns det ingen
                      preferens att mäta, och då ska ingenting sparas.
          badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
-      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
+      if (badOmNivå !== null) recordHelpPreference(supabase, user.id, badOmNivå);
 
       res.write(`data: ${JSON.stringify({ done: true, history: newHistory, helpCap, helpLevelUsed: helpLevel })}\n\n`);
       return res.end();
@@ -657,7 +674,7 @@ export default async function handler(req, res) {
                      länge klienten inte skickar någon nivå finns det ingen
                      preferens att mäta, och då ska ingenting sparas.
          badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
-      if (badOmNivå !== null) updateHelpLevelSignal(supabase, user.id, badOmNivå).catch(() => {});
+      if (badOmNivå !== null) recordHelpPreference(supabase, user.id, badOmNivå);
       return res.json({ answer, history: newHistory, helpCap, helpLevelUsed: helpLevel });
     } catch (err) {
       return res.status(500).json({ error: err.message || "AI error" });

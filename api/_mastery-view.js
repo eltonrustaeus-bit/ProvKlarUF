@@ -165,11 +165,15 @@ export function buildMasteryContext(raw, { now = new Date(), topic = "" } = {}) 
 
   if (next) rader.push("", `Nästa steg enligt elevens data: ${next.reason}`);
 
+  /* Bara den regel som är UNIK för det här blocket står kvar. Den generella
+     "använd det för att forma svaret, räkna inte upp det"-instruktionen stod
+     tidigare i tre block samtidigt och samlas nu en gång i
+     api/_learner-context.js. Skalregeln hör hemma här: den gäller siffrorna på
+     just den här raden och ingen annanstans. */
   rader.push(
     "",
-    "Använd det här för att lägga nivån rätt och välja exempel. Räkna aldrig upp",
-    "siffrorna för eleven och säg aldrig 'din mastery är X' — det är en intern skala.",
-    "Nämn ett svagt område bara när det gör svaret bättre, och då i en bisats."
+    "Skalan 0–100 är intern. Räkna aldrig upp siffrorna för eleven och säg aldrig",
+    "'din mastery är X'."
   );
   return rader.join("\n");
 }
