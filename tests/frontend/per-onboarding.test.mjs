@@ -174,6 +174,46 @@ try {
     await t.close();
   }
 
+  // ── Tangentbord och mobil ────────────────────────────────────────────────
+  {
+    const t = await openApp();
+    const page = t.page;
+    await page.waitForSelector("#perOb");
+    /* aria-modal säger åt skärmläsare att ignorera sidan bakom, men stoppar
+       inte Tab. Utan fälla vandrar fokus ut i appen bakom överlägget. */
+    for (let i = 0; i < 25; i++) await page.keyboard.press("Tab");
+    R.ok("fokus lämnar aldrig dialogen",
+      await page.evaluate(() => document.getElementById("perOb")?.contains(document.activeElement) === true));
+    await t.close();
+  }
+
+  {
+    const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, isMobile: true, hasTouch: true });
+    const page = await ctx.newPage();
+    await mockApis(page);
+    await page.route("**/api/check-role", async r => {
+      let b = {}; try { b = JSON.parse(r.request().postData() || "{}"); } catch {}
+      if (b.action === "onboarding_state") return r.fulfill({ json: { ok: true, show: true } });
+      return r.fulfill({ json: { allow: true, ok: true, role: "premium", approved: true } });
+    });
+    await seed(page, {});
+    await page.goto(`${srv.url}/app.html`, { waitUntil: "networkidle" });
+    await page.waitForSelector("#perOb");
+
+    R.ok("inget vågrätt spill på 360 px",
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+      await page.evaluate(() => `${document.documentElement.scrollWidth} > ${window.innerWidth}`));
+
+    /* Alla knappar trycks med tummen. Under 44 px går de inte att träffa
+       pålitligt — hoppa över-knappen låg på ~36. */
+    const smått = await page.evaluate(() =>
+      [...document.querySelectorAll("#perOb button")]
+        .map(b => ({ t: b.textContent.trim().slice(0, 20), h: Math.round(b.getBoundingClientRect().height) }))
+        .filter(b => b.h < 44));
+    R.ok("varje knapp är minst 44 px hög", smått.length === 0, JSON.stringify(smått));
+    await ctx.close();
+  }
+
   {
     const t = await openApp();
     await t.page.waitForSelector("#perOb");
