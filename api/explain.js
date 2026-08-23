@@ -4,6 +4,7 @@ import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt, buil
 import { MODULES } from "./_modules.js";
 import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
+import { decideSalesMode, buildSalesGuardrail, SALES_MODE } from "./_per-sales.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
@@ -449,9 +450,17 @@ export default async function handler(req, res) {
     const pageContext = contextPack.pageContext;
 
     // Intent, mood, mode detection
+    /* Säljläget avgörs av VAR eleven är och VAD de gör, inte av att frågan
+       råkade innehålla ett ord. Det gamla mönstret matchade "gräns", "plan" och
+       "hur många" — sju av nio typiska studiefrågor utlöste säljprompten, så en
+       elev som frågade om gränsvärden mitt i ett matteprov fick en prisjämförelse.
+       SALES_TRIGGER_REGEX finns kvar men får bara rösta, aldrig bestämma ensamt. */
+    const sales = decideSalesMode({ loggedIn: true, pageContext, userQuestion });
+    const salesGuardrail = buildSalesGuardrail(sales.mode, { role });
+
     const intent      = SUPPORT_TRIGGER_REGEX.test(userQuestion)
       ? 'support'
-      : SALES_TRIGGER_REGEX.test(userQuestion)
+      : sales.mode === SALES_MODE.ASKED
         ? 'sales'
         : 'study';
     const mood        = FRUSTRATION_REGEX.test(userQuestion) ? 'frustrated' : 'normal';
@@ -559,7 +568,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
-      learnerProfile: learnerContext,
+      learnerProfile: [learnerContext, salesGuardrail].filter(Boolean).join('\n\n'),
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,

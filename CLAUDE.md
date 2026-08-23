@@ -99,6 +99,8 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_concept-tags.js` | Kanonisk form för modellens begreppstaggar — nyckeln till `user_profiles.mastery` (hjälpare, ingen rutt) |
 | `api/_mastery-view.js` | Läser kunskapsläget och avgör nästa steg. Enda vägen ut ur `mastery` (hjälpare, ingen rutt) |
 | `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
+| `api/_per-sales.js` | Avgör OM P.E.R. får sälja, utifrån var eleven är — inte utifrån frågans ord (hjälpare, ingen rutt) |
+| `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
@@ -188,6 +190,25 @@ Any change to `api/` triggers security review checklist:
 - **Hjälpstilen bokförs bara i `learner_profile_facts`.** `recordHelpPreference()`
   skriver den härledda signalen som `inferred`; `saveInferred()` skyddar automatiskt
   elevens eget svar från onboardingen.
+
+## Försäljning i P.E.R. (2026-08-23)
+- **Säljläget avgörs av kontext, aldrig av ett ord i frågan.** `decideSalesMode()`
+  tittar på var eleven är och vad de gör. Det gamla mönstret matchade `gräns`,
+  `plan`, `hur många` och `jämföra med` — sju av nio typiska studiefrågor utlöste
+  säljprompten, så en elev som frågade om gränsvärden mitt i ett matteprov fick en
+  prisjämförelse.
+- **`IN_EXAM` och `WORKING` är säljfria zoner.** Under ett pågående prov väntar
+  även en rak prisfråga: eleven har en klocka som tickar.
+- **Men vägra aldrig svara på en rak prisfråga utanför provet.** Att vika undan
+  från "vad kostar Premium" är otjänlighet, inte finkänslighet.
+- **Böj inte av med `\b` i svenska mönster.** `\bprenumeration\b` missar
+  `prenumerationen`. Lås ordstarten, låt slutet vara öppet (`\w*`).
+- **Landningsläget säljer genom att hjälpa.** Besökaren får svar på sin fråga
+  först — även ämnesfrågor. Den gamla prompten avvisade dem med "det svarar jag
+  bättre på inne i appen", vilket lärde besökaren att produkten inte hjälper.
+  Uppmaningen att skapa konto är **valfri**, max en, och får aldrig krävas i varje svar.
+- **`PROVIA_FAQ` får inte upprepa priser eller kvoter.** De byggs ur `PLAN_RULES`
+  av `buildPlanFacts()`; står de på två ställen ger nästa prisändring två svar.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):
