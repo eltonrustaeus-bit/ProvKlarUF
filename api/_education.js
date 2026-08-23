@@ -155,8 +155,16 @@ function codeList(value, max, lookup) {
   return out.length ? out : null;
 }
 
+/* value är jsonb och databasen garanterar inte typen — bara att det är giltig
+   JSON under 2 kB. En rad som av något skäl innehåller en sträng där en lista
+   förväntas får inte fälla hela P.E.R.-anropet, så varje format() som itererar
+   kontrollerar typen först. */
+function asList(value) {
+  return Array.isArray(value) ? value : [];
+}
+
 function subjectNames(codes) {
-  return codes.map(c => findSubject(c)?.name || c).join(", ");
+  return asList(codes).map(c => findSubject(c)?.name || c).join(", ");
 }
 
 export const PROFILE_FIELDS = Object.freeze({
@@ -204,7 +212,7 @@ export const PROFILE_FIELDS = Object.freeze({
     label: "Kurser och nivåer",
     personas: ["elev"],
     parse: v => codeList(v, 12, findLevel),
-    format: v => v.map(c => findLevel(c)?.displayName || c).join(", "),
+    format: v => asList(v).map(c => findLevel(c)?.displayName || c).join(", "),
   },
   goal_grade: {
     label: "Målbetyg",
