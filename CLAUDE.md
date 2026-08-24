@@ -98,6 +98,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_learner-profile.js` | Läser/skriver `learner_profile_facts` och bygger P.E.R:s elevkontext (hjälpare, ingen rutt) |
 | `api/_concept-tags.js` | Kanonisk form för modellens begreppstaggar — nyckeln till `user_profiles.mastery` (hjälpare, ingen rutt) |
 | `api/_mastery-view.js` | Läser kunskapsläget och avgör nästa steg. Enda vägen ut ur `mastery` (hjälpare, ingen rutt) |
+| `api/_adaptive-exam.js` | Vad elevens kunskapsläge betyder för nästa prov — viktning, aldrig svårighet (hjälpare, ingen rutt) |
 | `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
 | `api/_per-sales.js` | Avgör OM P.E.R. får sälja, utifrån var eleven är — inte utifrån frågans ord (hjälpare, ingen rutt) |
 | `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
@@ -222,6 +223,24 @@ Any change to `api/` triggers security review checklist:
   Uppmaningen att skapa konto är **valfri**, max en, och får aldrig krävas i varje svar.
 - **`PROVIA_FAQ` får inte upprepa priser eller kvoter.** De byggs ur `PLAN_RULES`
   av `buildPlanFacts()`; står de på två ställen ger nästa prisändring två svar.
+
+## Adaptiva prov (2026-08-24)
+- **Viktning, inte svårighet.** Kunskapsläget styr VILKA begrepp provet handlar
+  om. Nivån (E/C/A) väljer eleven själv — att i hemlighet sänka den för någon med
+  låg mastery vore att ljuga om vad ett C-prov är.
+- **Högst 40% riktade frågor** (`MAX_WEAK_SHARE`). Ett prov som bara prövar
+  svagheter är demoraliserande, mäter inte om det eleven kan sitter kvar, och
+  liknar inte det riktiga provet. Samma storleksordning som körkortsmodulens
+  adaptiva urval.
+- **Materialet styr alltid.** Instruktionen säger uttryckligen att modellen aldrig
+  får hitta på innehåll som saknas i materialet för att träffa ett svagt område.
+- **Provet får inte annonsera att det är anpassat.** Ett prov som säger "det här
+  är dina svagheter" läses som en dom, inte som ett prov.
+- **Bara belagda begrepp styr** (≥3 försök). Ett enda felsvar får inte bygga ett
+  helt prov — då sätter slumpen elevens studieplan.
+- **`generate-exam.js` är CJS.** Importera `_adaptive-exam.js` dynamiskt. En
+  profilläsning har 4 s timeout och returnerar tom sträng vid varje fel — den får
+  aldrig fälla en provgenerering eller äta av genereringsbudgeten.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):

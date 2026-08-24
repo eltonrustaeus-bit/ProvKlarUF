@@ -294,6 +294,47 @@ async function consumeMockExamQuota(userId, limit, rules) {
 // anrop, och beteendet verifieras på Vercel och inte bara lokalt. De riktiga
 // vägarna runt 60-sekundersgränsen är fortfarande högre maxDuration eller
 // generering i förväg till en frågebank.
+/* Elevens kunskapsläge in i provgenereringen.
+ *
+ * DYNAMISK import. generate-exam.js kompileras till CommonJS av Vercel medan
+ * _adaptive-exam.js är ESM — en statisk import över den gränsen blir ett
+ * require() av ESM och dödar funktionen vid inladdning, före första loggraden.
+ * Det är exakt det avbrott som tog ned /api/explain den 22 augusti.
+ */
+let _adaptive = null;
+async function adaptiveExam() {
+  if (!_adaptive) _adaptive = await import("./_adaptive-exam.js");
+  return _adaptive;
+}
+
+/* Hämtar elevens mastery och bygger promptinstruktionen. Aldrig ett skäl att
+   fela en provgenerering: kan profilen inte läsas genereras provet precis som
+   före 2026-08-24. */
+async function buildAdaptiveFocus(userId, { numQuestions, lang }) {
+  if (!userId) return "";
+  try {
+    const r = await fetch(
+      process.env.SUPABASE_URL + "/rest/v1/user_profiles?select=mastery&id=eq." + encodeURIComponent(userId),
+      {
+        headers: {
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: "Bearer " + process.env.SUPABASE_SERVICE_ROLE_KEY,
+        },
+        signal: AbortSignal.timeout(4000),
+      }
+    );
+    if (!r.ok) return "";
+    const rows = await r.json();
+    const mastery = Array.isArray(rows) ? rows[0]?.mastery : null;
+    if (!mastery) return "";
+
+    const { selectExamFocus, buildFocusInstruction } = await adaptiveExam();
+    return buildFocusInstruction(selectExamFocus(mastery, { numQuestions }), { lang });
+  } catch {
+    return "";
+  }
+}
+
 const FUNCTION_BUDGET_MS = 60_000;      // must match vercel.json maxDuration
 const RESPONSE_RESERVE_MS = 3_000;      // serialising and returning the response
 // Reserved for the verifier and the solver, which run concurrently. Measured
@@ -445,7 +486,7 @@ async function streamGeneration({ apiKey, payload, budgetMs }) {
   return { ok: true, text, cutShort, usage, latencyMs: Date.now() - t0 };
 }
 
-function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText, isMath }) {
+function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText, isMath, focusInstruction = "" }) {
   const systemSvBase =
     "Du skapar ett realistiskt mockprov som en svensk gymnasielärare. " +
     "Du MÅSTE följa JSON-schemat exakt och bara returnera JSON. " +
@@ -575,12 +616,20 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
         ? "Make ALL questions short answer (short)."
         : "Make a mix of 'mc' and 'short' (about half/half).";
 
+  /* Fokusinstruktionen står FÖRE materialet, inte efter. Materialet är det
+     längsta blocket i hela prompten, och en instruktion som hamnar efter det
+     drunknar. Före det läses den som en förutsättning för uppgiften.
+
+     Den står också i USER-prompten och inte i systemprompten: den gäller just
+     den här elevens just det här provet, medan systemprompten är samma för
+     alla och cachas. */
   const userSv = [
     `Skapa ett mockprov på nivå ${level}.`,
     course ? `Kurs/ämne: ${course}.` : "",
     `Frågetyp-val: ${qType}.`,
     mixRuleSv,
     `Antal frågor: ${numQuestions}.`,
+    focusInstruction,
     "",
     "Material (använd bara detta som underlag):",
     pastedText
@@ -592,6 +641,7 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     `Question type selection: ${qType}.`,
     mixRuleEn,
     `Number of questions: ${numQuestions}.`,
+    focusInstruction,
     "",
     "Material (use only this as the source):",
     pastedText
@@ -663,8 +713,13 @@ module.exports = async function handler(req, res) {
   const model = pickModel({ isMath });
   const responseFormat = buildMockExamSchema(numQuestions);
 
+  /* Kunskapsläget hämtas parallellt med att modellen väljs — 4 s timeout och
+     tom sträng vid varje fel, så en långsam profilläsning aldrig kan äta av
+     genereringsbudgeten eller fälla ett prov. */
+  const focusInstruction = await buildAdaptiveFocus(user.id, { numQuestions, lang });
+
   const { systemPrompt, userPrompt } = buildExamPrompts({
-    lang, level, course, qType, numQuestions, pastedText, isMath
+    lang, level, course, qType, numQuestions, pastedText, isMath, focusInstruction
   });
 
   try {
