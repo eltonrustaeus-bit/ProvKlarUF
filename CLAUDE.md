@@ -104,6 +104,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_per-role.js` | Studieplanerare och utmanare — de två roller som kräver belagd mastery (hjälpare, ingen rutt) |
 | `api/_math-curriculum.js` | Grundskolans matematik ur Skolverket + ExGens prerequisite-kedja (hjälpare, ingen rutt) |
 | `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
+| `api/_provia-roadmap.js` | ExGens nästa steg — Alléskolan-pitchen med verifierad statistik (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
 | `api/grade.js` | OpenAI call — validates user owns exam (CJS) |
@@ -296,6 +297,26 @@ Any change to `api/` triggers security review checklist:
 - **Hellre ingen områdeskoppling än en gissad.** `areaForConcept()` returnerar
   null när inget mönster träffar; en felaktig koppling skickar eleven att
   repetera något de redan kan medan luckan står kvar.
+
+## Alléskolan-pitchen (2026-08-24)
+- **Det finns INGEN kontakt, inget avtal och inget samarbete** med Alléskolan.
+  P.E.R. får beskriva piloten som ExGens egen ambition byggd på skolans
+  offentliga resultat — aldrig antyda att skolan är involverad, tillfrågad eller
+  positiv. Ett sådant påstående är kontrollerbart falskt, och den som
+  kontrollerar det är skolan själv.
+- **All statistik står i `ALLESKOLAN`, en gång.** Källa: Skolverkets
+  utbildningsguide, läsår 2024/25. Blocket byggs ur objektet så att en siffra
+  bara kan ändras på ett ställe. Citera aldrig en siffra ur minnet.
+- **Blocket ligger SIST i systemprompten.** Säkerhetsavsnittet förbjuder att
+  "opublicerade planer" avslöjas, och det står sent — pitchen måste komma efter,
+  och säkerhetsraden har därför ett uttryckligt undantag för avsnitt som säger
+  att något får berättas.
+- **Triggern kräver att frågan gäller företaget.** Utan kravet fångade "nästa
+  steg" varje studiefråga; "vad är nästa steg i uppgiften" är inte en fråga om
+  roadmapen.
+- **Siffror ska skrivas ut, inte sammanfattas.** Uppmätt mot riktiga modellen:
+  utan den regeln blev "8,7 mot rikets 11,4" till "under rikets medel", vilket
+  gör pitchen till en åsikt i stället för ett underlag.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):
