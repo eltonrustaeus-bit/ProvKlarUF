@@ -466,6 +466,17 @@
       return p === '/' || p === '' || p.includes('index') || p.includes('pricing');
     }
 
+    /* Hur många frågor en utloggad besökare får ställa per dygn.
+       Stod tidigare som talet 2 på fyra ställen: gränsen, kvarräknaren,
+       etiketten och spärrtexten. En höjning krävde fyra korrekta redigeringar,
+       och missades en sa gränsen och texten olika saker för besökaren.
+
+       Taket per IP och timme ligger separat i api/explain.js
+       (LANDING_HOURLY_LIMIT) och skyddar OpenAI-kostnaden. Det här talet styr
+       bara vad en enskild webbläsare får, och localStorage går att rensa — det
+       är alltså en vänlig gräns, inte ett säkerhetsskydd. */
+    var LANDING_FREE_QUESTIONS = 3;
+
     function landingQKey() { return 'proviaai_lq_' + new Date().toISOString().slice(0,10); }
     function landingGKey() { return 'proviaai_lg_' + new Date().toISOString().slice(0,10); }
 
@@ -489,8 +500,10 @@
       var leftEl = document.getElementById('perLandingLeft');
       if (!bar || !leftEl) return;
       var used = getLandingQuota();
-      var left = Math.max(0, 2 - used);
-      leftEl.textContent = left > 0 ? left + ' av 2 gratisfrågor kvar' : 'Gränsen nådd för idag';
+      var left = Math.max(0, LANDING_FREE_QUESTIONS - used);
+      leftEl.textContent = left > 0
+        ? left + ' av ' + LANDING_FREE_QUESTIONS + ' gratisfrågor kvar'
+        : 'Gränsen nådd för idag';
       bar.classList.add('visible');
     }
 
@@ -975,10 +988,10 @@
         // Landing quota gate
         if (isLandingMode) {
           var lq = getLandingQuota();
-          if (lq >= 2) {
+          if (lq >= LANDING_FREE_QUESTIONS) {
             stopThinking();
             if (typing) {
-              finalizeMsg(typing, 'Du har använt dina **2 gratisfrågor** för idag.\n\nSkapa ett gratis konto för att fortsätta — det tar 30 sekunder.');
+              finalizeMsg(typing, 'Du har använt dina **' + LANDING_FREE_QUESTIONS + ' gratisfrågor** för idag.\n\nSkapa ett gratis konto för att fortsätta — det tar 30 sekunder.');
               addAnswerCTA(typing);
             }
             if (sendBtn) sendBtn.disabled = false;
