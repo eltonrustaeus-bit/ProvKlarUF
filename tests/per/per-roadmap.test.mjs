@@ -33,6 +33,10 @@ for (const q of [
   "vad är er vision", "vart är ni på väg", "vad händer härnäst med exgen",
   "har ni en roadmap", "vad tänker ni göra härnäst", "exgens framtid",
   "er nästa satsning?",
+  // Naturliga formuleringar som missade i första versionen — uppmätt, inte gissat.
+  "vad är eran nästa plan", "berätta om exgens planer",
+  "vad har ni för planer framöver", "vad är målet med exgen",
+  "vad vill ni uppnå", "vad är er planering framåt", "vad är exgens plan",
 ]) check(`"${q}"`, rm.roadmapRelevant(q));
 
 /* Utan kravet att frågan gäller FÖRETAGET fångade mönstret varje studiefråga
@@ -41,6 +45,10 @@ for (const q of [
   "vad ska jag göra härnäst", "vad är nästa steg i uppgiften",
   "vad är nästa steg i uträkningen", "vad ska jag plugga på",
   "nästa fråga tack", "vilket steg kommer sen", "vad kostar premium",
+  // Ordet "plan" finns i varje ämne och i vardagsspråk. Utökningen ovan får
+  // inte dra in dem.
+  "hur planerar jag mina studier", "vad är målet med den här uppgiften",
+  "jag har planer i helgen", "kan du planera min vecka",
 ]) check(`"${q}" utlöser INTE pitchen`, !rm.roadmapRelevant(q));
 
 console.log("\n— GRÄNSEN SOM MÅSTE HÅLLA —");

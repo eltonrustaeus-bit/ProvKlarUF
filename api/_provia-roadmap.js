@@ -57,6 +57,12 @@ export const ROADMAP_TRIGGER_REGEX = new RegExp(
     "vad\\s+h[äa]nder\\s+(?:h[äa]rn[äa]st|sen|fram[öo]ver)\\s+(?:med|f[öo]r)\\s+exgen",
     "exgens?\\s+framtid",
     "vad\\s+(?:ska|t[äa]nker)\\s+(?:ni|exgen)\\s+g[öo]ra\\s+(?:h[äa]rn[äa]st|sen|nu|fram[öo]ver)",
+    // "berätta om exgens planer", "vad har ni för planer framöver"
+    "\\b(?:exgens?|era?|eran|ni)\\b[^?.!]{0,20}\\bplan(?:en|er|erna|ering\\w*)?\\b",
+    "\\bplan(?:er|erna|ering\\w*)\\b[^?.!]{0,20}\\b(?:exgen|ni|er|eran)\\b",
+    // "vad är målet med exgen", "vad vill ni uppnå"
+    "\\bm[åa]let?\\s+(?:med|f[öo]r)\\s+exgen",
+    "vad\\s+vill\\s+(?:ni|exgen)\\s+(?:uppn[åa]|åstadkomma|f[öo]r[äa]ndra)",
   ].join("|"),
   "i"
 );
