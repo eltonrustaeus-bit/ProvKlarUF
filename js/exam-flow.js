@@ -1333,7 +1333,16 @@
     machineShownAt = Date.now();
     UI.machine.classList.add("on");
     document.body.classList.add("xf-grading");
-    document.body.style.overflow = "hidden";
+    /* lockScroll(true), inte en direkt tilldelning. Att sätta stilen här utan
+       att gå genom lockScroll lämnade prevOverflow som null, och lockScroll(false)
+       i stopMachine() gör ingenting när prevOverflow är null — den grenen finns
+       just för att inte radera ett inline-värde som någon annan satt.
+
+       Följden var att body.overflow blev "hidden" och satt kvar när
+       resultatskärmen visades. Eleven såg sina poäng men kunde inte scrolla ner
+       till frågorna, feedbacken eller modellsvaren. Hela värdet av rättningen
+       låg utanför rutan. */
+    lockScroll(true);
     UI.log.innerHTML = "";
     UI.pep.textContent = "";
     var n = 0;
