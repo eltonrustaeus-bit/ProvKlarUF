@@ -61,6 +61,35 @@ check("sidmål listas när de finns", /#gratis — Gratisplanen/.test(p));
 /* Ett id modellen hittat på skulle bli en död länk för besökaren. */
 check("prompten förbjuder påhittade id:n", /Skriv aldrig ett id som inte står här/.test(p));
 
+console.log("\n— NAVIGERINGSMÅL —");
+/* Uppmätt i produktion 2026-08-24: en besökare frågade "vilka ämnen stöder ni"
+   och P.E.R. svarade med [GOTO:mockprov.html] — en sida som inte finns.
+   Klienten validerar målet mot _perNavLabels och ritar då ingen knapp alls, så
+   ingen död länk uppstod. Men besökaren blev kvar utan vägen vidare, och
+   orsaken var att app.html saknades i listan modellen fick välja ur. */
+const GILTIGA = ["app.html", "pricing.html", "konto.html", "korkortet.html", "live-demo.html"];
+/* Bara LISTRADERNA räknas — "[GOTO:sida.html]" i den inledande meningen är en
+   platshållare, och kommentaren som beskriver produktionsfelet nämner det
+   påhittade namnet med flit. Ett test som läser hela prompten hade läst båda
+   som förslag. */
+const mål = [...p.matchAll(/^- \[GOTO:([a-zåäö0-9._-]+)\]/gim)].map(m => m[1]);
+check("prompten föreslår bara sidor som finns",
+  mål.every(m => GILTIGA.includes(m)), mål.join(", "));
+check("app.html finns med — annars hittar modellen på ett namn",
+  mål.includes("app.html"), mål.join(", "));
+check("prompten förbjuder påhittade filnamn",
+  /Skriv ALDRIG ett annat filnamn än de som står ovan/.test(p));
+
+console.log("\n— DATALAGRING —");
+/* Modellen fyllde i "din data sparas inte längre än nödvändigt" — ett påstående
+   om personuppgiftshantering som inte står i FAQ:n och som ingen kan infria. */
+const faqText = (await import(join(root, "api", "_provia-faq.js"))).getProviaFaq();
+check("FAQ förbjuder påståenden om lagringstid",
+  /Säg ALDRIG något om lagringstid/.test(faqText));
+check("FAQ säger vad eleven själv kan radera",
+  /radera sina prov från kontosidan/.test(faqText));
+check("FAQ hänvisar vidare för resten", /integritetspolicyn/.test(faqText));
+
 console.log("\n— LÄNGD —");
 check("svaret hålls kort", /Max 110 ord/.test(p));
 /* Prompten kostar per besökare och landningsläget är oautentiserat. */
