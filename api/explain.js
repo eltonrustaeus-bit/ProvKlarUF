@@ -6,6 +6,7 @@ import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.j
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { decideSalesMode, buildSalesGuardrail, SALES_MODE } from "./_per-sales.js";
 import { decidePerRole, buildRoleInstruction } from "./_per-role.js";
+import { buildCurriculumContext } from "./_math-curriculum.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
@@ -497,6 +498,7 @@ export default async function handler(req, res) {
        "vad är eleven svag på" — varav två var gissningar. */
     let learnerContext = '';
     let roleInstruction = '';
+    let curriculumContext = '';
     try {
       const [profile, upRes] = await Promise.all([
         profileEnabled ? loadProfile(supabase, user.id) : Promise.resolve(null),
@@ -513,6 +515,15 @@ export default async function handler(req, res) {
          begreppet, och det beläget finns bara i den här läsningen. */
       const { role: perRole, concept } = decidePerRole({ userQuestion, pageContext, mastery, topic });
       roleInstruction = buildRoleInstruction(perRole, { concept });
+
+      /* Läroplanskopplingen för matematik. Ger P.E.R. Skolverkets centrala
+         innehåll för området — och vad området rimligen bygger på, så att ett
+         problem med procent kan spåras till bråk i årskurs 4-6.
+
+         Blocket byggs bara när begreppet faktiskt träffar ett matematikområde.
+         För varje annat ämne är det tomt, och kostar då ingenting. */
+      const åk = profile?.facts?.grade_year?.value ?? null;
+      curriculumContext = buildCurriculumContext(concept?.label || topic || userQuestion, { year: åk });
     } catch { /* elevkontexten är personalisering, aldrig ett skäl att fela */ }
 
     // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
@@ -577,7 +588,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
-      learnerProfile: [learnerContext, roleInstruction, salesGuardrail].filter(Boolean).join('\n\n'),
+      learnerProfile: [learnerContext, curriculumContext, roleInstruction, salesGuardrail].filter(Boolean).join('\n\n'),
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,
