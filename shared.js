@@ -677,12 +677,35 @@
 
     function register(fn) { _getToken = fn; }
 
+    /* En token som gått ut är inte en token.
+     *
+     * Funktionen returnerade tidigare access_token utan att titta på
+     * expires_at. Följden drabbade precis de besökare som varit inloggade
+     * någon gång: den döda token låg kvar i localStorage, isLandingMode blev
+     * false eftersom "en token finns", anropet gick som autentiserat, servern
+     * svarade 401 — och widgeten visade "Logga in för att chatta med P.E.R."
+     *
+     * En förstagångsbesökare med tomt localStorage fick sina gratisfrågor. Den
+     * som redan provat produkten blev utelåst. Exakt fel person.
+     *
+     * Marginalen på 60 sekunder är för att ett anrop som startar strax före
+     * utgången inte ska hinna bli ogiltigt på vägen till servern. */
+    var TOKEN_EXPIRY_MARGIN_S = 60;
+
+    function sessionIsLive(s) {
+      if (!s || !s.access_token) return false;
+      // Saknas expires_at går giltigheten inte att avgöra lokalt. Då används
+      // token, och servern får avgöra — 401-vägen fångar det.
+      if (!s.expires_at) return true;
+      return Number(s.expires_at) - TOKEN_EXPIRY_MARGIN_S > Date.now() / 1000;
+    }
+
     async function getToken() {
       if (_getToken) try { return await _getToken(); } catch (_) {}
       /* Fallback: read Supabase session directly from localStorage */
       try {
         var raw = localStorage.getItem('sb-mnmotdluigzeehdjbhbu-auth-token');
-        if (raw) { var s = JSON.parse(raw); return s?.access_token || ''; }
+        if (raw) { var s = JSON.parse(raw); return sessionIsLive(s) ? (s.access_token || '') : ''; }
       } catch (_) {}
       return '';
     }
@@ -1077,8 +1100,17 @@
           stopThinking();
           if (typing) {
             if (r.status === 401) {
+              /* Sista utvägen. getToken() sållar bort utgångna sessioner, men en
+                 token kan ha återkallats server-side eller vara ogiltig av skäl
+                 klienten inte kan se. Då ska besökaren INTE bli utelåst — de har
+                 gratisfrågor kvar och ska kunna använda dem.
+
+                 Sessionen städas bort så att nästa fråga går direkt till
+                 landningsläget i stället för att kosta ett anrop till. */
+              try { localStorage.removeItem('sb-mnmotdluigzeehdjbhbu-auth-token'); } catch (_) {}
               typing.className = 'per-msg teacher';
-              typing.textContent = 'Logga in för att chatta med P.E.R.';
+              typing.textContent = 'Din inloggning har gått ut. Skicka frågan igen så svarar jag — du har gratisfrågor kvar.';
+              updateLandingBar();
             } else if (!r.ok) {
               typing.className = 'per-msg teacher';
               typing.textContent = data.error || 'Fel — försök igen.';
@@ -1549,7 +1581,10 @@
       var _hasSession = false;
       try {
         var _rawSess = localStorage.getItem('sb-mnmotdluigzeehdjbhbu-auth-token');
-        if (_rawSess) { var _sessObj = JSON.parse(_rawSess); _hasSession = !!(_sessObj && _sessObj.access_token); }
+        // Samma giltighetsprövning som getToken(). En utgången session ska visa
+        // gratisraden, inte dölja den — annars ser besökaren inga frågor kvar
+        // samtidigt som de faktiskt har tre.
+        if (_rawSess) { _hasSession = sessionIsLive(JSON.parse(_rawSess)); }
       } catch (_) {}
       if (!_hasSession) updateLandingBar();
 
