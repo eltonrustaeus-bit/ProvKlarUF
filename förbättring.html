@@ -334,7 +334,41 @@
     @media(prefers-reduced-motion:reduce){
       *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
     }
-  </style>
+  
+/* ── Nästa steg ──
+   Ligger överst i Min utveckling, före de fyra vägarna. Det är den enda plats i
+   produkten där elevens kunskapsprofil möter eleven själv, så den ska läsas
+   först och kännas som ett råd — inte som ett betyg. */
+.xfNextFocus{
+  border:1px solid var(--exgen-border,#E4E7EC);
+  border-radius:var(--exgen-radius,12px);
+  padding:16px 18px;
+  margin:0 0 18px;
+  background:var(--exgen-bg-secondary,#F8FAFC);
+}
+.xfNextFocusTitle{
+  font-size:17px;font-weight:700;letter-spacing:-.01em;
+  margin:6px 0 0;color:var(--exgen-text,#1B2430);
+}
+.xfNextFocusWhy{
+  font-size:14px;line-height:1.5;margin-top:5px;
+  color:var(--exgen-text-secondary,#667085);
+}
+.xfNextFocusChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.xfChip{
+  font-size:12.5px;padding:4px 10px;border-radius:999px;
+  border:1px solid var(--exgen-border,#E4E7EC);
+  background:var(--exgen-bg,#fff);color:var(--exgen-text-secondary,#667085);
+}
+/* Nivåerna färgas svagt. Kraftigare färg hade gjort listan till ett betygsblad,
+   och orden bär redan informationen. */
+.xfChip--behöver-träning{border-color:rgba(244,183,64,.5);color:var(--exgen-warning-text,#92620A)}
+.xfChip--sitter{border-color:rgba(52,199,89,.45);color:var(--exgen-success-text,#166534)}
+@media (max-width:520px){
+  .xfNextFocus{padding:14px}
+  .xfNextFocusTitle{font-size:16px}
+}
+</style>
   <!-- Sidlokal post i menyarket. "Rensa all data" är en handling på den
        här sidan, inte en destination, så den hamnar under avdelaren. -->
   <script>window.XG_MENU_EXTRA = [
@@ -999,6 +1033,80 @@
       body.appendChild(b);
     }
 
+    /* ── NÄSTA STEG ──
+       decideNextFocus() på servern räknade redan ut vad eleven borde göra
+       härnäst, men resultatet gick bara in i P.E.R:s prompt — det syntes
+       ingenstans om man inte frågade. Här visas det oombedt.
+
+       Beslutet är deterministiskt kod, inte en modell: vyn kostar ingen token
+       och ger samma svar varje gång. En AI-genererad rekommendation vid varje
+       sidladdning hade varit både dyr och olika från gång till gång. */
+    let nextFocus=null, nextFocusHamtad=false;
+
+    async function hamtaNextFocus(){
+      if(nextFocusHamtad) return nextFocus;
+      nextFocusHamtad=true;
+      try{
+        const{data:sd}=await db.auth.getSession();
+        const token=sd?.session?.access_token||'';
+        if(!token) return null;
+        const r=await fetch('/api/check-role',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+          body:JSON.stringify({action:'next_focus'})
+        });
+        const d=await r.json().catch(()=>({}));
+        if(r.ok&&d.ok) nextFocus=d;
+      }catch(_){ /* rekommendationen är en bonus, aldrig ett skäl att fela sidan */ }
+      return nextFocus;
+    }
+
+    /* Kortet ritas bara när servern faktiskt har ett belagt begrepp att peka på.
+       Ett tomt "nästa steg"-kort på ett konto utan data är brus, och en
+       rekommendation utan skäl är en order — därför alltid båda eller ingen. */
+    function ritaNextFocus(container){
+      if(!nextFocus||!nextFocus.focus) return;
+      const f=nextFocus.focus;
+
+      const kort=document.createElement('div');
+      kort.className='xfNextFocus';
+
+      const eyebrow=document.createElement('span');
+      eyebrow.className='xf-eyebrow';
+      eyebrow.textContent='P.E.R rekommenderar';
+      kort.appendChild(eyebrow);
+
+      const rubrik=document.createElement('div');
+      rubrik.className='xfNextFocusTitle';
+      rubrik.textContent=f.title+' '+f.label;
+      kort.appendChild(rubrik);
+
+      if(f.reason){
+        const skal=document.createElement('div');
+        skal.className='xfNextFocusWhy';
+        skal.textContent=f.reason;
+        kort.appendChild(skal);
+      }
+
+      /* Begreppen visas i ord, aldrig som siffra. Skalan 0-100 är intern —
+         ingen har förklarat vad 47 betyder och ingen lärare har satt den, så
+         en siffra här hade lästs som ett betyg. */
+      const lista=(nextFocus.concepts||[]).slice(0,6);
+      if(lista.length){
+        const rad=document.createElement('div');
+        rad.className='xfNextFocusChips';
+        lista.forEach(c=>{
+          const chip=document.createElement('span');
+          chip.className='xfChip xfChip--'+String(c.level||'').replace(/\s+/g,'-');
+          chip.textContent=c.label+' · '+c.level;
+          rad.appendChild(chip);
+        });
+        kort.appendChild(rad);
+      }
+
+      container.appendChild(kort);
+    }
+
     /* ── INGÅNGEN ──
        Vägarna bär sitt eget tillstånd i undertexten. En väg som inte går att
        ta säger varför — en spärrad knapp utan skäl är en återvändsgränd. */
@@ -1021,6 +1129,7 @@
       }
 
       const body=flow.body('hem');
+      ritaNextFocus(body);
       const opts=document.createElement('div');
       opts.className='xf-opts';
       body.appendChild(opts);
@@ -1294,6 +1403,12 @@
       renderHem(); renderFelbank(); renderProv(); renderCoach(); renderRapport();
       pushPerContext();
     }
+
+    /* Rekommendationen hämtas asynkront medan resten av sidan redan ritats.
+       renderAll är synkron med flit — sidan ska inte vänta på ett nätanrop för
+       att visa data som redan finns lokalt. När svaret kommer ritas hemskärmen
+       om en gång, och bara om det faktiskt fanns något att visa. */
+    hamtaNextFocus().then(d=>{ if(d&&d.focus) renderHem(); });
 
     /* Skärmen som just öppnades ska visa aktuell data — annars står coachen
        kvar på siffror från innan senaste synk. */

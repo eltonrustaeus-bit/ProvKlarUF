@@ -5,6 +5,7 @@ import { clearLongMemory } from "./_per-memory.js";
 import { flagsEnabled } from "./_flags.js";
 import { PERSONAS } from "./_education.js";
 import { loadProfile, saveFacts, forgetFact, forgetAllFacts, profileForDisplay } from "./_learner-profile.js";
+import { nextFocusForDisplay, masteryForDisplay } from "./_mastery-view.js";
 import { callAI } from "./_per-core.js";
 import { SITE_ORIGIN } from "./_site.js";
 import { MAINTENANCE, maintenanceAllows } from "./_maintenance.js";
@@ -226,6 +227,31 @@ export default async function handler(req, res) {
    * och användarna är till stor del minderåriga. Skrivning är däremot grindad
    * som allt annat oprövat.
    */
+  /* Elevens kunskapsläge och nästa steg, för Min utveckling.
+   *
+   * Deterministiskt och gratis — decideNextFocus() är kod, inte en modell, så
+   * vyn kostar ingen token och ger samma svar varje gång. Det är också skälet
+   * till att den kan visas oombedd: en AI-genererad rekommendation vid varje
+   * sidladdning hade varit både dyr och olika från gång till gång.
+   *
+   * Inte grindad av per_learner_profile_enabled: siffrorna kommer från elevens
+   * egna prov och är samma data som felbanken redan visar.
+   */
+  if (action === "next_focus") {
+    try {
+      const { data } = await supabase
+        .from("user_profiles").select("mastery").eq("id", user.id).maybeSingle();
+      const mastery = data?.mastery || null;
+      return res.status(200).json({
+        ok: true,
+        focus: nextFocusForDisplay(mastery),
+        concepts: masteryForDisplay(mastery),
+      });
+    } catch {
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  }
+
   if (action === "profile_get") {
     try {
       const profile = await loadProfile(supabase, user.id);

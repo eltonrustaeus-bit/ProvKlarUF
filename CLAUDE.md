@@ -181,8 +181,14 @@ Any change to `api/` triggers security review checklist:
 - **Tre försök krävs innan P.E.R. får påstå något** (`MIN_ATTEMPTS_TO_TRUST`).
   Under det är siffran tur eller otur, och ett påstående om vad en elev är dålig
   på måste vara belagt.
-- **Skalan 0–100 är intern.** P.E.R. får aldrig läsa upp den för eleven —
-  promptblocket i `_mastery-view.js` förbjuder det uttryckligen.
+- **Skalan 0–100 är intern — även i gränssnittet.** P.E.R. får aldrig läsa upp
+  den, och `förbättring.html` visar nivån i ord (`behöver träning` / `på gång` /
+  `sitter`). Ingen har förklarat vad 47 betyder och ingen lärare har satt den, så
+  en siffra läses som ett betyg.
+- **Rendera aldrig `decideNextFocus().reason`.** Den texten är skriven för
+  prompten och innehåller siffran. Använd `nextFocusForDisplay()`, som skriver om
+  skälet för eleven. Ett browsertest som mockar serversvaret kan inte fånga den
+  läckan — servertestet i `tests/per/mastery-view.test.mjs` gör det.
 - **`grade.js` är CJS.** Importera `_concept-tags.js` dynamiskt, aldrig statiskt —
   en statisk import över CJS/ESM-gränsen dödar funktionen vid inladdning
   (`ERR_REQUIRE_ESM`, samma avbrott som tog ned `/api/explain` 2026-08-22).
