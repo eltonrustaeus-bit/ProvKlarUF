@@ -133,6 +133,83 @@ export function decideNextFocus(mastery, { now = new Date() } = {}) {
   return null;
 }
 
+/* ── Vad eleven får se ─────────────────────────────────────────────────────
+ *
+ * Skalan 0–100 är INTERN. Den visas aldrig för eleven, varken av P.E.R. eller i
+ * ett gränssnitt: ingen har förklarat vad 47 betyder, ingen lärare har satt
+ * den, och en siffra utan skala läses som ett betyg. Nivån uttrycks i ord i
+ * stället — det är ärligare och kräver ingen förklaring.
+ */
+const LEVEL_WORDS = [
+  [WEAK_BELOW, "behöver träning"],
+  [STRONG_AT_OR_ABOVE, "på gång"],
+  [Infinity, "sitter"],
+];
+
+export function masteryWord(score) {
+  for (const [tak, ord] of LEVEL_WORDS) if (score < tak) return ord;
+  return "sitter";
+}
+
+/* Text för de fyra besluten decideNextFocus kan fatta. Skälet kommer med
+   separat — en rekommendation utan skäl är en order. */
+const ACTION_TITLES = {
+  träna_svagt: "Träna på",
+  bekräfta_nivå: "Testa var du står i",
+  repetera: "Repetera",
+  höj_svårighet: "Utmana dig i",
+};
+
+/**
+ * Nästa steg, formaterat för ett gränssnitt.
+ * @returns {{ title, label, reason, action }|null}
+ */
+export function nextFocusForDisplay(mastery, { now = new Date() } = {}) {
+  const rows = readMastery(mastery, { now });
+  const next = decideNextFocus(rows, { now });
+  if (!next) return null;
+
+  /* Skälet skrivs om för eleven. decideNextFocus().reason innehåller siffran
+     ("ligger på 28 av 100 efter 6 försök") och är skriven för P.E.R:s prompt —
+     den texten får aldrig nå ett gränssnitt, eftersom den läcker precis den
+     interna skala resten av filen håller dold. */
+    const rad = rows.find(r => r.key === next.concept);
+  const n = rad?.attempts ?? 0;
+  // "1 gånger" och "1 försök" är fel svenska, och texten möter eleven direkt.
+  const försök = n ? `${n} ${n === 1 ? "försök" : "försök"}` : "";
+  const gånger = n === 1 ? "en gång" : `${n} gånger`;
+
+  const skäl = {
+    träna_svagt: `Det här har återkommit i dina prov${försök ? ` — ${försök} hittills` : ""}.`,
+    bekräfta_nivå: `Du har bara mött det här ${n ? gånger : "några gånger"}. Ett prov till visar var du står.`,
+    repetera: rad?.ageDays != null
+      ? `Du har inte tränat det här på ${Math.round(rad.ageDays)} dagar.`
+      : "Det var ett tag sedan du tränade det här.",
+    höj_svårighet: "Det här sitter. Dags för svårare frågor.",
+  }[next.action] || "";
+
+  return {
+    action: next.action,
+    title: ACTION_TITLES[next.action] || "Nästa steg",
+    label: next.label,
+    reason: skäl,
+  };
+}
+
+/**
+ * Kunskapsläget som lista för ett gränssnitt. Bara belagda begrepp — ett
+ * begrepp med ett försök bakom sig säger inget, och att visa det som en nivå
+ * vore att påstå något systemet inte vet.
+ * @returns {Array<{ key, label, level, attempts }>}
+ */
+export function masteryForDisplay(mastery, { now = new Date(), limit = 12 } = {}) {
+  return readMastery(mastery, { now })
+    .filter(r => r.trusted)
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map(r => ({ key: r.key, label: r.label, level: masteryWord(r.score), attempts: r.attempts }));
+}
+
 /**
  * Kunskapsprofilen som prompt-block. Tom sträng när det inte finns något
  * belagt nog att säga.
