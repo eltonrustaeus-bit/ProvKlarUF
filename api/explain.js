@@ -5,6 +5,7 @@ import { MODULES } from "./_modules.js";
 import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
 import { decideSalesMode, buildSalesGuardrail, SALES_MODE } from "./_per-sales.js";
+import { decidePerRole, buildRoleInstruction } from "./_per-role.js";
 import { buildLearningSignals, loadLongMemory, maybeRefreshLongMemory, updateHelpLevelSignal, enrichMemoryFromExamData, deriveStyleSignals } from "./_per-memory.js";
 import { getFeatureLimit, normalizeRole } from "./_provia-rules.js";
 import { buildPERContextPack } from "./_per-context.js";
@@ -495,15 +496,23 @@ export default async function handler(req, res) {
        fyra filer som inte visste om varandra, och gav upp till tre olika svar på
        "vad är eleven svag på" — varav två var gissningar. */
     let learnerContext = '';
+    let roleInstruction = '';
     try {
       const [profile, upRes] = await Promise.all([
         profileEnabled ? loadProfile(supabase, user.id) : Promise.resolve(null),
         supabase.from("user_profiles").select("mastery").eq("id", user.id).maybeSingle(),
       ]);
+      const mastery = upRes?.data?.mastery;
       learnerContext = buildLearnerContext(
-        { profile, mastery: upRes?.data?.mastery, structured: mergedStructured, summary: longMemory },
+        { profile, mastery, structured: mergedStructured, summary: longMemory },
         { topic, profileEnabled }
       );
+
+      /* Vilken pedagogisk roll situationen kräver. Avgörs HÄR eftersom mastery
+         redan är läst — utmanarrollen kräver belägg för att eleven kan
+         begreppet, och det beläget finns bara i den här läsningen. */
+      const { role: perRole, concept } = decidePerRole({ userQuestion, pageContext, mastery, topic });
+      roleInstruction = buildRoleInstruction(perRole, { concept });
     } catch { /* elevkontexten är personalisering, aldrig ett skäl att fela */ }
 
     // Live DB-fakta vinner alltid över den dagsgamla cachen för dessa fält. De AI-härledda
@@ -568,7 +577,7 @@ export default async function handler(req, res) {
       userQuestion,
       collectiveBlock,
       context: ctxParts.join('\n'),
-      learnerProfile: [learnerContext, salesGuardrail].filter(Boolean).join('\n\n'),
+      learnerProfile: [learnerContext, roleInstruction, salesGuardrail].filter(Boolean).join('\n\n'),
       weakAreas: mergedWeakAreas,
       role,
       helpLevel,

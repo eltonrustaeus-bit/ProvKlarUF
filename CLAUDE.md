@@ -101,6 +101,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_adaptive-exam.js` | Vad elevens kunskapsläge betyder för nästa prov — viktning, aldrig svårighet (hjälpare, ingen rutt) |
 | `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
 | `api/_per-sales.js` | Avgör OM P.E.R. får sälja, utifrån var eleven är — inte utifrån frågans ord (hjälpare, ingen rutt) |
+| `api/_per-role.js` | Studieplanerare och utmanare — de två roller som kräver belagd mastery (hjälpare, ingen rutt) |
 | `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
@@ -256,6 +257,21 @@ Any change to `api/` triggers security review checklist:
 - **`generate-exam.js` är CJS.** Importera `_adaptive-exam.js` dynamiskt. En
   profilläsning har 4 s timeout och returnerar tom sträng vid varje fel — den får
   aldrig fälla en provgenerering eller äta av genereringsbudgeten.
+
+## P.E.R:s pedagogiska roller (2026-08-24)
+- **De flesta rollerna finns redan** i `buildPERSystemPrompt`: `helpLevel 0` är
+  sokratisk, `1–2` undervisande, `quiz` examinerande, `feynman` återkopplande,
+  `intent === 'support'` kontohjälp. Lägg inte till en åttonde variant utan att
+  först se om beteendet redan finns.
+- **`_per-role.js` täcker bara de två roller som kräver belagd mastery.**
+  Studieplaneraren (eleven frågar vad de ska göra) och utmanaren (eleven frågar
+  om något de bevisligen kan).
+- **Utmanaren kräver ≥3 försök.** Att höja ribban för någon som råkat ha tur en
+  gång är att sätta dem på ett prov de inte klarar.
+- **Ett pågående prov slår varje roll.** En studieplan när eleven har en klocka
+  som tickar är rätt svar på fel fråga.
+- **Rollen får aldrig synas för eleven.** §11 är uttrycklig: P.E.R. ska förstå
+  vilket beteende som passar, inte annonsera det.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):
