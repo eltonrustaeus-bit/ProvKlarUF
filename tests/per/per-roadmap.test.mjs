@@ -27,39 +27,68 @@ const check = (n, c, d = "") => {
   else { failures++; console.error(`  FAIL  ${n}${d ? " — " + d : ""}`); }
 };
 
-console.log("\n— UTLÖSNING —");
+console.log("\n— VISION MOT ALLÉSKOLAN —");
+/* Före uppdelningen fanns ETT block, och varje visionsfråga gav
+   Alléskolan-pitchen. Att svara "vi ska hjälpa en skola i Åtvidaberg med matte"
+   på frågan om ExGens vision gör produkten mindre än den är — det låter som ett
+   lokalt matteprojekt i stället för en studieplattform för hela grundskolan och
+   gymnasiet. */
 for (const q of [
   "vad är exgens nästa stora plan?", "vad är nästa steg för exgen",
   "vad är er vision", "vart är ni på väg", "vad händer härnäst med exgen",
   "har ni en roadmap", "vad tänker ni göra härnäst", "exgens framtid",
-  "er nästa satsning?",
-  // Naturliga formuleringar som missade i första versionen — uppmätt, inte gissat.
-  "vad är eran nästa plan", "berätta om exgens planer",
-  "vad har ni för planer framöver", "vad är målet med exgen",
-  "vad vill ni uppnå", "vad är er planering framåt", "vad är exgens plan",
-]) check(`"${q}"`, rm.roadmapRelevant(q));
+  "er nästa satsning?", "vad är eran nästa plan", "berätta om exgens planer",
+  "vad har ni för planer framöver", "vad är målet med exgen", "vad vill ni uppnå",
+]) {
+  check(`"${q}" → vision`, rm.visionRelevant(q) && !rm.alleskolanRelevant(q));
+}
 
-/* Utan kravet att frågan gäller FÖRETAGET fångade mönstret varje studiefråga
-   som råkade innehålla "nästa steg". Uppmätt innan kravet lades till. */
+/* Skolan måste nämnas vid namn. */
+for (const q of [
+  "vad är exgens nästa projekt med alléskolan",
+  "vad är exgens nästa projekt med alleskolan",
+  "berätta om alléskolan", "vad gör ni i åtvidaberg",
+  "alléskolan?",
+]) check(`"${q}" → Alléskolan`, rm.alleskolanRelevant(q));
+
 for (const q of [
   "vad ska jag göra härnäst", "vad är nästa steg i uppgiften",
   "vad är nästa steg i uträkningen", "vad ska jag plugga på",
   "nästa fråga tack", "vilket steg kommer sen", "vad kostar premium",
-  // Ordet "plan" finns i varje ämne och i vardagsspråk. Utökningen ovan får
-  // inte dra in dem.
   "hur planerar jag mina studier", "vad är målet med den här uppgiften",
   "jag har planer i helgen", "kan du planera min vecka",
-]) check(`"${q}" utlöser INTE pitchen`, !rm.roadmapRelevant(q));
+]) check(`"${q}" utlöser ingetdera`, !rm.visionRelevant(q) && !rm.alleskolanRelevant(q));
+
+console.log("\n— VISIONEN ÄR GENERELL —");
+const v = rm.buildVisionContext();
+check("visionen nämner inte Alléskolan", !/all[ée]skolan|åtvidaberg/i.test(v));
+/* Visionen gäller alla ämnen. Nämns matematik läser den som ett matteprojekt. */
+check("visionen nämner inte matematik", !/matematik|matte\b/i.test(v));
+check("visionen gäller grundskolan och gymnasiet", /grundskolan och gymnasiet/.test(v));
+check("visionen säger uttryckligen att den inte gäller ett ämne",
+  /Inte ett ämne, inte en årskurs, inte en skola/.test(v));
+check("visionen beskriver problemet konkret", /6 av 10 rätt/.test(v));
+check("visionen lovar inga resultat", /Lova aldrig resultat som ingen mätt/.test(v));
+check("visionen tillåter ärlig osäkerhet", /vet inte än om det räcker/.test(v));
 
 console.log("\n— GRÄNSEN SOM MÅSTE HÅLLA —");
-const b = rm.buildRoadmapContext();
+const b = rm.buildAlleskolanContext();
 check("blocket säger att ingen kontakt finns", /INGEN kontakt med Alléskolan/.test(b));
 check("och att det inte finns något avtal", /inget avtal och inget samarbete/.test(b));
 check("och förbjuder varje antydan om skolans inställning",
   /aldrig att skolan\s*\n?är involverad, tillfrågad, intresserad eller positiv/.test(b));
 check("och säger varför det spelar roll", /kontrollerbart falskt/.test(b));
+/* Uppmätt: modellen skrev "det pågående arbetet med Alléskolan" i samma svar
+   som den sa att ingen kontakt finns. Två motstridiga påståenden i ett stycke,
+   och läsaren tror på det första. */
+check("blocket förbjuder ord som låter som pågående arbete",
+  /Skriv aldrig .pågående/.test(b));
+check("och kräver futurum", /aldrig i presens eller perfekt/.test(b));
 /* Ett block som beskriver piloten som pågående vore samma fel i mjukare form. */
 check("piloten beskrivs som ExGens egen ambition", /ExGens egen ambition/.test(b));
+/* Pitchen får inte läsa som hela produkten. */
+check("piloten ramas in som EN del av något större",
+  /EN pilot\s*\n?inom ExGens bredare arbete/.test(b));
 check("ingen formulering om pågående samarbete",
   !/(samarbetar|tillsammans med Alléskolan|i samarbete med)/i.test(b));
 
@@ -104,20 +133,35 @@ check("och förklarar varför en sammanfattning inte duger",
   /sammanfattning som säger ingenting/.test(b));
 
 console.log("\n— I PROMPTEN —");
-check("roadmapfråga tar med blocket, inloggad",
-  core.buildPERSystemPrompt({ userQuestion: "vad är exgens nästa stora plan?", role: "gratis" })
-    .includes("EXGENS NÄSTA STEG"));
-check("studiefråga tar INTE med blocket",
-  !core.buildPERSystemPrompt({ userQuestion: "förklara derivata", role: "gratis" })
-    .includes("EXGENS NÄSTA STEG"));
-check("roadmapfråga tar med blocket i landningsläget",
-  core.buildPERLandingPrompt({ userQuestion: "vart är ni på väg?" }).includes("EXGENS NÄSTA STEG"));
-check("prisfråga tar INTE med blocket i landningsläget",
-  !core.buildPERLandingPrompt({ userQuestion: "vad kostar det?" }).includes("EXGENS NÄSTA STEG"));
+check("visionsfråga tar med visionen, inte piloten", (() => {
+  const p = core.buildPERSystemPrompt({ userQuestion: "vad är er vision", role: "gratis" });
+  return p.includes("EXGENS VISION") && !p.includes("ALLÉSKOLAN-PILOTEN");
+})());
+check("Alléskolan-fråga tar med piloten, inte visionen", (() => {
+  const p = core.buildPERSystemPrompt({ userQuestion: "vad är exgens nästa projekt med alléskolan", role: "gratis" });
+  return p.includes("ALLÉSKOLAN-PILOTEN") && !p.includes("EXGENS VISION");
+})());
+check("studiefråga tar INTE med något av dem", (() => {
+  const p = core.buildPERSystemPrompt({ userQuestion: "förklara derivata", role: "gratis" });
+  return !p.includes("ALLÉSKOLAN-PILOTEN") && !p.includes("EXGENS VISION");
+})());
+check("visionen når landningsläget",
+  core.buildPERLandingPrompt({ userQuestion: "vart är ni på väg?" }).includes("EXGENS VISION"));
+check("piloten når landningsläget när skolan nämns",
+  core.buildPERLandingPrompt({ userQuestion: "berätta om alléskolan" }).includes("ALLÉSKOLAN-PILOTEN"));
+check("prisfråga tar inte med något",
+  !/EXGENS VISION|ALLÉSKOLAN-PILOTEN/.test(core.buildPERLandingPrompt({ userQuestion: "vad kostar det?" })));
+
+console.log("\n— GAMLA AVSNITT SOM ERSATTS —");
+console.log("\n— I PROMPTEN —");
+
+
+
+
 /* Blocket är ~1,6 kB och betalas av varje fråga som utlöser det. */
-check("blocket är villkorat, inte alltid med",
+check("blocken är villkorade, inte alltid med",
   core.buildPERSystemPrompt({ userQuestion: "hej", role: "gratis" }).length <
-  core.buildPERSystemPrompt({ userQuestion: "vad är exgens nästa stora plan?", role: "gratis" }).length);
+  core.buildPERSystemPrompt({ userQuestion: "vad är er vision", role: "gratis" }).length);
 
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);
