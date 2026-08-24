@@ -102,6 +102,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
 | `api/_per-sales.js` | Avgör OM P.E.R. får sälja, utifrån var eleven är — inte utifrån frågans ord (hjälpare, ingen rutt) |
 | `api/_per-role.js` | Studieplanerare och utmanare — de två roller som kräver belagd mastery (hjälpare, ingen rutt) |
+| `api/_math-curriculum.js` | Grundskolans matematik ur Skolverket + ExGens prerequisite-kedja (hjälpare, ingen rutt) |
 | `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
 | `api/generate-exam.js` | OpenAI call — rate-limit enforced (CJS) |
@@ -277,6 +278,24 @@ Any change to `api/` triggers security review checklist:
   som tickar är rätt svar på fel fråga.
 - **Rollen får aldrig synas för eleven.** §11 är uttrycklig: P.E.R. ska förstå
   vilket beteende som passar, inte annonsera det.
+
+## Matematikens läroplan (2026-08-24)
+- **Två sorters påståenden, aldrig ihopblandade.** `centralContent` och
+  `criteria` är Skolverkets text ordagrant och får citeras som läroplan.
+  `prerequisites` är **ExGens pedagogiska bedömning** — Skolverket säger vad som
+  ska läras i varje stadium, aldrig att procent förutsätter bråk.
+- **Säg aldrig att läroplanen kräver en viss ordning.** Promptblocket i
+  `buildCurriculumContext()` ger P.E.R. formuleringen "det här brukar bygga på…"
+  och förbjuder "enligt kursplanen". Ett falskt auktoritetspåstående till en elev
+  som redan kämpar är värre än ingen vägledning.
+- **Områdesnycklarna behåller å, ä och ö.** De härleds ur Skolverkets rubriker;
+  en translitterering bryter kopplingen tyst.
+- **`config/math-curriculum.json` är genererad.** Kör
+  `node tools/sync-math-curriculum.mjs` — skriptet vägrar skriva filen om något
+  prerequisite pekar på ett område som inte finns.
+- **Hellre ingen områdeskoppling än en gissad.** `areaForConcept()` returnerar
+  null när inget mönster träffar; en felaktig koppling skickar eleven att
+  repetera något de redan kan medan luckan står kvar.
 
 ## Active ECC Rules
 These global rules apply automatically (no install needed — already in `~/.claude/rules/ecc/`):
