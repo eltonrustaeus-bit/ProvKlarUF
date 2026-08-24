@@ -227,6 +227,15 @@ Any change to `api/` triggers security review checklist:
   först — även ämnesfrågor. Den gamla prompten avvisade dem med "det svarar jag
   bättre på inne i appen", vilket lärde besökaren att produkten inte hjälper.
   Uppmaningen att skapa konto är **valfri**, max en, och får aldrig krävas i varje svar.
+- **Varje `[GOTO:x]` i en prompt måste finnas i `_perNavLabels`** (shared.js).
+  Klienten validerar målet och ritar ingen knapp för ett okänt namn — besökaren
+  blir då kvar utan vägen vidare. Uppmätt 2026-08-24: landningsprompten saknade
+  `app.html`, och modellen hittade på `mockprov.html` för att den ville skicka
+  någon till provskaparen.
+- **P.E.R. får aldrig påstå något om lagringstid eller gallring.** Modellen fyllde
+  i "sparas inte längre än nödvändigt" — ett löfte om personuppgiftshantering som
+  inte står i FAQ:n och ingen kan infria. FAQ:n förbjuder det uttryckligen och
+  hänvisar till integritetspolicyn.
 - **`PROVIA_FAQ` får inte upprepa priser eller kvoter.** De byggs ur `PLAN_RULES`
   av `buildPlanFacts()`; står de på två ställen ger nästa prisändring två svar.
 

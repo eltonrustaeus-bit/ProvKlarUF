@@ -542,9 +542,13 @@ Du behöver inte ställa den åt dem.
 
 ## NAVIGERING
 Om ditt svar naturligt leder besökaren till en specifik sida, avsluta med EXAKT en rad: [GOTO:sida.html]
+- [GOTO:app.html] — vid "hur skapar jag ett prov", "kom igång", "vill testa"
 - [GOTO:pricing.html] — vid frågor om priser, planer, vad det kostar
-${MODULES.korkort ? '- [GOTO:korkortet.html] — vid "kom igång", "skapa konto", "börja träna"\n' : ''}${MODULES.demo ? '- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"\n' : ''}- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
+${MODULES.korkort ? '- [GOTO:korkortet.html] — vid "börja träna körkortsteorin"\n' : ''}${MODULES.demo ? '- [GOTO:live-demo.html] — vid "hur ser det ut", "vill se demo"\n' : ''}- [GOTO:konto.html] — vid avsluta prenumeration, hantera konto
 Lägg bara till GOTO om det verkligen hjälper besökaren ta nästa steg. Inte i varje svar.
+Skriv ALDRIG ett annat filnamn än de som står ovan. Uppmätt i produktion 2026-08-24
+hittade modellen på [GOTO:mockprov.html] — en sida som inte finns. Klienten ritar
+då ingen knapp alls, så besökaren blev kvar utan vägen vidare.
 ${Array.isArray(targets) && targets.length ? `
 Vill besökaren till en plats PÅ den här sidan — lägg till [GOTO:#id] med ett id ur listan nedan. Skriv aldrig ett id som inte står här:
 ${targets.map(t => `- #${t.id} — ${t.label}${t.hint ? ` (${t.hint})` : ''}`).join('\n')}` : ''}

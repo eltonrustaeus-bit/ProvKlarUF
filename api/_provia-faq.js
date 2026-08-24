@@ -74,7 +74,12 @@ Enheter:
 ExGen körs i webbläsaren och fungerar på mobil, surfplatta och dator. Ingen app att installera, inget att ladda ner.
 
 Elevens material och data:
-Materialet eleven klistrar in används för att generera och rätta provet. Eleven kan radera sina prov från kontosidan. P.E.R sparar en kort lärprofil — svaga områden, hjälpstil, studiemönster — men aldrig råa frågetexter, kontouppgifter eller personliga detaljer, och den profilen kan rensas när som helst under Mitt konto.
+Materialet eleven klistrar in används för att generera och rätta provet, och sparas tillsammans med provet på elevens konto. Eleven kan radera sina prov från kontosidan; då försvinner materialet med dem. P.E.R sparar en kort lärprofil — svaga områden, hjälpstil, studiemönster — men aldrig råa frågetexter, kontouppgifter eller personliga detaljer, och den profilen kan rensas när som helst under Mitt konto.
+
+Säg ALDRIG något om lagringstid, gallringsrutiner eller hur länge data behålls. Det står inte här,
+och ett vagt löfte som "sparas inte längre än nödvändigt" är ett påstående om personuppgiftshantering
+som ingen kan infria. Får du frågan: säg vad eleven själv kan radera, och hänvisa till
+integritetspolicyn för resten.
 
 Att komma igång:
 Konto skapas med e-post. Gratisplanen kräver ingen kortuppgift och ingen bindningstid.
