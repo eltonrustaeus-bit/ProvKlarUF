@@ -190,6 +190,13 @@ check("grade.js engelska rollrad bär samma expansion",
 // Ingen prompt får bära den gamla backronymen. Den fanns i åtta prompter och två sidor.
 for (const rel of ["api/_per-core.js", "api/explain.js", "api/grade.js", "api/teacher-report.js", "api/check-role.js"]) {
   check(`${rel}: ingen "AI-Resource" kvar`, !readFileSync(join(root, rel), "utf8").includes("AI-Resource"));
+  /* Namnet bor i _per-name.js. En egen utskrivning någon annanstans driver isär
+     tyst — repot bar tre konkurrerande beskrivningar samtidigt en gång, och
+     docs/per/ARCHITECTURE.md sa "Pedagogisk Evidens- och Resonansmotor" ända
+     till 2026-08-24. En modell som presenterar sig olika läser som flera
+     produkter. */
+  check(`${rel}: ingen konkurrerande utskrivning av P.E.R`,
+    !/Pedagogisk Evidens|Resonansmotor|Personal Education/i.test(readFileSync(join(root, rel), "utf8")));
 }
 
 // Alla fem promptvarianter ska presentera sig med samma expansion.

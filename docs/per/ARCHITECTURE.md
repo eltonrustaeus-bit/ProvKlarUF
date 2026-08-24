@@ -1,4 +1,9 @@
-# ARCHITECTURE — P.E.R. (Pedagogisk Evidens- och Resonansmotor)
+# ARCHITECTURE — P.E.R. (Progressive Evidence Reasoning)
+
+<!-- Hette "Pedagogisk Evidens- och Resonansmotor" i den här filen fram till
+     2026-08-24, medan api/_per-name.js hela tiden sagt Progressive Evidence
+     Reasoning. Två namn på samma modell i samma repo läser som två produkter.
+     Namnet bor i _per-name.js — skriv aldrig av det, importera det. -->
 
 Minsta arkitektur som levererar ett komplett elevflöde, byggd ovanpå den befintliga Knowledge
 Engine i stället för vid sidan av den. Inga mikrotjänster, inga nya körmiljöer, ingen ny

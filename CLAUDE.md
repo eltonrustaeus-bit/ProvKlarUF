@@ -298,6 +298,25 @@ Any change to `api/` triggers security review checklist:
   null när inget mönster träffar; en felaktig koppling skickar eleven att
   repetera något de redan kan medan luckan står kvar.
 
+## Vision och Alléskolan är två olika svar (2026-08-24)
+- **`buildVisionContext()` gäller hela produkten och alla elever.** Den nämner
+  varken Alléskolan eller matematik — testet låser båda. Att svara "vi ska hjälpa
+  en skola i Åtvidaberg med matte" på frågan om ExGens vision gör produkten mindre
+  än den är.
+- **`buildAlleskolanContext()` bifogas BARA när skolan nämns vid namn**
+  (`ALLESKOLAN_TRIGGER_REGEX`). Före uppdelningen fanns ett block, och varje
+  visionsfråga gav pilotpitchen.
+- **Pitchen måste stå i futurum.** Uppmätt: modellen skrev "det pågående arbetet
+  med Alléskolan" i samma svar som den sa att ingen kontakt finns. Blocket
+  förbjuder nu "pågående", "arbetet med" och presens.
+- **Namnet bor i `api/_per-name.js`** — `Progressive Evidence Reasoning`. Skriv
+  aldrig av det. `docs/per/ARCHITECTURE.md` sa "Pedagogisk Evidens- och
+  Resonansmotor" ända till 2026-08-24; `per-scope-identity` låser det nu.
+- **P.E.R. kan hitta på ett `[GOTO:]`-mål trots förbudet i prompten.** Uppmätt i
+  ungefär hälften av körningarna på pilotfrågan. Klienten validerar mot
+  `_perNavLabels` och ritar ingen knapp för ett okänt namn — det är skyddet,
+  prompten är optimeringen.
+
 ## Alléskolan-pitchen (2026-08-24)
 - **Det finns INGEN kontakt, inget avtal och inget samarbete** med Alléskolan.
   P.E.R. får beskriva piloten som ExGens egen ambition byggd på skolans
