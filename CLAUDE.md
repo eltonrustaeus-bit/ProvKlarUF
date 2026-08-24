@@ -179,6 +179,11 @@ Any change to `api/` triggers security review checklist:
   `Konsumenträtt`/`Konsumenträttigheter` och `multiple_choice` som "begrepp".
   En onormaliserad nyckel splittrar elevens historik så att inget begrepp når
   tröskeln för att säga något.
+- **Repetitionsintervallet följer kunskapsnivån** (`reviewIntervalFor()`): 4 dagar
+  för svaga begrepp, 12 för mellanskiktet, 30 för det som sitter. En konstant för
+  alla var fel åt båda hållen. Repetitionsregeln sorterar på hur långt över SITT
+  intervall ett begrepp ligger — sorteras det på antal dagar vinner alltid det
+  starkaste, bara för att det har längst intervall.
 - **Tre försök krävs innan P.E.R. får påstå något** (`MIN_ATTEMPTS_TO_TRUST`).
   Under det är siffran tur eller otur, och ett påstående om vad en elev är dålig
   på måste vara belagt.

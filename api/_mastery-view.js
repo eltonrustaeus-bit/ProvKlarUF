@@ -21,10 +21,47 @@ export const MIN_ATTEMPTS_TO_TRUST = 3;
 export const WEAK_BELOW = 45;
 export const STRONG_AT_OR_ABOVE = 75;
 
-/* Ett begrepp som inte rörts på tre veckor är värt att repetera även om det var
-   starkt. Konstanten motsvarar SPACED_REVIEW_DAYS i recommendation.mjs men är
-   längre: ett mockprovsbegrepp möts mer sällan än ett i en daglig träningsloop. */
-export const STALE_AFTER_DAYS = 21;
+/* Hur länge ett begrepp får vila innan det är värt att repetera.
+ *
+ * Var en konstant på 21 dagar fram till 2026-08-24, och det var fel åt båda
+ * hållen. Ett begrepp eleven knappt kan glöms bort på några dagar och borde
+ * tillbaka snabbt; ett som sitter stadigt tål en månad utan att förfalla. Med
+ * ett enda tal fick de svagaste begreppen ligga för länge och de starkaste
+ * återkomma i onödan.
+ *
+ * Intervallet är alltså en funktion av kunskapsnivån — samma idé som varje
+ * repetitionssystem bygger på, men med två avsiktliga avgränsningar:
+ *
+ *   INGEN VÄXANDE KEDJA. Riktig spaced repetition dubblar intervallet för varje
+ *   lyckad repetition (1, 2, 4, 8 dagar…). Det kräver att varje repetition
+ *   loggas som en egen händelse, och mockprovsdata är för gles och för ojämn i
+ *   takt för att bära den kedjan. Här räknas intervallet om från nuvarande nivå
+ *   varje gång, vilket är robustare mot att eleven pluggar i skov.
+ *
+ *   INGEN GLÖMSKEKURVA. docs/per/ARCHITECTURE.md §4 utesluter uttryckligen
+ *   IRT, BKT och glömskekurvor: ingen av dem går att förklara för en elev.
+ *   Trappan nedan går att läsa upp rakt av.
+ */
+export const REVIEW_INTERVALS = Object.freeze([
+  /* Raden för svaga begrepp används aldrig av decideNextFocus: R1 plockar varje
+     svagt begrepp oavsett ålder, så repetitionsregeln (R3) hinner aldrig se
+     dem. Den står kvar ändå — reviewIntervalFor() är en publik funktion, och en
+     trappa med ett hål i vore svårare att förstå än en rad som visar sig vara
+     onådd. Uppmätt, inte antaget. */
+  { under: WEAK_BELOW, dagar: 4 },            // behöver träning — nås aldrig av R3
+  { under: STRONG_AT_OR_ABOVE, dagar: 12 },   // på gång — halvlång vila
+  { under: Infinity, dagar: 30 },             // sitter — tål en månad
+]);
+
+/** Antal dagar ett begrepp på den här nivån får vila. */
+export function reviewIntervalFor(score) {
+  for (const { under, dagar } of REVIEW_INTERVALS) if (score < under) return dagar;
+  return REVIEW_INTERVALS[REVIEW_INTERVALS.length - 1].dagar;
+}
+
+/* Behålls för bakåtkompatibilitet och som det tak repetitionsregeln aldrig
+   överskrider för ett starkt begrepp. */
+export const STALE_AFTER_DAYS = 30;
 
 function ageInDays(iso, now) {
   const t = Date.parse(iso || "");
@@ -106,10 +143,14 @@ export function decideNextFocus(mastery, { now = new Date() } = {}) {
     };
   }
 
-  // R3. Starkt men gammalt: repetition före nytt stoff.
+  /* R3. Vilat för länge för SIN nivå: repetition före nytt stoff.
+     Sorteras på hur långt över sitt eget intervall begreppet ligger, inte på
+     antal dagar — annars vinner alltid det starkaste begreppet bara för att det
+     har längst intervall och därmed hinner samla flest dagar. */
   const gamla = belagda
-    .filter(r => r.ageDays !== null && r.ageDays > STALE_AFTER_DAYS)
-    .sort((a, b) => b.ageDays - a.ageDays);
+    .map(r => ({ ...r, förfallo: r.ageDays === null ? null : r.ageDays - reviewIntervalFor(r.score) }))
+    .filter(r => r.förfallo !== null && r.förfallo > 0)
+    .sort((a, b) => b.förfallo - a.förfallo);
   if (gamla.length) {
     return {
       action: "repetera",

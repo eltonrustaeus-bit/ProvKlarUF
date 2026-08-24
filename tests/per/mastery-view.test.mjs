@@ -88,6 +88,58 @@ check("allt starkt och färskt höjer svårigheten", r4?.action === "höj_svåri
 const r5 = next({ otur: rad(10, 1, "Svek") });
 check("ett enda felsvar utlöser inte 'träna svagt'", r5?.action !== "träna_svagt", r5?.action);
 
+console.log("\n— REPETITIONSINTERVALL —");
+/* Var en konstant på 21 dagar och var fel åt båda hållen: ett begrepp eleven
+   knappt kan glöms på några dagar, ett som sitter tål en månad. */
+check("svagt begrepp får kortast intervall", mv.reviewIntervalFor(20) === 4);
+check("mellanskiktet får halvlång vila", mv.reviewIntervalFor(60) === 12);
+check("starkt begrepp tål en månad", mv.reviewIntervalFor(90) === 30);
+check("trappan följer samma trösklar som nivåorden",
+  [10, 44, 45, 74, 75, 95].every(sc =>
+    (mv.masteryWord(sc) === "behöver träning" && mv.reviewIntervalFor(sc) === 4) ||
+    (mv.masteryWord(sc) === "på gång" && mv.reviewIntervalFor(sc) === 12) ||
+    (mv.masteryWord(sc) === "sitter" && mv.reviewIntervalFor(sc) === 30)));
+check("intervallen är frysta", Object.isFrozen(mv.REVIEW_INTERVALS));
+
+const ålder = (score, attempts, dagar) =>
+  ({ x: { score, attempts, label: "X", last_seen: dagarSen(dagar) } });
+
+check("mellanskikt vilat 8 dagar repeteras inte", next(ålder(60, 5, 8))?.action !== "repetera");
+check("mellanskikt vilat 15 dagar repeteras", next(ålder(60, 5, 15))?.action === "repetera");
+/* Med den gamla konstanten på 21 dagar hade 15 dagar inte räckt — det är hela
+   vinsten för mellanskiktet. */
+check("starkt vilat 25 dagar repeteras inte", next(ålder(88, 7, 25))?.action !== "repetera");
+check("starkt vilat 35 dagar repeteras", next(ålder(88, 7, 35))?.action === "repetera");
+
+/* Sorteringen måste gå på hur långt över SITT eget intervall begreppet ligger.
+   Sorteras det på antal dagar vinner alltid det starkaste, bara för att det har
+   längst intervall och därför hinner samla flest dagar. */
+/* Fallet måste vara konstruerat så att de två sorteringarna ger OLIKA svar,
+   annars bevisar det ingenting. Stark har FLEST dagar men ligger minst över sitt
+   intervall; mellanskiktet har färre dagar men är mest förfallet.
+   Sortering på förfallo ger Mellan, sortering på ageDays ger Stark.
+   En första version av testet valde fall där båda sorteringarna gav samma svar
+   — sabotageverifieringen visade det. */
+check("den som ligger längst över SITT intervall vinner, inte den med flest dagar", (() => {
+  const f = mv.decideNextFocus({
+    mellan: { score: 60, attempts: 5, label: "Mellan", last_seen: dagarSen(25) },  // 25-12 = 13 över
+    stark:  { score: 88, attempts: 7, label: "Stark",  last_seen: dagarSen(32) },  // 32-30 =  2 över
+  }, { now: NU });
+  return f?.label === "Mellan";
+})());
+check("och åt andra hållet när det starka är mest förfallet", (() => {
+  const f = mv.decideNextFocus({
+    mellan: { score: 60, attempts: 5, label: "Mellan", last_seen: dagarSen(14) },  // 14-12 =  2 över
+    stark:  { score: 88, attempts: 7, label: "Stark",  last_seen: dagarSen(60) },  // 60-30 = 30 över
+  }, { now: NU });
+  return f?.label === "Stark";
+})());
+
+/* Uppmätt, inte antaget: R1 plockar varje svagt begrepp oavsett ålder, så
+   repetitionsregeln hinner aldrig se dem. */
+check("ett svagt begrepp fångas av träna_svagt, aldrig av repetera",
+  next(ålder(20, 5, 60))?.action === "träna_svagt");
+
 console.log("\n— PROMPTBLOCKET —");
 const ctx = (m, o) => mv.buildMasteryContext(m, { now: NU, ...o });
 
