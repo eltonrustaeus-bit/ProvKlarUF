@@ -387,9 +387,14 @@ git checkout api/_per-registry.js
 cat > /tmp/sab-c.py <<'SLUT'
 import io
 p = "api/_per-registry.js"; s = io.open(p, encoding="utf-8").read()
-gammal = 'gräns: "Namnet skrivs aldrig av för hand'
-assert gammal in s, "mönstret finns inte, sabotaget hade tigit"
-io.open(p, "w", encoding="utf-8").write(s.replace(gammal, 'gräns: "', 1))
+i = s.index('fil: "_per-name.js"')
+j = s.index("gräns:", i); k = s.index("\n", j)
+ut = s[:j] + 'gräns: "",' + s[k:]
+# Måste TÖMMA fältet, inte korta det. Ett första försök bytte bara ut början av
+# strängen och lämnade resten kvar — fältet var fortfarande långt, testet
+# grönade, och sabotaget bevisade ingenting.
+assert "Namnet skrivs aldrig av" not in ut, "sabotaget tömde inte fältet"
+io.open(p, "w", encoding="utf-8").write(ut)
 SLUT
 python3 /tmp/sab-c.py
 node tests/per/per-registry.test.mjs   # FAIL: "_per-name.js.gräns är ifyllt"
