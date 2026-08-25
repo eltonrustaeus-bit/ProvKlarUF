@@ -6,7 +6,10 @@ import {
   summariseMemories, summariseProbes, summariseCache,
   summariseQuota, summariseConcepts,
 } from "./_per-pulse.js";
-import { mintStepUp, verifyStepUp, stepUpSecret } from "./_admin-stepup.js";
+import {
+  mintStepUp, verifyStepUp, stepUpSecret, isOwner, ownerUserId,
+  generateRecoveryCode, hashRecoveryCode, verifyRecoveryCode,
+} from "./_admin-stepup.js";
 import {
   supabaseStore, beginRegistration, finishRegistration,
   beginAuthentication, finishAuthentication, rpConfig,
@@ -125,6 +128,41 @@ async function requireStepUp(req, res, user) {
     return false;
   }
   return true;
+}
+
+/* Sidan är inte "för administratörer" utan för EN person.
+ *
+ * requireAdmin räcker inte: en framtida admin, tillagd för något helt annat,
+ * hade annars fått läsa P.E.R:s minne. PER_OWNER_USER_ID är därför ett tredje
+ * lager, och det ligger FÖRST — innan något ens avslöjar att anropet finns.
+ *
+ * Svaret till alla andra är exakt samma 400 "Unknown action" som en rutt som
+ * inte existerar ger. Det är avsiktligt: ett 403 hade bekräftat att ytan finns
+ * och bara var stängd. Priset är att en felsökning ser "Unknown action" när
+ * PER_OWNER_USER_ID är osatt — därför står det här.
+ *
+ * FAIL CLOSED: är variabeln osatt äger ingen sidan och varje anrop nekas.
+ */
+/* Får den här begäran lägga till en ny enhet?
+ *
+ * Ja om ingen enhet finns än — annars vore första registreringen omöjlig.
+ * Annars krävs en upplåst session: du måste redan vara inne på en registrerad
+ * enhet, eller ha löst in återställningskoden, som utfärdar samma token.
+ */
+async function requireEnrolmentRight(req, res, user) {
+  const enheter = await supabaseStore(supabase).listCredentials(user.id);
+  if (!enheter.length) return true;
+  return await requireStepUp(req, res, user);
+}
+
+async function requireOwner(req, res) {
+  const user = await requireAdmin(req, res);
+  if (!user) return null;
+  if (!isOwner(user)) {
+    res.status(400).json({ ok: false, error: "Unknown action" });
+    return null;
+  }
+  return user;
 }
 
 export default async function handler(req, res) {
@@ -524,14 +562,14 @@ export default async function handler(req, res) {
      projektet inte distribueras alls. */
 
   if (action === "per-registry") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     if (!await requireStepUp(req, res, user)) return;
     return res.status(200).json({ ok: true, registry: PER_REGISTRY });
   }
 
   if (action === "per-pulse") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     if (!await requireStepUp(req, res, user)) return;
 
@@ -579,7 +617,7 @@ export default async function handler(req, res) {
      listar varje enhet med tidpunkt — en tyst registrering blir synlig. */
 
   if (action === "passkey-status") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     const enheter = await supabaseStore(supabase).listCredentials(user.id);
     return res.status(200).json({
@@ -594,16 +632,24 @@ export default async function handler(req, res) {
   }
 
   if (action === "passkey-register-begin") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
+    /* Registreringen är STÄNGD så snart en enhet finns: en ny enhet kan bara
+       läggas till från en redan upplåst session. Det tar bort svagheten att
+       någon med en kapad session kunde registrera sin egen enhet — och det är
+       också anledningen till att admin_recovery_codes finns, för utan den
+       kräver två borttappade enheter en databasåtgärd för hand. */
+    if (!await requireEnrolmentRight(req, res, user)) return;
     const options = await beginRegistration(supabaseStore(supabase), user.id, user.email);
     return res.status(200).json({ ok: true, options });
   }
 
   if (action === "passkey-register-finish") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     if (!stepUpSecret()) return res.status(503).json({ ok: false, error: "stepup_unconfigured" });
+    // Samma grind som begin. Utan den kunde ett anrop hoppa över den.
+    if (!await requireEnrolmentRight(req, res, user)) return;
     const r = await finishRegistration(supabaseStore(supabase), user.id, req.body?.response, req.body?.label);
     if (!r.verified) return res.status(400).json({ ok: false, error: r.error });
     // Registreringen krävde userVerification, så biometrin är redan avklarad.
@@ -611,7 +657,7 @@ export default async function handler(req, res) {
   }
 
   if (action === "passkey-auth-begin") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     const options = await beginAuthentication(supabaseStore(supabase), user.id);
     if (options.error) return res.status(400).json({ ok: false, error: options.error });
@@ -619,7 +665,7 @@ export default async function handler(req, res) {
   }
 
   if (action === "passkey-auth-finish") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     if (!stepUpSecret()) return res.status(503).json({ ok: false, error: "stepup_unconfigured" });
     const r = await finishAuthentication(supabaseStore(supabase), user.id, req.body?.response);
@@ -628,12 +674,40 @@ export default async function handler(req, res) {
   }
 
   if (action === "passkey-delete") {
-    const user = await requireAdmin(req, res);
+    const user = await requireOwner(req, res);
     if (!user) return;
     // Kräver step-up: annars kunde en kapad session tyst radera Eltons enhet.
     if (!await requireStepUp(req, res, user)) return;
     await supabaseStore(supabase).deleteCredential(user.id, String(req.body?.credentialId || ""));
     return res.status(200).json({ ok: true });
+  }
+
+  if (action === "recovery-create") {
+    const user = await requireOwner(req, res);
+    if (!user) return;
+    // Kräver upplåst session: annars kunde en kapad session tyst skapa sig en
+    // egen väg tillbaka och behålla den efter att sessionen dött.
+    if (!await requireStepUp(req, res, user)) return;
+    const kod = generateRecoveryCode();
+    const { hash, salt } = hashRecoveryCode(kod);
+    await supabaseStore(supabase).saveRecovery(user.id, hash, salt);
+    /* Enda gången koden finns i klartext någonstans. Servern sparar bara
+       hashet, så varken Elton eller vi kan hämta den igen. */
+    return res.status(200).json({ ok: true, kod });
+  }
+
+  if (action === "recovery-use") {
+    const user = await requireOwner(req, res);
+    if (!user) return;
+    if (!stepUpSecret()) return res.status(503).json({ ok: false, error: "stepup_unconfigured" });
+    const rad = await supabaseStore(supabase).readRecovery(user.id);
+    if (!rad || rad.used_at) return res.status(400).json({ ok: false, error: "ingen giltig kod" });
+    if (!verifyRecoveryCode(req.body?.kod, rad.code_hash, rad.salt)) {
+      return res.status(400).json({ ok: false, error: "koden stämmer inte" });
+    }
+    // Engångs. Markeras förbrukad INNAN token utfärdas.
+    await supabaseStore(supabase).markRecoveryUsed(user.id);
+    return res.status(200).json({ ok: true, stepUp: mintStepUp(user.id) });
   }
 
   return res.status(400).json({ ok: false, error: "Unknown action" });

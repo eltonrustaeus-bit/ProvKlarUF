@@ -118,9 +118,15 @@ const perBlock = i === -1 ? "" : admin.slice(i, i + 3000);
 check("per-pulse-blocket finns i admin.js", perBlock.length > 0);
 check("ingen select av user_id i per-pulse", perBlock.length > 0 && !/select\([^)]*user_id/.test(perBlock), "kolla select-strängarna");
 check("per-registry finns i admin.js", admin.includes('action === "per-registry"'));
-check("båda anropen går genom requireAdmin",
-  (perBlock.match(/requireAdmin/g) || []).length >= 1 &&
-  /action === "per-registry"[\s\S]{0,200}requireAdmin/.test(admin));
+/* Kollen gäller kedjan, inte ordet. Sedan 2026-08-25 går anropen genom
+   requireOwner, som kräver requireAdmin OCH att user.id är ägarens. En kontroll
+   som letar efter "requireAdmin" i blocket mäter formen och blir röd av en
+   omskrivning som gjorde grinden hårdare — vilket den blev här. */
+check("båda anropen går genom ägarkollen",
+  (perBlock.match(/requireOwner/g) || []).length >= 1 &&
+  /action === "per-registry"[\s\S]{0,200}requireOwner/.test(admin));
+check("ägarkollen ersätter inte rollkollen",
+  /async function requireOwner[\s\S]{0,200}await requireAdmin\(req, res\)/.test(admin));
 
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);

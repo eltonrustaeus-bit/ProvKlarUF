@@ -416,6 +416,30 @@ Any change to `api/` triggers security review checklist:
   syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
   andra, inte omöjlig att hitta för Elton.
 
+## Minnessidan är låst till EN person (2026-08-25, ersätter delar av nästa avsnitt)
+- **`PER_OWNER_USER_ID` avgör, inte rollen.** `requireOwner()` kräver
+  `requireAdmin` **och** att `user.id` matchar variabeln. En framtida admin,
+  tillagd för något helt annat, får ingenting. Fail closed: osatt variabel gör
+  ingen till ägare.
+- **Främlingar får `400 Unknown action`, aldrig 403.** Ett 403 hade bekräftat
+  att ytan finns och bara var stängd. Följden att leva med: när
+  `PER_OWNER_USER_ID` är osatt ser felet ut som en okänd action. Det är därför
+  det står här.
+- **`per.html` renderar en ren 404 tills servern känt igen ägaren.** Ingen
+  låsskärm, ingen sidfot, ingenting som avslöjar att sidan finns. Sidfoten sa
+  "privat sida, ej för obehöriga" även i 404-läget — hittat genom att LÄSA
+  testutskriften, inte genom att ett test blev rött.
+- **Registreringen är stängd.** `requireEnrolmentRight()` släpper igenom bara
+  när noll enheter finns; därefter krävs en upplåst session. Det tar bort
+  svagheten som beskrivs i nästa avsnitt.
+- **`admin_recovery_codes` är därför inte valfri.** Två borttappade enheter
+  hade annars krävt en databasåtgärd för hand. Koden är 32 slumpbytes i ett
+  alfabet utan I, L, O och U, lagras som scrypt-hash med eget salt, och visas
+  EN gång. Den markeras förbrukad **innan** token utfärdas — ett avbrutet
+  anrop får inte lämna kvar en kod som redan gett tillgång.
+- **Skapa alltid en ny kod efter att en använts.** `recovery-use` bränner den,
+  och utan en ny finns ingen reserv nästa gång.
+
 ## Låset på minnessidan (2026-08-25)
 - **En passkey autentiserar en ENHET, inte en behörighet.** `requireAdmin`
   (`profiles.role === 'admin'`) är och förblir det avgörande gatet. Step-up
