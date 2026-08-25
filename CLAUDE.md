@@ -442,6 +442,12 @@ Any change to `api/` triggers security review checklist:
   `exgen_per_stepup` först, annars mäter det en redan upplåst sida.
 - **`public_key` är `text` med base64url, inte `bytea`.** PostgREST lämnar
   bytea som `\x`-hex och konverteringen är ett extra felläge utan vinst.
+- **Det är `revoke`-raden som är kontrollen, inte `grant`-raden.** Supabases
+  default privileges på `public` ger `service_role` allt redan vid
+  `create table`, så den smalare `grant select, insert, delete` snävar inte in
+  någonting. Verifierat mot schemat 2026-08-25: `anon` och `authenticated` har
+  noll rättigheter på båda tabellerna, RLS är på och det finns noll policyer.
+  Ta aldrig bort `revoke` i tron att `grant` räcker.
 - **Ett sabotage som kraschar testet bevisar för lite.** `report()` skriver ut
   först vid `finish()`, så en krasch döljer varje kontrolls utfall. Sabotera så
   att flödet går igenom men data läcker — då syns vilken kontroll som faktiskt
