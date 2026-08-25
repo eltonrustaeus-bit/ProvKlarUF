@@ -1366,6 +1366,34 @@ function runTrainModeIfRequested(){
   },50);
 }
 
+/* Krymper en bild innan den skickas till avläsningen.
+ *
+ * Ett modernt mobilfoto är 4–8 MB. Nedskalat till 1600 px längsta sida landar
+ * det på 200–400 kB, vilket sänker både latens och tokenkostnad utan att
+ * handskrift blir svårare att tyda — 1600 px räcker gott för en A4-sida.
+ *
+ * Faller något (exotiskt format, canvas blockerad) returneras originalet
+ * hellre än ett fel: en större bild är ett kostnadsproblem, en utebliven
+ * avläsning är ett trasigt flöde. */
+async function downscaleImage(file, maxSide, quality){
+  try{
+    const dataUrl = await fileToDataUrl(file);
+    const img = await new Promise((res, rej)=>{ const i = new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("decode")); i.src = dataUrl; });
+    const longest = Math.max(img.naturalWidth, img.naturalHeight);
+    if(!longest || longest <= maxSide) return dataUrl;
+    const scale = maxSide / longest;
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * scale);
+    c.height = Math.round(img.naturalHeight * scale);
+    const ctx = c.getContext("2d");
+    if(!ctx) return dataUrl;
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL("image/jpeg", quality);
+  }catch(e){
+    try{ return await fileToDataUrl(file); }catch(_){ return ""; }
+  }
+}
+
 async function fileToDataUrl(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(String(fr.result||"")); fr.onerror=()=>reject(new Error("FileReader error")); fr.readAsDataURL(file); }); }
 
 /* ── TOAST ── */
@@ -1906,6 +1934,42 @@ try{
         const res = await postJson("/api/ocr", { imageDataUrl: dataUrl, lang: LANG });
         if (!res.ok || !res.data || !res.data.ok) return { ok: false, error: "Kunde inte läsa bilden." };
         return { ok: true, text: String(res.data.text || "").trim() };
+      } catch (e) {
+        reportErr(e);
+        return { ok: false, error: "Kunde inte läsa bilden." };
+      }
+    },
+
+    /* Läser en elevs handskrivna lösning under ett prov.
+     *
+     * Skild från ocr() ovan: den läser tryckt material för att SKAPA ett prov,
+     * den här läser handskrift för att BESVARA en fråga. Olika prompt, olika
+     * modell och olika svarsform — därför en egen väg och inte en flagga.
+     *
+     * Returnerar hela kontraktet vidare (readable/confidence/uncertain) så att
+     * provflödet kan visa eleven vad avläsningen tvekade på. */
+    async readSolution(file, questionText) {
+      if (currentRole === "gratis") {
+        return { ok: false, error: "Fotoinlämning ingår i Basic och uppåt.", upgrade: true };
+      }
+      try {
+        const dataUrl = await downscaleImage(file, 1600, 0.85);
+        if (!dataUrl) return { ok: false, error: "Kunde inte läsa bilden." };
+        const res = await postJson("/api/ocr", {
+          mode: "solution",
+          imageDataUrl: dataUrl,
+          questionText: String(questionText || "").slice(0, 2000),
+          lang: LANG
+        });
+        if (res.status === 403) return { ok: false, error: "Fotoinlämning ingår i Basic och uppåt.", upgrade: true };
+        if (!res.ok || !res.data || !res.data.ok) return { ok: false, error: "Kunde inte läsa bilden." };
+        return {
+          ok: true,
+          readable: res.data.readable === true,
+          text: String(res.data.text || "").trim(),
+          confidence: Number(res.data.confidence) || 0,
+          uncertain: Array.isArray(res.data.uncertain) ? res.data.uncertain : []
+        };
       } catch (e) {
         reportErr(e);
         return { ok: false, error: "Kunde inte läsa bilden." };

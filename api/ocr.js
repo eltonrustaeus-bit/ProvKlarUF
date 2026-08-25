@@ -11,6 +11,14 @@ function pickModel() {
   return process.env.OPENAI_MODEL || "gpt-4o-mini";
 }
 
+/* Handskriven matematik är det svåraste ett vision-API gör, och klart svårare
+   än den tryckta text materialvägen läser. Egen variabel därför, samma mönster
+   som OPENAI_MATH_MODEL i generate-exam.js och hp.js. Vilken modell den ska
+   peka på avgörs av evalen i tests/evals/solution-ocr — inte av antagande. */
+function pickVisionModel() {
+  return process.env.OPENAI_VISION_MODEL || process.env.OPENAI_MODEL || "gpt-4o-mini";
+}
+
 async function requireAuth(req) {
   const token = (req.headers["authorization"] || "").replace(/^Bearer\s+/i, "");
   if (!token) return null;
@@ -29,6 +37,74 @@ async function requireAuth(req) {
     const data = await r.json();
     return data?.id ? data : null;
   } catch { return null; }
+}
+
+/* Läser en elevs handskrivna lösning och returnerar transkriptionen.
+ *
+ * En oläslig bild är ett normalt utfall, inte ett serverfel: den ger HTTP 200
+ * med readable:false. Klienten skiljer på "jag kunde inte tyda bilden" och
+ * "något gick sönder", och eleven ska aldrig se ett tekniskt fel för att de
+ * fotade i dålig belysning. */
+async function handleSolution(res, { imageDataUrl, lang, questionText, apiKey }) {
+  const S = require("./_solution-ocr.js");
+  const sanitize = await import("../src/per/sanitize.mjs");
+
+  /* Frågetexten är modellgenererad och därmed otillförlitlig när den
+     återanvänds i en ny prompt. Saneras före den når systemmeddelandet. */
+  let fraga = "";
+  if (questionText) {
+    fraga = sanitize.redactInstructions(String(questionText), sanitize.MAX_QUESTION_LEN).text;
+  }
+
+  const model = pickVisionModel();
+  const payload = {
+    model,
+    input: [
+      { role: "system", content: S.buildSolutionSystem(lang, fraga) },
+      {
+        role: "user",
+        content: [
+          { type: "input_image", image_url: imageDataUrl },
+          { type: "input_text", text: "Transkribera lösningen i bilden." },
+        ],
+      },
+    ],
+    text: { format: S.SOLUTION_SCHEMA },
+  };
+
+  let data;
+  try {
+    const r = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(60_000),
+    });
+    const rawBody = await r.text();
+    try { data = JSON.parse(rawBody); } catch {
+      return json(res, 500, { ok: false, error: "Non-JSON from OpenAI", status: r.status });
+    }
+    if (!r.ok) return json(res, 500, { ok: false, error: "OpenAI error", status: r.status });
+  } catch (e) {
+    return json(res, 500, { ok: false, error: "Server error", details: String(e) });
+  }
+
+  const parsed = S.parseSolutionResponse(data);
+  if (!parsed.readable) {
+    return json(res, 200, { ok: true, readable: false, text: "", confidence: parsed.confidence, uncertain: [] });
+  }
+
+  /* Transkriptionen flödar vidare in i grade.js prompt. Den saneras radvis så
+     att radordningen — som bär resonemanget i en uträkning — överlever. */
+  const { text } = await S.redactLines(parsed.text);
+  return json(res, 200, {
+    ok: true,
+    readable: true,
+    text,
+    confidence: parsed.confidence,
+    uncertain: parsed.uncertain,
+    model,
+  });
 }
 
 module.exports = async function handler(req, res) {
@@ -79,6 +155,13 @@ module.exports = async function handler(req, res) {
     }
     if (imageDataUrl.length > MAX_IMAGE_BYTES) {
       return json(res, 413, { ok: false, error: "Image too large (max 10 MB)" });
+    }
+
+    /* ── Elevlösning ──────────────────────────────────────────────────────
+       Egen gren, eget kontrakt. Utan mode gäller materialvägen nedan exakt
+       som förut — app.html skickar inget mode och påverkas därför inte. */
+    if (p.mode === "solution") {
+      return handleSolution(res, { imageDataUrl, lang, questionText: p.questionText, apiKey });
     }
 
     const model = pickModel();

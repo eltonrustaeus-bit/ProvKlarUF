@@ -47,6 +47,93 @@
 
   // ── Små hjälpare ─────────────────────────────────────────────────────────
 
+  /* Fota din lösning.
+   *
+   * Ingen skriver en ekvation i ett textfält. Matematik löses på papper, och
+   * fram till nu var provflödets fritextruta därför oanvändbar för just det
+   * ämne där flest elever behöver hjälp.
+   *
+   * Avläsningen skriver in transkriptionen i textarean — den ersätter inte
+   * eleven som avsändare. Rutan förblir redigerbar, inget skickas in
+   * automatiskt, och granskningsraden ber eleven kontrollera innan de går
+   * vidare. Det är skyddet mot en felläst siffra: den som vet vad de skrev
+   * ser felet, och en modell som läser 3x som 8x kan aldrig tyst sätta ett
+   * betyg.
+   *
+   * Bilden lagras aldrig. Den skickas en gång och kastas. Eleverna är till
+   * stor del minderåriga och ett räknepapper bär ofta namn i marginalen. */
+  function buildSolutionPhoto(ta, q, id) {
+    var wrap = el("div", "xf-photo");
+
+    var file = el("input");
+    file.type = "file";
+    file.accept = "image/*";
+    file.setAttribute("capture", "environment");
+    file.style.display = "none";
+    file.className = "xf-photo-input";
+
+    var LABEL = "📷 Fota din lösning";
+    var btn = el("button", "xf-btn ghost xf-photo-btn", LABEL);
+    btn.type = "button";
+    btn.addEventListener("click", function () { file.click(); });
+
+    var note = el("div", "xf-photo-note");
+    note.hidden = true;
+
+    function say(text, kind) {
+      note.hidden = !text;
+      note.textContent = text || "";
+      note.className = "xf-photo-note" + (kind ? " " + kind : "");
+    }
+
+    file.addEventListener("change", function () {
+      if (!file.files || !file.files[0]) return;
+      var engine = window.ExGenEngine;
+      if (!engine || !engine.readSolution) { say("Fotoinlämning är inte tillgänglig här.", "bad"); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Läser din lösning…";
+      say("", null);
+
+      engine.readSolution(file.files[0], q && q.question).then(function (r) {
+        btn.disabled = false;
+        btn.textContent = LABEL;
+        // Samma fil två gånger i rad ger annars ingen change-händelse.
+        file.value = "";
+
+        if (!r || !r.ok) {
+          say((r && r.error) || "Kunde inte läsa bilden.", "bad");
+          return;
+        }
+        if (!r.readable) {
+          // Textarean lämnas orörd — eleven kan ha skrivit något själv.
+          say("Jag kunde inte tyda bilden. Försök igen med bättre ljus, eller skriv svaret i rutan.", "bad");
+          return;
+        }
+
+        /* Lägg till, skriv aldrig över. Ett svar som försvinner är värre än ett
+           svar som behöver städas. */
+        ta.value = (ta.value ? ta.value.replace(/\s+$/, "") + "\n" : "") + r.text;
+        S.answers[id] = ta.value;
+        saveDraft();
+        publish();
+        armStuck();
+
+        var delar = ["Kontrollera att det stämmer innan du skickar in."];
+        if (r.uncertain && r.uncertain.length) {
+          delar.push("Jag var osäker på: " + r.uncertain.join("; ") + ".");
+        }
+        say(delar.join(" "), r.confidence < 0.7 ? "warn" : null);
+        ta.focus();
+      });
+    });
+
+    wrap.appendChild(btn);
+    wrap.appendChild(file);
+    wrap.appendChild(note);
+    return wrap;
+  }
+
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -1100,6 +1187,7 @@
         armStuck();
       });
       sheet.appendChild(ta);
+      sheet.appendChild(buildSolutionPhoto(ta, q, id));
     }
 
     /* Tillståndsraden (#perSees i shared.js) syns bara vid hover över den

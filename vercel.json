@@ -21,7 +21,8 @@
       "includeFiles": "config/**"
     },
     "api/ocr.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "src/per/**"
     },
     "api/explain.js": {
       "maxDuration": 60,
