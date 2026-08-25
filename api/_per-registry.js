@@ -104,6 +104,13 @@ export const PER_REGISTRY = {
       gräns: "K-anonymitet i vyn: ett begrepp syns först vid fem distinkta elever, en felkod vid tre. Vyn är dessutom oåtkomlig för klienter och läses bara av servern.",
     },
     {
+      fil: "_per-brain.js",
+      namn: "Hjärnan",
+      gör: "Härleder kartan över P.E.R. ur källkoden — vilka moduler som finns och vilka som importerar varandra — och väver ihop den med hur aktiv varje del varit.",
+      ser: "Filnamn och filinnehåll i api/, plus rader ur per_module_activity. Ingen elevdata.",
+      gräns: "Strukturen hittas aldrig på: en nod finns bara om filen finns, och en kant bara om importen finns. En modul utan mätpunkt får null, aldrig noll — noll betyder mätt och tyst, null betyder inte mätt alls.",
+    },
+    {
       fil: "_per-pulse.js",
       namn: "Pulsen",
       gör: "Gör rader till summor åt den här sidan: hur många minnen som finns, hur ofta cachen träffar, vad kvoterna använts till.",
