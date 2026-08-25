@@ -541,7 +541,16 @@ function buildExamPrompts({ lang, level, course, qType, numQuestions, pastedText
     "kunskapskrav för den aktuella kursen. " +
     "Rubric ska dela upp poäng på metod + slutsvar (t.ex. 'Metod 2p, svar 1p'). " +
     "Model_answer ska innehålla full lösning med tydliga steg och ett markerat slutsvar. " +
-    "Flervalsalternativ ska vara plausibla felalternativ (typiska räknefel) och endast ett korrekt.";
+    "Flervalsalternativ ska vara plausibla felalternativ (typiska räknefel) och endast ett korrekt. " +
+    /* Notationen. Utan den skrevs bråk som 3/4 och integraler i löpande text,
+       vilket är oläsligt så fort uttrycket blir större än en rad. Klienten
+       renderar $...$ med KaTeX (js/hp-math.js) i både provet och rättningen,
+       och laddar biblioteket först när en text faktiskt innehåller matematik.
+       Samma konvention som Högskoleprovets XYZ-del redan använder. */
+    "NOTATION: skriv all matematik som LaTeX mellan $ och $ — till exempel " +
+    "$\\frac{3}{4}$, $x^2$, $\\sqrt{2}$, $12\\%$, $\\int_0^1 x\\,dx$. " +
+    "Det gäller frågetext, svarsalternativ, model_answer och rubric. " +
+    "Löpande text lämnas som vanlig text — sätt inte hela meningar mellan dollartecken.";
 
   const systemEnBase =
     "You create a realistic mock exam like a high-school teacher. " +

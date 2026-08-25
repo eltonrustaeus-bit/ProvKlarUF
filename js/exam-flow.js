@@ -134,6 +134,30 @@
     return wrap;
   }
 
+  /* Matematikrendering.
+   *
+   * js/hp-math.js laddar KaTeX först när en text faktiskt innehåller
+   * matematik, så en ren samhällskunskapsfråga betalar ingenting. Den filen
+   * är ESM och den här är ett klassiskt skript — därför dynamisk import med
+   * absolut sökväg (relativ skulle lösas mot dokumentets bas, inte skriptets).
+   *
+   * Renderingen är alltid bäst-möjliga: går KaTeX inte att hämta står LaTeX-
+   * källan kvar, vilket är läsbart. Ett prov får aldrig falla för att ett
+   * CDN är nere.
+   *
+   * Fanns tidigare bara i Högskoleprovet. En elev som fick $\frac{x}{2}$ i ett
+   * vanligt prov såg den råa strängen. */
+  var _mathMod = null;
+  function renderMathIn(node) {
+    if (!node) return;
+    try {
+      if (!_mathMod) _mathMod = import("/js/hp-math.js");
+      _mathMod
+        .then(function (m) { return m && m.renderMath ? m.renderMath(node) : null; })
+        .catch(function () {});
+    } catch (_) {}
+  }
+
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -1150,7 +1174,9 @@
     head.appendChild(el("span", "xf-q-pts", (Number(q.points) || 0) + " p"));
     sheet.appendChild(head);
 
-    sheet.appendChild(el("p", "xf-q-text", q.question || ""));
+    var qText = el("p", "xf-q-text", q.question || "");
+    sheet.appendChild(qText);
+    renderMathIn(qText);
 
     if (q.type === "mc" && Array.isArray(q.options) && q.options.length) {
       var group = el("div", "xf-mc");
@@ -1591,6 +1617,12 @@
         mo.appendChild(el("span", null, item.model_answer));
         it.appendChild(mo);
       }
+
+      /* Rättningsvyn bär tre texter som kan innehålla matematik: frågan,
+         återkopplingen och fullpoängssvaret. Sedan fotoinlämningen kom bär
+         även elevens EGET svar LaTeX, eftersom transkriptionen skriver $...$.
+         Renderas hela posten på en gång i stället för fält för fält. */
+      renderMathIn(it);
 
       // Källraden — vilken del av elevens eget material frågan byggde på.
       var src = Array.isArray(q.source_references) ? q.source_references.filter(Boolean) : [];

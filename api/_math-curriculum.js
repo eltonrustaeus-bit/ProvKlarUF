@@ -185,3 +185,149 @@ export function buildCurriculumContext(conceptLabel, { stage = "7-9", year = nul
 
   return rader.join("\n");
 }
+
+/* ── Gymnasiet ─────────────────────────────────────────────────────────────
+ *
+ * Grundskolan indexeras på STADIUM (1-3, 4-6, 7-9), gymnasiet på KURS. Det är
+ * inte en inkonsekvens utan hur läroplanerna faktiskt är byggda: en
+ * grundskoleelev läser matematik, en gymnasieelev läser Matematik 3c.
+ *
+ * GY11 och Gy25 lever parallellt. Ämnesbetygsreformen gäller utbildning som
+ * startar efter 2025-06-30, men elever som började dessförinnan läser
+ * GY11-kurser och hela deras provhistorik hänger på de kursnamnen. Kurspickaren
+ * i app.html erbjuder GY11-namnen — ta aldrig bort dem.
+ */
+
+function gymnasium() {
+  return getMathCurriculum().gymnasium || { GY11: { courses: [] }, GY25: { levels: [], criteria: [] } };
+}
+
+/* Normaliserar ett kursnamn så att "Matematik 3c", "matematik 3C" och
+   "MATMAT03c" leder till samma kurs. Eleven skriver fritext i pickaren. */
+function courseKey(name) {
+  return String(name || "")
+    .toLocaleLowerCase("sv")
+    .replace(/[\s–—-]+/g, "")
+    .trim();
+}
+
+/**
+ * Slår upp en gymnasiekurs på namn eller kod. Returnerar null när inget
+ * träffar — hellre ingen läroplan än fel läroplan.
+ *
+ * Söker GY11 först eftersom det är de namnen kurspickaren erbjuder.
+ */
+export function gymnasiumCourse(name) {
+  const nyckel = courseKey(name);
+  if (!nyckel) return null;
+  const g = gymnasium();
+
+  for (const k of g.GY11.courses || []) {
+    if (courseKey(k.name) === nyckel || courseKey(k.code) === nyckel) {
+      return { curriculum: "GY11", ...k };
+    }
+  }
+  for (const n of g.GY25.levels || []) {
+    if (courseKey(n.name) === nyckel || courseKey(n.code) === nyckel) {
+      /* Kriterierna ligger på ÄMNET i Gy25, inte på nivån — ett ämnesbetyg
+         sätts på ämnet. De lyfts in här så att konsumenten inte behöver veta
+         var de bor, men de är fortfarande ämnets. */
+      return { curriculum: "GY25", ...n, criteria: g.GY25.criteria || [] };
+    }
+  }
+  return null;
+}
+
+/** Alla kursnamn som går att slå upp. Används av testerna och pickaren. */
+export function gymnasiumCourseNames() {
+  const g = gymnasium();
+  return [
+    ...(g.GY11.courses || []).map(k => k.name),
+    ...(g.GY25.levels || []).map(n => n.name),
+  ];
+}
+
+/**
+ * Betygskriteriet för en gymnasiekurs. Null när kursen eller steget saknas.
+ */
+export function criterionForCourse(courseName, grade = "E") {
+  const kurs = gymnasiumCourse(courseName);
+  if (!kurs) return null;
+  const steg = String(grade).toUpperCase();
+  const träff = (kurs.criteria || []).find(k => k.grade === steg);
+  return träff ? { curriculum: kurs.curriculum, course: kurs.name, grade: steg, text: träff.text } : null;
+}
+
+/**
+ * Vilket område i kursen ett begrepp hör till. Null när inget matchar.
+ *
+ * Matchar på ordförekomst i områdets punkter, inte på områdesnamnet: ett
+ * område heter "Aritmetik, algebra och funktioner" medan punkten under det
+ * nämner "derivata". Eleven frågar om derivata, inte om aritmetik.
+ */
+export function courseAreaForConcept(courseName, conceptLabel) {
+  const kurs = gymnasiumCourse(courseName);
+  const ord = String(conceptLabel || "").toLocaleLowerCase("sv").trim();
+  if (!kurs || ord.length < 3) return null;
+
+  let bäst = null;
+  for (const omr of kurs.areas || []) {
+    const hö = (omr.area + " " + omr.points.join(" ")).toLocaleLowerCase("sv");
+    if (!hö.includes(ord)) continue;
+    // Området vars punkter nämner begreppet flest gånger vinner.
+    const antal = hö.split(ord).length - 1;
+    if (!bäst || antal > bäst.antal) bäst = { antal, area: omr };
+  }
+  return bäst ? { curriculum: kurs.curriculum, course: kurs.name, ...bäst.area } : null;
+}
+
+/**
+ * Läroplansblocket för en gymnasiekurs. Tom sträng när kursen inte finns.
+ *
+ * Skillnaden mot grundskolans block: här finns ingen prerequisite-kedja.
+ * ExGen har inte gjort den bedömningen för gymnasiet, och att hitta på en
+ * ordning mellan Ma3c och Ma4 vore precis det fel som prerequisite-noten i
+ * grundskolan finns för att förhindra. Hellre inget än gissat.
+ */
+export function buildCourseContext(courseName, conceptLabel = "", { grade = "E" } = {}) {
+  const kurs = gymnasiumCourse(courseName);
+  if (!kurs) return "";
+
+  const läroplan = kurs.curriculum === "GY25" ? "ämnesbetygen (Gy25)" : "GY11";
+  const rader = [
+    "## LÄROPLANEN FÖR DEN HÄR KURSEN",
+    "",
+    `Eleven läser ${kurs.name} enligt ${läroplan}.`,
+  ];
+
+  const omr = conceptLabel ? courseAreaForConcept(courseName, conceptLabel) : null;
+  if (omr) {
+    rader.push("", `Begreppet hör till "${omr.area}" i kursens centrala innehåll.`);
+    rader.push("", "Centralt innehåll (Skolverkets egen text — får citeras):");
+    rader.push(...omr.points.slice(0, 6).map(p => `- ${p}`));
+  } else {
+    rader.push("", "Kursens områden (Skolverkets egen text — får citeras):");
+    rader.push(...(kurs.areas || []).slice(0, 6).map(a => `- ${a.area}`));
+  }
+
+  const krit = criterionForCourse(courseName, grade);
+  if (krit) {
+    const var_ = kurs.curriculum === "GY25"
+      ? "gäller hela ämnet, inte den enskilda nivån"
+      : "gäller kursen";
+    rader.push(
+      "",
+      `Betygskriterium för ${krit.grade} (Skolverkets egen text, ${var_}):`,
+      krit.text.slice(0, 500)
+    );
+  }
+
+  rader.push(
+    "",
+    "Citera kursplanen bara för det som står ovan. Påstå aldrig att läroplanen",
+    "kräver en viss ordning mellan kurser — den bedömningen har ExGen inte gjort",
+    "för gymnasiet."
+  );
+
+  return rader.join("\n");
+}

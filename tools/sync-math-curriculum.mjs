@@ -30,7 +30,24 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "config", "math-curriculum.json");
+const BASE = "https://api.skolverket.se/syllabus/v1";
 const SUBJECT = "GRGRMAT01"; // Matematik, grundskolan (LGR22)
+
+/* Gymnasiets matematik.
+ *
+ * GY11 (MAT) bär innehållet på KURSEN och betygskriterierna på kursen.
+ * Gy25 (MATE) bär innehållet på nivån och kriterierna på ÄMNET — ett ämnesbetyg
+ * sätts på ämnet, inte på varje nivå, vilket är hela reformen.
+ *
+ * Båda behövs. Ämnesbetygsreformen gäller utbildning som startar efter
+ * 2025-06-30, men elever som började dessförinnan läser GY11-kurser och all
+ * deras provhistorik hänger på de kursnamnen. Kurspickaren i app.html erbjuder
+ * fortfarande "Matematik 1a" … "Matematik 5", alltså GY11.
+ *
+ * MAM (MAMMAT51-53) utelämnas: den läroplanen hör till en skolform ExGen inte
+ * riktar sig till, och ingen kurs i pickaren pekar på den. */
+const GY11_SUBJECT = "MAT";
+const GY25_SUBJECT = "MATE";
 
 async function get(url) {
   for (let i = 1; i <= 3; i++) {
@@ -87,6 +104,35 @@ function parseCentralContent(blocks) {
     }
   }
   return out;
+}
+
+/* Gymnasiets centrala innehåll använder <p><strong>Område</strong></p><ul>,
+   där grundskolan använder <h4>. Samma information, annan uppmärkning — och
+   ett par kurser blandar dem. Gy25 använder dessutom <em> där GY11 använder
+   <strong>. Alla tre hanteras, annars tappas områden tyst — vilket de gjorde:
+   första versionen kunde bara <strong> och gav noll områden för samtliga sex
+   Gy25-nivåer. */
+function parseCourseContent(html) {
+  const text = String(html || "");
+  const out = [];
+  const rubrikRe = /<(?:h4|p)>\s*(?:<(?:strong|em)>)?([^<]+?)(?:<\/(?:strong|em)>)?\s*<\/(?:h4|p)>\s*<ul>([\s\S]*?)<\/ul>/g;
+  for (const [, rubrik, kropp] of text.matchAll(rubrikRe)) {
+    const namn = plainText(rubrik);
+    // Ingressen ("Undervisningen i kursen ska behandla följande centrala
+    // innehåll:") är ingen områdesrubrik.
+    if (!namn || /centralt inneh[åa]ll/i.test(namn)) continue;
+    const points = [...kropp.matchAll(/<li>([\s\S]*?)<\/li>/g)].map(m => plainText(m[1])).filter(Boolean);
+    if (!points.length) continue;
+    out.push({ area: namn, key: areaKey(namn), points });
+  }
+  return out;
+}
+
+function parseGradeSteps(list) {
+  return (list || [])
+    .filter(k => k.gradeStep)
+    .map(k => ({ grade: String(k.gradeStep), text: plainText(k.text) }))
+    .filter(k => k.text);
 }
 
 function parseCriteria(list) {
@@ -148,7 +194,7 @@ const PREREQUISITES = Object.freeze({
 
 const check = process.argv.includes("--check");
 
-const data = await get(`https://api.skolverket.se/syllabus/v1/subjects/${SUBJECT}?timespan=LATEST`);
+const data = await get(`${BASE}/subjects/${SUBJECT}?timespan=LATEST`);
 const subject = data.subject || data;
 
 const central = parseCentralContent(subject.centralContents);
@@ -167,6 +213,53 @@ if (trasiga.length) {
   process.exit(1);
 }
 
+/* ── Gymnasiet ─────────────────────────────────────────────────────────── */
+
+async function hämtaGy11() {
+  const subj = (await get(`${BASE}/subjects/${GY11_SUBJECT}`)).subject;
+  const kurser = [];
+  for (const k of subj.courses || []) {
+    const c = (await get(`${BASE}/courses/${k.code}`)).course;
+    const areas = parseCourseContent(c.centralContent && c.centralContent.text);
+    if (!areas.length) { console.error(`  VARNING: ${k.code} gav noll områden`); continue; }
+    kurser.push({
+      code: c.code,
+      name: plainText(c.name),
+      points: Number(c.points) || null,
+      areas,
+      criteria: parseGradeSteps(c.knowledgeRequirements),
+    });
+  }
+  return { subject: { code: subj.code, name: plainText(subj.name) }, courses: kurser };
+}
+
+async function hämtaGy25() {
+  const subj = (await get(`${BASE}/subjects/${GY25_SUBJECT}`)).subject;
+  const nivåer = [];
+  for (const n of subj.courses || []) {
+    const areas = parseCourseContent(n.centralContent && n.centralContent.text);
+    if (!areas.length) { console.error(`  VARNING: ${n.code} gav noll områden`); continue; }
+    nivåer.push({ code: n.code, name: plainText(n.name), points: Number(n.points) || null, areas });
+  }
+  /* Kriterierna ligger på ÄMNET, inte på nivån. Ett ämnesbetyg sätts på ämnet
+     — det är hela reformen, och att kopiera ut dem per nivå skulle påstå att
+     varje nivå betygsätts för sig. */
+  return {
+    subject: { code: subj.code, name: plainText(subj.name) },
+    levels: nivåer,
+    criteria: parseGradeSteps(subj.knowledgeRequirements),
+  };
+}
+
+const [gy11, gy25] = await Promise.all([hämtaGy11(), hämtaGy25()]);
+
+/* Ett tomt gymnasieblock är värre än inget: konsumenten skulle tro att kursen
+   saknar läroplan i stället för att synken gick sönder. */
+if (!gy11.courses.length || !gy25.levels.length) {
+  console.error("Gymnasiet gav inga kurser/nivåer — avbryter hellre än att skriva en tom fil.");
+  process.exit(1);
+}
+
 const catalog = {
   _source: "Skolverkets Syllabus API (https://api.skolverket.se/syllabus) — CC BY 4.0",
   _prerequisitesNote: "prerequisites är ExGens pedagogiska bedömning, INTE Skolverkets. Citera dem aldrig som läroplanstext.",
@@ -176,6 +269,7 @@ const catalog = {
   centralContent: central,
   criteria,
   prerequisites: PREREQUISITES,
+  gymnasium: { GY11: gy11, GY25: gy25 },
 };
 
 function comparable(c) {
@@ -194,6 +288,9 @@ if (check) {
   fs.writeFileSync(OUT, JSON.stringify(catalog, null, 0) + "\n");
   console.log(`Skrev config/math-curriculum.json (${(fs.statSync(OUT).size / 1024).toFixed(0)} kB)`);
 }
+
+console.log(`gymnasiet: GY11 ${gy11.courses.length} kurser · Gy25 ${gy25.levels.length} nivåer, ` +
+  `${gy25.criteria.length} kriterier på ämnesnivå`);
 
 const per79 = central.filter(c => c.stage === "7-9");
 console.log(`stadier: ${[...new Set(central.map(c => c.stage))].join(", ")} · ` +

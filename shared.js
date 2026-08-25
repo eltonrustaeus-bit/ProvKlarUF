@@ -741,12 +741,36 @@
        ersätts av knappar; ingen av dem får någonsin läcka ut som text. */
     var PER_MARKERS = /\s*\[(?:GOTO|CLARIFY):[^\]]+\]/g;
 
+    /* Matematik i P.E.R:s svar.
+     *
+     * Körs bara här, när hela svaret är på plats. Att rendera under
+     * strömningen skulle mangla halvskrivna uttryck: "$\\frac{3" är inte
+     * giltig LaTeX, och KaTeX skulle antingen kasta eller rita fel.
+     *
+     * Kopieringen använder cleanText, alltså LaTeX-KÄLLAN och inte den
+     * renderade texten. En elev som kopierar ett uttryck vill ha något de kan
+     * klistra in, inte lösryckta tecken ur en formel.
+     *
+     * js/hp-math.js laddar KaTeX först när texten faktiskt innehåller
+     * matematik. Går den inte att hämta står källan kvar, vilket är läsbart. */
+    var _perMathMod = null;
+    function renderPerMath(node) {
+      if (!node) return;
+      try {
+        if (!_perMathMod) _perMathMod = import('/js/hp-math.js');
+        _perMathMod
+          .then(function (m) { return m && m.renderMath ? m.renderMath(node) : null; })
+          .catch(function () {});
+      } catch (_) {}
+    }
+
     function finalizeMsg(div, text) {
       var gotoMatch = text.match(/\s*\[GOTO:([^\]]+)\]/);
       var clarifyMatch = text.match(/\s*\[CLARIFY:([^\]]+)\]/);
       var cleanText = text.replace(PER_MARKERS, '').trim();
       div.className = 'per-msg teacher';
       div.innerHTML = renderMd(cleanText);
+      renderPerMath(div);
       div.title = 'Klicka för att kopiera';
       div.style.cursor = 'pointer';
       div.onclick = function() {
