@@ -30,6 +30,10 @@
     },
     "api/hp.js": {
       "maxDuration": 60
+    },
+    "api/admin.js": {
+      "maxDuration": 30,
+      "includeFiles": "api/**"
     }
   }
 }

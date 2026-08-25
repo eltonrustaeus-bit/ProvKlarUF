@@ -89,6 +89,24 @@ const adminRoute = async route => {
     if (!r.verified) return svar(400, { ok: false, error: r.error });
     return svar(200, { ok: true, stepUp: SU.mintStepUp(UID, { secret: HEM }) });
   }
+  if (b.action === "per-brain") {
+    if (!SU.verifyStepUp(b.stepUp, UID, { secret: HEM })) return svar(403, { ok: false, error: "stepup_required" });
+    return svar(200, { ok: true, brain: {
+      noder: [
+        { id: "per-core", etikett: "per-core", typ: "modul", aktivitet: 0.9, senasteTimmen: 42 },
+        { id: "per-name", etikett: "per-name", typ: "modul", aktivitet: null, senasteTimmen: null },
+        { id: "mastery-view", etikett: "mastery-view", typ: "hjälpare", aktivitet: null, senasteTimmen: null },
+        { id: "flagga:per_answer_cache_enabled", etikett: "per_answer_cache_enabled", typ: "flagga", aktivitet: null, senasteTimmen: null },
+        { id: "explain", etikett: "explain.js", typ: "rutt", aktivitet: null, senasteTimmen: null },
+      ],
+      kanter: [
+        { från: "explain", till: "per-core" },
+        { från: "explain", till: "per-name" },
+        { från: "per-core", till: "mastery-view" },
+        { från: "explain", till: "flagga:per_answer_cache_enabled" },
+      ],
+    }, hämtad: "2026-08-25T12:00:00.000Z" });
+  }
   /* De läsande anropen kräver step-up — samma kontroll som i api/admin.js. */
   if (b.action === "per-registry" || b.action === "per-pulse") {
     if (!SU.verifyStepUp(b.stepUp, UID, { secret: HEM })) return svar(403, { ok: false, error: "stepup_required" });
@@ -241,6 +259,56 @@ ok("T16 inga data alls hos en främling",
 ok("T17 inget i 404-vyn avslöjar att sidan är privat",
   !/privat|obehöriga|minne/i.test(främlingen.text), främlingen.text.slice(0, 260));
 await ctx2.close();
+
+console.log("");
+/* ── HJÄRNAN ──────────────────────────────────────────────────────────────
+   Det viktigaste testet här är T21. En requestAnimationFrame som snurrar i
+   evighet på en sida Elton lämnar öppen är en varm telefon och ingen
+   information — och det är osynligt i varje annan kontroll. */
+const hjärnan = await page.evaluate(async () => {
+  const canvas = document.getElementById("hjarna");
+  const synlig = id => { const el = document.getElementById(id); return !!el && el.offsetParent !== null; };
+  return {
+    finns: !!canvas,
+    sektionSynlig: synlig("sektHjarnan"),
+    bredd: canvas ? canvas.width : 0,
+    text: document.getElementById("hjarnaSub")?.textContent || "",
+  };
+});
+ok("T18 hjärnan ritas ut", hjärnan.finns && hjärnan.sektionSynlig && hjärnan.bredd > 0, JSON.stringify(hjärnan));
+ok("T19 antalet noder och kanter står utskrivet",
+  /5 noder, 4 kanter/.test(hjärnan.text), hjärnan.text);
+
+/* En omätt nod ska ritas som kontur, inte som fylld — och klicket ska säga
+   "ingen mätpunkt", aldrig visa en nolla som ser ut som en mätning. */
+const klick = await page.evaluate(() => {
+  const canvas = document.getElementById("hjarna");
+  const r = canvas.getBoundingClientRect();
+  // Klicka mitt i canvasen träffar sällan; anropa hanteraren med varje nods läge
+  // går inte utifrån, så vi läser i stället legenden och infopanelens beteende.
+  return {
+    legend: document.getElementById("hjarnaLegend")?.textContent || "",
+    infoDold: document.getElementById("nodInfo")?.style.display === "none",
+    yta: r.width > 0 && r.height > 0,
+  };
+});
+ok("T20 legenden förklarar vad dämpad betyder",
+  /ingen mätpunkt/i.test(klick.legend) && klick.yta, JSON.stringify(klick));
+
+/* T21: loopen måste ta slut. Mäts genom att räkna anrop till
+   requestAnimationFrame över tid — inte genom att läsa koden. */
+const loopen = await page.evaluate(() => new Promise(res => {
+  let n = 0;
+  const rAF = window.requestAnimationFrame;
+  window.requestAnimationFrame = cb => { n++; return rAF(cb); };
+  window.dispatchEvent(new Event("resize"));   // starta om simuleringen
+  setTimeout(() => {
+    const efterStart = n;
+    setTimeout(() => res({ efterStart, slut: n, växte: n > efterStart }), 2500);
+  }, 2500);
+}));
+ok("T21 simuleringen stannar när grafen är stilla",
+  !loopen.växte && loopen.efterStart > 0, JSON.stringify(loopen));
 
 await cdp.send("WebAuthn.removeVirtualAuthenticator", { authenticatorId });
 await ctx.close();

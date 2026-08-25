@@ -796,12 +796,25 @@ export function buildCacheSkeleton(lane, { targets = [] } = {}) {
  * kartan, och det ska synas som rött, inte som en tyst nolla.
  */
 const MODUL_MARKÖRER = [
-  // Verifierade mot en riktigt byggd prompt, inte skrivna ur minnet. Första
+  // Verifierade mot blockens EGEN källkod, inte skrivna ur minnet. Första
   // försöket gissade tio markörer och NIO av dem matchade ingenting — samma
-  // sorts tyst drift som hela den här konstruktionen finns för att undvika.
+  // sorts tysta drift som hela den här konstruktionen finns för att undvika.
+  //
+  // Blocken nedan fästs på två ställen: de tre första av buildPERSystemPrompt,
+  // resten av api/explain.js via learnerProfile och collectiveBlock. Båda
+  // hamnar i samma systemsträng, så en avläsning räcker.
   ["provia-faq", "## HUR EXGEN FUNGERAR — FAKTA P.E.R FÅR CITERA"],
   ["provia-roadmap", "## ALLÉSKOLAN-PILOTEN — FÅR BERÄTTAS OM"],
   ["provia-roadmap", "## EXGENS VISION — FÅR BERÄTTAS OM"],
+  ["learner-context", "## ELEVENS KUNSKAPSLÄGE"],
+  ["learner-context", "## ELEVENS HISTORIK"],
+  ["math-curriculum", "## LÄROPLANEN FÖR DEN HÄR KURSEN"],
+  ["math-curriculum", "## LÄROPLANEN FÖR DET HÄR OMRÅDET"],
+  ["per-sales", "## ELEVEN HAR FRÅGAT OM PLAN ELLER PRIS"],
+  ["per-sales", "## INGEN FÖRSÄLJNING NU"],
+  ["per-role", "## ELEVEN FRÅGAR VAD DE SKA GÖRA"],
+  ["per-role", "## ELEVEN KAN DET HÄR REDAN"],
+  ["per-collective", "## KOLLEKTIV DATA ("],
 ];
 
 /* Alltid med. per-core bygger prompten, per-name står i presentationen, och

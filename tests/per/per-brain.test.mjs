@@ -167,10 +167,28 @@ const prompter = [
   core.buildPERSystemPrompt({ userQuestion: "vad är er vision", role: "gratis" }),
   core.buildPERSystemPrompt({ userQuestion: "vad gör ni med Alléskolan?", role: "gratis" }),
 ];
+/* Markören måste finnas ORDAGRANT i den modul den påstås märka.
+   Att bara bygga prompter räcker inte: sju av tolv block fästs av
+   api/explain.js via learnerProfile och collectiveBlock, inte av
+   buildPERSystemPrompt, och syns därför inte i en prompt byggd här.
+   Källkoden är den enda platsen som täcker alla tolv. */
+const MODUL_KÄLLA = {
+  "provia-faq": "_provia-faq.js", "provia-roadmap": "_provia-roadmap.js",
+  "learner-context": "_learner-context.js", "math-curriculum": "_math-curriculum.js",
+  "per-sales": "_per-sales.js", "per-role": "_per-role.js",
+  "per-collective": "_per-collective.js",
+};
 for (const [modul, markör] of core.MODUL_MARKÖRER) {
-  check(`markören för ${modul} finns i en riktig prompt`,
-    prompter.some(p => p.includes(markör)), markör);
+  const fil = MODUL_KÄLLA[modul];
+  check(`${modul} har en källfil att kontrollera mot`, !!fil, modul);
+  if (!fil) continue;
+  check(`markören för ${modul} finns ordagrant i ${fil}`,
+    readFileSync(join(apiDir, fil), "utf8").includes(markör), markör);
 }
+/* Och minst en markör måste dyka upp i en verkligt byggd prompt — annars kan
+   alla tolv finnas i källan utan att någonsin nå systemsträngen. */
+check("minst en markör når en riktig prompt",
+  core.MODUL_MARKÖRER.some(([, m]) => prompter.some(p => p.includes(m))));
 
 const bas = core.modulesInPrompt(prompter[0]);
 check("kärnan och namnet räknas alltid", bas.includes("per-core") && bas.includes("per-name"), JSON.stringify(bas));
