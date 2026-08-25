@@ -414,33 +414,13 @@ async function mätRörelse(tempoVärde) {
   return { skillnad, sub };
 }
 
-/* MEDIAN AV TRE, inte ett enda skott.
-   Pixelräkning varierar med vilka bildrutor som råkar samplas och var noderna
-   står just då. Uppmätta kvoter mellan bas och full fart: 1,43 · 1,41 · 1,397.
-   Måttet ligger alltså kring 1,40, och en tröskel där faller ungefär varannan
-   körning — vilket det gjorde.
-   Att sänka tröskeln hade dolt spridningen i stället för att minska den. Tre
-   mätningar och median gör instrumentet stabilare utan att röra vare sig
-   funktionen eller kravet. */
-const median = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)];
-async function mätTreGånger(tempo) {
-  const körningar = [];
-  let sub = "";
-  for (let i = 0; i < 3; i++) {
-    const r = await mätRörelse(tempo);
-    körningar.push(r.skillnad);
-    sub = r.sub;
-  }
-  return { skillnad: median(körningar), sub, körningar };
-}
-
-const lågt = await mätTreGånger(0.35);
-const högt = await mätTreGånger(1.0);
+const lågt = await mätRörelse(0.35);
+const högt = await mätRörelse(1.0);
 ok("T24 tempot står utskrivet, inte bara känns",
   /tempo 35\s*%/.test(lågt.sub) && /tempo 100\s*%/.test(högt.sub), `${lågt.sub} || ${högt.sub}`);
 ok("T25 högre tempo ger mätbart mer rörelse",
   högt.skillnad > lågt.skillnad * 1.4 && lågt.skillnad > 0,
-  `bas ${lågt.skillnad} px ${JSON.stringify(lågt.körningar)}, full fart ${högt.skillnad} px ${JSON.stringify(högt.körningar)}, kvot ${(högt.skillnad / lågt.skillnad).toFixed(2)}`);
+  `bas ${lågt.skillnad} px, full fart ${högt.skillnad} px`);
 
 await cdp.send("WebAuthn.removeVirtualAuthenticator", { authenticatorId });
 await ctx.close();
