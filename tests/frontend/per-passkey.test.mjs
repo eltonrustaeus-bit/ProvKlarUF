@@ -132,11 +132,21 @@ await seed(page, { role: "admin", user: { id: "u1" } });
 await page.goto(`${srv.url}/per.html`, { waitUntil: "networkidle" });
 
 await page.waitForSelector("#registreraBtn", { timeout: 8000 }).catch(() => {});
+/* Settle innan mätningen. ladda() gör flera anrop i följd, och utan pausen
+   mäts sidan mitt i kedjan — då kan T2 bli grön för att renderingen inte hunnit
+   ske än, inte för att den vägrade ske. En sabotageverifiering visade precis
+   det: sidan ritade ut data utan step-up och T2 grönade ändå. */
+await page.waitForTimeout(600);
 const textFöre = await page.evaluate(() => document.body.innerText);
+const låstFöre = await page.evaluate(() => ({
+  lås: document.getElementById("lasSkarm")?.style.display !== "none",
+  poster: document.querySelectorAll("#registret .post").length,
+}));
 
 console.log("");
-ok("T1 låsskärmen visas innan step-up", /låst|registrera/i.test(textFöre), textFöre.slice(0, 160));
-ok("T2 inga registerdata före step-up", !textFöre.includes("Långtidsminnet"), textFöre.slice(0, 300));
+ok("T1 låsskärmen visas innan step-up", låstFöre.lås && /låst|registrera/i.test(textFöre), JSON.stringify(låstFöre));
+ok("T2 inga registerdata före step-up",
+  låstFöre.poster === 0 && !textFöre.includes("Långtidsminnet"), JSON.stringify(låstFöre));
 
 /* Registrering: sidan anropar navigator.credentials.create(), den virtuella
    autentiseraren signerar, servern verifierar på riktigt. */
