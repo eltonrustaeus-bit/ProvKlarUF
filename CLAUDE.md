@@ -24,6 +24,14 @@ Vercel serverless exam platform for Swedish students. No framework, no build ste
 - Read file before modifying — never edit blind
 - Match CJS/ESM style of file being edited (see .claude/COMMON_MISTAKES.md)
 - No speculative features, no over-engineering
+- **Kör om sviten EFTER commit när ett test läser git-metadata.**
+  `tests/frontend/sitemap-lastmod.test.mjs` jämför `<lastmod>` i `sitemap.xml`
+  mot `git log`-datumet för varje HTML-sida. Körs sviten före committen är
+  git-datumet fortfarande det gamla, testet blir grönt — och rött först i nästa
+  PR, när någon annan ändring råkar köra sviten efteråt. Uppmätt 2026-08-25:
+  PR #107 ändrade `app.html`, sviten kördes före commit och rapporterade
+  33/33 grönt. Felet dök upp i PR #108 och såg ut att komma därifrån.
+  Ett test som bara kan bli grönt före commit bevakar ingenting.
 
 ## Concurrent Sessions — always use a worktree
 Multiple Claude Code sessions run against this repo at once (e.g. one on
