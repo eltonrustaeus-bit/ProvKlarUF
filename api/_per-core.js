@@ -779,3 +779,68 @@ export function buildCacheSkeleton(lane, { targets = [] } = {}) {
   }
   throw new Error(`okänd cache-lane: ${lane}`);
 }
+
+/* ── VILKA DELAR AV P.E.R. SOM FAKTISKT ANVÄNDES ────────────────────────────
+ *
+ * Underlaget till hjärnan på per.html.
+ *
+ * Läser den FÄRDIGA prompten i stället för att upprepa villkoren.
+ * Alternativen var sämre på varsitt sätt: att instrumentera varje
+ * blockfästning betyder ingrepp i en het kodväg där ett misstag drabbar varje
+ * elevsvar, och att kopiera villkoren hit ger två ställen som glider isär och
+ * en mätning som tyst börjar ljuga.
+ *
+ * Markörerna nedan är korta och tagna ur blockens egen text.
+ * tests/per/per-brain.test.mjs kontrollerar att varje markör faktiskt finns i
+ * det block den påstås märka — slutar en markör matcha blir modulen osynlig i
+ * kartan, och det ska synas som rött, inte som en tyst nolla.
+ */
+const MODUL_MARKÖRER = [
+  // Verifierade mot en riktigt byggd prompt, inte skrivna ur minnet. Första
+  // försöket gissade tio markörer och NIO av dem matchade ingenting — samma
+  // sorts tyst drift som hela den här konstruktionen finns för att undvika.
+  ["provia-faq", "## HUR EXGEN FUNGERAR — FAKTA P.E.R FÅR CITERA"],
+  ["provia-roadmap", "## ALLÉSKOLAN-PILOTEN — FÅR BERÄTTAS OM"],
+  ["provia-roadmap", "## EXGENS VISION — FÅR BERÄTTAS OM"],
+];
+
+/* Alltid med. per-core bygger prompten, per-name står i presentationen, och
+   provia-kb:s EXGEN-KARTA fästs villkorslöst — den är inte betingad av frågan.
+
+   ATT DE ANDRA MODULERNA SAKNAS HÄR ÄR AVSIKTLIGT.
+   _per-sales, _per-role, _per-help, _learner-context och _math-curriculum
+   fäster sina block i api/explain.js, inte i buildPERSystemPrompt, och syns
+   därför inte i den här strängen. Hellre ingen mätpunkt än en påhittad:
+   kartan ritar dem dämpade och märkta "ingen mätpunkt", precis som TOO_FEW i
+   _per-pulse.js. Vill någon mäta dem ska markören läsas ur explain.js block,
+   inte gissas. */
+const ALLTID = ["per-core", "per-name", "provia-kb"];
+
+export function modulesInPrompt(prompt) {
+  const text = String(prompt || "");
+  const ut = new Set(ALLTID);
+  for (const [modul, markör] of MODUL_MARKÖRER) {
+    if (text.includes(markör)) ut.add(modul);
+  }
+  return [...ut];
+}
+
+export { MODUL_MARKÖRER };
+
+/**
+ * Räknar upp modulerna för den här förfrågan.
+ *
+ * AWAITAS, trots att den inte påverkar svaret. På Vercel kan ett oawaitat
+ * löfte dödas när svaret skickas, så "fire and forget" hade betytt tappade
+ * skrivningar — och en mätning med hål i är svårare att lita på än ingen.
+ * Kostnaden är en atomisk sats mot en liten tabell, på en rutt som ändå väntar
+ * på en modell i flera sekunder.
+ *
+ * Fel sväljs. Räkningen får aldrig fälla ett svar till en elev.
+ */
+export async function bumpModules(supabase, moduler) {
+  try {
+    if (!supabase || !moduler?.length) return;
+    await supabase.rpc("per_bump_modules", { p_modules: moduler });
+  } catch { /* mätningen får aldrig påverka svaret */ }
+}

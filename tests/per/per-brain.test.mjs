@@ -154,5 +154,42 @@ check("en okänd modul i mätdatan skapar ingen nod",
 check("trasigt datum kraschar inte",
   B.attachActivity(riktig, [{ module: "per-core", hour: "inte ett datum", count: 5 }], NU).noder.length > 0);
 
+console.log("\n— MÄTNINGEN LÄSER PROMPTEN, INTE ETT MINNE —");
+/* Markörerna är strängar ur blockens egen text. Ändras en rubrik slutar
+   modulen synas i kartan — TYST, om ingen kontrollerar. Första försöket
+   gissade tio markörer och nio matchade ingenting alls.
+   Kontrollen bygger riktiga prompter och kräver att varje markör dyker upp i
+   åtminstone en av dem. */
+const core = await import(join(apiDir, "_per-core.js"));
+const prompter = [
+  core.buildPERSystemPrompt({ userQuestion: "hej", role: "gratis" }),
+  core.buildPERSystemPrompt({ userQuestion: "hur många prov får jag på gratis?", role: "gratis" }),
+  core.buildPERSystemPrompt({ userQuestion: "vad är er vision", role: "gratis" }),
+  core.buildPERSystemPrompt({ userQuestion: "vad gör ni med Alléskolan?", role: "gratis" }),
+];
+for (const [modul, markör] of core.MODUL_MARKÖRER) {
+  check(`markören för ${modul} finns i en riktig prompt`,
+    prompter.some(p => p.includes(markör)), markör);
+}
+
+const bas = core.modulesInPrompt(prompter[0]);
+check("kärnan och namnet räknas alltid", bas.includes("per-core") && bas.includes("per-name"), JSON.stringify(bas));
+check("en fråga utan FAQ ger ingen FAQ-modul", !bas.includes("provia-faq"));
+check("FAQ-frågan ger FAQ-modulen", core.modulesInPrompt(prompter[1]).includes("provia-faq"));
+check("visionsfrågan ger roadmap-modulen", core.modulesInPrompt(prompter[2]).includes("provia-roadmap"));
+check("Alléskolan ger också roadmap, inte en egen modul",
+  core.modulesInPrompt(prompter[3]).includes("provia-roadmap"));
+/* Dubbletter vore ofarliga i databasen men gör antalet fel: två markörer
+   pekar på provia-roadmap, och en fråga kan träffa båda. */
+const dubblettFri = core.modulesInPrompt(prompter[3]);
+check("ingen modul räknas två gånger", new Set(dubblettFri).size === dubblettFri.length, JSON.stringify(dubblettFri));
+
+/* Varje modul mätningen påstår sig se måste finnas på kartan, annars pekar
+   mätdatan på en nod som inte ritas. */
+const alla = new Set(prompter.flatMap(p => core.modulesInPrompt(p)));
+for (const m of alla) {
+  check(`${m} finns som nod på kartan`, riktig.noder.some(n => n.id === m), [...alla].join(", "));
+}
+
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);
