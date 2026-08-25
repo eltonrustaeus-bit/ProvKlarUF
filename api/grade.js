@@ -438,6 +438,11 @@ module.exports = async function handler(req, res) {
     const model = pickModel();
     const responseFormat = buildNonMcGradeSchema();
 
+    /* Samma ämnesdetektor som generate-exam.js använder för MATTE-LÄGE. Ett
+       eget mönster här hade drivit isär: ett prov kunde genereras som matte men
+       rättas som vilket ämne som helst. */
+    const isMathGrading = assessment.detectSubjectProfile(course, pastedText) === "mathematics";
+
     const systemSv =
       // Måste matcha perRole("professionell provrättare") i api/_per-name.js. Kan inte
       // importeras: den här filen är CommonJS. per-name-consistency-testet låser ihop dem.
@@ -465,6 +470,49 @@ module.exports = async function handler(req, res) {
       "     ['definition_missing','concept_confusion','calculation_error','units_missing','method_missing','reasoning_gap','missing_steps','structure_weak','example_missing','language_unclear','off_topic','insufficient_material']\n" +
       "   - Tagga bara sådant du kan se i elevsvaret. Om inget: [].\n" +
       "8) Språk: Professionellt. Inga fluff-fraser.\n";
+
+    /* Matterättning.
+     *
+     * Läggs till bara när ämnet är matematik, och bara sist — senare
+     * instruktioner väger tyngre i en systemprompt, och de här reglerna ska
+     * kunna skärpa basreglerna ovan.
+     *
+     * Två saker skiljer matematik från övriga ämnen vid rättning:
+     *
+     * 1. Svaret är en LÖSNINGSGÅNG, inte ett påstående. Rätt metod med ett
+     *    slarvfel på sista raden är något helt annat än rätt svar utan
+     *    uträkning, och basprompten kan inte skilja dem åt.
+     * 2. Sedan fotoinlämningen (api/ocr.js mode:"solution") kan svaret vara en
+     *    transkription av handskrift. Den bär LaTeX och radbrytningar, och kan
+     *    innehålla avläsningsfel som inte är elevens matematikfel. */
+    const systemSvMath =
+      "\nMATTE-LÄGE (gäller före reglerna ovan vid konflikt):\n" +
+      "M1) Bedöm LÖSNINGSGÅNGEN, inte bara slutsvaret. Rätt metod med ett räknefel på vägen ska ge " +
+      "delpoäng enligt rubric; rätt slutsvar utan uträkning ska INTE ge full poäng när rubric kräver metod.\n" +
+      "M2) Följdfel bestraffas en gång. Har eleven räknat fel i steg 2 men därefter resonerat korrekt " +
+      "utifrån sitt egna felaktiga värde, dra av för felet — inte för varje steg som ärver det.\n" +
+      "M3) Peka ut VAR det brister, med radhänvisning eller citat ur elevens lösning. " +
+      "'Fel svar' hjälper ingen; 'du flyttade termen utan att byta tecken' gör det.\n" +
+      "M4) Elevsvaret kan vara en transkription av ett foto på handskrift. Det kan därför innehålla " +
+      "LaTeX ($...$) och radbrytningar. Bedöm matematiken, inte formateringen, och dra ALDRIG av för " +
+      "stavning, notation eller en otydlig symbol.\n" +
+      "M5) Skriv all matematik i feedback och model_answer som LaTeX mellan $ och $. Klienten renderar det.\n" +
+      "M6) Använd error_tags 'calculation_error' för räknefel, 'method_missing' för saknad metod och " +
+      "'missing_steps' när lösningen hoppar över led. Blanda inte ihop dem — de styr elevens felbank.\n";
+
+    const systemEnMath =
+      "\nMATH MODE (overrides the rules above on conflict):\n" +
+      "M1) Grade the WORKING, not only the final answer. Correct method with an arithmetic slip earns " +
+      "partial credit per the rubric; a correct final answer with no working must NOT earn full marks " +
+      "when the rubric requires method.\n" +
+      "M2) Penalise a carried error once. If step 2 is wrong but the reasoning that follows is correct " +
+      "given that wrong value, deduct for the error — not for every step inheriting it.\n" +
+      "M3) Say WHERE it breaks, quoting the student's own line. 'Wrong answer' helps nobody.\n" +
+      "M4) The answer may be a transcription of a photographed handwritten solution, so it may contain " +
+      "LaTeX ($...$) and line breaks. Grade the mathematics, never the spelling, notation or an unclear symbol.\n" +
+      "M5) Write all mathematics in feedback and model_answer as LaTeX between $ and $.\n" +
+      "M6) Use error_tags 'calculation_error', 'method_missing' and 'missing_steps' distinctly — they drive " +
+      "the student's error bank.\n";
 
     const systemEn =
       "Role: You are P.E.R — ExGen's Progressive Evidence Reasoning model, a professional exam grader.\n" +
@@ -494,7 +542,9 @@ module.exports = async function handler(req, res) {
       const payload = {
         model,
         input: [
-          { role: "system", content: lang === "sv" ? systemSv : systemEn },
+          { role: "system", content: lang === "sv"
+              ? systemSv + (isMathGrading ? systemSvMath : "")
+              : systemEn + (isMathGrading ? systemEnMath : "") },
           { role: "user", content: JSON.stringify(userPayload) }
         ],
         text: { format: responseFormat }

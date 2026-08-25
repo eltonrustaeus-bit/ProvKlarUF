@@ -102,7 +102,8 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/_learner-context.js` | **Enda vägen** för elevuppgifter in i en prompt. Rangordnar uppmätt > sagt > härlett (hjälpare, ingen rutt) |
 | `api/_per-sales.js` | Avgör OM P.E.R. får sälja, utifrån var eleven är — inte utifrån frågans ord (hjälpare, ingen rutt) |
 | `api/_per-role.js` | Studieplanerare och utmanare — de två roller som kräver belagd mastery (hjälpare, ingen rutt) |
-| `api/_math-curriculum.js` | Grundskolans matematik ur Skolverket + ExGens prerequisite-kedja (hjälpare, ingen rutt) |
+| `api/_math-curriculum.js` | Matematikens läroplan ur Skolverket — grundskolan per stadium, gymnasiet per kurs (GY11 + Gy25) + ExGens prerequisite-kedja (hjälpare, ingen rutt) |
+| `api/_solution-ocr.js` | Avläsning av elevens handskrivna matematiklösning — prompt, schema, radvis sanering (hjälpare, ingen rutt) |
 | `api/_provia-faq.js` | Hur ExGen fungerar, citerbart av P.E.R. Bifogas villkorat via `faqRelevant()` (hjälpare, ingen rutt) |
 | `api/_provia-roadmap.js` | ExGens nästa steg — Alléskolan-pitchen med verifierad statistik (hjälpare, ingen rutt) |
 | `api/_per-core.js` | **PER Core Engine** — callAI + personality (ESM, importeras av explain/teacher-report) |
@@ -112,7 +113,7 @@ vilket är varför `hp.js` och `knowledge.js` dispatchar på `body.op`.
 | `api/check-role.js` | Returns user role — never trust client-side role. Bär även delete-exams och Stripe-portalen |
 | `api/signup.js` | Creates user row — validate all inputs |
 | `api/admin.js` | Admin-only — verify role server-side. `body.action`-dispatch (list-users, set-role, approve, …) |
-| `api/ocr.js` | File upload — sanitize paths |
+| `api/ocr.js` | File upload — sanitize paths. Två lägen: material (default) och `mode:"solution"` för handskrivna lösningar |
 | `api/teacher-report.js` | P.E.R lärarrapport — auth required (ESM) |
 | `api/create-checkout-session.js` | **Betalning.** Skapar Stripe-session — auth krävs, plan får aldrig tas från klienten okontrollerat (ESM) |
 | `api/stripe-webhook.js` | **Betalning.** Ingen `_auth` — verifieras med Stripes signatur (`constructEvent`), inte med JWT. Måste vara idempotent (ESM) |
@@ -297,6 +298,64 @@ Any change to `api/` triggers security review checklist:
 - **Hellre ingen områdeskoppling än en gissad.** `areaForConcept()` returnerar
   null när inget mönster träffar; en felaktig koppling skickar eleven att
   repetera något de redan kan medan luckan står kvar.
+
+## Fotoinlämning av handskrivna lösningar (2026-08-25)
+- **Transkriptionen ÄR svaret.** Den skrivs in i `S.answers[id]` i
+  `js/exam-flow.js`, och därifrån går rättning, felbank, begreppstaggar och
+  mastery oförändrat. Bygg aldrig en parallell pipeline för fotosvar — hela
+  poängen är att det inte behövs.
+- **Modellen får ALDRIG lösa, rätta eller komplettera.** Står det `x = 8` när
+  svaret är 5 ska transkriptionen säga 8. Rättar den tyst bedöms eleven för ett
+  arbete de inte utfört, felet når aldrig felbanken, och mastery stiger på en
+  kunskap de inte har. Regeln står först OCH sist i prompten och är testfall T3 i
+  `tests/api/solution-ocr.test.mjs`.
+- **Bilden lagras aldrig.** Skickas en gång, kastas. Eleverna är till stor del
+  minderåriga och ett räknepapper bär ofta namn i marginalen. Prompten förbjuder
+  dessutom att marginaltext transkriberas.
+- **Eleven bekräftar före inlämning.** Transkriptionen är redigerbar och
+  granskningsraden listar osäkra ställen. Det är skyddet mot felläsning — inte
+  att avläsningen är felfri.
+- **Saneringen sker RADVIS.** `redactInstructions()` normaliserar `\s+` till
+  mellanslag och plattar annars en uträkning till en rad. Radordningen bär
+  resonemanget.
+- **`ocr.js` är CJS, `sanitize.mjs` är ESM** — importen måste vara dynamisk.
+  `src/per/**` ligger i `includeFiles` för `ocr.js` i `vercel.json`.
+- **`OPENAI_VISION_MODEL` är förberedd men inte satt.** Evalen i
+  `tests/evals/solution-ocr/` mäter teckenfel och — viktigare — hur ofta modellen
+  låter bli att rätta elevens fel. Bilderna är syntetiska och därför
+  systematiskt för optimistiska; modellvalet låses först mot riktiga foton.
+
+## Matematikdjupet (2026-08-25)
+- **Grundskolan indexeras på STADIUM, gymnasiet på KURS.** Det är inte en
+  inkonsekvens utan hur läroplanerna är byggda: en grundskoleelev läser
+  matematik, en gymnasieelev läser Matematik 3c.
+- **GY11 (`MAT`) bär innehåll och kriterier på KURSEN. Gy25 (`MATE`) bär
+  innehållet på nivån och kriterierna på ÄMNET** — ett ämnesbetyg sätts på ämnet,
+  vilket är hela reformen. `buildCourseContext()` säger uttryckligen att Gy25:s
+  kriterium gäller ämnet, inte den enskilda nivån.
+- **Gymnasiet har INGEN prerequisite-kedja.** ExGen har inte gjort den
+  bedömningen, och en gissad ordning mellan Ma3c och Ma4 vore precis det fel som
+  grundskolans prerequisite-not finns för att förhindra. Blocket förbjuder
+  uttryckligen påståenden om ordning mellan kurser.
+- **Parsern måste klara `<h4>`, `<p><strong>` och `<p><em>`.** Grundskolan
+  använder det första, GY11 det andra, Gy25 det tredje. Första versionen kunde
+  bara `<strong>` och gav noll områden för samtliga sex Gy25-nivåer — synken
+  vägrade skriva filen, vilket var rätt.
+- **Notation och rendering hänger ihop.** `generate-exam.js` MATTE-LÄGE kräver
+  LaTeX mellan `$...$`; `js/hp-math.js` renderar det i provet, rättningen och
+  P.E.R:s svar. Tas notationsregeln bort finns inget att rendera och hela kedjan
+  blir verkningslös. KaTeX hämtas först när en text faktiskt innehåller
+  matematik — en ren textfråga får aldrig kosta 280 kB.
+- **Rendera P.E.R:s svar först när strömningen är klar.** `$\frac{3` är inte
+  giltig LaTeX. Kopieringen använder LaTeX-KÄLLAN, inte den renderade texten.
+- **Matterättningen bedömer lösningsgången.** Rätt metod med ett räknefel ger
+  delpoäng; rätt slutsvar utan uträkning ger inte full poäng när rubric kräver
+  metod. Följdfel bestraffas en gång. Och: dra ALDRIG av för notation eller
+  otydlig symbol — svaret kan vara en transkription av elevens handstil, och då
+  bestraffas eleven för hur en modell läste deras papper.
+- **Ämnet avgörs av `assessment.detectSubjectProfile()`, på ett ställe.** Ett eget
+  mönster i `grade.js` hade drivit isär: ett prov kunde genereras som matte och
+  rättas som vilket ämne som helst.
 
 ## Vision och Alléskolan är två olika svar (2026-08-24)
 - **`buildVisionContext()` gäller hela produkten och alla elever.** Den nämner
