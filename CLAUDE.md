@@ -416,6 +416,35 @@ Any change to `api/` triggers security review checklist:
   syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
   andra, inte omöjlig att hitta för Elton.
 
+## Hjärnans utseende och rörelse (2026-08-25)
+- **Rörelsen är kontinuerlig men inte ovillkorlig.** Kartan rör sig så länge
+  fliken är SYNLIG och pausar via Page Visibility när den inte är det. Det
+  gamla stoppvillkoret ("stanna när grafen lagt sig") är bytt, inte borttaget:
+  en `requestAnimationFrame` som snurrar i evighet på en bortglömd flik är en
+  varm telefon och ingen information. `per-passkey.test.mjs` T21–T23 mäter
+  BÅDA halvorna — bara den första hade gett tillbaka det gamla problemet med
+  en grön bock på. Sabotageverifierat: utan pausen 48 bildrutor med fliken
+  gömd i stället för 0.
+- **`prefers-reduced-motion` stänger av drift, partiklar och pulsringar.** Den
+  som satt den i sitt system har bett om det, och en dekorativ animation är
+  inte värd att strunta i det.
+- **Databastabeller är en egen nodtyp**, härledd ur `.from("x")` följt av en
+  PostgREST-metod. Kravet på metoden är inte överdrivet: `.from()` finns också
+  i `Buffer.from` och `Array.from`, och ett naivt mönster hade en dag ritat en
+  tabell som heter `base64url`. Testet låser båda fallen. Grafen växte från 37
+  noder och 49 kanter till 55 och 77.
+- **Bara tabeller som P.E.R:s egna filer rör kommer med.** En tabell som bara
+  nämns av en fil utanför kartan ritas inte — annars växer grafen med saker
+  P.E.R. inte har med att göra.
+- **Etiketter ritas selektivt** — navet, det som lyser, och det man valt. Alla
+  55 namn samtidigt är en vägg av text, inte en karta.
+- **Konturen för omätta noder är inte en stilfråga.** `aktivitet === null`
+  betyder ingen mätpunkt; en fylld nod med svag färg hade lästs som "mätt och
+  tyst".
+- **Partiklarnas fart följer aktiviteten** i kantens ändpunkter. Samma regel
+  som ljusstyrkan: rörelsen ska betyda något, annars är kartan en
+  skärmsläckare.
+
 ## CJS/ESM: import.meta tog ned adminpanelen (2026-08-25)
 - **Ingen fil i `api/` utan `_`-prefix får använda `import.meta`.** De blir
   serverlösa funktioner, filerna heter `.js` och `package.json` saknar

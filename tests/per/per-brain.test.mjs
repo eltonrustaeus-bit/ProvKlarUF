@@ -209,6 +209,45 @@ for (const m of alla) {
   check(`${m} finns som nod på kartan`, riktig.noder.some(n => n.id === m), [...alla].join(", "));
 }
 
+console.log("\n— TABELLERNA —");
+/* Databastabellerna är den största enskilda källan till struktur kartan
+   saknade: P.E.R. rör 18 tabeller, och innan de här noderna syntes ingen. */
+const tabeller = riktig.noder.filter(n => n.typ === "tabell");
+check("tabeller hittas", tabeller.length >= 10, tabeller.map(t => t.etikett).join(", "));
+check("tabellnoder har prefix så de inte krockar med en modul",
+  tabeller.every(t => t.id.startsWith("tabell:")));
+
+/* Kravet på en efterföljande PostgREST-metod är inte överdrivet: `.from("…")`
+   finns också i Buffer.from och Array.from. Ett naivt mönster hade en dag
+   ritat en tabell som heter "base64url". */
+const falsk = B.buildGraph({
+  "_per-a.js": 'const b = Buffer.from("base64url");\nconst c = Array.from("abc");',
+  "_per-b.js": 'await supabase.from("riktig_tabell").select("id");',
+});
+check("Buffer.from blir ingen tabell", !falsk.noder.some(n => n.id === "tabell:base64url"),
+  JSON.stringify(falsk.noder.map(n => n.id)));
+check("Array.from blir ingen tabell", !falsk.noder.some(n => n.id === "tabell:abc"));
+check("en riktig tabellfråga blir en tabell", falsk.noder.some(n => n.id === "tabell:riktig_tabell"));
+check("och får en kant från filen som läser den",
+  falsk.kanter.some(k => k.från === "per-b" && k.till === "tabell:riktig_tabell"));
+
+/* En tabell som bara nämns av en fil utanför kartan ska inte ritas — annars
+   växer grafen med saker P.E.R. inte rör. */
+const utanför = B.buildGraph({
+  "_per-a.js": "export const x = 1;",
+  "orelaterad.js": 'await supabase.from("nagon_annan_tabell").select("id");',
+});
+check("en tabell utanför P.E.R. kommer inte med",
+  !utanför.noder.some(n => n.id === "tabell:nagon_annan_tabell"),
+  JSON.stringify(utanför.noder.map(n => n.id)));
+
+/* Tabellnamnen måste finnas ordagrant i källan. En påhittad tabell på kartan
+   är samma sorts fel som en påhittad markör. */
+for (const t of tabeller.slice(0, 6)) {
+  check(`${t.etikett} nämns i api/`,
+    Object.values(filer).some(src => src.includes(`"${t.etikett}"`)), t.etikett);
+}
+
 console.log("\n— DEN GENERERADE FILEN MÅSTE VARA AKTUELL —");
 /* api/_per-graph-data.js genereras av tools/build-per-graph.mjs och läses av
    api/admin.js. Läses den inte om när api/ ändras visar kartan gårdagens
