@@ -406,6 +406,47 @@ Any change to `api/` triggers security review checklist:
   `ERR_MODULE_NOT_FOUND` tills du länkar in den:
   `ln -s /Users/elton1/provia-ai/node_modules node_modules`.
 
+## Låset på minnessidan (2026-08-25)
+- **En passkey autentiserar en ENHET, inte en behörighet.** `requireAdmin`
+  (`profiles.role === 'admin'`) är och förblir det avgörande gatet. Step-up
+  ligger ovanpå. Byt aldrig ordningen: en passkey ensam hindrar ingen från att
+  anropa API:t direkt.
+- **Utmaningen raderas FÖRE verifieringen**, i `takeChallenge()`. Apples
+  passkeys rapporterar alltid signaturräknare 0, så räknaren kan inte upptäcka
+  en återspelad signatur. Engångsutmaningen är det enda som gör det. Flytta
+  aldrig raderingen efteråt.
+- **Registrering kräver bara adminroll — medvetet.** Specen kräver att Elton
+  aldrig kan låsa ut sig, och kravet på en befintlig passkey leder till manuell
+  databasåtgärd den dag båda enheterna försvinner. Priset är att någon med en
+  kapad adminsession kan registrera sin egen enhet och ta sig förbi step-up.
+  Sidan listar därför varje enhet med tidpunkt: en tyst registrering blir
+  åtminstone synlig. Skärper någon det här, gör det utan att återinföra
+  utelåsningen.
+- **Tre saker måste finnas i produktion, annars fungerar låset inte:**
+  `PASSKEY_STEPUP_SECRET` (lång slumpsträng) och `PASSKEY_RP_ID` (`exgen.se`)
+  i Vercel, samt migrationen `20260825_admin_passkeys.sql`. Saknas hemligheten
+  utfärdas ingen token, och servern svarar **503 med `stepup_unconfigured`** —
+  inte 403. Ett konfigurationsfel som ser ut som ett behörighetsfel skickar
+  felsökningen åt fel håll.
+- **Passkeys är bundna till sin origin.** En registrerad på `exgen.se` fungerar
+  inte på en Vercel-preview och inte på localhost. Testerna sätter
+  `PASSKEY_ORIGIN` och `PASSKEY_RP_ID` mot sin egen server, och de måste sättas
+  INNAN `_admin-passkey.js` importeras.
+- **`tests/frontend/per-passkey.test.mjs` mockar inte WebAuthn.** Chromium får
+  en virtuell autentiserare via CDP och serversidan är de riktiga funktionerna
+  körda mot ett minneslager. Därför tar `_admin-passkey.js` ett `store`, inte
+  en Supabase-klient — utan den uppdelningen hade engångsutmaningen bara gått
+  att kontrollera genom att läsa koden.
+- **Step-up-token överlever en omladdning** (`sessionStorage`, TTL 30 min) men
+  dör när fliken stängs. Ett test som vill mäta upplåsningen måste rensa
+  `exgen_per_stepup` först, annars mäter det en redan upplåst sida.
+- **`public_key` är `text` med base64url, inte `bytea`.** PostgREST lämnar
+  bytea som `\x`-hex och konverteringen är ett extra felläge utan vinst.
+- **Ett sabotage som kraschar testet bevisar för lite.** `report()` skriver ut
+  först vid `finish()`, så en krasch döljer varje kontrolls utfall. Sabotera så
+  att flödet går igenom men data läcker — då syns vilken kontroll som faktiskt
+  vaktar saken.
+
 ## Vision och Alléskolan är två olika svar (2026-08-24)
 - **`buildVisionContext()` gäller hela produkten och alla elever.** Den nämner
   varken Alléskolan eller matematik — testet låser båda. Att svara "vi ska hjälpa
