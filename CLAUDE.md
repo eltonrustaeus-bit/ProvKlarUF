@@ -416,6 +416,47 @@ Any change to `api/` triggers security review checklist:
   syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
   andra, inte omöjlig att hitta för Elton.
 
+## per-visual: bruset var antialiasing (2026-08-25)
+- **`diff()` har en kanaltolerans på 8.** Före det räknades varje pixel med
+  NÅGON skillnad alls. Uppmätt orsak till flakigheten: hela bruset var TVÅ
+  pixlar som skilde sig med EXAKT 1 enhet i en kanal, på förbättring.html i
+  mobilvy. Subpixelrendering är inte deterministisk mellan två skott av samma
+  träd.
+- **Brusgolvet kunde inte fånga det**, eftersom det mäts ur ETT skottpar:
+  paret råkade ibland bli identiskt (golv 0) medan "ny" fick de två pixlarna,
+  och `delta > golv` gjorde `2 > 0` till en röd rad. Filen flaggade i tre hela
+  svitkörningar i rad och var grön varje gång den kördes ensam.
+- **Tröskeln 8 gör inte testet blint.** Sabotageverifierat: `.wrap` padding
+  22px → 23px ger 52 858 respektive 3 774 skiljande pixlar. Bruset är 1, en
+  verklig ändring mäts i tusental — mellanrummet är stort nog att tröskeln inte
+  behöver vara knapp. Mobilvyerna visar korrekt 0 för just det sabotaget:
+  mediafrågan i `style.css:754` sätter egen padding under 754px.
+- **Höjdtolerans 2 px.** En helsidesbild fångar sidans höjd vid utlösningen och
+  den kan skilja en pixel mellan två skott av samma träd. Skiljer den 2 px
+  eller mindre beskärs båda till den lägsta; mer än så är en verklig
+  höjdändring och ger fortfarande -1.
+- **"Känt flakigt" är ingen diagnos.** Den här filen avfärdades tre gånger
+  innan någon mätte vad bruset bestod av. Ett test som kräver en mänsklig
+  bedömning varje körning är på väg att bli ett test ingen litar på.
+
+## Sidans källkod avslöjade det sidan skulle dölja (2026-08-25)
+- **`display:none` döljer för ögat, inte för `view-source`.** `per.html`
+  levererade hela den privata markupen till alla och gömde den med CSS. Mätt
+  mot produktion: `curl https://exgen.se/per.html` returnerade "privat sida, ej
+  för obehöriga" och varje id på sidan.
+- **Den privata markupen byggs nu av JS**, först efter att servern bekräftat
+  ägaren. En främlings DOM är tom, inte dold — `#privat` innehåller ingenting.
+- **Ett test som läser `innerText` kan aldrig fånga det.** T14–T17 mätte det
+  renderade och var gröna hela tiden.
+- **`el?.offsetParent !== null` är TRUE för ett element som inte finns.**
+  `undefined !== null`. Ett borttaget element lästes som synligt och gjorde T15
+  röd på en sida som blivit säkrare. Använd `!!el && el.offsetParent !== null`.
+- **`robots.txt` nämner inte sidan.** Raden `Disallow: /per.html` stod där som
+  ett tänkt skydd men är motsatsen: robots.txt är en publik fil avsedd att
+  läsas av alla, så en Disallow-rad ANNONSERAR adressen. Sidan bär `noindex`
+  och renderar en 404-vy för alla utom ägaren. `per-sida.test.mjs` T8 kräver nu
+  att raden INTE finns.
+
 ## Minnessidan är låst till EN person (2026-08-25, ersätter delar av nästa avsnitt)
 - **`PER_OWNER_USER_ID` avgör, inte rollen.** `requireOwner()` kräver
   `requireAdmin` **och** att `user.id` matchar variabeln. En framtida admin,

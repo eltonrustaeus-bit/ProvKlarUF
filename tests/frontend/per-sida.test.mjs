@@ -104,13 +104,20 @@ ok("T6 tunt underlag skrivs som text, inte som noll",
 ok("T7 sidan bär noindex",
   await page.evaluate(() => !!document.querySelector('meta[name="robots"][content*="noindex"]')));
 
-/* Sidan får inte gå att hitta. robots.txt är inte ett skydd — den är en
-   begäran som bara hyfsade sökmotorer följer — men en sida som ligger i
-   sitemapen är aktivt inbjuden, och det är motsatsen till privat. */
+/* robots.txt får INTE nämna sidan.
+   Raden `Disallow: /per.html` stod här från början och lästes som ett skydd.
+   Den är motsatsen: robots.txt är en publik fil, avsedd att läsas av alla, så
+   en Disallow-rad ANNONSERAR adressen för var och en som öppnar
+   https://exgen.se/robots.txt. Sidan bär noindex och renderar en 404-vy för
+   alla utom ägaren, så den behöver ingen rad där — och mår bättre utan.
+
+   Sitemapen är en annan sak: där ligger sidor som aktivt bjuds in att
+   indexeras, och det är motsatsen till privat. Den kontrollen står kvar. */
 const { readFileSync } = await import("node:fs");
 const robots = readFileSync(ROOT + "/robots.txt", "utf8");
 const sitemap = readFileSync(ROOT + "/sitemap.xml", "utf8");
-ok("T8 robots.txt utesluter sidan", /^Disallow:\s*\/per\.html\s*$/m.test(robots));
+ok("T8 robots.txt nämner inte sidan alls", !/per\.html/.test(robots),
+  (robots.match(/.*per\.html.*/) || [""])[0]);
 ok("T9 sidan står inte i sitemapen", !sitemap.includes("per.html"));
 
 await ctx.close();
