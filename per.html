@@ -63,13 +63,21 @@
 <main>
 <div class="wrap">
 
-  <div class="pageHero">
+  <div class="pageHero" id="hero" style="display:none">
     <div class="eyebrow">Privat</div>
     <h1 class="pageTitle">P.E.R:s minne</h1>
     <p class="pageSub" id="status">Kontrollerar åtkomst…</p>
   </div>
 
-  <div id="lasSkarm" class="post" style="margin-bottom:32px">
+  <!-- Vad en främling ser. Ingen låsskärm, ingen antydan om att något ligger
+       här: servern svarar likadant på en okänd action som på den här sidans
+       anrop, och sidan speglar det svaret. -->
+  <div id="intetSkarm" style="padding:64px 0;text-align:center">
+    <p style="font-family:var(--mono);font-size:13px;color:var(--t3);margin:0 0 6px">404</p>
+    <p style="font-size:15px;color:var(--t2);margin:0">Sidan finns inte.</p>
+  </div>
+
+  <div id="lasSkarm" class="post" style="margin-bottom:32px;display:none">
     <p class="postNamn">Sidan är låst</p>
     <p class="postFalt" id="lasText">Kontrollerar…</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
@@ -78,15 +86,15 @@
     </div>
   </div>
 
-  <div id="enheter" class="rutnat" style="margin-bottom:32px"></div>
+  <div id="enheter" class="rutnat" style="margin-bottom:32px;display:none"></div>
 
-  <section class="sekt">
+  <section class="sekt" id="sektRegistret" style="display:none">
     <h2 class="sektRubrik">Registret</h2>
     <p class="sektSub">vad P.E.R. är — moduler och flaggor</p>
     <div class="rutnat" id="registret"></div>
   </section>
 
-  <section class="sekt">
+  <section class="sekt" id="sektPulsen" style="display:none">
     <h2 class="sektRubrik">Pulsen</h2>
     <p class="sektSub" id="pulsTid">vad han gör just nu</p>
     <div class="statsRow" id="pulsen"></div>
@@ -96,7 +104,7 @@
 </div>
 </main>
 
-<footer>ExGen — privat sida, ej för obehöriga.</footer>
+<footer id="sidfot" style="display:none">ExGen — privat sida, ej för obehöriga.</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -283,11 +291,16 @@ async function ladda() {
   const registreraBtn = document.getElementById('registreraBtn');
 
   const st = await anropa('passkey-status');
-  if (!st || !st.ok) {
-    status.textContent = 'Ingen åtkomst. Sidan kräver ett adminkonto — gatet ligger på servern, inte här.';
-    lasText.textContent = 'Du är inte inloggad som admin.';
-    return;
-  }
+  /* Servern svarar likadant på "du är inte ägaren" som på en action som inte
+     finns. Sidan kan alltså inte skilja dem åt — och ska inte kunna det.
+     Båda ger 404-vyn. Ett felmeddelande här hade bekräftat att sidan finns. */
+  if (!st || !st.ok) return;
+
+  document.getElementById('intetSkarm').style.display = 'none';
+  document.getElementById('hero').style.display = '';
+  document.getElementById('lasSkarm').style.display = '';
+  document.getElementById('sidfot').style.display = '';
+  document.getElementById('enheter').style.display = '';
   ritaEnheter(st.enheter);
 
   if (!st.konfigurerad) { visaFel({ error: 'stepup_unconfigured' }); return; }
@@ -305,6 +318,8 @@ async function ladda() {
   /* Först här är sidan upplåst. Data har inte legat i en dold div — servern
      vägrade svara tills step-up var på plats. */
   lasSkarm.style.display = 'none';
+  document.getElementById('sektRegistret').style.display = '';
+  document.getElementById('sektPulsen').style.display = '';
   status.textContent = 'Registret beskrivs i api/_per-registry.js och bevakas av tests/per/per-registry.test.mjs, som faller om en modul saknar post eller en post saknar modul.';
   document.getElementById('registret').innerHTML =
     [...reg.registry.moduler, ...reg.registry.flaggor].map(ritaPost).join('');

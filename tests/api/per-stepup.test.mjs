@@ -88,10 +88,16 @@ for (const a of ["per-registry", "per-pulse", "passkey-delete"]) {
 /* Registrering får INTE kräva step-up — då kan en tappad enhet inte ersättas
    utan databasåtgärd, vilket specen förbjuder. */
 check("registrering kräver inte step-up", !/requireStepUp/.test(block("passkey-register-begin")));
-check("varje passkey-anrop går genom requireAdmin",
+/* Ägarkollen får inte ERSÄTTA rollkollen, bara ligga ovanpå. requireOwner
+   anropar requireAdmin först — utan den raden hade en giltig session med rätt
+   uid räckt, oavsett roll. Kontrollen mäter kedjan, inte att varje block
+   råkar skriva ordet requireAdmin. */
+check("requireOwner bygger på requireAdmin, ersätter den inte",
+  /async function requireOwner[\s\S]{0,200}await requireAdmin\(req, res\)/.test(admin));
+check("varje passkey-anrop går genom ägarkollen",
   ["passkey-status", "passkey-register-begin", "passkey-register-finish",
    "passkey-auth-begin", "passkey-auth-finish", "passkey-delete"]
-    .every(a => /requireAdmin/.test(block(a))));
+    .every(a => /requireOwner/.test(block(a))));
 /* Ett konfigurationsfel som svarar 403 skickar felsökningen åt fel håll. */
 check("saknad hemlighet ger 503, inte 403", /stepup_unconfigured/.test(admin) && /status\(503\)/.test(admin));
 
@@ -108,6 +114,63 @@ check("utmaningen raderas i takeChallenge, före verifieringen",
   /takeChallenge[\s\S]{0,700}delete\(\)[\s\S]{0,60}eq\("id", rad\.id\)/.test(passkeyKälla));
 check("den publika nyckeln lagras som base64url, inte bytea",
   /toString\("base64url"\)/.test(passkeyKälla));
+
+console.log("\n— BARA ÄGAREN, INTE VARJE ADMIN —");
+/* Sidan är inte "för administratörer" utan för EN person. En framtida admin,
+   tillagd för något helt annat, ska inte kunna läsa P.E.R:s minne. */
+const ÄGARE = "4a2d4593-16d3-4f9f-bc6c-54c856c21553";
+const gammalÄgare = process.env.PER_OWNER_USER_ID;
+process.env.PER_OWNER_USER_ID = ÄGARE;
+check("ägaren känns igen", S.isOwner({ id: ÄGARE }) === true);
+check("en annan admin är inte ägare", S.isOwner({ id: B }) === false);
+check("utan användare är ingen ägare", S.isOwner(null) === false && S.isOwner({}) === false);
+/* FAIL CLOSED. Ett tomt värde får aldrig betyda "alla". */
+process.env.PER_OWNER_USER_ID = "";
+check("osatt variabel gör INGEN till ägare", S.isOwner({ id: ÄGARE }) === false);
+process.env.PER_OWNER_USER_ID = "   ";
+check("blanktecken gör INGEN till ägare", S.isOwner({ id: "   " }) === false);
+if (gammalÄgare === undefined) delete process.env.PER_OWNER_USER_ID;
+else process.env.PER_OWNER_USER_ID = gammalÄgare;
+
+for (const a of ["per-registry", "per-pulse", "passkey-status", "passkey-register-begin",
+                 "passkey-register-finish", "passkey-auth-begin", "passkey-auth-finish",
+                 "passkey-delete", "recovery-create", "recovery-use"]) {
+  check(`${a} går genom requireOwner`, /requireOwner/.test(block(a)), a);
+}
+/* Ett 403 hade bekräftat att ytan finns och bara var stängd. Svaret till alla
+   andra måste vara omöjligt att skilja från en rutt som inte existerar. */
+check("främlingar får samma svar som en okänd action",
+  /requireOwner[\s\S]{0,600}Unknown action/.test(admin));
+
+console.log("\n— REGISTRERINGEN ÄR STÄNGD —");
+check("register-begin kräver rätt att registrera", /requireEnrolmentRight/.test(block("passkey-register-begin")));
+check("register-finish kräver det också", /requireEnrolmentRight/.test(block("passkey-register-finish")));
+/* Första enheten måste gå att registrera, annars vore sidan omöjlig att öppna. */
+check("men första enheten släpps igenom",
+  /if \(!enheter\.length\) return true;/.test(admin));
+check("därefter krävs en upplåst session",
+  /if \(!enheter\.length\) return true;[\s\S]{0,120}requireStepUp/.test(admin));
+
+console.log("\n— ÅTERSTÄLLNINGSKODEN —");
+const kod = S.generateRecoveryCode();
+const { hash, salt } = S.hashRecoveryCode(kod);
+check("koden är lång nog att inte gissas", kod.replace(/-/g, "").length >= 30, `${kod.length} tecken`);
+check("koden saknar förväxlingsbara tecken", !/[ILOU]/.test(kod), kod);
+check("rätt kod godtas", S.verifyRecoveryCode(kod, hash, salt) === true);
+check("fel kod nekas", S.verifyRecoveryCode("ABCD-EFGH-JKMN-PQRS", hash, salt) === false);
+check("gemener godtas — koden ska gå att skriva av", S.verifyRecoveryCode(kod.toLowerCase(), hash, salt) === true);
+check("tom kod nekas", S.verifyRecoveryCode("", hash, salt) === false);
+/* Två koder i rad får aldrig ge samma hash — då vore saltet verkningslöst. */
+check("saltet är unikt per kod", S.hashRecoveryCode(kod).hash !== S.hashRecoveryCode(kod).hash);
+check("jämförelsen läcker inte tid", /timingSafeEqual\(given, känd\)/.test(källa));
+check("koden lagras aldrig i klartext",
+  !/code_hash:\s*kod|clear|plain/.test(readFileSync(join(root, "api", "_admin-passkey.js"), "utf8")));
+/* Markeras förbrukad INNAN token utfärdas — annars kan ett avbrutet anrop
+   lämna kvar en kod som redan gett tillgång. */
+check("koden markeras förbrukad före token utfärdas",
+  /markRecoveryUsed[\s\S]{0,200}mintStepUp/.test(admin));
+check("en förbrukad kod godtas aldrig igen", /rad\.used_at\) return/.test(admin));
+check("recovery-create kräver upplåst session", /requireStepUp/.test(block("recovery-create")));
 
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);

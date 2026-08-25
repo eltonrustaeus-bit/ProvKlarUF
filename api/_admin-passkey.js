@@ -70,6 +70,23 @@ export function supabaseStore(supabase) {
       await supabase.from("admin_passkeys").delete()
         .eq("user_id", userId).eq("credential_id", credentialId);
     },
+
+    /* Återställningskoden. En rad per användare — en ny kod ersätter den gamla,
+       så det kan aldrig ligga två giltiga koder samtidigt utan att någon vet. */
+    async saveRecovery(userId, hash, salt) {
+      await supabase.from("admin_recovery_codes")
+        .upsert({ user_id: userId, code_hash: hash, salt, created_at: new Date().toISOString(), used_at: null },
+                { onConflict: "user_id" });
+    },
+    async readRecovery(userId) {
+      const { data } = await supabase.from("admin_recovery_codes")
+        .select("code_hash, salt, used_at").eq("user_id", userId).maybeSingle();
+      return data || null;
+    },
+    async markRecoveryUsed(userId) {
+      await supabase.from("admin_recovery_codes")
+        .update({ used_at: new Date().toISOString() }).eq("user_id", userId);
+    },
   };
 }
 

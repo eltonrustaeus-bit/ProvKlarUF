@@ -195,6 +195,40 @@ ok("T12 en förbrukad utmaning nekas", igen.verified === false, igen.error);
 const främmande = await PK.beginAuthentication(store, "99999999-9999-4999-8999-999999999999");
 ok("T13 en användare utan enhet får inget att logga in med", !!främmande.error, JSON.stringify(främmande));
 
+console.log("");
+/* T14–T16: vad en främling ser. Servern svarar likadant på "du är inte
+   ägaren" som på en action som inte finns, och sidan speglar det svaret.
+   Ett felmeddelande, eller ens en låsskärm, hade bekräftat att sidan finns. */
+const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+const sida2 = await ctx2.newPage();
+await mockApis(sida2, {
+  role: "admin", profiles: { id: "u9", approved: true, role: "admin" },
+  // Exakt det svar api/admin.js ger den som inte är ägaren.
+  extra: [["**/api/admin", r => r.fulfill({ status: 400, contentType: "application/json", body: '{"ok":false,"error":"Unknown action"}' })]],
+});
+await seed(sida2, { role: "admin", user: { id: "u9" } });
+await sida2.goto(`${srv.url}/per.html`, { waitUntil: "networkidle" });
+await sida2.waitForTimeout(600);
+const främlingen = await sida2.evaluate(() => ({
+  text: document.body.innerText,
+  synligt404: document.getElementById("intetSkarm")?.offsetParent !== null,
+  hero: document.getElementById("hero")?.offsetParent !== null,
+  lås: document.getElementById("lasSkarm")?.offsetParent !== null,
+  poster: document.querySelectorAll("#registret .post").length,
+}));
+ok("T14 en främling ser 404", främlingen.synligt404 && /404|finns inte/i.test(främlingen.text), JSON.stringify(främlingen));
+ok("T15 ingen låsskärm avslöjar att sidan finns", !främlingen.hero && !främlingen.lås, JSON.stringify(främlingen));
+ok("T16 inga data alls hos en främling",
+  främlingen.poster === 0 && !främlingen.text.includes("Långtidsminnet") && !/P\.E\.R/i.test(främlingen.text),
+  främlingen.text.slice(0, 200));
+/* Sidfoten sa "ExGen — privat sida, ej för obehöriga" även i 404-läget och
+   bekräftade därmed precis det den skulle dölja: att sidan finns och är
+   privat. Hittades genom att LÄSA testutskriften, inte genom att den blev röd
+   — T16:s villkor råkade inte täcka ordet "privat". */
+ok("T17 inget i 404-vyn avslöjar att sidan är privat",
+  !/privat|obehöriga|minne/i.test(främlingen.text), främlingen.text.slice(0, 260));
+await ctx2.close();
+
 await cdp.send("WebAuthn.removeVirtualAuthenticator", { authenticatorId });
 await ctx.close();
 await browser.close();
