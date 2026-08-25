@@ -416,6 +416,80 @@ Any change to `api/` triggers security review checklist:
   syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
   andra, inte omöjlig att hitta för Elton.
 
+## CJS/ESM: import.meta tog ned adminpanelen (2026-08-25)
+- **Ingen fil i `api/` utan `_`-prefix får använda `import.meta`.** De blir
+  serverlösa funktioner, filerna heter `.js` och `package.json` saknar
+  `"type": "module"` — Vercel laddar dem som CJS, där `import.meta` är ett
+  **syntaxfel**. Modulen kan då inte laddas alls, och hela rutten svarar 500,
+  även på metoder som skulle gett 405.
+- **Uppmätt:** `dirname(fileURLToPath(import.meta.url))` i `api/admin.js` gav
+  `SyntaxError: Cannot use 'import.meta' outside a module` på rad 815 och tog
+  ned adminpanelen i produktion. Reverterad efter några minuter.
+- **Varför inget befintligt test fångade det:** varje test i repot kör i Node
+  som ESM, där `import.meta.url` fungerar utmärkt. Även kontrollen "parsar
+  admin.js?" var grön — den parsade, SOM ESM.
+  `tests/api/cjs-esm-boundary.test.mjs` läser källkoden som text i stället,
+  vilket är det enda sättet att se skillnaden utan att köra i CJS.
+- **Samma test förbjuder `readdirSync`/`readFileSync` i rutter.** En rutt som
+  läser sin egen katalog förutsätter att källfilerna ligger på disk i den
+  buntade funktionen. Det gör de inte utan `includeFiles` — och då hänger
+  funktionen på en rad i `vercel.json` som ingen kommer ihåg.
+- **Generera i stället.** `tools/build-per-graph.mjs` skriver
+  `api/_per-graph-data.js`, samma mönster som `config/math-curriculum.json`.
+  Kör den när `api/` ändrats; `--check` säger om filen är inaktuell och
+  `tests/per/per-brain.test.mjs` faller om den glidit isär från källan.
+- **Filen ligger i `api/`, inte i `config/`** — `config/*.json` serveras
+  statiskt och är publikt hämtbart.
+- **Omsorgen låg på fel ställe.** Jag skrev en genomtänkt kommentar om
+  `includeFiles` och en guard mot en tom karta, medan det verkliga felet låg
+  tre rader ovanför och gjorde hela rutten oladdbar.
+
+## P.E.R:s hjärna (2026-08-25)
+- **Kartan bygger på TRANSITIV STÄNGNING, inte `_per-`-prefixet.** `grade.js`
+  och `generate-exam.js` når P.E.R. genom `_concept-tags.js` och
+  `_adaptive-exam.js`, som saknar prefixet. Med prefixregeln visade kartan
+  P.E.R. som frånkopplad från rättning och provgenerering — falskt, eftersom
+  mastery skrivs i `grade.js` och läses av `_per-role.js`. De filerna kommer
+  med som typen `hjälpare`, inte `modul`: registret beskriver just `_per-*`,
+  och de två ytorna får inte säga olika saker om vad P.E.R. BESTÅR av.
+- **`IMPORT_RE` måste täcka den dynamiska formen.** `grade.js` och
+  `generate-exam.js` är CJS och MÅSTE importera dynamiskt. Med bara
+  `from "…"` tigde kartan om två av sju rutter.
+- **Markörerna i `MODUL_MARKÖRER` är lästa ur blockens källkod, aldrig skrivna
+  ur minnet.** Första försöket gissade tio markörer och NIO matchade
+  ingenting — kartan hade visat tre moduler som aktiva och resten som döda, och
+  sett helt trovärdig ut. `per-brain.test.mjs` kräver nu att varje markör finns
+  ordagrant i den modul den märker.
+- **`modulesInPrompt()` läser den färdiga prompten**, i stället för att
+  upprepa villkoren. Att instrumentera varje blockfästning vore ingrepp i en
+  het kodväg där ett misstag drabbar varje elevsvar; att kopiera villkoren ger
+  två ställen som glider isär.
+- **`bumpModules()` AWAITAS.** På Vercel kan ett oawaitat löfte dödas när
+  svaret skickas, så "fire and forget" hade betytt tappade skrivningar. Fel
+  sväljs — mätningen får aldrig fälla ett svar till en elev.
+- **`vercel.json` ger `api/admin.js` `includeFiles: "api/**"`.** Utan den finns
+  inte källfilerna på disk i den buntade funktionen och kartan blir tom. En
+  guard svarar 500 med orsaken i stället för att servera en tom karta som ser
+  ut som "P.E.R. har inga moduler".
+- **Simuleringen måste stanna.** En `requestAnimationFrame` som snurrar i
+  evighet på en sida som lämnas öppen är en varm telefon och ingen information.
+  Sabotageverifierat: utan stoppvillkoret 151 bildrutor och sedan 301, med det
+  1 och stopp.
+- **Startpositionerna är deterministiska, inte slumpade.** En karta som ser
+  annorlunda ut vid varje omladdning tappar det enda en karta är bra på — att
+  man minns var saker låg.
+- **`aktivitet === null` betyder INGEN MÄTPUNKT, inte noll aktivitet.** Ritas
+  som kontur, inte som fylld nod. Sju av tolv block fästs i `explain.js` och
+  går att mäta; övriga moduler har ingen mätpunkt alls och ska sägas rakt ut.
+  Samma regel som `TOO_FEW` i `_per-pulse.js`.
+- **Ljusstyrkan är avvikelse mot modulens eget dygnsmedel, inte volym.** En
+  modul som alltid används ska inte lysa starkast bara för att den alltid
+  används — då blir kartan en lista över det vanligaste, vilket registret redan
+  säger.
+- **Committa FÖRE sabotage.** `git checkout` på en fil som aldrig committats
+  gör ingenting, och nästa sabotage läggs ovanpå det förra. Det hände tre
+  gånger under det här arbetet.
+
 ## per-visual: bruset var antialiasing (2026-08-25)
 - **`diff()` har en kanaltolerans på 8.** Före det räknades varje pixel med
   NÅGON skillnad alls. Uppmätt orsak till flakigheten: hela bruset var TVÅ

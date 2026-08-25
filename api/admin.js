@@ -2,6 +2,8 @@
 import { requireAuth } from "./_auth.js";
 import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
 import { PER_REGISTRY } from "./_per-registry.js";
+import { attachActivity } from "./_per-brain.js";
+import { PER_GRAPH } from "./_per-graph-data.js";
 import {
   summariseMemories, summariseProbes, summariseCache,
   summariseQuota, summariseConcepts,
@@ -566,6 +568,40 @@ export default async function handler(req, res) {
     if (!user) return;
     if (!await requireStepUp(req, res, user)) return;
     return res.status(200).json({ ok: true, registry: PER_REGISTRY });
+  }
+
+  if (action === "per-brain") {
+    const user = await requireOwner(req, res);
+    if (!user) return;
+    if (!await requireStepUp(req, res, user)) return;
+
+    /* Grafen kommer från en GENERERAD modul, inte från en filläsning.
+     *
+     * Första versionen läste api/-katalogen här med
+     * dirname(fileURLToPath(import.meta.url)). Vercel laddar den här filen som
+     * CJS — den heter .js och package.json saknar "type": "module" — och
+     * import.meta är ett SYNTAXFEL i CJS. Hela rutten svarade 500, även på
+     * GET, och adminpanelen låg nere tills ändringen reverterades.
+     *
+     * tests/api/cjs-esm-boundary.test.mjs förbjuder nu både import.meta och
+     * katalogläsning i varje fil utan understrecksprefix.
+     *
+     * Kör `node tools/build-per-graph.mjs` när api/ ändrats.
+     * tests/per/per-brain.test.mjs faller om filen är inaktuell. */
+    const nu = Date.now();
+
+    // Ett dygn tillbaka: ljusstyrkan är senaste timmen mot modulens eget
+    // dygnsmedel, så mindre än ett dygn ger ingen jämförelsepunkt.
+    const { data } = await supabase.from("per_module_activity")
+      .select("module, hour, count")
+      .gte("hour", new Date(nu - 24 * 3_600_000).toISOString())
+      .limit(2000);
+
+    return res.status(200).json({
+      ok: true,
+      brain: attachActivity(PER_GRAPH, data || [], nu),
+      hämtad: new Date(nu).toISOString(),
+    });
   }
 
   if (action === "per-pulse") {
