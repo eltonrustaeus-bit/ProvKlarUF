@@ -103,6 +103,13 @@ export const PER_REGISTRY = {
       ser: "Poäng per begrepp och avidentifierade felkoder, aggregerat över alla elever.",
       gräns: "K-anonymitet i vyn: ett begrepp syns först vid fem distinkta elever, en felkod vid tre. Vyn är dessutom oåtkomlig för klienter och läses bara av servern.",
     },
+    {
+      fil: "_per-pulse.js",
+      namn: "Pulsen",
+      gör: "Gör rader till summor åt den här sidan: hur många minnen som finns, hur ofta cachen träffar, vad kvoterna använts till.",
+      ser: "Rader som api/admin.js redan hämtat — modulen gör själv ingen databasfråga.",
+      gräns: "Aggregat, aldrig enskilda elever. Och ett underlag som är för tunt rapporteras som text, inte som en nolla: en träffkvot räknad på fyra sonderingar är brus, och en nolla hade lästs som en mätning.",
+    },
   ],
 
   flaggor: [
