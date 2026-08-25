@@ -516,6 +516,15 @@ Any change to `api/` triggers security review checklist:
   paus flyttar bara gränsen; villkoret tar bort den.
 - Samma familj som T25 i `per-passkey.test.mjs`, som mätte rörelse över ett
   fast tidsfönster och blev belastningskänslig. Räknar nu bildrutor.
+- **Samma mönster fanns i `anon-per.test.mjs`** och föll i nästa körning. När
+  riggen kastar rapporteras ÄVEN kontroller som mäter helt andra saker som
+  röda — tre orelaterade kontroller blev röda av en paus som var 200 ms kort.
+- **`tests/frontend/rigg-vantar-pa-villkor.test.mjs` hindrar återfall**, men
+  bara för `#perInput` i P.E.R.-panelen. Två bredare formuleringar provades
+  först och fällde tio respektive sju GRÖNA filer — mest navigeringsklick i
+  provflödet som aldrig fallit. **En regel som fäller fungerande kod blir
+  ignorerad eller raderad, och skyddar då ingenting.** Faller något annat på
+  samma sätt: utvidga regeln DÅ, med det fallet som grund.
 
 ## Hur P.E.R. undervisar (2026-08-25)
 - **`## UNDERVISNING` var 154 tecken** — tunnast av fjorton avsnitt, medan
