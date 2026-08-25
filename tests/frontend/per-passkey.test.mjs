@@ -392,13 +392,23 @@ async function mätRörelse(tempoVärde) {
        inte kunde skilja långsamt från snabbt. Instrumentet var fel, inte
        funktionen. Över ett kort fönster är antalet ändrade pixlar ungefär
        proportionellt mot farten. */
+    /* Räkna BILDRUTOR, inte millisekunder.
+       Ett fast tidsfönster är belastningskänsligt: i en full svitkörning
+       konkurrerar flera Chromium om CPU:n, bildfrekvensen sjunker, och de två
+       mätningarna krymper olika mycket. Samma sorts känslighet som gjorde
+       per-visual opålitlig i tre körningar i rad.
+       Över ett fast ANTAL bildrutor får båda tempona lika många chanser att
+       flytta något, oavsett hur hårt maskinen är belastad. */
     const a = Uint8ClampedArray.from(bild());
-    setTimeout(() => {
+    let rutor = 0;
+    const räkna = () => {
+      if (++rutor < 8) return requestAnimationFrame(räkna);
       const b = bild();
       let n = 0;
       for (let i = 3; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) > 12) n++;
       res(n);
-    }, 120);
+    };
+    requestAnimationFrame(räkna);
   }));
   await sida.close();
   return { skillnad, sub };

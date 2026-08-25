@@ -115,6 +115,12 @@ export const PER_GRAPH = {
       "typ": "modul"
     },
     {
+      "id": "per-review",
+      "etikett": "per-review",
+      "fil": "_per-review.js",
+      "typ": "modul"
+    },
+    {
       "id": "per-role",
       "etikett": "per-role",
       "fil": "_per-role.js",
@@ -430,6 +436,10 @@ export const PER_GRAPH = {
     {
       "från": "explain",
       "till": "per-core"
+    },
+    {
+      "från": "explain",
+      "till": "per-review"
     },
     {
       "från": "explain",
