@@ -493,6 +493,16 @@ Any change to `api/` triggers security review checklist:
   tre rader ovanför och gjorde hela rutten oladdbar.
 
 ## Vänta på villkoret, inte på klockan (2026-08-25)
+- **Och mät flera gånger när måttet är brusigt.** T25 räknade bildrutor i
+  stället för millisekunder — rätt fix mot belastning — men EN mätning per
+  tempo varierade ändå: kvoterna 1,43 · 1,41 · 1,397 mot en tröskel på 1,4.
+  Den föll alltså ungefär varannan körning. Median av tre ger 1,42 både
+  opåverkat och under last, med 1,7 % respektive 0,6 % spridning inom
+  serierna.
+- **Att sänka tröskeln hade dolt spridningen i stället för att minska den.**
+  Tre gånger under det här arbetet var en justerad siffra ett steg bort från
+  grönt: när tempot bara gav 1,14x, när mätfönstret saturerade, och här.
+  Varje gång satt felet i funktionen eller i instrumentet.
 - **En fast `waitForTimeout` före en interaktion är en flakkälla.**
   `stale-session.test.mjs` klickade upp P.E.R.-panelen och väntade 500 ms innan
   den skrev i `#perInput`. Lokalt räckte det; i en full svitkörning på 777 s,
