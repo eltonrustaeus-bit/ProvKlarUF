@@ -492,6 +492,21 @@ Any change to `api/` triggers security review checklist:
   `includeFiles` och en guard mot en tom karta, medan det verkliga felet låg
   tre rader ovanför och gjorde hela rutten oladdbar.
 
+## Vänta på villkoret, inte på klockan (2026-08-25)
+- **En fast `waitForTimeout` före en interaktion är en flakkälla.**
+  `stale-session.test.mjs` klickade upp P.E.R.-panelen och väntade 500 ms innan
+  den skrev i `#perInput`. Lokalt räckte det; i en full svitkörning på 777 s,
+  där flera Chromium konkurrerar, hann öppningsanimationen inte klart och
+  riggen kastade med "element is not visible" — mitt i, efter nio godkända
+  kontroller.
+- **Symtomet är förrädiskt:** filen var grön ensam OCH grön under konstlad
+  last med sex parallella Chromium. Ett tidsberoende syns bara ibland, och
+  "kan inte reproducera" är därför inget bevis på att det inte finns.
+- **Fixen är `waitFor({ state: "visible" })`**, inte en längre paus. En längre
+  paus flyttar bara gränsen; villkoret tar bort den.
+- Samma familj som T25 i `per-passkey.test.mjs`, som mätte rörelse över ett
+  fast tidsfönster och blev belastningskänslig. Räknar nu bildrutor.
+
 ## Hur P.E.R. undervisar (2026-08-25)
 - **`## UNDERVISNING` var 154 tecken** — tunnast av fjorton avsnitt, medan
   `## NÄR FRÅGAN ÄR OTYDLIG` var 1808. Hela instruktionen löd "ställ EN
