@@ -416,52 +416,6 @@ Any change to `api/` triggers security review checklist:
   syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
   andra, inte omöjlig att hitta för Elton.
 
-## P.E.R:s hjärna (2026-08-25)
-- **Kartan bygger på TRANSITIV STÄNGNING, inte `_per-`-prefixet.** `grade.js`
-  och `generate-exam.js` når P.E.R. genom `_concept-tags.js` och
-  `_adaptive-exam.js`, som saknar prefixet. Med prefixregeln visade kartan
-  P.E.R. som frånkopplad från rättning och provgenerering — falskt, eftersom
-  mastery skrivs i `grade.js` och läses av `_per-role.js`. De filerna kommer
-  med som typen `hjälpare`, inte `modul`: registret beskriver just `_per-*`,
-  och de två ytorna får inte säga olika saker om vad P.E.R. BESTÅR av.
-- **`IMPORT_RE` måste täcka den dynamiska formen.** `grade.js` och
-  `generate-exam.js` är CJS och MÅSTE importera dynamiskt. Med bara
-  `from "…"` tigde kartan om två av sju rutter.
-- **Markörerna i `MODUL_MARKÖRER` är lästa ur blockens källkod, aldrig skrivna
-  ur minnet.** Första försöket gissade tio markörer och NIO matchade
-  ingenting — kartan hade visat tre moduler som aktiva och resten som döda, och
-  sett helt trovärdig ut. `per-brain.test.mjs` kräver nu att varje markör finns
-  ordagrant i den modul den märker.
-- **`modulesInPrompt()` läser den färdiga prompten**, i stället för att
-  upprepa villkoren. Att instrumentera varje blockfästning vore ingrepp i en
-  het kodväg där ett misstag drabbar varje elevsvar; att kopiera villkoren ger
-  två ställen som glider isär.
-- **`bumpModules()` AWAITAS.** På Vercel kan ett oawaitat löfte dödas när
-  svaret skickas, så "fire and forget" hade betytt tappade skrivningar. Fel
-  sväljs — mätningen får aldrig fälla ett svar till en elev.
-- **`vercel.json` ger `api/admin.js` `includeFiles: "api/**"`.** Utan den finns
-  inte källfilerna på disk i den buntade funktionen och kartan blir tom. En
-  guard svarar 500 med orsaken i stället för att servera en tom karta som ser
-  ut som "P.E.R. har inga moduler".
-- **Simuleringen måste stanna.** En `requestAnimationFrame` som snurrar i
-  evighet på en sida som lämnas öppen är en varm telefon och ingen information.
-  Sabotageverifierat: utan stoppvillkoret 151 bildrutor och sedan 301, med det
-  1 och stopp.
-- **Startpositionerna är deterministiska, inte slumpade.** En karta som ser
-  annorlunda ut vid varje omladdning tappar det enda en karta är bra på — att
-  man minns var saker låg.
-- **`aktivitet === null` betyder INGEN MÄTPUNKT, inte noll aktivitet.** Ritas
-  som kontur, inte som fylld nod. Sju av tolv block fästs i `explain.js` och
-  går att mäta; övriga moduler har ingen mätpunkt alls och ska sägas rakt ut.
-  Samma regel som `TOO_FEW` i `_per-pulse.js`.
-- **Ljusstyrkan är avvikelse mot modulens eget dygnsmedel, inte volym.** En
-  modul som alltid används ska inte lysa starkast bara för att den alltid
-  används — då blir kartan en lista över det vanligaste, vilket registret redan
-  säger.
-- **Committa FÖRE sabotage.** `git checkout` på en fil som aldrig committats
-  gör ingenting, och nästa sabotage läggs ovanpå det förra. Det hände tre
-  gånger under det här arbetet.
-
 ## per-visual: bruset var antialiasing (2026-08-25)
 - **`diff()` har en kanaltolerans på 8.** Före det räknades varje pixel med
   NÅGON skillnad alls. Uppmätt orsak till flakigheten: hela bruset var TVÅ

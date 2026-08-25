@@ -46,12 +46,6 @@
   .enhetRad{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .taBort{padding:4px 10px;border-radius:var(--r2);border:1px solid var(--l2);background:transparent;color:var(--t3);font-family:var(--mono);font-size:10.5px;cursor:pointer}
   .taBort:hover{color:var(--t);border-color:var(--l)}
-  #hjarnaWrap{position:relative;background:var(--s);border:1px solid var(--l);border-radius:var(--r);overflow:hidden}
-  #hjarna{display:block;width:100%;height:520px;cursor:grab}
-  #hjarna:active{cursor:grabbing}
-  #nodInfo{position:absolute;left:12px;bottom:12px;right:12px;background:var(--s2,#162019);border:1px solid var(--l);border-radius:var(--r);padding:12px;display:none;max-width:420px}
-  #hjarnaLegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--t3)}
-  #hjarnaLegend b{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
   </style>
 </head>
 <body>
@@ -278,174 +272,6 @@ async function skapaKod() {
   ruta.textContent = 'Spara den här nu, den visas aldrig igen: ' + r.kod;
 }
 
-/* ── HJÄRNAN ────────────────────────────────────────────────────────────────
- *
- * Kraftsimulering i canvas. Handskriven med flit: d3-force + d3-selection är
- * ~280 kB för något som ryms här, och repot har inget byggsteg. Samma avvägning
- * som KaTeX, fast tvärtom — där var biblioteket värt det.
- *
- * SIMULERINGEN STANNAR när grafen är stilla. En requestAnimationFrame som
- * snurrar i evighet på en sida som lämnas öppen är en varm telefon och ingen
- * information. Den startar om vid interaktion och vid ny data.
- */
-const NOD_FARG = { modul: '#1bff8c', 'hjälpare': '#7fd4ff', flagga: '#ffcf6b', rutt: '#c9a6ff' };
-const STILLA = 0.06;   // total rörelse under detta = klart
-
-let hjarnaLoop = null;
-
-function ritaHjarnan(brain) {
-  const canvas = document.getElementById('hjarna');
-  const info = document.getElementById('nodInfo');
-  const ctx2 = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-
-  function storlek() {
-    const r = canvas.getBoundingClientRect();
-    canvas.width = Math.max(1, Math.round(r.width * dpr));
-    canvas.height = Math.max(1, Math.round(r.height * dpr));
-    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { w: r.width, h: r.height };
-  }
-  let { w, h } = storlek();
-
-  const grader = {};
-  for (const k of brain.kanter) {
-    grader[k['från']] = (grader[k['från']] || 0) + 1;
-    grader[k.till] = (grader[k.till] || 0) + 1;
-  }
-
-  /* Startpositionerna är deterministiska, inte slumpade: en karta som ser helt
-     annorlunda ut vid varje omladdning går inte att känna igen, och då tappar
-     man det enda en karta är bra på — att man minns var saker låg. */
-  const noder = brain.noder.map((n, i) => {
-    const vinkel = (i / brain.noder.length) * Math.PI * 2;
-    return {
-      ...n,
-      grad: grader[n.id] || 0,
-      x: w / 2 + Math.cos(vinkel) * Math.min(w, h) * 0.34,
-      y: h / 2 + Math.sin(vinkel) * Math.min(w, h) * 0.34,
-      vx: 0, vy: 0,
-    };
-  });
-  const index = new Map(noder.map(n => [n.id, n]));
-  const kanter = brain.kanter
-    .map(k => ({ a: index.get(k['från']), b: index.get(k.till) }))
-    .filter(k => k.a && k.b);
-
-  const radie = n => 5 + Math.min(9, n.grad * 1.1);
-
-  function steg() {
-    let rörelse = 0;
-    // Repulsion.
-    for (let i = 0; i < noder.length; i++) {
-      for (let j = i + 1; j < noder.length; j++) {
-        const a = noder[i], b = noder[j];
-        let dx = b.x - a.x, dy = b.y - a.y;
-        let d2 = dx * dx + dy * dy;
-        if (d2 < 1) { d2 = 1; dx = (i - j) || 1; dy = 1; }
-        const kraft = 2600 / d2;
-        const d = Math.sqrt(d2);
-        const fx = (dx / d) * kraft, fy = (dy / d) * kraft;
-        a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
-      }
-    }
-    // Fjädrar.
-    for (const k of kanter) {
-      const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y;
-      const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const kraft = (d - 90) * 0.012;
-      const fx = (dx / d) * kraft, fy = (dy / d) * kraft;
-      k.a.vx += fx; k.a.vy += fy; k.b.vx -= fx; k.b.vy -= fy;
-    }
-    // Mot mitten + dämpning.
-    for (const n of noder) {
-      n.vx += (w / 2 - n.x) * 0.0016;
-      n.vy += (h / 2 - n.y) * 0.0016;
-      n.vx *= 0.86; n.vy *= 0.86;
-      n.x += n.vx; n.y += n.vy;
-      const r = radie(n) + 2;
-      n.x = Math.max(r, Math.min(w - r, n.x));
-      n.y = Math.max(r, Math.min(h - r, n.y));
-      rörelse += Math.abs(n.vx) + Math.abs(n.vy);
-    }
-    return rörelse / Math.max(1, noder.length);
-  }
-
-  function rita() {
-    ctx2.clearRect(0, 0, w, h);
-    ctx2.lineWidth = 1;
-    for (const k of kanter) {
-      ctx2.strokeStyle = 'rgba(168,196,180,0.14)';
-      ctx2.beginPath(); ctx2.moveTo(k.a.x, k.a.y); ctx2.lineTo(k.b.x, k.b.y); ctx2.stroke();
-    }
-    for (const n of noder) {
-      const grund = NOD_FARG[n.typ] || '#a8c4b4';
-      /* aktivitet === null betyder INGEN MÄTPUNKT, inte noll aktivitet.
-         Skillnaden ritas ut: dämpad kontur i stället för fylld nod. */
-      const omätt = n.aktivitet === null || n.aktivitet === undefined;
-      const ljus = omätt ? 0 : n.aktivitet;
-      ctx2.beginPath();
-      ctx2.arc(n.x, n.y, radie(n), 0, Math.PI * 2);
-      if (omätt) {
-        ctx2.strokeStyle = grund; ctx2.globalAlpha = 0.28; ctx2.stroke(); ctx2.globalAlpha = 1;
-      } else {
-        ctx2.fillStyle = grund; ctx2.globalAlpha = 0.35 + ljus * 0.65; ctx2.fill(); ctx2.globalAlpha = 1;
-        if (ljus > 0.05) {
-          ctx2.beginPath();
-          ctx2.arc(n.x, n.y, radie(n) + 4 + ljus * 6, 0, Math.PI * 2);
-          ctx2.strokeStyle = grund; ctx2.globalAlpha = ljus * 0.5; ctx2.stroke(); ctx2.globalAlpha = 1;
-        }
-      }
-      if (n.grad >= 3 || !omätt) {
-        ctx2.fillStyle = 'rgba(232,245,238,0.72)';
-        ctx2.font = '10px ui-monospace, monospace';
-        ctx2.fillText(n.etikett.replace(/\.js$/, ''), n.x + radie(n) + 4, n.y + 3);
-      }
-    }
-  }
-
-  function loop() {
-    const rörelse = steg();
-    rita();
-    // Stannar när grafen lagt sig. Se noten ovan.
-    if (rörelse > STILLA) hjarnaLoop = requestAnimationFrame(loop);
-    else hjarnaLoop = null;
-  }
-
-  function starta() {
-    if (hjarnaLoop) cancelAnimationFrame(hjarnaLoop);
-    hjarnaLoop = requestAnimationFrame(loop);
-  }
-
-  canvas.onclick = e => {
-    const r = canvas.getBoundingClientRect();
-    const mx = e.clientX - r.left, my = e.clientY - r.top;
-    const träff = noder.find(n => Math.hypot(n.x - mx, n.y - my) <= radie(n) + 6);
-    if (!träff) { info.style.display = 'none'; return; }
-    const post = (SENASTE_REGISTER.moduler || []).concat(SENASTE_REGISTER.flaggor || [])
-      .find(x => (x.fil && x.fil.replace(/^_|\.js$/g, '') === träff.id) || ('flagga:' + x.nyckel) === träff.id);
-    const mätt = träff.aktivitet === null || träff.aktivitet === undefined
-      ? 'Ingen m\u00e4tpunkt \u2014 den h\u00e4r delen f\u00e4ster inget block i systemprompten, s\u00e5 den g\u00e5r inte att m\u00e4ta d\u00e4r. Ingen gissning ritas i st\u00e4llet.'
-      : `Senaste timmen: ${träff.senasteTimmen} anv\u00e4ndningar. Ljus ${Math.round(träff.aktivitet * 100)}% mot eget dygnsmedel.`;
-    info.style.display = '';
-    info.innerHTML = `<p class="postNamn">${esc(post ? post.namn : träff.etikett)}</p>
-      <p class="postFil">${esc(träff.etikett)} \u00b7 ${esc(träff.typ)} \u00b7 ${träff.grad} kanter</p>
-      ${post ? `<p class="postFalt"><b>G\u00f6r:</b> ${esc(post['g\u00f6r'])}</p>
-      <p class="postFalt postGrans"><b>Gr\u00e4ns:</b> ${esc(post['gr\u00e4ns'])}</p>` : ''}
-      <p class="postFalt">${esc(mätt)}</p>`;
-  };
-
-  window.addEventListener('resize', () => { ({ w, h } = storlek()); starta(); });
-
-  document.getElementById('hjarnaSub').textContent =
-    `${noder.length} noder, ${kanter.length} kanter \u2014 strukturen l\u00e4st ur api/ vid anropet`;
-  starta();
-}
-
-/* Registret sparas när det hämtas, så ett klick i grafen kan visa posten utan
-   ett nytt anrop. Grafen och registret är samma data sedd på två sätt. */
-let SENASTE_REGISTER = {};
-
 async function ladda() {
   const st = await anropa('passkey-status');
   /* Servern svarar likadant på "du är inte ägaren" som på en action som inte
@@ -480,22 +306,6 @@ async function ladda() {
       <h2 class="sektRubrik">Registret</h2>
       <p class="sektSub">vad P.E.R. \u00e4r \u2014 moduler och flaggor</p>
       <div class="rutnat" id="registret"></div>
-    </section>
-
-    <section class="sekt" id="sektHjarnan" style="display:none">
-      <h2 class="sektRubrik">Hj\u00e4rnan</h2>
-      <p class="sektSub" id="hjarnaSub">strukturen l\u00e4st ur koden, ljuset m\u00e4tt</p>
-      <div id="hjarnaWrap">
-        <canvas id="hjarna"></canvas>
-        <div id="nodInfo"></div>
-      </div>
-      <div id="hjarnaLegend">
-        <span><b style="background:#1bff8c"></b>modul</span>
-        <span><b style="background:#7fd4ff"></b>hj\u00e4lpare</span>
-        <span><b style="background:#ffcf6b"></b>flagga</span>
-        <span><b style="background:#c9a6ff"></b>rutt</span>
-        <span>ljus = ovanligt aktiv senaste timmen \u00b7 d\u00e4mpad = ingen m\u00e4tpunkt</span>
-      </div>
     </section>
 
     <section class="sekt" id="sektPulsen" style="display:none">
@@ -536,20 +346,13 @@ async function ladda() {
   lasSkarm.style.display = 'none';
   document.getElementById('sektRegistret').style.display = '';
   document.getElementById('sektPulsen').style.display = '';
-  document.getElementById('sektHjarnan').style.display = '';
   status.textContent = 'Registret beskrivs i api/_per-registry.js och bevakas av tests/per/per-registry.test.mjs, som faller om en modul saknar post eller en post saknar modul.';
-  SENASTE_REGISTER = reg.registry;
   document.getElementById('registret').innerHTML =
     [...reg.registry.moduler, ...reg.registry.flaggor].map(ritaPost).join('');
 
   const p = await anropa('per-pulse');
   if (!p || !p.ok) return;
   ritaPuls(p.pulse);
-
-  const h = await anropa('per-brain');
-  if (h && h.ok) ritaHjarnan(h.brain);
-  else document.getElementById('hjarnaSub').textContent =
-    'kartan kunde inte l\u00e4sas: ' + ((h && h.error) || 'inget svar');
 }
 
 /* Lyssnarna kopplas i ladda(), efter att markupen byggts — knapparna finns

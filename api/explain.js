@@ -1,6 +1,6 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
-import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt, buildExplainPrompt , modulesInPrompt, bumpModules } from "./_per-core.js";
+import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt, buildExplainPrompt } from "./_per-core.js";
 import { MODULES } from "./_modules.js";
 import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
@@ -608,12 +608,6 @@ export default async function handler(req, res) {
       studentName,
 
     });
-
-    /* Vilka delar av P.E.R. som faktiskt användes i det här svaret.
-       Underlaget till hjärnan på per.html. Aggregat: modulnamn, timme, antal —
-       inget user_id, ingen frågetext, inget svar. Fel sväljs i bumpModules;
-       en mätning får aldrig fälla ett svar till en elev. */
-    await bumpModules(supabase, modulesInPrompt(systemContent));
 
     const userMsg = userQuestion
       ? userQuestion
