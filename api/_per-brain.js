@@ -181,6 +181,37 @@ export function activityLevel(senasteTimmen, dygnsmedel) {
   return Math.max(0, Math.min(1, (kvot - 1) / 1));
 }
 
+/* SYSTEMETS TEMPO — hur mycket hela P.E.R. används just nu.
+ *
+ * Skiljer sig från nodernas ljusstyrka: den mäter EN moduls avvikelse mot sig
+ * själv, det här mäter helheten. Kartan rör sig fortare en kväll när många
+ * elever pluggar än en söndagsmorgon när ingen gör det.
+ *
+ * BASEN ÄR INTE NOLL. Med tom mätdata rör sig kartan ändå — TEMPO_BAS — för
+ * att en stillastående karta läser som trasig, inte som lugn. Men basen är
+ * tydligt långsammare än full fart, så skillnaden går att se.
+ *
+ * Skalan går från bas vid ingen aktivitet till 1 vid dubbelt mot dygnsmedlet,
+ * samma referenspunkt som activityLevel(). Två mått som mäter olika saker mot
+ * olika referenser hade varit omöjliga att jämföra.
+ */
+export const TEMPO_BAS = 0.35;
+
+export function systemTempo(noder = []) {
+  let senaste = 0, medel = 0, mätta = 0;
+  for (const n of noder) {
+    if (!Number.isFinite(n?.senasteTimmen) || !Number.isFinite(n?.dygnsmedel)) continue;
+    senaste += n.senasteTimmen;
+    medel += n.dygnsmedel;
+    mätta++;
+  }
+  // Ingen mätpunkt alls: basen, aldrig noll och aldrig påhittad fart.
+  if (!mätta || medel <= 0) return senaste > 0 ? 1 : TEMPO_BAS;
+  const kvot = senaste / medel;                    // 1 = som vanligt
+  const över = Math.max(0, Math.min(1, kvot / 2)); // 2x dygnsmedel = full fart
+  return TEMPO_BAS + (1 - TEMPO_BAS) * över;
+}
+
 /**
  * Väver ihop grafen med mätdatan.
  * @param graf   ur buildGraph()
@@ -206,10 +237,15 @@ export function attachActivity(graf, rader = [], nu = Date.now()) {
 
   const noder = graf.noder.map(n => {
     const p = perModul.get(n.id);
-    if (!p) return { ...n, aktivitet: null, senasteTimmen: null };
+    if (!p) return { ...n, aktivitet: null, senasteTimmen: null, dygnsmedel: null };
     const medel = p.timmar ? p.summa / p.timmar : 0;
-    return { ...n, aktivitet: activityLevel(p.senaste, medel), senasteTimmen: p.senaste };
+    return {
+      ...n,
+      aktivitet: activityLevel(p.senaste, medel),
+      senasteTimmen: p.senaste,
+      dygnsmedel: medel,
+    };
   });
 
-  return { ...graf, noder };
+  return { ...graf, noder, tempo: systemTempo(noder) };
 }

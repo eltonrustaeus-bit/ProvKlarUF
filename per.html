@@ -363,6 +363,15 @@ function ritaHjarnan(brain) {
   let t = 0;
   let valdId = null;
 
+  /* TEMPOT — hur mycket hela P.E.R. används just nu, räknat på servern av
+     systemTempo(). Basen är 0,35 och inte noll: en stillastående karta läser
+     som trasig, inte som lugn. Full fart vid dubbelt mot dygnsmedlet.
+
+     Skiljer sig från nodernas ljusstyrka, som mäter EN moduls avvikelse mot
+     sig själv. Det här mäter helheten — kartan rör sig fortare en kväll när
+     många pluggar än en söndagsmorgon när ingen gör det. */
+  const tempo = typeof brain.tempo === 'number' ? brain.tempo : 0.35;
+
   function steg() {
     for (let i = 0; i < noder.length; i++) {
       for (let j = i + 1; j < noder.length; j++) {
@@ -390,8 +399,13 @@ function ritaHjarnan(brain) {
          flit: den ska läsas som att något lever, inte som att layouten är
          instabil och inte går att peka på. */
       if (!REDUCERAD) {
-        n.vx += Math.cos(t * 0.0009 + n.fas) * 0.020;
-        n.vy += Math.sin(t * 0.0011 + n.fas) * 0.020;
+        /* Både amplitud och frekvens skalar med tempot. Bara amplitud gav
+           1,14x mätt skillnad mellan bas och full fart — synligt i en graf,
+           men inte det Elton bad om. Med båda blir skillnaden tydlig utan att
+           basen blir hektisk. */
+        const amp = 0.010 + tempo * 0.075;
+        n.vx += Math.cos(t * (0.0005 + tempo * 0.0030) + n.fas) * amp;
+        n.vy += Math.sin(t * (0.0006 + tempo * 0.0034) + n.fas) * amp;
       }
       n.vx *= 0.88; n.vy *= 0.88;
       n.x += n.vx; n.y += n.vy;
@@ -436,7 +450,10 @@ function ritaHjarnan(brain) {
     if (!REDUCERAD) {
       for (const k of kanter) {
         const styrka = Math.max(ljus(k.a), ljus(k.b));
-        const fart = 0.00013 + styrka * 0.00055;
+        // Två lager: systemets tempo lyfter allt, nodens egen aktivitet
+        // lyfter just den kanten. En lugn kväll strömmar allt långsamt; en
+        // aktiv modul strömmar fort även då.
+        const fart = 0.00007 + tempo * 0.00075 + styrka * 0.00055;
         const u = (k.fas + t * fart) % 1;
         const p = bågePunkt(k, u);
         const färg = NOD_FARG[k.b.typ] || '#a8c4b4';
@@ -476,7 +493,7 @@ function ritaHjarnan(brain) {
 
       // Pulsring från noder som är ovanligt aktiva.
       if (l > 0.05 && !REDUCERAD) {
-        const puls = (t * 0.0012 + n.fas) % 1;
+        const puls = (t * (0.0007 + tempo * 0.0011) + n.fas) % 1;
         c.beginPath();
         c.arc(n.x, n.y, r + puls * (14 + l * 22), 0, Math.PI * 2);
         c.strokeStyle = grund;
@@ -554,7 +571,7 @@ function ritaHjarnan(brain) {
 
   const tabeller = noder.filter(n => n.typ === 'tabell').length;
   document.getElementById('hjarnaSub').textContent =
-    `${noder.length} noder, ${kanter.length} kanter, ${tabeller} ${tabeller === 1 ? 'tabell' : 'tabeller'} — allt läst ur källkoden`
+    `${noder.length} noder, ${kanter.length} kanter, ${tabeller} ${tabeller === 1 ? 'tabell' : 'tabeller'} · tempo ${Math.round(tempo * 100)}% — allt läst ur källkoden`
     + (REDUCERAD ? ' · rörelse av (prefers-reduced-motion)' : '');
 
   synlighet();

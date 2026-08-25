@@ -209,6 +209,56 @@ for (const m of alla) {
   check(`${m} finns som nod på kartan`, riktig.noder.some(n => n.id === m), [...alla].join(", "));
 }
 
+console.log("\n— SYSTEMETS TEMPO —");
+/* Skiljer sig från nodernas ljusstyrka: den mäter EN moduls avvikelse mot sig
+   själv, tempot mäter helheten. Kartan ska röra sig fortare en kväll när många
+   pluggar än en söndagsmorgon när ingen gör det. */
+const nod = (senasteTimmen, dygnsmedel) => ({ id: "x", senasteTimmen, dygnsmedel });
+
+/* BASEN ÄR INTE NOLL. En stillastående karta läser som trasig, inte som lugn —
+   och med tom mättabell är det precis läget vid lansering. */
+check("utan mätdata blir tempot basen, inte noll", B.systemTempo([]) === B.TEMPO_BAS, String(B.systemTempo([])));
+check("basen är märkbar men tydligt under full fart",
+  B.TEMPO_BAS >= 0.25 && B.TEMPO_BAS <= 0.5, String(B.TEMPO_BAS));
+check("mätt men tyst ger också basen", B.systemTempo([nod(0, 10)]) === B.TEMPO_BAS);
+
+check("som vanligt ligger mellan bas och full fart", (() => {
+  const v = B.systemTempo([nod(10, 10)]);
+  return v > B.TEMPO_BAS && v < 1;
+})(), String(B.systemTempo([nod(10, 10)])));
+check("dubbelt mot dygnsmedlet ger full fart", B.systemTempo([nod(20, 10)]) === 1);
+check("mer än dubbelt ger inte mer än full fart", B.systemTempo([nod(100, 10)]) === 1);
+
+/* Monotont: mer användning får ALDRIG ge lugnare karta. Utan den här hade en
+   olycklig kurva kunnat sakta ner vid hög belastning utan att någon märkte. */
+let förra = -1, monoton = true;
+for (const anv of [0, 2, 5, 10, 15, 20, 40]) {
+  const v = B.systemTempo([nod(anv, 10)]);
+  if (v < förra) monoton = false;
+  förra = v;
+}
+check("tempot ökar monotont med användningen", monoton);
+
+/* Tempot summerar HELA grafen, inte en nod. Tio tysta moduler och en skrikig
+   ska inte ge full fart. */
+const blandat = B.systemTempo([nod(20, 10), ...Array(9).fill(null).map(() => nod(0, 10))]);
+check("en ensam aktiv modul drar inte upp hela systemet", blandat < 1 && blandat > B.TEMPO_BAS, String(blandat));
+
+/* Samma referenspunkt som activityLevel: dubbelt mot dygnsmedlet. Två mått mot
+   olika referenser hade varit omöjliga att jämföra. */
+check("tempot delar referenspunkt med ljusstyrkan",
+  B.systemTempo([nod(20, 10)]) === 1 && B.activityLevel(20, 10) === 1);
+
+check("attachActivity skickar med tempot", (() => {
+  const NU2 = Date.parse("2026-08-25T15:30:00Z");
+  const r = B.attachActivity(riktig, [{ module: "per-core", hour: "2026-08-25T15:00:00Z", count: 5 }], NU2);
+  return typeof r.tempo === "number" && r.tempo >= B.TEMPO_BAS;
+})());
+check("tom mätdata ger ändå ett tempo", (() => {
+  const r = B.attachActivity(riktig, [], Date.now());
+  return r.tempo === B.TEMPO_BAS;
+})());
+
 console.log("\n— TABELLERNA —");
 /* Databastabellerna är den största enskilda källan till struktur kartan
    saknade: P.E.R. rör 18 tabeller, och innan de här noderna syntes ingen. */
