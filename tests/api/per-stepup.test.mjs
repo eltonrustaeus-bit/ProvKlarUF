@@ -75,5 +75,39 @@ const källa = readFileSync(join(root, "api", "_admin-stepup.js"), "utf8");
 check("timingSafeEqual används", /timingSafeEqual\(/.test(källa));
 check("signaturen jämförs inte med .equals()", !/förväntad\.equals\(/.test(källa));
 
+console.log("\n— GATET I admin.js —");
+const admin = readFileSync(join(root, "api", "admin.js"), "utf8");
+const passkeyKälla = readFileSync(join(root, "api", "_admin-passkey.js"), "utf8");
+const block = a => {
+  const i = admin.indexOf(`action === "${a}"`);
+  return i === -1 ? "" : admin.slice(i, i + 1400);
+};
+for (const a of ["per-registry", "per-pulse", "passkey-delete"]) {
+  check(`${a} kräver step-up`, /requireStepUp/.test(block(a)), a);
+}
+/* Registrering får INTE kräva step-up — då kan en tappad enhet inte ersättas
+   utan databasåtgärd, vilket specen förbjuder. */
+check("registrering kräver inte step-up", !/requireStepUp/.test(block("passkey-register-begin")));
+check("varje passkey-anrop går genom requireAdmin",
+  ["passkey-status", "passkey-register-begin", "passkey-register-finish",
+   "passkey-auth-begin", "passkey-auth-finish", "passkey-delete"]
+    .every(a => /requireAdmin/.test(block(a))));
+/* Ett konfigurationsfel som svarar 403 skickar felsökningen åt fel håll. */
+check("saknad hemlighet ger 503, inte 403", /stepup_unconfigured/.test(admin) && /status\(503\)/.test(admin));
+
+console.log("\n— WEBAUTHN-FLÖDET —");
+/* "preferred" hade tillåtit en enhet som bara bevisar närvaro, och då är
+   låset ett knapptryck i stället för ett ansikte. */
+check("biometri krävs vid registrering, inte bara närvaro",
+  (passkeyKälla.match(/userVerification:\s*"required"/g) || []).length >= 2);
+check("verifieringen kräver userVerification",
+  (passkeyKälla.match(/requireUserVerification:\s*true/g) || []).length === 2);
+/* Apples passkeys rapporterar alltid räknare 0, så räknaren kan inte upptäcka
+   en återspelad signatur. Raderingen av utmaningen är det enda som gör det. */
+check("utmaningen raderas i takeChallenge, före verifieringen",
+  /takeChallenge[\s\S]{0,700}delete\(\)[\s\S]{0,60}eq\("id", rad\.id\)/.test(passkeyKälla));
+check("den publika nyckeln lagras som base64url, inte bytea",
+  /toString\("base64url"\)/.test(passkeyKälla));
+
 console.log(failures ? `\n${failures} FEL\n` : "\nAllt grönt\n");
 process.exit(failures ? 1 : 0);

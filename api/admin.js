@@ -6,6 +6,11 @@ import {
   summariseMemories, summariseProbes, summariseCache,
   summariseQuota, summariseConcepts,
 } from "./_per-pulse.js";
+import { mintStepUp, verifyStepUp, stepUpSecret } from "./_admin-stepup.js";
+import {
+  supabaseStore, beginRegistration, finishRegistration,
+  beginAuthentication, finishAuthentication, rpConfig,
+} from "./_admin-passkey.js";
 
 function buildPitchHtml(email) {
   return `<!DOCTYPE html>
@@ -102,6 +107,24 @@ async function requireAdmin(req, res) {
     return null;
   }
   return user;
+}
+
+/* Step-up är ett ANDRA lager. requireAdmin har redan avgjort behörigheten när
+   den här körs; det här avgör bara om begäran kommer från en enhet som nyss
+   klarat Face ID eller Touch ID.
+   Saknas hemligheten svarar vi 503 med ett namngivet fel — inte 403. Ett
+   konfigurationsfel som ser ut som ett behörighetsfel skickar felsökningen åt
+   fel håll. */
+async function requireStepUp(req, res, user) {
+  if (!stepUpSecret()) {
+    res.status(503).json({ ok: false, error: "stepup_unconfigured" });
+    return false;
+  }
+  if (!verifyStepUp(req.body?.stepUp, user.id)) {
+    res.status(403).json({ ok: false, error: "stepup_required" });
+    return false;
+  }
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -501,12 +524,16 @@ export default async function handler(req, res) {
      projektet inte distribueras alls. */
 
   if (action === "per-registry") {
-    if (!await requireAdmin(req, res)) return;
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    if (!await requireStepUp(req, res, user)) return;
     return res.status(200).json({ ok: true, registry: PER_REGISTRY });
   }
 
   if (action === "per-pulse") {
-    if (!await requireAdmin(req, res)) return;
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    if (!await requireStepUp(req, res, user)) return;
 
     /* Aggregat, aldrig enskilda elever: ingen select nedan hämtar user_id.
        tests/api/per-pulse.test.mjs läser de här select-strängarna och faller
@@ -541,6 +568,72 @@ export default async function handler(req, res) {
         hämtad:      new Date(nu).toISOString(),
       },
     });
+  }
+
+  /* ── Face ID / Touch ID ──────────────────────────────────────────────────
+     Registrering kräver BARA adminroll, inte en befintlig passkey. Det är ett
+     medvetet avsteg i styrka: specen kräver att Elton aldrig kan låsa ut sig,
+     och kravet på en befintlig passkey leder till manuell databasåtgärd den
+     dag båda enheterna försvinner. Priset är att någon med en kapad
+     adminsession kan registrera sin egen enhet. Det mildras av att sidan
+     listar varje enhet med tidpunkt — en tyst registrering blir synlig. */
+
+  if (action === "passkey-status") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    const enheter = await supabaseStore(supabase).listCredentials(user.id);
+    return res.status(200).json({
+      ok: true,
+      konfigurerad: !!stepUpSecret(),
+      rpID: rpConfig().rpID,
+      enheter: enheter.map(e => ({
+        credential_id: e.credential_id, label: e.label,
+        created_at: e.created_at, last_used_at: e.last_used_at,
+      })),
+    });
+  }
+
+  if (action === "passkey-register-begin") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    const options = await beginRegistration(supabaseStore(supabase), user.id, user.email);
+    return res.status(200).json({ ok: true, options });
+  }
+
+  if (action === "passkey-register-finish") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    if (!stepUpSecret()) return res.status(503).json({ ok: false, error: "stepup_unconfigured" });
+    const r = await finishRegistration(supabaseStore(supabase), user.id, req.body?.response, req.body?.label);
+    if (!r.verified) return res.status(400).json({ ok: false, error: r.error });
+    // Registreringen krävde userVerification, så biometrin är redan avklarad.
+    return res.status(200).json({ ok: true, stepUp: mintStepUp(user.id) });
+  }
+
+  if (action === "passkey-auth-begin") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    const options = await beginAuthentication(supabaseStore(supabase), user.id);
+    if (options.error) return res.status(400).json({ ok: false, error: options.error });
+    return res.status(200).json({ ok: true, options });
+  }
+
+  if (action === "passkey-auth-finish") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    if (!stepUpSecret()) return res.status(503).json({ ok: false, error: "stepup_unconfigured" });
+    const r = await finishAuthentication(supabaseStore(supabase), user.id, req.body?.response);
+    if (!r.verified) return res.status(400).json({ ok: false, error: r.error });
+    return res.status(200).json({ ok: true, stepUp: mintStepUp(user.id) });
+  }
+
+  if (action === "passkey-delete") {
+    const user = await requireAdmin(req, res);
+    if (!user) return;
+    // Kräver step-up: annars kunde en kapad session tyst radera Eltons enhet.
+    if (!await requireStepUp(req, res, user)) return;
+    await supabaseStore(supabase).deleteCredential(user.id, String(req.body?.credentialId || ""));
+    return res.status(200).json({ ok: true });
   }
 
   return res.status(400).json({ ok: false, error: "Unknown action" });
