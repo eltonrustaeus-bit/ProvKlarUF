@@ -48,6 +48,20 @@ export const PER_REGISTRY = {
       gräns: "Nivån avgörs på servern. En klient som ber om full lösning får den inte bara för att den frågar.",
     },
     {
+      fil: "_per-abilities.js",
+      namn: "Skolverkets förmågor",
+      gör: "Bär de fem förmågor ämnet matematik faktiskt bedömer, ordagrant ur Skolverkets ämnessyfte. GENERERAD av tools/sync-math-curriculum.mjs.",
+      ser: "Ingenting vid körning — innehållet härleddes när modulen genererades.",
+      gräns: "Genereras som en MODUL, inte läses som en fil. En filläsning i api/_per-core.js hade krävt import.meta för sökvägen, och Vercel transpilerar varje .js i api/ till CJS där import.meta är ett syntaxfel. Den raden tog ned explain, teacher-report och check-role samtidigt.",
+    },
+    {
+      fil: "_per-pedagogy.js",
+      namn: "Undervisningsmetoden",
+      gör: "Säger HUR P.E.R. undervisar, inte vad: börja i elevens eget resonemang, ett steg i taget, låt eleven ta det sista. Bifogar Polyas fyra steg vid matematik och Skolverkets förmågor när de finns.",
+      ser: "Elevens fråga, hjälpnivån och de förmågor som genererats ur läroplanen. Ingen elevdata.",
+      gräns: "Håller isär två sorters påståenden: förmågorna är Skolverkets ord och får citeras, Polyas fyra steg är en metod från 1945 och får ALDRIG framställas som läroplan. Tom förmågelista utelämnar avsnittet i stället för att gissa.",
+    },
+    {
       fil: "_per-review.js",
       namn: "Självgranskningen",
       gör: "Läser P.E.R:s färdiga svar innan eleven hinner lita på det, och letar efter faktafel, löst uppgift, röjd hemlighet, räknefel och obelagda påståenden om eleven.",

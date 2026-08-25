@@ -2,6 +2,14 @@
 // Unified AI caller + personality builder for all ExGen AI endpoints
 import { PROVIA_KB } from './_provia-kb.js';
 import { getProviaFaq, faqRelevant } from './_provia-faq.js';
+import { buildPedagogyBlock } from './_per-pedagogy.js';
+/* GENERERAD modul, inte en filläsning.
+   Första versionen läste config/math-curriculum.json härifrån med
+   dirname(fileURLToPath(import.meta.url)). Vercel transpilerar varje .js i
+   api/ till CJS, där import.meta är ett SYNTAXFEL — raden tog ned
+   /api/explain, /api/teacher-report OCH /api/check-role samtidigt.
+   Skriv om modulen med `node tools/sync-math-curriculum.mjs`. */
+import { PEDAGOGY_ABILITIES } from './_per-abilities.js';
 import { buildVisionContext, buildAlleskolanContext, visionRelevant, alleskolanRelevant } from './_provia-roadmap.js';
 import { getPlan, normalizeRole } from './_provia-rules.js';
 import { MODULES } from './_modules.js';
@@ -176,6 +184,21 @@ export function buildPERSystemPrompt({
      inget underlag ska ge ingen rubrik, annars pratar modellen om data den inte har. */
   collectiveBlock = '',
 } = {}) {
+  /* HUR han undervisar, till skillnad från VAD.
+     ## UNDERVISNING var 154 tecken — tunnast av fjorton avsnitt — och sa
+     "ställ en motfråga, ge inte svaret". En bra regel, men ingen metod.
+     Polya bifogas bara för matematik: fyra steg om problemlösning i ett svar
+     om Vasatiden är brus, och prompten betalas per tecken i varje anrop.
+     Förmågorna bifogas bara när de faktiskt lästes ur den genererade
+     läroplanen — tomt underlag utelämnas hellre än gissas. */
+  const _pedMatte = /matemat|ekvation|derivat|integral|bråk|procent|geometri|algebra|funktion/i
+    .test(`${userQuestion || ''} ${learnerProfile || ''} ${context || ''}`);
+  const pedagogyBlock = buildPedagogyBlock({
+    abilities: PEDAGOGY_ABILITIES,
+    isMath: _pedMatte,
+    helpLevel,
+  });
+
   if (intent === 'support') return buildPERSupportPrompt({ role, quotaRemaining, pageContext, longMemory, userQuestion });
   if (intent === 'sales') return buildPERSalesPrompt({ role, quotaRemaining, pageContext, weakAreas, recentMistakes, longMemory, context, userQuestion });
 
@@ -450,7 +473,7 @@ Läges-ton:
 Multi-turn: Om konversationshistorik finns — referera naturligt till vad eleven frågat eller gjort tidigare, max en gång per svar, bara när det tillför. Aldrig: "Som jag sa tidigare".
 ${lines.length ? '\n' + lines.join('\n') + '\n' : ''}${empathyBlock}${capBlock}${clarifyBlock}${styleBlock}${teknikBlock}${quotaNudge}
 ## UNDERVISNING
-${teachGuide}
+${teachGuide}${pedagogyBlock ? '\n\n' + pedagogyBlock : ''}
 
 ## SVARSMÖNSTER
 Mönstret nedan gäller när du FAKTISKT SVARAR. Har du bedömt frågan som otydlig enligt

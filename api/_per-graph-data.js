@@ -37,6 +37,12 @@ export const PER_GRAPH = {
       "typ": "hjälpare"
     },
     {
+      "id": "per-abilities",
+      "etikett": "per-abilities",
+      "fil": "_per-abilities.js",
+      "typ": "modul"
+    },
+    {
       "id": "per-brain",
       "etikett": "per-brain",
       "fil": "_per-brain.js",
@@ -100,6 +106,12 @@ export const PER_GRAPH = {
       "id": "per-name",
       "etikett": "per-name",
       "fil": "_per-name.js",
+      "typ": "modul"
+    },
+    {
+      "id": "per-pedagogy",
+      "etikett": "per-pedagogy",
+      "fil": "_per-pedagogy.js",
       "typ": "modul"
     },
     {
@@ -348,6 +360,14 @@ export const PER_GRAPH = {
     {
       "från": "per-core",
       "till": "provia-faq"
+    },
+    {
+      "från": "per-core",
+      "till": "per-pedagogy"
+    },
+    {
+      "från": "per-core",
+      "till": "per-abilities"
     },
     {
       "från": "per-core",
