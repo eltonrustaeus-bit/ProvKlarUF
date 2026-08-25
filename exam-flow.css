@@ -649,3 +649,32 @@ body.xf-in-exam.xf-per-open #perWidget {
   .xf-btn.primary:hover:not(:disabled),
   .xf-opt:active { transform: none !important; }
 }
+
+/* ── Fota din lösning ─────────────────────────────────────────────────────── */
+/* Ligger under svarsrutan vid fritextfrågor. Matematik löses på papper, och
+   en textarea är fel verktyg för en ekvation — knappen är vägen runt det. */
+
+.xf-photo {
+  margin-top: 10px;
+}
+
+.xf-photo-btn {
+  font-size: var(--exgen-text-sm);
+}
+
+/* Granskningsraden. Eleven MÅSTE kunna se vad avläsningen tvekade på innan de
+   skickar in — det är hela skyddet mot att en felläst siffra blir ett betyg. */
+.xf-photo-note {
+  margin-top: 8px;
+  font-size: var(--exgen-text-sm);
+  line-height: var(--exgen-leading-relaxed);
+  color: var(--xf-ink-2);
+}
+
+.xf-photo-note.warn {
+  color: var(--warn);
+}
+
+.xf-photo-note.bad {
+  color: var(--danger);
+}

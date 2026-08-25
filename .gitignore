@@ -45,3 +45,9 @@ tests/evals/exam-quality/results/
 # Local git worktrees created by Claude Code sessions. Only this subdirectory —
 # the rest of .claude/ (docs, commands, skills, settings) is tracked on purpose.
 .claude/worktrees/
+
+# Evalbilder för avläsning av handskrivna lösningar.
+# De syntetiska genereras av make-images.mjs och behöver inte versionshanteras.
+# Riktiga elevfoton får ALDRIG committas — de innehåller handskrift och ofta
+# namn i marginalen, alltså personuppgifter om barn.
+tests/evals/solution-ocr/images/
