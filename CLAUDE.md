@@ -493,6 +493,15 @@ Any change to `api/` triggers security review checklist:
   tre rader ovanför och gjorde hela rutten oladdbar.
 
 ## P.E.R. granskar sina egna svar (2026-08-25)
+- **Mät rörelse över ett fast ANTAL BILDRUTOR, inte över tid.** Ett fast
+  tidsfönster är belastningskänsligt: i en full svitkörning konkurrerar flera
+  Chromium om CPU:n och de två mätningarna krymper olika mycket. T25 föll i
+  svit men var grön ensam — samma mönster som gjorde `per-visual` opålitlig.
+  Verifierat under fyra parallella Chromium: 5631 mot 7946 px, mot 5623 mot
+  8028 opåverkat.
+- **Pipa ALDRIG en svitkörning genom `tail` i bakgrunden.** Faller en fil är
+  detaljen borta och det går inte att se vilken kontroll som brast. Det hände
+  här, och diagnosen fick byggas på hypotes i stället för på bevis.
 - **Granskaren RÄTTAR ALDRIG, den flaggar.** Samma rollåtskillnad som
   `api/_verifier.js`, som granskar genererade provfrågor. En modell som ombeds
   "fixa" sitt eget svar skriver om det till något som låter bättre och tappar
