@@ -48,8 +48,15 @@ console.log("\n— OCH HOPPAR ÖVER DET SOM INTE GÖR DET —");
 check("en hälsning granskas inte", !R.needsReview("hej", "Hej! Vad vill du jobba med?"));
 check("tack granskas inte", !R.needsReview("tack", "Varsågod."));
 /* En motfråga innehåller per definition inget svar att ha fel om. */
-check("en motfråga granskas inte",
-  !R.needsReview("hjälp med kemi", "Vad ska du jobba med? [CLARIFY:en uppgift|ett begrepp]"));
+/* Motfrågan måste innehålla något som ANNARS hade utlöst granskning, annars
+   är kontrollen grön av fel skäl. Första versionen använde "hjälp med kemi",
+   som inte matchade något mönster ändå — spärren var otestad, och ett sabotage
+   som tog bort den gav inget fel. */
+check("en motfråga granskas inte, ens när den nämner matematik",
+  !R.needsReview("hjälp", "Vill du ha räknereglerna för derivata, eller hjälp med en ekvation du fastnat på? [CLARIFY:räknereglerna|en ekvation]"));
+check("men samma text UTAN motfrågemarkören granskas",
+  R.needsReview("hjälp", "Räknereglerna för derivata: du deriverar varje term för sig och konstanten faller bort."),
+  "annars mäter kontrollen ovan ingenting");
 check("tomt svar granskas inte", !R.needsReview("något", ""));
 check("kort påstående utan tyngd granskas inte",
   !R.needsReview("vad heter du", "Jag heter P.E.R."));

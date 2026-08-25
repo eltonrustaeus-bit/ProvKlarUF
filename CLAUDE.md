@@ -492,6 +492,40 @@ Any change to `api/` triggers security review checklist:
   `includeFiles` och en guard mot en tom karta, medan det verkliga felet låg
   tre rader ovanför och gjorde hela rutten oladdbar.
 
+## P.E.R. granskar sina egna svar (2026-08-25)
+- **Granskaren RÄTTAR ALDRIG, den flaggar.** Samma rollåtskillnad som
+  `api/_verifier.js`, som granskar genererade provfrågor. En modell som ombeds
+  "fixa" sitt eget svar skriver om det till något som låter bättre och tappar
+  både felet och spåret av att felet fanns.
+- **Chattsvaret var helt ogranskat innan.** `_verifier.js` och `_solver.js`
+  fanns sedan tidigare men bara för `generate-exam.js` — den yta eleven läser
+  mest gick rakt igenom.
+- **`needsReview()` är en REN funktion**, för att avvägningen ska gå att mäta
+  utan modell. Ett granskningsanrop dubblar kostnaden per svar; körs den på
+  allt blir P.E.R. dyr och långsam, körs den på för lite är den dekoration.
+- **Granskningen stoppar inte strömningen.** Den körs när svaret skrivits klart
+  och visas som ett eget block UNDER svaret. Att hålla tillbaka texten hade
+  fördubblat väntetiden; att tyst skriva om den hade dolt att något var fel.
+  En elev som ser att P.E.R. kontrollerar sig själv har mer skäl att lita på
+  honom, inte mindre.
+- **FAIL OPEN — tvärtemot en säkerhetsgrind.** Ett trasigt granskningssvar får
+  aldrig visa en rättelse som inget täcker. Det värsta en utebliven granskning
+  gör är att lämna svaret som det var.
+- **Men ett SCHEMABROTT släcker hela svaret.** `fynd` som inte är en lista
+  betyder att modellen inte följde kontraktet, och då går varken `allvar` eller
+  `rättelse` att lita på. En lista med trasiga POSTER är något annat: kontraktet
+  hölls, underlaget är tunt, och rättelsen står kvar.
+- **"allvarlig" utan rättelse visas inte.** En varning utan besked om vad som
+  gäller i stället lämnar eleven sämre ställd än ingen varning alls.
+- **`isMath` kommer från `curriculumContext`, inte från ett ord i frågan.**
+  Blocket byggs bara av `_math-curriculum.js` och bara när ämnet redan avgjorts.
+  Första försöket läste en variabel `course` som inte finns i scope i
+  `explain.js` — den hade blivit `undefined` och tyst gjort flaggan värdelös.
+- **Ett test kan vara grönt av fel skäl.** Kontrollen "en motfråga granskas
+  inte" använde först "hjälp med kemi", som inte matchade något mönster ändå.
+  `[CLARIFY:]`-spärren var otestad, och ett sabotage som tog bort den gav
+  INGET fel. Exemplet måste innehålla något som annars hade utlöst granskning.
+
 ## P.E.R:s hjärna (2026-08-25)
 - **Kartan bygger på TRANSITIV STÄNGNING, inte `_per-`-prefixet.** `grade.js`
   och `generate-exam.js` når P.E.R. genom `_concept-tags.js` och

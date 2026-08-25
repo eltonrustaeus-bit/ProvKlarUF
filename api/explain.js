@@ -1,6 +1,7 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
 import { callAI, callAIStream, buildPERSystemPrompt, buildPERLandingPrompt, buildExplainPrompt , modulesInPrompt, bumpModules } from "./_per-core.js";
+import { needsReview, buildReviewPrompt, parseReview, REVIEW_SCHEMA } from "./_per-review.js";
 import { MODULES } from "./_modules.js";
 import { loadCollectiveSignals, buildCollectiveBlock } from "./_per-collective.js";
 import { SALES_TRIGGER_REGEX, SUPPORT_TRIGGER_REGEX } from "./_provia-kb.js";
@@ -265,6 +266,26 @@ function recordHelpPreference(supabase, userId, level) {
   updateHelpLevelSignal(supabase, userId, level).catch(() => {});
   const style = helpLevelToStyle(level);
   if (style) saveInferred(supabase, userId, { help_style: style }, { confidence: 0.45 }).catch(() => {});
+}
+
+/* Granskar P.E.R:s färdiga svar. Se api/_per-review.js för varför den inte
+   körs på allt och varför den inte stoppar strömningen.
+
+   Fel sväljs och ger ingen rättelse. En trasig granskning får aldrig göra
+   eleven sämre ställd än om den aldrig körts. */
+async function granskaSvar({ fråga, svar, helpLevel, isMath, läroplan }) {
+  try {
+    if (!needsReview(fråga, svar, { helpLevel, isMath })) return null;
+    const rå = await callAI(
+      [{ role: "system", content: buildReviewPrompt({ fråga, svar, helpLevel, läroplan }) }],
+      { schema: REVIEW_SCHEMA, timeout: 20_000 },
+    );
+    const r = parseReview(rå);
+    // Mät att granskaren körde, oavsett utfall — annars går det inte att se
+    // hur ofta den faktiskt hittar något.
+    await bumpModules(supabase, ["per-review"]);
+    return r.visas ? r : null;
+  } catch { return null; }
 }
 
 export default async function handler(req, res) {
@@ -683,6 +704,21 @@ export default async function handler(req, res) {
                      preferens att mäta, och då ska ingenting sparas.
          badOmNivå är null tills eleven faktiskt tryckt på ett steg. */
       if (badOmNivå !== null) recordHelpPreference(supabase, user.id, badOmNivå);
+
+      /* Granskningen körs EFTER att svaret strömmat färdigt. Eleven har redan
+         läst texten; en rättelse under den är ärligare än att hålla tillbaka
+         hela svaret i väntan på ett andra modellanrop. */
+      const granskning = await granskaSvar({
+        fråga: userQuestion, svar: fullText, helpLevel,
+        /* curriculumContext byggs BARA av _math-curriculum.js, och bara när
+           ämnet redan avgjorts som matematik. Den är därför en uppmätt signal,
+           till skillnad från ett ord i frågan.
+           Första försöket läste en variabel `course` som inte finns i scope
+           här — den hade blivit undefined och tyst gjort flaggan värdelös. */
+        isMath: !!curriculumContext,
+        läroplan: curriculumContext,
+      });
+      if (granskning) res.write(`data: ${JSON.stringify({ granskning })}\n\n`);
 
       res.write(`data: ${JSON.stringify({ done: true, history: newHistory, helpCap, helpLevelUsed: helpLevel })}\n\n`);
       return res.end();

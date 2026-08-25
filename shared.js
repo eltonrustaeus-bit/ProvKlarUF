@@ -764,7 +764,32 @@
       } catch (_) {}
     }
 
-    function finalizeMsg(div, text) {
+    /* Självgranskningens rättelse. Se api/_per-review.js.
+
+   Den visas som ett eget block UNDER svaret, inte som en omskrivning av det.
+   Att tyst byta ut texten hade dolt både felet och att systemet hittade det —
+   och en elev som ser att P.E.R. kontrollerar sig själv har mer skäl att lita
+   på honom, inte mindre. */
+var _perRättelse = null;
+
+function visaRättelse(efterEl, text) {
+  if (!efterEl || !text) return;
+  var box = document.createElement('div');
+  box.className = 'per-msg teacher per-rattelse';
+  box.setAttribute('role', 'status');
+  var rubrik = document.createElement('div');
+  rubrik.className = 'per-rattelse-rubrik';
+  rubrik.textContent = 'Jag kontrollerade mitt svar';
+  var brod = document.createElement('div');
+  brod.textContent = String(text);
+  box.appendChild(rubrik);
+  box.appendChild(brod);
+  if (efterEl.parentNode) efterEl.parentNode.insertBefore(box, efterEl.nextSibling);
+  var msgs = document.getElementById('perMessages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function finalizeMsg(div, text) {
       var gotoMatch = text.match(/\s*\[GOTO:([^\]]+)\]/);
       var clarifyMatch = text.match(/\s*\[CLARIFY:([^\]]+)\]/);
       var cleanText = text.replace(PER_MARKERS, '').trim();
@@ -1108,6 +1133,12 @@
                 }
                 if (ev.error && typing) { typing.className = 'per-msg teacher'; typing.textContent = ev.error; }
                 if (ev.done && ev.history) perSaveHist(ev.history);
+                /* Rättelsen från självgranskningen. Kommer efter att svaret
+                   strömmat färdigt — eleven har redan läst texten, och en
+                   synlig rättelse under den är ärligare än att tyst skriva om
+                   svaret eller hålla tillbaka det i väntan på granskningen.
+                   Bara allvarliga fynd når hit; servern filtrerar resten. */
+                if (ev.granskning && ev.granskning.rättelse) _perRättelse = ev.granskning.rättelse;
                 // Taket kommer alltid härifrån, aldrig ur en egen uträkning.
                 if (typeof ev.helpCap === 'number') _perHelpCap = ev.helpCap;
               } catch (_) {}
@@ -1115,6 +1146,7 @@
           }
           if (typing && answerText) {
             finalizeMsg(typing, answerText);
+            if (_perRättelse) { visaRättelse(typing, _perRättelse); _perRättelse = null; }
             stepsAfterAnswer(answerText, isLandingMode);
           }
         } else {
@@ -1252,6 +1284,12 @@
         '.per-clr:hover{color:var(--exgen-text,#1B2430);background:rgba(0,183,217,.1)}',
         '#perMessages{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;min-height:100px}',
         '.per-msg{font-size:13px;line-height:1.65;padding:9px 12px;border-radius:8px;max-width:90%;word-break:break-word}',
+        /* Självgranskningens rättelse (api/_per-review.js). Egen ram och egen
+           rubrik, så det syns att P.E.R. kontrollerat sig själv — inte att
+           svaret fortsätter. Att smälta in den hade gjort rättelsen till text
+           eleven läser förbi. */
+        '.per-rattelse{border:1px solid rgba(255,207,107,.38);background:rgba(255,207,107,.07);max-width:90%;margin-top:6px}',
+        '.per-rattelse-rubrik{font-family:ui-monospace,SFMono-Regular,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#ffcf6b;margin-bottom:5px}',
         '.per-msg.teacher{background:rgba(0,183,217,.07);border:1px solid rgba(0,183,217,.18);color:var(--exgen-text,#1B2430);border-radius:8px 8px 8px 3px}',
         '.per-msg.user{background:var(--exgen-bg-secondary,#F8FAFC);border:1px solid var(--exgen-border,#E4E7EC);color:var(--exgen-text,#1B2430);border-radius:8px 8px 3px 8px;margin-left:auto}',
         '.per-msg.typing{color:var(--exgen-text-secondary,#667085);font-style:italic}',

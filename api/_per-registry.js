@@ -48,6 +48,13 @@ export const PER_REGISTRY = {
       gräns: "Nivån avgörs på servern. En klient som ber om full lösning får den inte bara för att den frågar.",
     },
     {
+      fil: "_per-review.js",
+      namn: "Självgranskningen",
+      gör: "Läser P.E.R:s färdiga svar innan eleven hinner lita på det, och letar efter faktafel, löst uppgift, röjd hemlighet, räknefel och obelagda påståenden om eleven.",
+      ser: "Elevens fråga, det färdiga svaret, begärd hjälpnivå och läroplanen för området. Ingen historik, inget minne.",
+      gräns: "Den RÄTTAR aldrig — den flaggar och citerar. En modell som ombeds fixa sitt eget svar skriver om det till något som låter bättre och tappar både felet och spåret av det. Fail open: ett trasigt granskningssvar visar ingen rättelse alls.",
+    },
+    {
       fil: "_per-role.js",
       namn: "Rollvalet",
       gör: "Väljer studieplanerare eller utmanare när situationen kräver en roll som bygger på vad eleven faktiskt kan.",
