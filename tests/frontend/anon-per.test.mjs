@@ -36,7 +36,14 @@ async function öppna() {
   await page.evaluate(() => { for (const id of ["proviaWelcome", "pageLoader"]) document.getElementById(id)?.remove(); });
   await page.waitForTimeout(700);
   await page.locator("#perBubble, #perStripBtn").first().click();
-  await page.waitForTimeout(500);
+  /* Vänta på VILLKORET, inte på klockan.
+     500 ms räckte lokalt men inte i en full svitkörning, där flera Chromium
+     konkurrerar och panelens öppningsanimation blir långsammare. Filen föll då
+     med "element is not visible" på #perInput — riggen kastade mitt i, och tre
+     kontroller som mätte helt andra saker rapporterades som röda.
+     Samma fix som i stale-session.test.mjs. En längre paus flyttar bara
+     gränsen; villkoret tar bort den. */
+  await page.locator("#perInput").waitFor({ state: "visible", timeout: 10_000 });
   return { ctx, page, anrop, close: () => ctx.close() };
 }
 

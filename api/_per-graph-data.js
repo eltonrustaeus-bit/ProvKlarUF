@@ -103,6 +103,12 @@ export const PER_GRAPH = {
       "typ": "modul"
     },
     {
+      "id": "per-pedagogy",
+      "etikett": "per-pedagogy",
+      "fil": "_per-pedagogy.js",
+      "typ": "modul"
+    },
+    {
       "id": "per-pulse",
       "etikett": "per-pulse",
       "fil": "_per-pulse.js",
@@ -348,6 +354,10 @@ export const PER_GRAPH = {
     {
       "från": "per-core",
       "till": "provia-faq"
+    },
+    {
+      "från": "per-core",
+      "till": "per-pedagogy"
     },
     {
       "från": "per-core",

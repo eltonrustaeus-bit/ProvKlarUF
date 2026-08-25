@@ -492,6 +492,85 @@ Any change to `api/` triggers security review checklist:
   `includeFiles` och en guard mot en tom karta, medan det verkliga felet låg
   tre rader ovanför och gjorde hela rutten oladdbar.
 
+## Vänta på villkoret, inte på klockan (2026-08-25)
+- **Och mät flera gånger när måttet är brusigt.** T25 räknade bildrutor i
+  stället för millisekunder — rätt fix mot belastning — men EN mätning per
+  tempo varierade ändå: kvoterna 1,43 · 1,41 · 1,397 mot en tröskel på 1,4.
+  Den föll alltså ungefär varannan körning. Median av tre ger 1,42 både
+  opåverkat och under last, med 1,7 % respektive 0,6 % spridning inom
+  serierna.
+- **Att sänka tröskeln hade dolt spridningen i stället för att minska den.**
+  Tre gånger under det här arbetet var en justerad siffra ett steg bort från
+  grönt: när tempot bara gav 1,14x, när mätfönstret saturerade, och här.
+  Varje gång satt felet i funktionen eller i instrumentet.
+- **En fast `waitForTimeout` före en interaktion är en flakkälla.**
+  `stale-session.test.mjs` klickade upp P.E.R.-panelen och väntade 500 ms innan
+  den skrev i `#perInput`. Lokalt räckte det; i en full svitkörning på 777 s,
+  där flera Chromium konkurrerar, hann öppningsanimationen inte klart och
+  riggen kastade med "element is not visible" — mitt i, efter nio godkända
+  kontroller.
+- **Symtomet är förrädiskt:** filen var grön ensam OCH grön under konstlad
+  last med sex parallella Chromium. Ett tidsberoende syns bara ibland, och
+  "kan inte reproducera" är därför inget bevis på att det inte finns.
+- **Fixen är `waitFor({ state: "visible" })`**, inte en längre paus. En längre
+  paus flyttar bara gränsen; villkoret tar bort den.
+- Samma familj som T25 i `per-passkey.test.mjs`, som mätte rörelse över ett
+  fast tidsfönster och blev belastningskänslig. Räknar nu bildrutor.
+- **Samma mönster fanns i `anon-per.test.mjs`** och föll i nästa körning. När
+  riggen kastar rapporteras ÄVEN kontroller som mäter helt andra saker som
+  röda — tre orelaterade kontroller blev röda av en paus som var 200 ms kort.
+- **`tests/frontend/rigg-vantar-pa-villkor.test.mjs` hindrar återfall**, men
+  bara för `#perInput` i P.E.R.-panelen. Två bredare formuleringar provades
+  först och fällde tio respektive sju GRÖNA filer — mest navigeringsklick i
+  provflödet som aldrig fallit. **En regel som fäller fungerande kod blir
+  ignorerad eller raderad, och skyddar då ingenting.** Faller något annat på
+  samma sätt: utvidga regeln DÅ, med det fallet som grund.
+
+## Hur P.E.R. undervisar (2026-08-25)
+- **`## UNDERVISNING` var 154 tecken** — tunnast av fjorton avsnitt, medan
+  `## NÄR FRÅGAN ÄR OTYDLIG` var 1808. Hela instruktionen löd "ställ EN
+  motfråga, ge INTE svaret". En bra regel, men ingen metod. Uppmätt genom att
+  bygga prompten och mäta varje avsnitt, inte genom att läsa koden.
+- **TVÅ SORTERS PÅSTÅENDEN, ALDRIG IHOPBLANDADE** — samma regel som
+  `_math-curriculum.js` bär. **Förmågorna** är Skolverkets ord ordagrant, ur
+  ämnets syfte, och får citeras som läroplan. **Polyas fyra steg** är en metod
+  från 1945 och får ALDRIG framställas som något Skolverket kräver. Blocket
+  säger det uttryckligen, och testet låser raden.
+- **Förmågorna GENERERAS av `tools/sync-math-curriculum.mjs`**, inte skrivs av.
+  De ligger i `subject.purpose`, inte i det centrala innehållet: innehållet
+  säger vad som ska läras, förmågorna vad eleven ska kunna GÖRA med det.
+  Synken vägrar skriva filen om uppräkningen inte hittas — en tom lista betyder
+  att Skolverket ändrat form, inte att ämnet saknar förmågor.
+- **Polya bifogas bara vid matematik.** Fyra steg om problemlösning i ett svar
+  om Vasatiden är brus, och prompten betalas per tecken i varje anrop.
+- **Stegen namnges aldrig för eleven.** De finns för att P.E.R. ska veta VAR
+  eleven fastnat och rikta sin enda motfråga dit. En elev som inte förstått
+  problemet blir inte hjälpt av en räkneregel.
+- **Genomräknade exempel måste använda ANDRA siffror än uppgiften.** Det är
+  raden som skiljer "visa metoden" från "lös elevens uppgift åt dem".
+- **Hjälpnivå 0 och 1 får en egen varning** i blocket. Det vanligaste sättet
+  att svika en begärd ledtråd är att förklara så utförligt att uppgiften är
+  löst på köpet.
+- **`import.meta` är säkert i `_per-core.js`** — filen är ESM och importeras
+  bara av ESM-rutter. Regeln i `cjs-esm-boundary.test.mjs` gäller `api/*.js`
+  UTAN understrecksprefix, som Vercel gör till funktioner och laddar som CJS.
+
+## Previews mot rätt Vercel-projekt (2026-08-25)
+- **`vercel deploy` från en worktree skapar ett NYTT projekt**, döpt efter
+  katalogen, i stället för en preview av `provia-ai`. Worktreen saknar
+  `.vercel/project.json` — den ligger bara i `~/provia-ai`.
+- Uppmätt 2026-08-25: tre skräpprojekt skapades på en kväll
+  (`per-granskare`, `per-visual2`, `per-hjarna2`) innan någon märkte det.
+  Borttagna med `printf 'y\n' | vercel project rm <namn>` — `--yes` finns inte
+  i CLI 56.
+- **Gör så här i stället:** kopiera `.vercel/` in i worktreen först, eller kör
+  `vercel deploy` från `~/provia-ai` med `--prebuilt` mot rätt gren. Det som
+  betyder något är att `.vercel/project.json` pekar på
+  `prj_ZCmoY24WF0r5ZAGm7uy5VXEC4ILJ`.
+- **Previewen är fortfarande värd besväret.** Sviten kör som ESM; Vercel kör
+  rutterna som CJS. Det var den skillnaden som tog ned adminpanelen, och en
+  preview är enda stället den syns före produktion.
+
 ## P.E.R. granskar sina egna svar (2026-08-25)
 - **Mät rörelse över ett fast ANTAL BILDRUTOR, inte över tid.** Ett fast
   tidsfönster är belastningskänsligt: i en full svitkörning konkurrerar flera

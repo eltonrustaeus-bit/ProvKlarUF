@@ -43,7 +43,14 @@ async function öppna({ ttl, status = 200 } = {}) {
   await page.evaluate(() => { for (const id of ["proviaWelcome", "pageLoader"]) document.getElementById(id)?.remove(); });
   await page.waitForTimeout(700);
   await page.locator("#perBubble, #perStripBtn").first().click();
-  await page.waitForTimeout(500);
+  /* Vänta på VILLKORET, inte på klockan.
+     En fast paus på 500 ms räckte lokalt men inte i en full svitkörning, där
+     flera Chromium konkurrerar och panelens öppningsanimation blir långsammare.
+     Filen föll då med "element is not visible" på #perInput — riggen kastade,
+     mitt i, efter nio godkända kontroller. Uppmätt 2026-08-25 i en körning på
+     777 s; samma fil var grön ensam och grön under konstlad last, vilket är
+     precis vad ett tidsberoende ger: det syns bara ibland. */
+  await page.locator("#perInput").waitFor({ state: "visible", timeout: 10_000 });
   return { page, anrop, close: () => ctx.close() };
 }
 

@@ -48,6 +48,13 @@ export const PER_REGISTRY = {
       gräns: "Nivån avgörs på servern. En klient som ber om full lösning får den inte bara för att den frågar.",
     },
     {
+      fil: "_per-pedagogy.js",
+      namn: "Undervisningsmetoden",
+      gör: "Säger HUR P.E.R. undervisar, inte vad: börja i elevens eget resonemang, ett steg i taget, låt eleven ta det sista. Bifogar Polyas fyra steg vid matematik och Skolverkets förmågor när de finns.",
+      ser: "Elevens fråga, hjälpnivån och de förmågor som genererats ur läroplanen. Ingen elevdata.",
+      gräns: "Håller isär två sorters påståenden: förmågorna är Skolverkets ord och får citeras, Polyas fyra steg är en metod från 1945 och får ALDRIG framställas som läroplan. Tom förmågelista utelämnar avsnittet i stället för att gissa.",
+    },
+    {
       fil: "_per-review.js",
       namn: "Självgranskningen",
       gör: "Läser P.E.R:s färdiga svar innan eleven hinner lita på det, och letar efter faktafel, löst uppgift, röjd hemlighet, räknefel och obelagda påståenden om eleven.",
