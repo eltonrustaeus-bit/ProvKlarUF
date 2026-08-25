@@ -209,15 +209,28 @@ await mockApis(sida2, {
 await seed(sida2, { role: "admin", user: { id: "u9" } });
 await sida2.goto(`${srv.url}/per.html`, { waitUntil: "networkidle" });
 await sida2.waitForTimeout(600);
-const främlingen = await sida2.evaluate(() => ({
-  text: document.body.innerText,
-  synligt404: document.getElementById("intetSkarm")?.offsetParent !== null,
-  hero: document.getElementById("hero")?.offsetParent !== null,
-  lås: document.getElementById("lasSkarm")?.offsetParent !== null,
-  poster: document.querySelectorAll("#registret .post").length,
-}));
+/* synlig() måste skilja "finns inte" från "finns men är dold".
+   `el?.offsetParent !== null` ger TRUE för ett saknat element — undefined är
+   inte null — så ett borttaget element lästes som synligt. T15 blev röd av
+   det, på en sida som blivit säkrare. */
+const främlingen = await sida2.evaluate(() => {
+  const synlig = id => {
+    const el = document.getElementById(id);
+    return !!el && el.offsetParent !== null;
+  };
+  return {
+    text: document.body.innerText,
+    synligt404: synlig("intetSkarm"),
+    hero: synlig("hero"),
+    lås: synlig("lasSkarm"),
+    poster: document.querySelectorAll("#registret .post").length,
+    // Byggs markupen alls för en främling? Tom = nej.
+    privatTom: (document.getElementById("privat")?.innerHTML || "").trim() === "",
+  };
+});
 ok("T14 en främling ser 404", främlingen.synligt404 && /404|finns inte/i.test(främlingen.text), JSON.stringify(främlingen));
-ok("T15 ingen låsskärm avslöjar att sidan finns", !främlingen.hero && !främlingen.lås, JSON.stringify(främlingen));
+ok("T15 ingen låsskärm avslöjar att sidan finns",
+  !främlingen.hero && !främlingen.lås && främlingen.privatTom, JSON.stringify(främlingen));
 ok("T16 inga data alls hos en främling",
   främlingen.poster === 0 && !främlingen.text.includes("Långtidsminnet") && !/P\.E\.R/i.test(främlingen.text),
   främlingen.text.slice(0, 200));

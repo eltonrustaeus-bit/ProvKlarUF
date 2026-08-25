@@ -11,7 +11,7 @@
   <meta name="robots" content="noindex, nofollow" />
   <script src="js/exgen-modules.js"></script>
   <script>if(location.hostname.includes("vercel.app")){location.replace("https://exgen.se"+location.pathname+location.search)}</script>
-  <title>ExGen – P.E.R:s minne</title>
+  <title>ExGen</title>
   <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
   <link rel="icon" type="image/png" sizes="192x192" href="/image/favicon-192.png" />
   <link rel="icon" href="/image/favicon.svg" type="image/svg+xml" />
@@ -63,48 +63,25 @@
 <main>
 <div class="wrap">
 
-  <div class="pageHero" id="hero" style="display:none">
-    <div class="eyebrow">Privat</div>
-    <h1 class="pageTitle">P.E.R:s minne</h1>
-    <p class="pageSub" id="status">Kontrollerar åtkomst…</p>
-  </div>
+  <!-- Det här är ALLT som finns i den serverade filen.
+       Låsskärmen, registret, pulsen och enhetslistan byggs av JS först efter
+       att servern bekräftat att den som frågar är ägaren.
 
-  <!-- Vad en främling ser. Ingen låsskärm, ingen antydan om att något ligger
-       här: servern svarar likadant på en okänd action som på den här sidans
-       anrop, och sidan speglar det svaret. -->
+       Varför inte display:none: det döljer för ögat, inte för view-source.
+       Mätt 2026-08-25 mot produktion — `curl https://exgen.se/per.html`
+       returnerade "privat sida, ej för obehöriga" och varje id på sidan, trots
+       att allt var dolt med CSS. Ett test som läser innerText kan aldrig fånga
+       det, vilket är precis vad som hände. -->
   <div id="intetSkarm" style="padding:64px 0;text-align:center">
     <p style="font-family:var(--mono);font-size:13px;color:var(--t3);margin:0 0 6px">404</p>
     <p style="font-size:15px;color:var(--t2);margin:0">Sidan finns inte.</p>
   </div>
 
-  <div id="lasSkarm" class="post" style="margin-bottom:32px;display:none">
-    <p class="postNamn">Sidan är låst</p>
-    <p class="postFalt" id="lasText">Kontrollerar…</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-      <button class="btn" id="lasUppBtn" style="display:none">Lås upp med Face ID / Touch ID</button>
-      <button class="btn" id="registreraBtn" style="display:none">Registrera den här enheten</button>
-    </div>
-  </div>
-
-  <div id="enheter" class="rutnat" style="margin-bottom:32px;display:none"></div>
-
-  <section class="sekt" id="sektRegistret" style="display:none">
-    <h2 class="sektRubrik">Registret</h2>
-    <p class="sektSub">vad P.E.R. är — moduler och flaggor</p>
-    <div class="rutnat" id="registret"></div>
-  </section>
-
-  <section class="sekt" id="sektPulsen" style="display:none">
-    <h2 class="sektRubrik">Pulsen</h2>
-    <p class="sektSub" id="pulsTid">vad han gör just nu</p>
-    <div class="statsRow" id="pulsen"></div>
-    <div class="rutnat" id="begreppen"></div>
-  </section>
+  <div id="privat"></div>
 
 </div>
 </main>
 
-<footer id="sidfot" style="display:none">ExGen — privat sida, ej för obehöriga.</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -283,25 +260,74 @@ async function lasUpp() {
   await ladda();
 }
 
-async function ladda() {
-  const status = document.getElementById('status');
-  const lasText = document.getElementById('lasText');
-  const lasSkarm = document.getElementById('lasSkarm');
-  const lasUppBtn = document.getElementById('lasUppBtn');
-  const registreraBtn = document.getElementById('registreraBtn');
+/* Återställningskoden. Visas EN gång — servern sparar bara ett scrypt-hash och
+   kan aldrig visa den igen. Utan den betyder två borttappade enheter att någon
+   måste gå in i databasen för hand. */
+async function skapaKod() {
+  const ruta = document.getElementById('kodRuta');
+  if (!confirm('Detta ersätter en eventuell tidigare kod. Den nya visas en enda gång — har du din lösenordshanterare öppen?')) return;
+  const r = await anropa('recovery-create');
+  if (!r || !r.ok) return visaFel(r);
+  ruta.style.display = '';
+  ruta.textContent = 'Spara den här nu, den visas aldrig igen: ' + r.kod;
+}
 
+async function ladda() {
   const st = await anropa('passkey-status');
   /* Servern svarar likadant på "du är inte ägaren" som på en action som inte
      finns. Sidan kan alltså inte skilja dem åt — och ska inte kunna det.
      Båda ger 404-vyn. Ett felmeddelande här hade bekräftat att sidan finns. */
   if (!st || !st.ok) return;
 
+  /* Först HÄR byggs sidan. Fram till nu innehöll dokumentet bara 404-vyn,
+     så en titt i källkoden gav inget att gå på. */
   document.getElementById('intetSkarm').style.display = 'none';
-  document.getElementById('hero').style.display = '';
-  document.getElementById('lasSkarm').style.display = '';
-  document.getElementById('sidfot').style.display = '';
-  document.getElementById('enheter').style.display = '';
+  document.getElementById('privat').innerHTML = `
+    <div class="pageHero" id="hero">
+      <div class="eyebrow">Privat</div>
+      <h1 class="pageTitle">P.E.R:s minne</h1>
+      <p class="pageSub" id="status">Kontrollerar\u2026</p>
+    </div>
+
+    <div id="lasSkarm" class="post" style="margin-bottom:32px">
+      <p class="postNamn">Sidan \u00e4r l\u00e5st</p>
+      <p class="postFalt" id="lasText">Kontrollerar\u2026</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn" id="lasUppBtn" style="display:none">L\u00e5s upp med Face ID / Touch ID</button>
+        <button class="btn" id="registreraBtn" style="display:none">Registrera den h\u00e4r enheten</button>
+        <button class="btn" id="kodBtn" style="display:none">Skapa \u00e5terst\u00e4llningskod</button>
+      </div>
+      <p class="postFalt" id="kodRuta" style="display:none;font-family:var(--mono);word-break:break-all"></p>
+    </div>
+
+    <div id="enheter" class="rutnat" style="margin-bottom:32px"></div>
+
+    <section class="sekt" id="sektRegistret" style="display:none">
+      <h2 class="sektRubrik">Registret</h2>
+      <p class="sektSub">vad P.E.R. \u00e4r \u2014 moduler och flaggor</p>
+      <div class="rutnat" id="registret"></div>
+    </section>
+
+    <section class="sekt" id="sektPulsen" style="display:none">
+      <h2 class="sektRubrik">Pulsen</h2>
+      <p class="sektSub" id="pulsTid">vad han g\u00f6r just nu</p>
+      <div class="statsRow" id="pulsen"></div>
+      <div class="rutnat" id="begreppen"></div>
+    </section>
+
+    <footer style="margin-top:40px">ExGen \u2014 privat sida, ej f\u00f6r obeh\u00f6riga.</footer>`;
+
+  document.getElementById('lasUppBtn').addEventListener('click', lasUpp);
+  document.getElementById('registreraBtn').addEventListener('click', registrera);
+  document.getElementById('kodBtn').addEventListener('click', skapaKod);
   ritaEnheter(st.enheter);
+
+  const status = document.getElementById('status');
+  const lasText = document.getElementById('lasText');
+  const lasSkarm = document.getElementById('lasSkarm');
+  const lasUppBtn = document.getElementById('lasUppBtn');
+  const registreraBtn = document.getElementById('registreraBtn');
+  document.getElementById('kodBtn').style.display = '';
 
   if (!st.konfigurerad) { visaFel({ error: 'stepup_unconfigured' }); return; }
 
@@ -329,9 +355,8 @@ async function ladda() {
   ritaPuls(p.pulse);
 }
 
-document.getElementById('lasUppBtn').addEventListener('click', lasUpp);
-document.getElementById('registreraBtn').addEventListener('click', registrera);
-
+/* Lyssnarna kopplas i ladda(), efter att markupen byggts — knapparna finns
+   inte i dokumentet innan dess. */
 ladda();
 </script>
 </body>

@@ -178,15 +178,56 @@ async function shot(base, page, view, tag) {
  * med 1-2 enheter i EN kanal är antialiasing, inte en ändring. Öppna bilden och
  * titta på var de sitter innan något felsöks — sitter de i ett område som inte
  * ens rör det som ändrats är svaret givet. */
+/* KANALTOLERANS — varför den finns, och varför den är 8.
+ *
+ * Fram till 2026-08-25 räknades varje pixel med NÅGON skillnad alls, hur
+ * osynlig den än var. Följden var att filen flaggade i tre hela svitkörningar
+ * i rad och var grön varje gång den kördes ensam. Jag avfärdade den tre gånger
+ * som "känt flakig" — det är inte en diagnos, det är en vana.
+ *
+ * Mätt i stället för gissat: hela bruset var TVÅ pixlar som skilde sig med
+ * EXAKT 1 enhet i en kanal, på förbättring.html i mobilvy. Antialiasing.
+ * Subpixelrendering är inte deterministisk mellan två skott av samma träd.
+ *
+ * Brusgolvet kunde inte fånga det, eftersom det mäts ur ETT skottpar: paret
+ * råkade ibland bli identiskt (golv 0) medan "ny" fick de två pixlarna, och
+ * villkoret delta > golv gjorde 2 > 0 till en röd rad.
+ *
+ * 8 är valt med marginal åt båda hållen: bruset är 1, och en verklig visuell
+ * ändring mäts i tusentals pixlar med stora utslag (6529 och 6592 vid
+ * headerändringen som dokumenteras ovan). Mellan 1 och 6529 finns gott om
+ * plats, så tröskeln behöver inte vara knapp för att vara säker.
+ *
+ * HÖJDTOLERANS: en helsidesbild fångar sidans höjd vid utlösningen, och den
+ * kan skilja en pixel mellan två skott av exakt samma träd — se noten om -1
+ * ovan. Skiljer höjden 2 pixlar eller mindre beskärs båda till den lägsta i
+ * stället för att hela jämförelsen kastas. Mer än så är en verklig
+ * höjdändring och ger fortfarande -1.
+ */
+const KANAL_TOLERANS = 8;
+const HÖJD_TOLERANS = 2;
+
 async function diff(a, b) {
   const [ia, ib] = await Promise.all([
     sharp(a).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
     sharp(b).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   ]);
-  if (ia.info.width !== ib.info.width || ia.info.height !== ib.info.height) return -1;
+  if (ia.info.width !== ib.info.width) return -1;
+  if (Math.abs(ia.info.height - ib.info.height) > HÖJD_TOLERANS) return -1;
+
+  // Jämför bara den gemensamma delen när höjden skiljer inom toleransen.
+  const rader = Math.min(ia.info.height, ib.info.height);
+  const bytesPerRad = ia.info.width * 4;
+  const slut = rader * bytesPerRad;
+
   let n = 0;
-  for (let i = 0; i < ia.data.length; i += 4) {
-    if (ia.data[i] !== ib.data[i] || ia.data[i + 1] !== ib.data[i + 1] || ia.data[i + 2] !== ib.data[i + 2]) n++;
+  for (let i = 0; i < slut; i += 4) {
+    const d = Math.max(
+      Math.abs(ia.data[i] - ib.data[i]),
+      Math.abs(ia.data[i + 1] - ib.data[i + 1]),
+      Math.abs(ia.data[i + 2] - ib.data[i + 2]),
+    );
+    if (d > KANAL_TOLERANS) n++;
   }
   return n;
 }
