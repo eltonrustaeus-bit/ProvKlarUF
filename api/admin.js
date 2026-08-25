@@ -2,6 +2,7 @@
 import { requireAuth } from "./_auth.js";
 import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
 import { PER_REGISTRY } from "./_per-registry.js";
+import { buildGraph, attachActivity } from "./_per-brain.js";
 import {
   summariseMemories, summariseProbes, summariseCache,
   summariseQuota, summariseConcepts,
@@ -566,6 +567,51 @@ export default async function handler(req, res) {
     if (!user) return;
     if (!await requireStepUp(req, res, user)) return;
     return res.status(200).json({ ok: true, registry: PER_REGISTRY });
+  }
+
+  if (action === "per-brain") {
+    const user = await requireOwner(req, res);
+    if (!user) return;
+    if (!await requireStepUp(req, res, user)) return;
+
+    /* Strukturen läses ur api/-katalogen vid anropet, inte ur en sparad kopia.
+       En karta som visar gårdagens arkitektur är precis den sorts falska
+       trygghet registret finns för att förhindra. */
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const { join, dirname } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const här = dirname(fileURLToPath(import.meta.url));
+
+    const filer = {};
+    for (const f of readdirSync(här).filter(f => f.endsWith(".js"))) {
+      try { filer[f] = readFileSync(join(här, f), "utf8"); } catch { /* hoppa över */ }
+    }
+
+    // Ett dygn tillbaka: ljusstyrkan är senaste timmen mot modulens eget
+    // dygnsmedel, så mindre än ett dygn ger ingen jämförelsepunkt.
+    const nu = Date.now();
+    const { data } = await supabase.from("per_module_activity")
+      .select("module, hour, count")
+      .gte("hour", new Date(nu - 24 * 3_600_000).toISOString())
+      .limit(2000);
+
+    /* Buntas källfilerna med? "api/**" ligger i includeFiles för admin.js i
+       vercel.json just för det här. Skulle raden falla bort blir katalogen tom
+       och kartan blir tom — utan att något går sönder synligt. Hellre ett
+       tydligt fel än en tom karta som ser ut som "P.E.R. har inga moduler". */
+    if (Object.keys(filer).length < 10) {
+      return res.status(500).json({
+        ok: false,
+        error: "kartan kunde inte läsa api/ — kontrollera includeFiles i vercel.json",
+        hittade: Object.keys(filer).length,
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      brain: attachActivity(buildGraph(filer), data || [], nu),
+      hämtad: new Date(nu).toISOString(),
+    });
   }
 
   if (action === "per-pulse") {
