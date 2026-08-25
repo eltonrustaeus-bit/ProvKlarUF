@@ -417,6 +417,25 @@ Any change to `api/` triggers security review checklist:
   andra, inte omöjlig att hitta för Elton.
 
 ## Hjärnans utseende och rörelse (2026-08-25)
+- **Tempot mäter HELHETEN, ljusstyrkan mäter en modul.** `systemTempo()`
+  summerar hela grafens senaste timme mot dess dygnsmedel; kartan rör sig
+  fortare en kväll när många pluggar än en söndagsmorgon när ingen gör det.
+  Båda måtten har samma referenspunkt — dubbelt mot dygnsmedlet är full
+  utslag — eftersom två mått mot olika referenser är omöjliga att jämföra.
+- **`TEMPO_BAS = 0.35`, aldrig noll.** Med tom mättabell rör sig kartan ändå.
+  En stillastående karta läser som trasig, inte som lugn, och tom mättabell är
+  precis läget vid lansering.
+- **Tempot står utskrivet i underrubriken.** En rörelse ingen kan tolka är
+  dekoration; en siffra gör den till information.
+- **Både amplitud OCH frekvens skalar med tempot.** Bara amplitud gav 1,14x
+  mätt skillnad mellan bas och full fart — synligt i en graf, men inte det
+  som efterfrågades.
+- **Mät rörelse över ETT KORT fönster.** Första mätningen använde en sekund
+  och saturerade: 12177 mot 12295 ändrade pixlar, alltså ett mått som inte
+  kunde skilja långsamt från snabbt. Över 120 ms är antalet ändrade pixlar
+  ungefär proportionellt mot farten — 5730 mot 8439. Instrumentet var fel,
+  inte funktionen, och att sänka tröskeln hade dolt det.
+
 - **Rörelsen är kontinuerlig men inte ovillkorlig.** Kartan rör sig så länge
   fliken är SYNLIG och pausar via Page Visibility när den inte är det. Det
   gamla stoppvillkoret ("stanna när grafen lagt sig") är bytt, inte borttaget:
