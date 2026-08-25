@@ -226,6 +226,96 @@ export const PER_GRAPH = {
       "id": "flagga:per_learner_loop_enabled",
       "etikett": "per_learner_loop_enabled",
       "typ": "flagga"
+    },
+    {
+      "id": "tabell:feature_flags",
+      "etikett": "feature_flags",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_cache_probe",
+      "etikett": "per_cache_probe",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:concept_collective_stats",
+      "etikett": "concept_collective_stats",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_long_memory",
+      "etikett": "per_long_memory",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:driving_results",
+      "etikett": "driving_results",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:driving_progress",
+      "etikett": "driving_progress",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:mock_results",
+      "etikett": "mock_results",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:user_exams",
+      "etikett": "user_exams",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_sessions",
+      "etikett": "per_sessions",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:profiles",
+      "etikett": "profiles",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:driving_questions",
+      "etikett": "driving_questions",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:question_reports",
+      "etikett": "question_reports",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_module_activity",
+      "etikett": "per_module_activity",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_answer_cache",
+      "etikett": "per_answer_cache",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:per_quota_counters",
+      "etikett": "per_quota_counters",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:class_members",
+      "etikett": "class_members",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:user_profiles",
+      "etikett": "user_profiles",
+      "typ": "tabell"
+    },
+    {
+      "id": "tabell:classes",
+      "etikett": "classes",
+      "typ": "tabell"
     }
   ],
   "kanter": [
@@ -424,6 +514,118 @@ export const PER_GRAPH = {
     {
       "från": "explain",
       "till": "flagga:per_legal_rag_enabled"
+    },
+    {
+      "från": "per-cache",
+      "till": "tabell:feature_flags"
+    },
+    {
+      "från": "per-cache",
+      "till": "tabell:per_cache_probe"
+    },
+    {
+      "från": "per-collective",
+      "till": "tabell:concept_collective_stats"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:per_long_memory"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:driving_results"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:driving_progress"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:mock_results"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:user_exams"
+    },
+    {
+      "från": "per-memory",
+      "till": "tabell:per_sessions"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:profiles"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:driving_questions"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:question_reports"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:per_module_activity"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:per_long_memory"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:per_cache_probe"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:per_answer_cache"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:per_quota_counters"
+    },
+    {
+      "från": "admin",
+      "till": "tabell:concept_collective_stats"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:profiles"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:class_members"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:user_exams"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:user_profiles"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:driving_progress"
+    },
+    {
+      "från": "check-role",
+      "till": "tabell:classes"
+    },
+    {
+      "från": "explain",
+      "till": "tabell:feature_flags"
+    },
+    {
+      "från": "explain",
+      "till": "tabell:profiles"
+    },
+    {
+      "från": "explain",
+      "till": "tabell:per_sessions"
+    },
+    {
+      "från": "explain",
+      "till": "tabell:user_profiles"
     }
   ]
 };

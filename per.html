@@ -46,8 +46,10 @@
   .enhetRad{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .taBort{padding:4px 10px;border-radius:var(--r2);border:1px solid var(--l2);background:transparent;color:var(--t3);font-family:var(--mono);font-size:10.5px;cursor:pointer}
   .taBort:hover{color:var(--t);border-color:var(--l)}
-  #hjarnaWrap{position:relative;background:var(--s);border:1px solid var(--l);border-radius:var(--r);overflow:hidden}
-  #hjarna{display:block;width:100%;height:520px;cursor:grab}
+  #hjarnaWrap{position:relative;background:radial-gradient(ellipse at 50% 40%, #0d1712 0%, #08100d 70%);border:1px solid var(--l);border-radius:var(--r);overflow:hidden}
+  #hjarnaWrap::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(8,16,13,.75) 100%)}
+  #nodInfo{backdrop-filter:blur(6px)}
+  #hjarna{display:block;width:100%;height:640px;cursor:grab}
   #hjarna:active{cursor:grabbing}
   #nodInfo{position:absolute;left:12px;bottom:12px;right:12px;background:var(--s2,#162019);border:1px solid var(--l);border-radius:var(--r);padding:12px;display:none;max-width:420px}
   #hjarnaLegend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--t3)}
@@ -288,22 +290,42 @@ async function skapaKod() {
  * snurrar i evighet på en sida som lämnas öppen är en varm telefon och ingen
  * information. Den startar om vid interaktion och vid ny data.
  */
-const NOD_FARG = { modul: '#1bff8c', 'hjälpare': '#7fd4ff', flagga: '#ffcf6b', rutt: '#c9a6ff' };
-const STILLA = 0.06;   // total rörelse under detta = klart
+const NOD_FARG = {
+  modul: '#1bff8c', 'hjälpare': '#7fd4ff', flagga: '#ffcf6b',
+  rutt: '#c9a6ff', tabell: '#ff8fa3',
+};
+
+/* RÖRELSEN ÄR KONTINUERLIG, MEN INTE OVILLKORLIG.
+ *
+ * Elton bad om en karta som alltid rör sig. Den tidigare versionen stannade
+ * när grafen lagt sig, och det fanns ett skäl: en requestAnimationFrame som
+ * snurrar i evighet på en öppen flik är en varm telefon och ingen information.
+ *
+ * Lösningen är inte att ta bort villkoret utan att byta det. Loopen kör så
+ * länge fliken är SYNLIG och pausar via Page Visibility när den inte är det.
+ * Rörelsen finns kvar, men en bortglömd flik i bakgrunden kostar ingenting.
+ *
+ * prefers-reduced-motion respekteras: den som satt den i sitt system har bett
+ * om det, och en dekorativ animation är inte värd att strunta i det.
+ */
+const REDUCERAD = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let hjarnaLoop = null;
+let hjarnaStopp = null;
 
 function ritaHjarnan(brain) {
+  if (hjarnaStopp) hjarnaStopp();
+
   const canvas = document.getElementById('hjarna');
   const info = document.getElementById('nodInfo');
-  const ctx2 = canvas.getContext('2d');
+  const c = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
 
   function storlek() {
     const r = canvas.getBoundingClientRect();
     canvas.width = Math.max(1, Math.round(r.width * dpr));
     canvas.height = Math.max(1, Math.round(r.height * dpr));
-    ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
     return { w: r.width, h: r.height };
   }
   let { w, h } = storlek();
@@ -314,132 +336,245 @@ function ritaHjarnan(brain) {
     grader[k.till] = (grader[k.till] || 0) + 1;
   }
 
-  /* Startpositionerna är deterministiska, inte slumpade: en karta som ser helt
-     annorlunda ut vid varje omladdning går inte att känna igen, och då tappar
-     man det enda en karta är bra på — att man minns var saker låg. */
+  /* Deterministiska startlägen. En karta som ser annorlunda ut vid varje
+     omladdning tappar det enda en karta är bra på — att man minns var saker
+     låg. Fasen nedan är också deterministisk, av samma skäl. */
   const noder = brain.noder.map((n, i) => {
     const vinkel = (i / brain.noder.length) * Math.PI * 2;
     return {
       ...n,
       grad: grader[n.id] || 0,
-      x: w / 2 + Math.cos(vinkel) * Math.min(w, h) * 0.34,
-      y: h / 2 + Math.sin(vinkel) * Math.min(w, h) * 0.34,
+      x: w / 2 + Math.cos(vinkel) * Math.min(w, h) * 0.36,
+      y: h / 2 + Math.sin(vinkel) * Math.min(w, h) * 0.36,
       vx: 0, vy: 0,
+      fas: (i * 0.7) % (Math.PI * 2),
     };
   });
   const index = new Map(noder.map(n => [n.id, n]));
   const kanter = brain.kanter
     .map(k => ({ a: index.get(k['från']), b: index.get(k.till) }))
-    .filter(k => k.a && k.b);
+    .filter(k => k.a && k.b)
+    .map((k, i) => ({ ...k, fas: (i * 0.37) % 1 }));
 
-  const radie = n => 5 + Math.min(9, n.grad * 1.1);
+  const radie = n => 4.5 + Math.min(10, n.grad * 1.05);
+  const omätt = n => n.aktivitet === null || n.aktivitet === undefined;
+  const ljus = n => (omätt(n) ? 0 : n.aktivitet);
+
+  let t = 0;
+  let valdId = null;
+
+  /* TEMPOT — hur mycket hela P.E.R. används just nu, räknat på servern av
+     systemTempo(). Basen är 0,35 och inte noll: en stillastående karta läser
+     som trasig, inte som lugn. Full fart vid dubbelt mot dygnsmedlet.
+
+     Skiljer sig från nodernas ljusstyrka, som mäter EN moduls avvikelse mot
+     sig själv. Det här mäter helheten — kartan rör sig fortare en kväll när
+     många pluggar än en söndagsmorgon när ingen gör det. */
+  const tempo = typeof brain.tempo === 'number' ? brain.tempo : 0.35;
 
   function steg() {
-    let rörelse = 0;
-    // Repulsion.
     for (let i = 0; i < noder.length; i++) {
       for (let j = i + 1; j < noder.length; j++) {
         const a = noder[i], b = noder[j];
         let dx = b.x - a.x, dy = b.y - a.y;
         let d2 = dx * dx + dy * dy;
         if (d2 < 1) { d2 = 1; dx = (i - j) || 1; dy = 1; }
-        const kraft = 2600 / d2;
+        const kraft = 2200 / d2;
         const d = Math.sqrt(d2);
         const fx = (dx / d) * kraft, fy = (dy / d) * kraft;
         a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
       }
     }
-    // Fjädrar.
     for (const k of kanter) {
       const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
-      const kraft = (d - 90) * 0.012;
+      const kraft = (d - 96) * 0.011;
       const fx = (dx / d) * kraft, fy = (dy / d) * kraft;
       k.a.vx += fx; k.a.vy += fy; k.b.vx -= fx; k.b.vy -= fy;
     }
-    // Mot mitten + dämpning.
     for (const n of noder) {
-      n.vx += (w / 2 - n.x) * 0.0016;
-      n.vy += (h / 2 - n.y) * 0.0016;
-      n.vx *= 0.86; n.vy *= 0.86;
+      n.vx += (w / 2 - n.x) * 0.0015;
+      n.vy += (h / 2 - n.y) * 0.0015;
+      /* Driften som gör att kartan aldrig fryser. Amplituden är liten med
+         flit: den ska läsas som att något lever, inte som att layouten är
+         instabil och inte går att peka på. */
+      if (!REDUCERAD) {
+        /* Både amplitud och frekvens skalar med tempot. Bara amplitud gav
+           1,14x mätt skillnad mellan bas och full fart — synligt i en graf,
+           men inte det Elton bad om. Med båda blir skillnaden tydlig utan att
+           basen blir hektisk. */
+        const amp = 0.010 + tempo * 0.075;
+        n.vx += Math.cos(t * (0.0005 + tempo * 0.0030) + n.fas) * amp;
+        n.vy += Math.sin(t * (0.0006 + tempo * 0.0034) + n.fas) * amp;
+      }
+      n.vx *= 0.88; n.vy *= 0.88;
       n.x += n.vx; n.y += n.vy;
-      const r = radie(n) + 2;
+      const r = radie(n) + 3;
       n.x = Math.max(r, Math.min(w - r, n.x));
       n.y = Math.max(r, Math.min(h - r, n.y));
-      rörelse += Math.abs(n.vx) + Math.abs(n.vy);
     }
-    return rörelse / Math.max(1, noder.length);
+  }
+
+  function bågePunkt(k, u) {
+    // Kurvade kanter läser lugnare än raka streck när 77 av dem korsar varandra.
+    const mx = (k.a.x + k.b.x) / 2, my = (k.a.y + k.b.y) / 2;
+    const dx = k.b.x - k.a.x, dy = k.b.y - k.a.y;
+    const cx = mx - dy * 0.13, cy = my + dx * 0.13;
+    const iu = 1 - u;
+    return {
+      x: iu * iu * k.a.x + 2 * iu * u * cx + u * u * k.b.x,
+      y: iu * iu * k.a.y + 2 * iu * u * cy + u * u * k.b.y,
+      cx, cy,
+    };
   }
 
   function rita() {
-    ctx2.clearRect(0, 0, w, h);
-    ctx2.lineWidth = 1;
+    c.clearRect(0, 0, w, h);
+
+    // Kanterna.
     for (const k of kanter) {
-      ctx2.strokeStyle = 'rgba(168,196,180,0.14)';
-      ctx2.beginPath(); ctx2.moveTo(k.a.x, k.a.y); ctx2.lineTo(k.b.x, k.b.y); ctx2.stroke();
+      const p = bågePunkt(k, 0.5);
+      const styrka = Math.max(ljus(k.a), ljus(k.b));
+      c.beginPath();
+      c.moveTo(k.a.x, k.a.y);
+      c.quadraticCurveTo(p.cx, p.cy, k.b.x, k.b.y);
+      c.strokeStyle = `rgba(168,196,180,${0.10 + styrka * 0.30})`;
+      c.lineWidth = 1 + styrka * 1.2;
+      c.stroke();
     }
+
+    /* Partiklar längs kanterna — det som gör kartan till ett flöde i stället
+       för ett diagram. Farten följer aktiviteten i ändpunkterna, så en tyst
+       del av P.E.R. står stilla och en aktiv strömmar. Det är samma regel som
+       ljusstyrkan: rörelsen ska betyda något. */
+    if (!REDUCERAD) {
+      for (const k of kanter) {
+        const styrka = Math.max(ljus(k.a), ljus(k.b));
+        // Två lager: systemets tempo lyfter allt, nodens egen aktivitet
+        // lyfter just den kanten. En lugn kväll strömmar allt långsamt; en
+        // aktiv modul strömmar fort även då.
+        const fart = 0.00007 + tempo * 0.00075 + styrka * 0.00055;
+        const u = (k.fas + t * fart) % 1;
+        const p = bågePunkt(k, u);
+        const färg = NOD_FARG[k.b.typ] || '#a8c4b4';
+        c.beginPath();
+        c.arc(p.x, p.y, 1.5 + styrka * 1.5, 0, Math.PI * 2);
+        c.fillStyle = färg;
+        c.globalAlpha = 0.25 + styrka * 0.55;
+        c.fill();
+        c.globalAlpha = 1;
+      }
+    }
+
+    // Noderna.
     for (const n of noder) {
       const grund = NOD_FARG[n.typ] || '#a8c4b4';
-      /* aktivitet === null betyder INGEN MÄTPUNKT, inte noll aktivitet.
-         Skillnaden ritas ut: dämpad kontur i stället för fylld nod. */
-      const omätt = n.aktivitet === null || n.aktivitet === undefined;
-      const ljus = omätt ? 0 : n.aktivitet;
-      ctx2.beginPath();
-      ctx2.arc(n.x, n.y, radie(n), 0, Math.PI * 2);
-      if (omätt) {
-        ctx2.strokeStyle = grund; ctx2.globalAlpha = 0.28; ctx2.stroke(); ctx2.globalAlpha = 1;
+      const r = radie(n);
+      const l = ljus(n);
+      const vald = n.id === valdId;
+
+      // Glöd. shadowBlur ger bloom utan ett bibliotek.
+      c.save();
+      c.shadowColor = grund;
+      c.shadowBlur = omätt(n) ? 6 : 10 + l * 22;
+
+      c.beginPath();
+      c.arc(n.x, n.y, r, 0, Math.PI * 2);
+      if (omätt(n)) {
+        /* Konturen är inte en stilfråga. aktivitet === null betyder INGEN
+           mätpunkt, inte noll aktivitet, och en fylld nod med svag färg hade
+           lästs som "mätt och tyst". */
+        c.strokeStyle = grund; c.globalAlpha = 0.55; c.lineWidth = 1.4; c.stroke();
       } else {
-        ctx2.fillStyle = grund; ctx2.globalAlpha = 0.35 + ljus * 0.65; ctx2.fill(); ctx2.globalAlpha = 1;
-        if (ljus > 0.05) {
-          ctx2.beginPath();
-          ctx2.arc(n.x, n.y, radie(n) + 4 + ljus * 6, 0, Math.PI * 2);
-          ctx2.strokeStyle = grund; ctx2.globalAlpha = ljus * 0.5; ctx2.stroke(); ctx2.globalAlpha = 1;
-        }
+        c.fillStyle = grund; c.globalAlpha = 0.45 + l * 0.55; c.fill();
       }
-      if (n.grad >= 3 || !omätt) {
-        ctx2.fillStyle = 'rgba(232,245,238,0.72)';
-        ctx2.font = '10px ui-monospace, monospace';
-        ctx2.fillText(n.etikett.replace(/\.js$/, ''), n.x + radie(n) + 4, n.y + 3);
+      c.globalAlpha = 1;
+      c.restore();
+
+      // Pulsring från noder som är ovanligt aktiva.
+      if (l > 0.05 && !REDUCERAD) {
+        const puls = (t * (0.0007 + tempo * 0.0011) + n.fas) % 1;
+        c.beginPath();
+        c.arc(n.x, n.y, r + puls * (14 + l * 22), 0, Math.PI * 2);
+        c.strokeStyle = grund;
+        c.globalAlpha = (1 - puls) * l * 0.5;
+        c.lineWidth = 1.2;
+        c.stroke();
+        c.globalAlpha = 1;
+      }
+
+      if (vald) {
+        c.beginPath();
+        c.arc(n.x, n.y, r + 7, 0, Math.PI * 2);
+        c.strokeStyle = '#e8f5ee'; c.globalAlpha = 0.8; c.lineWidth = 1.2; c.stroke();
+        c.globalAlpha = 1;
+      }
+
+      // Etiketter: navet och det som lyser, plus det man valt. Alla 55 namn
+      // samtidigt är en vägg av text, inte en karta.
+      if (n.grad >= 4 || l > 0.05 || vald) {
+        c.fillStyle = `rgba(232,245,238,${vald ? 0.95 : 0.6 + l * 0.35})`;
+        c.font = '10px ui-monospace, SFMono-Regular, monospace';
+        c.fillText(String(n.etikett).replace(/\.js$/, ''), n.x + r + 5, n.y + 3);
       }
     }
   }
 
-  function loop() {
-    const rörelse = steg();
+  function loop(nu) {
+    t = nu || 0;
+    steg();
     rita();
-    // Stannar när grafen lagt sig. Se noten ovan.
-    if (rörelse > STILLA) hjarnaLoop = requestAnimationFrame(loop);
-    else hjarnaLoop = null;
+    hjarnaLoop = requestAnimationFrame(loop);
   }
 
   function starta() {
-    if (hjarnaLoop) cancelAnimationFrame(hjarnaLoop);
+    if (hjarnaLoop) return;
     hjarnaLoop = requestAnimationFrame(loop);
   }
+  function pausa() {
+    if (hjarnaLoop) cancelAnimationFrame(hjarnaLoop);
+    hjarnaLoop = null;
+  }
+
+  // Page Visibility: rörelsen finns när någon tittar, annars inte.
+  const synlighet = () => (document.hidden ? pausa() : starta());
+  const omStorlek = () => { ({ w, h } = storlek()); };
+  document.addEventListener('visibilitychange', synlighet);
+  window.addEventListener('resize', omStorlek);
+
+  hjarnaStopp = () => {
+    pausa();
+    document.removeEventListener('visibilitychange', synlighet);
+    window.removeEventListener('resize', omStorlek);
+    hjarnaStopp = null;
+  };
 
   canvas.onclick = e => {
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
-    const träff = noder.find(n => Math.hypot(n.x - mx, n.y - my) <= radie(n) + 6);
+    const träff = noder.find(n => Math.hypot(n.x - mx, n.y - my) <= radie(n) + 7);
+    valdId = träff ? träff.id : null;
     if (!träff) { info.style.display = 'none'; return; }
-    const post = (SENASTE_REGISTER.moduler || []).concat(SENASTE_REGISTER.flaggor || [])
-      .find(x => (x.fil && x.fil.replace(/^_|\.js$/g, '') === träff.id) || ('flagga:' + x.nyckel) === träff.id);
-    const mätt = träff.aktivitet === null || träff.aktivitet === undefined
-      ? 'Ingen m\u00e4tpunkt \u2014 den h\u00e4r delen f\u00e4ster inget block i systemprompten, s\u00e5 den g\u00e5r inte att m\u00e4ta d\u00e4r. Ingen gissning ritas i st\u00e4llet.'
-      : `Senaste timmen: ${träff.senasteTimmen} anv\u00e4ndningar. Ljus ${Math.round(träff.aktivitet * 100)}% mot eget dygnsmedel.`;
+    const poster = (SENASTE_REGISTER.moduler || []).concat(SENASTE_REGISTER.flaggor || []);
+    const post = poster.find(x =>
+      (x.fil && x.fil.replace(/^_|\.js$/g, '') === träff.id) || ('flagga:' + x.nyckel) === träff.id);
+    const mätt = omätt(träff)
+      ? 'Ingen mätpunkt. Den här delen fäster inget block i systemprompten, så den går inte att mäta där — och en gissning ritas inte i stället.'
+      : `Senaste timmen: ${träff.senasteTimmen} användningar. Ljus ${Math.round(träff.aktivitet * 100)}% mot eget dygnsmedel.`;
     info.style.display = '';
     info.innerHTML = `<p class="postNamn">${esc(post ? post.namn : träff.etikett)}</p>
-      <p class="postFil">${esc(träff.etikett)} \u00b7 ${esc(träff.typ)} \u00b7 ${träff.grad} kanter</p>
-      ${post ? `<p class="postFalt"><b>G\u00f6r:</b> ${esc(post['g\u00f6r'])}</p>
-      <p class="postFalt postGrans"><b>Gr\u00e4ns:</b> ${esc(post['gr\u00e4ns'])}</p>` : ''}
+      <p class="postFil">${esc(träff.etikett)} · ${esc(träff.typ)} · ${träff.grad} kanter</p>
+      ${post ? `<p class="postFalt"><b>Gör:</b> ${esc(post['gör'])}</p>
+      <p class="postFalt postGrans"><b>Gräns:</b> ${esc(post['gräns'])}</p>` : ''}
       <p class="postFalt">${esc(mätt)}</p>`;
   };
 
-  window.addEventListener('resize', () => { ({ w, h } = storlek()); starta(); });
-
+  const tabeller = noder.filter(n => n.typ === 'tabell').length;
   document.getElementById('hjarnaSub').textContent =
-    `${noder.length} noder, ${kanter.length} kanter \u2014 strukturen l\u00e4st ur api/ vid anropet`;
-  starta();
+    `${noder.length} noder, ${kanter.length} kanter, ${tabeller} ${tabeller === 1 ? 'tabell' : 'tabeller'} · tempo ${Math.round(tempo * 100)}% — allt läst ur källkoden`
+    + (REDUCERAD ? ' · rörelse av (prefers-reduced-motion)' : '');
+
+  synlighet();
 }
 
 /* Registret sparas när det hämtas, så ett klick i grafen kan visa posten utan
@@ -494,6 +629,7 @@ async function ladda() {
         <span><b style="background:#7fd4ff"></b>hj\u00e4lpare</span>
         <span><b style="background:#ffcf6b"></b>flagga</span>
         <span><b style="background:#c9a6ff"></b>rutt</span>
+        <span><b style="background:#ff8fa3"></b>tabell</span>
         <span>ljus = ovanligt aktiv senaste timmen \u00b7 d\u00e4mpad = ingen m\u00e4tpunkt</span>
       </div>
     </section>

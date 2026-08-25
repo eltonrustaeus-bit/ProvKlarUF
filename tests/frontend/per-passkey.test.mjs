@@ -98,13 +98,16 @@ const adminRoute = async route => {
         { id: "mastery-view", etikett: "mastery-view", typ: "hjälpare", aktivitet: null, senasteTimmen: null },
         { id: "flagga:per_answer_cache_enabled", etikett: "per_answer_cache_enabled", typ: "flagga", aktivitet: null, senasteTimmen: null },
         { id: "explain", etikett: "explain.js", typ: "rutt", aktivitet: null, senasteTimmen: null },
+        { id: "tabell:per_long_memory", etikett: "per_long_memory", typ: "tabell", aktivitet: null, senasteTimmen: null },
       ],
       kanter: [
         { från: "explain", till: "per-core" },
         { från: "explain", till: "per-name" },
         { från: "per-core", till: "mastery-view" },
         { från: "explain", till: "flagga:per_answer_cache_enabled" },
+        { från: "per-core", till: "tabell:per_long_memory" },
       ],
+      tempo: Number(b.tempo) || 0.35,
     }, hämtad: "2026-08-25T12:00:00.000Z" });
   }
   /* De läsande anropen kräver step-up — samma kontroll som i api/admin.js. */
@@ -277,7 +280,7 @@ const hjärnan = await page.evaluate(async () => {
 });
 ok("T18 hjärnan ritas ut", hjärnan.finns && hjärnan.sektionSynlig && hjärnan.bredd > 0, JSON.stringify(hjärnan));
 ok("T19 antalet noder och kanter står utskrivet",
-  /5 noder, 4 kanter/.test(hjärnan.text), hjärnan.text);
+  /6 noder, 5 kanter, 1 tabell /.test(hjärnan.text), hjärnan.text);
 
 /* En omätt nod ska ritas som kontur, inte som fylld — och klicket ska säga
    "ingen mätpunkt", aldrig visa en nolla som ser ut som en mätning. */
@@ -295,20 +298,119 @@ const klick = await page.evaluate(() => {
 ok("T20 legenden förklarar vad dämpad betyder",
   /ingen mätpunkt/i.test(klick.legend) && klick.yta, JSON.stringify(klick));
 
-/* T21: loopen måste ta slut. Mäts genom att räkna anrop till
-   requestAnimationFrame över tid — inte genom att läsa koden. */
-const loopen = await page.evaluate(() => new Promise(res => {
+/* T21–T23: rörelsekontraktet.
+ *
+ * Kartan ska ALLTID röra sig — Elton bad om det uttryckligen. Den tidigare
+ * versionen stannade när grafen lagt sig, och det fanns ett skäl: en
+ * requestAnimationFrame som snurrar i evighet på en öppen flik är en varm
+ * telefon och ingen information.
+ *
+ * Kontraktet är därför bytt, inte borttaget: loopen kör när fliken är SYNLIG
+ * och pausar via Page Visibility när den inte är det. Testet nedan mäter båda
+ * halvorna. Att bara mäta den första hade gett tillbaka det gamla problemet
+ * med en grön bock på.
+ */
+const rörelse = await page.evaluate(() => new Promise(res => {
   let n = 0;
-  const rAF = window.requestAnimationFrame;
+  const rAF = window.requestAnimationFrame.bind(window);
   window.requestAnimationFrame = cb => { n++; return rAF(cb); };
-  window.dispatchEvent(new Event("resize"));   // starta om simuleringen
   setTimeout(() => {
-    const efterStart = n;
-    setTimeout(() => res({ efterStart, slut: n, växte: n > efterStart }), 2500);
-  }, 2500);
+    const synlig = n;
+    // Låtsas att fliken göms. Playwright kan inte dölja den på riktigt, så
+    // hidden överskuggas och samma händelse skickas som webbläsaren skickar.
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    const vidPaus = n;
+    setTimeout(() => {
+      const dold = n - vidPaus;
+      Object.defineProperty(document, "hidden", { configurable: true, get: () => false });
+      document.dispatchEvent(new Event("visibilitychange"));
+      setTimeout(() => res({ synlig, dold, efterÅter: n - vidPaus - dold }), 800);
+    }, 800);
+  }, 1200);
 }));
-ok("T21 simuleringen stannar när grafen är stilla",
-  !loopen.växte && loopen.efterStart > 0, JSON.stringify(loopen));
+ok("T21 kartan rör sig hela tiden när fliken syns", rörelse.synlig > 20, JSON.stringify(rörelse));
+ok("T22 den pausar när fliken göms", rörelse.dold <= 1, JSON.stringify(rörelse));
+ok("T23 den startar igen när fliken syns", rörelse.efterÅter > 5, JSON.stringify(rörelse));
+
+/* T24–T25: tempot måste SYNAS, inte bara skickas.
+ *
+ * Elton bad om att kartan rör sig en del som bas och mer ju mer ExGen används.
+ * Ett test som bara kontrollerar att `tempo` finns i svaret hade varit grönt
+ * även om värdet aldrig nådde en enda pixel. Det här mäter i stället hur långt
+ * noderna faktiskt flyttar sig under samma tid, vid lågt och högt tempo. */
+async function mätRörelse(tempoVärde) {
+  const sida = await ctx.newPage();
+  await mockApis(sida, {
+    role: "admin", profiles: { id: "u1", approved: true, role: "admin" },
+    extra: [["**/api/admin", route => {
+      const bd = JSON.parse(route.request().postData() || "{}");
+      const json = (status, body) =>
+        route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+      if (bd.action === "passkey-status") {
+        return json(200, { ok: true, konfigurerad: true, rpID: url.hostname, enheter: [] });
+      }
+      if (bd.action === "per-registry") {
+        return json(200, { ok: true, registry: { moduler: [], flaggor: [] } });
+      }
+      if (bd.action === "per-pulse") {
+        return json(200, { ok: true, pulse: {
+          minnen: { totalt: 0, färska: 0, gamla: 0 },
+          cacheBeslut: { totalt: 0, per: {}, träffkvot: "för få elever än" },
+          cacheRader: { pending: 0, approved: 0, rejected: 0, utgångna: 0 },
+          kvoter: [], begrepp: "för få elever än", hämtad: "2026-08-25T12:00:00.000Z",
+        } });
+      }
+      if (bd.action === "per-brain") {
+        /* Många noder och kanter med flit: rörelsen ska gå att mäta, och två
+           noder rör för få pixlar för att skilja bas från full fart. */
+        const noder = Array.from({ length: 14 }, (_, i) => ({
+          id: "n" + i, etikett: "n" + i, typ: "modul",
+          aktivitet: i % 3 === 0 ? 0.8 : null,
+          senasteTimmen: i % 3 === 0 ? 9 : null,
+        }));
+        const kanter = noder.slice(1).map((n, i) => ({ från: noder[i].id, till: n.id }));
+        return json(200, { ok: true, brain: { noder, kanter, tempo: tempoVärde }, hämtad: "2026-08-25T12:00:00.000Z" });
+      }
+      return json(400, { ok: false });
+    }]],
+  });
+  await seed(sida, { role: "admin", user: { id: "u1" }, session: { exgen_per_stepup: SU.mintStepUp(UID, { secret: HEM }) } });
+  await sida.goto(`${srv.url}/per.html`, { waitUntil: "networkidle" });
+  await sida.waitForSelector("#hjarna", { timeout: 8000 }).catch(() => {});
+  await sida.waitForTimeout(400);
+  const sub = await sida.evaluate(() => document.getElementById("hjarnaSub")?.textContent || "");
+  /* Nodpositionerna ligger i en closure och går inte att läsa utifrån.
+     Bildinnehållet går — hur många pixlar som ändras under samma tid är ett
+     direkt mått på hur mycket kartan rör sig. */
+  const skillnad = await sida.evaluate(() => new Promise(res => {
+    const cv = document.getElementById("hjarna");
+    const ctx2 = cv.getContext("2d", { willReadFrequently: true });
+    const bild = () => ctx2.getImageData(0, 0, cv.width, cv.height).data;
+    /* KORT fönster, 120 ms. Med en sekund hann även baständringen röra
+       nästan hela ytan — 12177 mot 12295 pixlar, alltså ett mättat mått som
+       inte kunde skilja långsamt från snabbt. Instrumentet var fel, inte
+       funktionen. Över ett kort fönster är antalet ändrade pixlar ungefär
+       proportionellt mot farten. */
+    const a = Uint8ClampedArray.from(bild());
+    setTimeout(() => {
+      const b = bild();
+      let n = 0;
+      for (let i = 3; i < a.length; i += 4) if (Math.abs(a[i] - b[i]) > 12) n++;
+      res(n);
+    }, 120);
+  }));
+  await sida.close();
+  return { skillnad, sub };
+}
+
+const lågt = await mätRörelse(0.35);
+const högt = await mätRörelse(1.0);
+ok("T24 tempot står utskrivet, inte bara känns",
+  /tempo 35\s*%/.test(lågt.sub) && /tempo 100\s*%/.test(högt.sub), `${lågt.sub} || ${högt.sub}`);
+ok("T25 högre tempo ger mätbart mer rörelse",
+  högt.skillnad > lågt.skillnad * 1.4 && lågt.skillnad > 0,
+  `bas ${lågt.skillnad} px, full fart ${högt.skillnad} px`);
 
 await cdp.send("WebAuthn.removeVirtualAuthenticator", { authenticatorId });
 await ctx.close();

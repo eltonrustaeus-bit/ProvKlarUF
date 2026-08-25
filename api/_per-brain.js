@@ -37,6 +37,13 @@ const IMPORT_RE = /(?:from\s+|import\s*\(\s*|import\s+)["']\.\/(_[a-z0-9-]+\.js)
    missat tre av sju flaggor. */
 const FLAG_ARRAY_RE = /flagsEnabled\s*\(\s*(?:supabase\s*,\s*)?\[([^\]]*)\]/g;
 const FLAG_STR_RE = /["']([a-z0-9_]+)["']/g;
+/* Databastabeller. Kravet på en efterföljande PostgREST-metod är inte
+   överdrivet: `.from("…")` finns också i Buffer.from och Array.from, och ett
+   naivt mönster hade en dag ritat en tabell som heter "base64url".
+   Mätt 2026-08-25: båda mönstren ger 26 tabeller i dag — kravet skyddar mot
+   morgondagen, inte mot i dag. */
+const TABELL_RE = /\.from\(\s*["']([a-z_][a-z0-9_]*)["']\s*\)[\s\S]{0,200}?\.(?:select|insert|upsert|update|delete)\(/g;
+
 const FLAG_DIRECT_RE = /from\(\s*["']feature_flags["']\s*\)[\s\S]{0,400}?\.eq\(\s*["']key["']\s*,\s*["']([a-z0-9_]+)["']/g;
 
 /**
@@ -139,6 +146,20 @@ export function buildGraph(filer = {}) {
     }
   }
 
+  /* Tabeller: en nod per tabell, med kant från varje fil som läser eller
+     skriver den. Det är den största enskilda källan till struktur kartan
+     saknade — P.E.R. rör 26 tabeller, och innan det här syntes ingen av dem. */
+  for (const fil of namn) {
+    const från = nodeId(fil);
+    if (!noder.has(från)) continue;          // bara filer som redan är på kartan
+    const tabeller = new Set();
+    for (const m of String(filer[fil]).matchAll(TABELL_RE)) tabeller.add(m[1]);
+    for (const t of tabeller) {
+      läggTill({ id: `tabell:${t}`, etikett: t, typ: "tabell" });
+      läggKant(från, `tabell:${t}`);
+    }
+  }
+
   return { noder: [...noder.values()], kanter };
 }
 
@@ -158,6 +179,37 @@ export function activityLevel(senasteTimmen, dygnsmedel) {
   if (dygnsmedel <= 0) return senasteTimmen > 0 ? 1 : 0;
   const kvot = senasteTimmen / dygnsmedel;
   return Math.max(0, Math.min(1, (kvot - 1) / 1));
+}
+
+/* SYSTEMETS TEMPO — hur mycket hela P.E.R. används just nu.
+ *
+ * Skiljer sig från nodernas ljusstyrka: den mäter EN moduls avvikelse mot sig
+ * själv, det här mäter helheten. Kartan rör sig fortare en kväll när många
+ * elever pluggar än en söndagsmorgon när ingen gör det.
+ *
+ * BASEN ÄR INTE NOLL. Med tom mätdata rör sig kartan ändå — TEMPO_BAS — för
+ * att en stillastående karta läser som trasig, inte som lugn. Men basen är
+ * tydligt långsammare än full fart, så skillnaden går att se.
+ *
+ * Skalan går från bas vid ingen aktivitet till 1 vid dubbelt mot dygnsmedlet,
+ * samma referenspunkt som activityLevel(). Två mått som mäter olika saker mot
+ * olika referenser hade varit omöjliga att jämföra.
+ */
+export const TEMPO_BAS = 0.35;
+
+export function systemTempo(noder = []) {
+  let senaste = 0, medel = 0, mätta = 0;
+  for (const n of noder) {
+    if (!Number.isFinite(n?.senasteTimmen) || !Number.isFinite(n?.dygnsmedel)) continue;
+    senaste += n.senasteTimmen;
+    medel += n.dygnsmedel;
+    mätta++;
+  }
+  // Ingen mätpunkt alls: basen, aldrig noll och aldrig påhittad fart.
+  if (!mätta || medel <= 0) return senaste > 0 ? 1 : TEMPO_BAS;
+  const kvot = senaste / medel;                    // 1 = som vanligt
+  const över = Math.max(0, Math.min(1, kvot / 2)); // 2x dygnsmedel = full fart
+  return TEMPO_BAS + (1 - TEMPO_BAS) * över;
 }
 
 /**
@@ -185,10 +237,15 @@ export function attachActivity(graf, rader = [], nu = Date.now()) {
 
   const noder = graf.noder.map(n => {
     const p = perModul.get(n.id);
-    if (!p) return { ...n, aktivitet: null, senasteTimmen: null };
+    if (!p) return { ...n, aktivitet: null, senasteTimmen: null, dygnsmedel: null };
     const medel = p.timmar ? p.summa / p.timmar : 0;
-    return { ...n, aktivitet: activityLevel(p.senaste, medel), senasteTimmen: p.senaste };
+    return {
+      ...n,
+      aktivitet: activityLevel(p.senaste, medel),
+      senasteTimmen: p.senaste,
+      dygnsmedel: medel,
+    };
   });
 
-  return { ...graf, noder };
+  return { ...graf, noder, tempo: systemTempo(noder) };
 }
