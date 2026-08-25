@@ -168,9 +168,110 @@ async function conceptTags() {
   return _conceptTags;
 }
 
+/* Samma dynamiska mönster, samma skäl: grade.js är CJS, de här är ESM. */
+let _attempt = null;
+async function attemptBridge() {
+  if (!_attempt) _attempt = await import("./_per-attempt.js");
+  return _attempt;
+}
+let _learnerModel = null;
+async function learnerModel() {
+  if (!_learnerModel) _learnerModel = await import("../src/per/learner-model.mjs");
+  return _learnerModel;
+}
+let _flags = null;
+async function perFlags() {
+  if (!_flags) _flags = await import("./_flags.js");
+  return _flags;
+}
+
+/* grade.js har ingen Supabase-klient — resten av filen pratar REST med fetch.
+   recordAttempt() i learner-model.mjs vill ha en klient, så här är en, skapad
+   EN gång och återanvänd. Dynamisk import av samma skäl som ovan: filen
+   kompileras till CJS. */
+/* INLÄMNINGENS ID.
+ *
+ * Rättningsanropet bär inget prov-id — det får frågor och svar, inget mer.
+ * Idempotensnyckeln byggs därför av inlämningen själv: samma elev, samma kurs,
+ * samma frågor OCH samma svar ger samma id.
+ *
+ * Det är rätt semantik, inte en nödlösning. Att rätta om identiskt arbete är
+ * SAMMA försök och ska inte dubbelräknas. Att svara annorlunda är ett NYTT
+ * försök och ska räknas — annars hade en elev som övar om samma prov aldrig
+ * fått sin repetition mätt, vilket är precis det loopen finns för.
+ */
+async function submissionId(userId, course, per) {
+  try {
+    const { createHash } = await import("node:crypto");
+    const frö = [userId, course || "", ...per.map(q =>
+      `${q?.id ?? ""}:${String(q?.student_answer ?? q?.answer ?? "").slice(0, 200)}`)].join("|");
+    return createHash("sha256").update(frö).digest("hex").slice(0, 32);
+  } catch { return null; }
+}
+
+let _sb = null;
+async function supabaseClient() {
+  if (_sb) return _sb;
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+  const { createClient } = await import("@supabase/supabase-js");
+  _sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return _sb;
+}
+
 // E/C/A som svårighetsgrad. Samma skala som src/per/assessment.mjs
 // LEVEL_DIFFICULTY, så mockprov och juridikmotorn väger utfall likadant.
 const LEVEL_DIFFICULTY = { E: 0.3, C: 0.55, A: 0.8 };
+
+/* Skriver ett student_attempts-försök per rättad fråga.
+ *
+ * VARFÖR DEN FINNS: ExGen hade två kunskapssystem som inte matade varandra.
+ * applyMockMastery() nedan skriver user_profiles.mastery vid varje prov;
+ * student_attempts skrevs bara av kunskapsmotorn, som är juridikpiloten och
+ * begränsad till ett konto. `_per-collective.js` läser student_attempts och
+ * kunde därför ALDRIG få data. Uppmätt 2026-08-25: 0 rader.
+ *
+ * ADDITIV OCH OFARLIG. Rättningen är en het kodväg — ett fel här drabbar varje
+ * elev som lämnar in ett prov. Därför:
+ *   - allt ligger i try/catch och sväljer fel, som applyMockMastery
+ *   - den ändrar aldrig vad eleven får se
+ *   - den körs efter att poängen räknats, aldrig före
+ *
+ * BAKOM FLAGGAN. per_learner_loop_enabled är begränsad till ett konto, så det
+ * här börjar samla data för Elton och vidgas när raderna ser rätt ut. En
+ * felaktig taggning som når alla elevers historik är dyrare att städa än att
+ * vänta.
+ */
+async function recordAttempts(supabase, userId, level, per, examId, course) {
+  if (!userId || !Array.isArray(per) || !per.length) return;
+  try {
+    const { flagsEnabled } = await perFlags();
+    if (!(await flagsEnabled(supabase, ["per_learner_loop_enabled"], userId))) return;
+
+    const A = await attemptBridge();
+    const { recordAttempt } = await learnerModel();
+    const { resolveConceptTag } = await conceptTags();
+
+    /* Högst 30 försök per prov, samma tak som mastery-skrivningen. Ett prov
+       med fler frågor än så är inte representativt, och taket hindrar att en
+       enda inlämning fyller tabellen. */
+    for (const q of per.slice(0, 30)) {
+      const tag = resolveConceptTag(q);
+      if (!A.isRealConcept(tag)) continue;
+
+      const conceptId = await A.ensureConceptId(supabase, { subject: course || "okänt", tag });
+      if (!conceptId) continue;
+
+      const maxP = Number(q?.max_points) || 0;
+      const rad = A.buildAttempt({
+        userId, conceptId, level, examId,
+        q: { ...q, score: maxP > 0 ? Number(q?.points || 0) / maxP : null },
+      });
+      if (!rad) continue;
+
+      await recordAttempt(supabase, rad);
+    }
+  } catch { /* mätningen får aldrig fälla en rättning */ }
+}
 
 /* Rätt på en svår fråga ska väga mer än rätt på en lätt. Utan viktningen mäter
    mastery hur lätta prov eleven väljer, inte vad hen kan. */
@@ -426,6 +527,14 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal)),
         applyMockMastery(user.id, level, per),
+        /* Elevloopens försök. Bakom per_learner_loop_enabled, och sväljer
+           varje fel — en mätning får aldrig fälla en rättning. */
+        /* Elevloopens försök. Bakom per_learner_loop_enabled, och sväljer
+           varje fel — en mätning får aldrig fälla en rättning. */
+        (async () => {
+          const sb = await supabaseClient();
+          await recordAttempts(sb, user.id, level, per, await submissionId(user.id, course, per), course);
+        })().catch(() => {}),
       ]);
       return json(res, 200, {
         ok: true,
@@ -634,6 +743,14 @@ module.exports = async function handler(req, res) {
       await Promise.all([
         saveMockResult(buildMockPayload(user.id, course, per, total, maxTotal)),
         applyMockMastery(user.id, level, per),
+        /* Elevloopens försök. Bakom per_learner_loop_enabled, och sväljer
+           varje fel — en mätning får aldrig fälla en rättning. */
+        /* Elevloopens försök. Bakom per_learner_loop_enabled, och sväljer
+           varje fel — en mätning får aldrig fälla en rättning. */
+        (async () => {
+          const sb = await supabaseClient();
+          await recordAttempts(sb, user.id, level, per, await submissionId(user.id, course, per), course);
+        })().catch(() => {}),
       ]);
       return json(res, 200, {
         ok: true,

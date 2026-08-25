@@ -132,6 +132,13 @@ export const PER_REGISTRY = {
       gräns: "Genereras i stället för att läsas vid körning, eftersom en filläsning i api/admin.js tog ned hela adminpanelen: Vercel laddar rutten som CJS och import.meta är ett syntaxfel där. Ett test faller om filen glidit isär från källan.",
     },
     {
+      fil: "_per-attempt.js",
+      namn: "Bron till elevloopen",
+      gör: "Gör en rättad provfråga till ett student_attempts-försök: slår upp eller skapar begreppet, normaliserar poängen och bygger raden.",
+      ser: "Den rättade frågan, dess begreppstagg, nivån och elevens svar. Skrivs bara när per_learner_loop_enabled är på för eleven.",
+      gräns: "Poäng som SAKNAS blir aldrig poäng noll — Number(null) är 0 i JavaScript, och en fråga som aldrig bedömts hade annars registrerats som ett nollresultat och dragit ner mastery på ogjort arbete. Skräptaggar som Okänt eller multiple_choice blir aldrig begrepp.",
+    },
+    {
       fil: "_per-brain.js",
       namn: "Hjärnan",
       gör: "Härleder kartan över P.E.R. ur källkoden — vilka moduler som finns och vilka som importerar varandra — och väver ihop den med hur aktiv varje del varit.",
