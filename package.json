@@ -6,6 +6,7 @@
     "a11y-audit": "node scripts/a11y-audit.mjs"
   },
   "dependencies": {
+    "@simplewebauthn/server": "^13.3.2",
     "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {

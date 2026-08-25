@@ -43,6 +43,9 @@
   .statVal{font-size:21px;font-weight:700;color:var(--t)}
   .statVal.tunt{font-size:12.5px;font-weight:500;color:var(--t3);line-height:1.5}
   .statVal.accent{color:var(--a)}
+  .enhetRad{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .taBort{padding:4px 10px;border-radius:var(--r2);border:1px solid var(--l2);background:transparent;color:var(--t3);font-family:var(--mono);font-size:10.5px;cursor:pointer}
+  .taBort:hover{color:var(--t);border-color:var(--l)}
   </style>
 </head>
 <body>
@@ -65,6 +68,17 @@
     <h1 class="pageTitle">P.E.R:s minne</h1>
     <p class="pageSub" id="status">Kontrollerar åtkomst…</p>
   </div>
+
+  <div id="lasSkarm" class="post" style="margin-bottom:32px">
+    <p class="postNamn">Sidan är låst</p>
+    <p class="postFalt" id="lasText">Kontrollerar…</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn" id="lasUppBtn" style="display:none">Lås upp med Face ID / Touch ID</button>
+      <button class="btn" id="registreraBtn" style="display:none">Registrera den här enheten</button>
+    </div>
+  </div>
+
+  <div id="enheter" class="rutnat" style="margin-bottom:32px"></div>
 
   <section class="sekt">
     <h2 class="sektRubrik">Registret</h2>
@@ -98,16 +112,40 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
    den som ett värde där en siffra annars hade stått. */
 const TOO_FEW = 'för få elever än';
 
-async function anropa(action) {
+/* WebAuthn talar ArrayBuffer, JSON talar base64url. De här två gör
+   översättningen. Skrivna för hand med flit: alternativet är ett andra
+   CDN-beroende för trettio rader kod, och PublicKeyCredential.toJSON() finns
+   inte i alla webbläsare Elton kan råka använda. */
+const b64urlTillBuf = s => {
+  const b = atob(String(s).replace(/-/g, '+').replace(/_/g, '/'));
+  const u = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return u.buffer;
+};
+const bufTillB64url = b => {
+  const u = new Uint8Array(b);
+  let t = '';
+  for (let i = 0; i < u.length; i++) t += String.fromCharCode(u[i]);
+  return btoa(t).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+/* Step-up-token lever i sessionStorage, inte localStorage: den ska dö när
+   fliken stängs. Servern verifierar den ändå — det här är bekvämlighet, inte
+   skydd. */
+const STEPUP_NYCKEL = 'exgen_per_stepup';
+const hamtaStepUp = () => sessionStorage.getItem(STEPUP_NYCKEL) || '';
+const sparaStepUp = t => sessionStorage.setItem(STEPUP_NYCKEL, t);
+
+async function anropa(action, extra) {
   const { data: { session } } = await db.auth.getSession();
   if (!session) return null;
   const res = await fetch('/api/admin', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify(Object.assign({ action, stepUp: hamtaStepUp() }, extra || {})),
   });
-  if (!res.ok) return null;
-  return res.json();
+  const json = await res.json().catch(() => null);
+  return json ? Object.assign({ _status: res.status }, json) : null;
 }
 
 function ritaPost(p) {
@@ -131,21 +169,7 @@ function ritaStat(etikett, varde, accent) {
   </div>`;
 }
 
-async function ladda() {
-  const status = document.getElementById('status');
-
-  const reg = await anropa('per-registry');
-  if (!reg || !reg.ok) {
-    status.textContent = 'Ingen åtkomst. Sidan kräver ett adminkonto — gatet ligger på servern, inte här.';
-    return;
-  }
-  status.textContent = 'Registret beskrivs i api/_per-registry.js och bevakas av tests/per/per-registry.test.mjs, som faller om en modul saknar post eller en post saknar modul.';
-  document.getElementById('registret').innerHTML =
-    [...reg.registry.moduler, ...reg.registry.flaggor].map(ritaPost).join('');
-
-  const p = await anropa('per-pulse');
-  if (!p || !p.ok) return;
-  const d = p.pulse;
+function ritaPuls(d) {
 
   document.getElementById('pulsTid').textContent =
     'hämtad ' + new Date(d['hämtad']).toLocaleString('sv-SE');
@@ -171,6 +195,127 @@ async function ladda() {
         <p class="postFalt">${b.felkoder.length ? 'Vanligaste fel: ' + esc(b.felkoder.join(', ')) : 'Inga felkoder över tröskeln.'}</p>
       </div>`).join('');
 }
+
+function ritaEnheter(enheter) {
+  document.getElementById('enheter').innerHTML = (enheter || []).map(e => `<div class="post">
+    <div class="enhetRad">
+      <div>
+        <p class="postNamn">${esc(e.label)}</p>
+        <p class="postFil">registrerad ${new Date(e.created_at).toLocaleString('sv-SE')}${e.last_used_at ? ' · senast använd ' + new Date(e.last_used_at).toLocaleString('sv-SE') : ' · aldrig använd'}</p>
+      </div>
+      <button class="taBort" data-id="${esc(e.credential_id)}">Ta bort</button>
+    </div>
+  </div>`).join('');
+  document.querySelectorAll('.taBort').forEach(b => b.addEventListener('click', async () => {
+    await anropa('passkey-delete', { credentialId: b.dataset.id });
+    await ladda();
+  }));
+}
+
+function enhetsNamn() {
+  const pf = navigator.platform || '';
+  return (/iPhone|iPad/.test(pf) ? 'iPhone/iPad' : /Mac/.test(pf) ? 'Mac' : 'Enhet') +
+    ' · ' + new Date().toLocaleDateString('sv-SE');
+}
+
+function visaFel(r) {
+  const t = document.getElementById('lasText');
+  if (r && r.error === 'stepup_unconfigured') {
+    t.textContent = 'PASSKEY_STEPUP_SECRET är inte satt i Vercel. Låset kan inte utfärda något bevis förrän den finns — det är avsiktligt, inte ett fel att kringgå.';
+    return;
+  }
+  t.textContent = 'Det gick inte: ' + ((r && r.error) || 'inget svar från servern') + '.';
+}
+
+async function registrera() {
+  const r = await anropa('passkey-register-begin');
+  if (!r || !r.ok) return visaFel(r);
+  const o = r.options;
+  const cred = await navigator.credentials.create({ publicKey: Object.assign({}, o, {
+    challenge: b64urlTillBuf(o.challenge),
+    user: Object.assign({}, o.user, { id: b64urlTillBuf(o.user.id) }),
+    excludeCredentials: (o.excludeCredentials || []).map(c => Object.assign({}, c, { id: b64urlTillBuf(c.id) })),
+  }) });
+  const svar = {
+    id: cred.id, rawId: bufTillB64url(cred.rawId), type: cred.type,
+    clientExtensionResults: cred.getClientExtensionResults(),
+    response: {
+      clientDataJSON: bufTillB64url(cred.response.clientDataJSON),
+      attestationObject: bufTillB64url(cred.response.attestationObject),
+      transports: cred.response.getTransports ? cred.response.getTransports() : [],
+    },
+  };
+  const f = await anropa('passkey-register-finish', { response: svar, label: enhetsNamn() });
+  if (!f || !f.ok) return visaFel(f);
+  sparaStepUp(f.stepUp);
+  await ladda();
+}
+
+async function lasUpp() {
+  const r = await anropa('passkey-auth-begin');
+  if (!r || !r.ok) return visaFel(r);
+  const o = r.options;
+  const cred = await navigator.credentials.get({ publicKey: Object.assign({}, o, {
+    challenge: b64urlTillBuf(o.challenge),
+    allowCredentials: (o.allowCredentials || []).map(c => Object.assign({}, c, { id: b64urlTillBuf(c.id) })),
+  }) });
+  const svar = {
+    id: cred.id, rawId: bufTillB64url(cred.rawId), type: cred.type,
+    clientExtensionResults: cred.getClientExtensionResults(),
+    response: {
+      clientDataJSON: bufTillB64url(cred.response.clientDataJSON),
+      authenticatorData: bufTillB64url(cred.response.authenticatorData),
+      signature: bufTillB64url(cred.response.signature),
+      userHandle: cred.response.userHandle ? bufTillB64url(cred.response.userHandle) : undefined,
+    },
+  };
+  const f = await anropa('passkey-auth-finish', { response: svar });
+  if (!f || !f.ok) return visaFel(f);
+  sparaStepUp(f.stepUp);
+  await ladda();
+}
+
+async function ladda() {
+  const status = document.getElementById('status');
+  const lasText = document.getElementById('lasText');
+  const lasSkarm = document.getElementById('lasSkarm');
+  const lasUppBtn = document.getElementById('lasUppBtn');
+  const registreraBtn = document.getElementById('registreraBtn');
+
+  const st = await anropa('passkey-status');
+  if (!st || !st.ok) {
+    status.textContent = 'Ingen åtkomst. Sidan kräver ett adminkonto — gatet ligger på servern, inte här.';
+    lasText.textContent = 'Du är inte inloggad som admin.';
+    return;
+  }
+  ritaEnheter(st.enheter);
+
+  if (!st.konfigurerad) { visaFel({ error: 'stepup_unconfigured' }); return; }
+
+  const har = (st.enheter || []).length > 0;
+  lasUppBtn.style.display = har ? '' : 'none';
+  registreraBtn.style.display = '';
+  lasText.textContent = har
+    ? 'Registret och pulsen visas när du bekräftat med Face ID eller Touch ID.'
+    : 'Ingen enhet är registrerad än. Registrera den här enheten för att låsa upp sidan.';
+
+  const reg = await anropa('per-registry');
+  if (!reg || !reg.ok) return;
+
+  /* Först här är sidan upplåst. Data har inte legat i en dold div — servern
+     vägrade svara tills step-up var på plats. */
+  lasSkarm.style.display = 'none';
+  status.textContent = 'Registret beskrivs i api/_per-registry.js och bevakas av tests/per/per-registry.test.mjs, som faller om en modul saknar post eller en post saknar modul.';
+  document.getElementById('registret').innerHTML =
+    [...reg.registry.moduler, ...reg.registry.flaggor].map(ritaPost).join('');
+
+  const p = await anropa('per-pulse');
+  if (!p || !p.ok) return;
+  ritaPuls(p.pulse);
+}
+
+document.getElementById('lasUppBtn').addEventListener('click', lasUpp);
+document.getElementById('registreraBtn').addEventListener('click', registrera);
 
 ladda();
 </script>

@@ -17,11 +17,35 @@ import { ROOT, serve, mockApis, seed, report } from "./_harness.mjs";
 const { chromium } = await import(ROOT + "/node_modules/playwright/index.mjs");
 const srv = await serve(ROOT, { indexFile: "per.html" });
 
+/* Sedan Del B ligger en låsskärm framför sidan, och de läsande anropen kräver
+   en step-up-token. Riggen myntar en giltig token och seedar den i
+   sessionStorage, så att den här filen fortsätter mäta SIDAN.
+   Låsskärmen och Face ID mäts i tests/frontend/per-passkey.test.mjs — två
+   filer som mäter samma yta hade gett två chanser att missa samma fel. */
+const HEM = "testhemlighet-per-sida";
+const UID = "11111111-1111-4111-8111-111111111111";
+process.env.PASSKEY_STEPUP_SECRET = HEM;
+const SU = await import(ROOT + "/api/_admin-stepup.js");
+const GILTIG = SU.mintStepUp(UID, { secret: HEM });
+
 const R = report("per-sida");
 const ok = (n, c, d = "") => R.ok(n, c, d);
 
 const adminRoute = route => {
   const body = JSON.parse(route.request().postData() || "{}");
+  if (body.action === "passkey-status") {
+    return route.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({ ok: true, konfigurerad: true, rpID: "localhost",
+        enheter: [{ credential_id: "abc", label: "Testenhet", created_at: "2026-08-25T10:00:00.000Z", last_used_at: null }] }),
+    });
+  }
+  /* Samma kontroll som api/admin.js gör. Utan den mäter filen en sida som
+     serverar data utan step-up, vilket är precis det Del B förbjuder. */
+  if ((body.action === "per-registry" || body.action === "per-pulse") &&
+      !SU.verifyStepUp(body.stepUp, UID, { secret: HEM })) {
+    return route.fulfill({ status: 403, contentType: "application/json", body: '{"ok":false,"error":"stepup_required"}' });
+  }
   if (body.action === "per-registry") {
     return route.fulfill({
       status: 200, contentType: "application/json",
@@ -55,7 +79,7 @@ await mockApis(page, {
   profiles: { id: "u1", approved: true, role: "admin" },
   extra: [["**/api/admin", adminRoute]],
 });
-await seed(page, { role: "admin", user: { id: "u1" } });
+await seed(page, { role: "admin", user: { id: "u1" }, session: { exgen_per_stepup: GILTIG } });
 
 await page.goto(`${srv.url}/per.html`, { waitUntil: "networkidle" });
 await page.waitForSelector("#registret .post", { timeout: 8000 }).catch(() => {});
