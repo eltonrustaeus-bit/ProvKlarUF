@@ -37,6 +37,13 @@ const IMPORT_RE = /(?:from\s+|import\s*\(\s*|import\s+)["']\.\/(_[a-z0-9-]+\.js)
    missat tre av sju flaggor. */
 const FLAG_ARRAY_RE = /flagsEnabled\s*\(\s*(?:supabase\s*,\s*)?\[([^\]]*)\]/g;
 const FLAG_STR_RE = /["']([a-z0-9_]+)["']/g;
+/* Databastabeller. Kravet på en efterföljande PostgREST-metod är inte
+   överdrivet: `.from("…")` finns också i Buffer.from och Array.from, och ett
+   naivt mönster hade en dag ritat en tabell som heter "base64url".
+   Mätt 2026-08-25: båda mönstren ger 26 tabeller i dag — kravet skyddar mot
+   morgondagen, inte mot i dag. */
+const TABELL_RE = /\.from\(\s*["']([a-z_][a-z0-9_]*)["']\s*\)[\s\S]{0,200}?\.(?:select|insert|upsert|update|delete)\(/g;
+
 const FLAG_DIRECT_RE = /from\(\s*["']feature_flags["']\s*\)[\s\S]{0,400}?\.eq\(\s*["']key["']\s*,\s*["']([a-z0-9_]+)["']/g;
 
 /**
@@ -136,6 +143,20 @@ export function buildGraph(filer = {}) {
       const från = nodeId(fil);
       // Kanten ritas bara från en nod som finns på kartan.
       if (noder.has(från)) läggKant(från, `flagga:${nyckel}`);
+    }
+  }
+
+  /* Tabeller: en nod per tabell, med kant från varje fil som läser eller
+     skriver den. Det är den största enskilda källan till struktur kartan
+     saknade — P.E.R. rör 26 tabeller, och innan det här syntes ingen av dem. */
+  for (const fil of namn) {
+    const från = nodeId(fil);
+    if (!noder.has(från)) continue;          // bara filer som redan är på kartan
+    const tabeller = new Set();
+    for (const m of String(filer[fil]).matchAll(TABELL_RE)) tabeller.add(m[1]);
+    for (const t of tabeller) {
+      läggTill({ id: `tabell:${t}`, etikett: t, typ: "tabell" });
+      läggKant(från, `tabell:${t}`);
     }
   }
 
