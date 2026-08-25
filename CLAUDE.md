@@ -404,7 +404,17 @@ Any change to `api/` triggers security review checklist:
   begäranden, inte skydd — skyddet är serverns rollkoll.
 - **En worktree saknar `node_modules`.** Playwright-testerna kraschar med
   `ERR_MODULE_NOT_FOUND` tills du länkar in den:
-  `ln -s /Users/elton1/provia-ai/node_modules node_modules`.
+  `ln -s /Users/elton1/provia-ai/node_modules node_modules`. Länken pekar på huvudrepots
+  katalog, som **alla** worktrees delar — ett nytt beroende måste därför
+  installeras i `~/provia-ai`, inte bara i den worktree som lade till det.
+  Uppmätt 2026-08-25: `@simplewebauthn/server` installerades i Del B:s
+  worktree, den togs bort vid merge, och nästa worktree fick
+  `ERR_MODULE_NOT_FOUND` på ett test som var grönt en timme tidigare.
+- **`per.html` nås via en knapp i adminpanelen.** Sidan är olistad — inte i
+  sitemapen, `Disallow` i robots.txt, ingen länk från sajtens navigering — men
+  `admin.html` är själv rollgatad och robots-utesluten, så en länk därifrån
+  syns bara för den som redan tagit sig in. Olistad betyder svår att hitta för
+  andra, inte omöjlig att hitta för Elton.
 
 ## Låset på minnessidan (2026-08-25)
 - **En passkey autentiserar en ENHET, inte en behörighet.** `requireAdmin`
