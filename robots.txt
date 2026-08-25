@@ -18,6 +18,7 @@ Allow: /
 Allow: /api/check-role
 
 Disallow: /admin.html
+Disallow: /per.html
 Disallow: /api/
 
 # Bilderna måste vara crawlbara — Google hämtar logotypen till sökresultatet
