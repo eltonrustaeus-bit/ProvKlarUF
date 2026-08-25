@@ -43,6 +43,12 @@ export const PER_GRAPH = {
       "typ": "modul"
     },
     {
+      "id": "per-attempt",
+      "etikett": "per-attempt",
+      "fil": "_per-attempt.js",
+      "typ": "modul"
+    },
+    {
       "id": "per-brain",
       "etikett": "per-brain",
       "fil": "_per-brain.js",
@@ -226,6 +232,11 @@ export const PER_GRAPH = {
       "typ": "flagga"
     },
     {
+      "id": "flagga:per_learner_loop_enabled",
+      "etikett": "per_learner_loop_enabled",
+      "typ": "flagga"
+    },
+    {
       "id": "flagga:legal_shadow_mode",
       "etikett": "legal_shadow_mode",
       "typ": "flagga"
@@ -241,9 +252,9 @@ export const PER_GRAPH = {
       "typ": "flagga"
     },
     {
-      "id": "flagga:per_learner_loop_enabled",
-      "etikett": "per_learner_loop_enabled",
-      "typ": "flagga"
+      "id": "tabell:concepts",
+      "etikett": "concepts",
+      "typ": "tabell"
     },
     {
       "id": "tabell:feature_flags",
@@ -514,6 +525,10 @@ export const PER_GRAPH = {
       "till": "concept-tags"
     },
     {
+      "från": "grade",
+      "till": "per-attempt"
+    },
+    {
       "från": "hp",
       "till": "per-core"
     },
@@ -544,6 +559,14 @@ export const PER_GRAPH = {
     {
       "från": "explain",
       "till": "flagga:per_legal_rag_enabled"
+    },
+    {
+      "från": "grade",
+      "till": "flagga:per_learner_loop_enabled"
+    },
+    {
+      "från": "per-attempt",
+      "till": "tabell:concepts"
     },
     {
       "från": "per-cache",

@@ -571,6 +571,43 @@ Any change to `api/` triggers security review checklist:
   rutterna som CJS. Det var den skillnaden som tog ned adminpanelen, och en
   preview är enda stället den syns före produktion.
 
+## Två kunskapssystem som inte matade varandra (2026-08-25)
+- **`grade.js` skrev `user_profiles.mastery`. `_per-collective.js` läser
+  `student_attempts`.** Skrivvägen dit gick BARA genom `knowledge.js` →
+  orchestrator → `commitAssessment()`, alltså juridikpiloten, och
+  `per_learner_loop_enabled` är begränsad till ett konto. Kollektiva lagret
+  kunde därför ALDRIG få data, hur många elever som än pluggade. Uppmätt
+  2026-08-25: 0 rader i `student_attempts` och `student_error_events`, medan
+  mastery hade rader.
+- **`src/per/learner-model.mjs` anropades inte av någon rutt.** Koden var
+  mergad (PR #12, 2026-08-11), testad och komplett. Migrations-README:n sa
+  fortfarande att PR #12 var öppen — den var inaktuell.
+- **Den saknade länken är begrepps-id.** `grade.js` har `concept_tag` som
+  text; `student_attempts.concept_id` är en UUID mot `concepts`. Ett försök
+  utan `concept_id` filtreras bort av `concept_collective_stats`, så en
+  skrivning utan uppslag hade gett rader som inte bidrar med något.
+  `api/_per-attempt.js` gör uppslaget och skapar begreppet vid behov.
+- **`Number(null)` ÄR 0, och 0 är finit.** Första versionen av
+  `normaliseraPoäng()` lät en fråga utan poäng bli ett registrerat
+  NOLLRESULTAT — eleven hade fått fel på arbete som aldrig bedömts, och
+  mastery hade dragits ner på det. Avvisa null, undefined och tom sträng FÖRE
+  `Number()`.
+- **Idempotensnyckeln byggs av inlämningen, inte av ett prov-id.**
+  Rättningsanropet bär inget prov-id. Nyckeln är en hash av elev, kurs, frågor
+  OCH svar: att rätta om identiskt arbete är samma försök, att svara
+  annorlunda är ett nytt. Utan svaren i hashen hade en elev som övar om samma
+  prov aldrig fått sin repetition mätt.
+- **`grade.js` har ingen Supabase-klient** — resten av filen pratar REST med
+  `fetch`. `recordAttempt()` vill ha en klient, så en memoiserad skapas via
+  dynamisk import. Statisk import hade dödat funktionen: filen är CJS.
+- **Skrivningen är additiv och sväljer varje fel.** Rättningen är en het
+  kodväg; ett fel där drabbar varje elev som lämnar in ett prov. Den ändrar
+  aldrig vad eleven ser och körs efter att poängen räknats.
+- **Riktningen framåt: `student_attempts` är sanningen.** Per försök med
+  begrepp, nivå, poäng och felkod är finare upplösning än en mastery-siffra,
+  och mastery går att räkna FRAM ur den. `user_profiles.mastery` bör bli en
+  härledd vy, inte en egen källa.
+
 ## P.E.R. granskar sina egna svar (2026-08-25)
 - **Mät rörelse över ett fast ANTAL BILDRUTOR, inte över tid.** Ett fast
   tidsfönster är belastningskänsligt: i en full svitkörning konkurrerar flera
