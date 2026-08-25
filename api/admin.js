@@ -1,6 +1,11 @@
 ﻿import { createClient } from "@supabase/supabase-js";
 import { requireAuth } from "./_auth.js";
 import { BRAND_NAME, SITE_ORIGIN, MAIL_FROM } from "./_site.js";
+import { PER_REGISTRY } from "./_per-registry.js";
+import {
+  summariseMemories, summariseProbes, summariseCache,
+  summariseQuota, summariseConcepts,
+} from "./_per-pulse.js";
 
 function buildPitchHtml(email) {
   return `<!DOCTYPE html>
@@ -486,6 +491,56 @@ export default async function handler(req, res) {
     const result = await r.json();
     if (!result.id) return res.status(500).json({ ok: false, error: result.message || "Resend error" });
     return res.status(200).json({ ok: true, emailId: result.id, to: user.email });
+  }
+
+  /* ── per.html: registret och pulsen ──────────────────────────────────────
+     Två läsande anrop bakom samma adminroll som resten av filen. De ligger
+     här och inte i en egen rutt av ett hårt skäl: Vercel Hobby tar 12
+     serverlösa funktioner och alla 12 är använda (se API-tabellen i
+     CLAUDE.md). En trettonde fil i api/ utan understrecksprefix gör att
+     projektet inte distribueras alls. */
+
+  if (action === "per-registry") {
+    if (!await requireAdmin(req, res)) return;
+    return res.status(200).json({ ok: true, registry: PER_REGISTRY });
+  }
+
+  if (action === "per-pulse") {
+    if (!await requireAdmin(req, res)) return;
+
+    /* Aggregat, aldrig enskilda elever: ingen select nedan hämtar user_id.
+       tests/api/per-pulse.test.mjs läser de här select-strängarna och faller
+       om någon börjar hämta en kolumn som pekar ut en person. Eleverna är
+       till stor del minderåriga, och en uppslagsfunktion över deras minnen
+       vore en övervakningspanel som personuppgiftsavtalet inte täcker. */
+    const nu = Date.now();
+    const sjuDygnSedan = new Date(nu - 7 * 86_400_000).toISOString();
+    const sjuDagarsDatum = sjuDygnSedan.slice(0, 10);
+
+    const [minnen, sonder, rader, kvoter, begrepp] = await Promise.all([
+      supabase.from("per_long_memory").select("updated_at").limit(5000),
+      supabase.from("per_cache_probe").select("decision").gte("created_at", sjuDygnSedan).limit(5000),
+      supabase.from("per_answer_cache").select("status, expires_at").limit(5000),
+      supabase.from("per_quota_counters").select("feature, used").gte("day", sjuDagarsDatum).limit(5000),
+      /* concept_collective_stats bär k-anonymiteten själv — fem distinkta
+         elever per begrepp, tre per felkod. Läs vyn som den är; lägg varken
+         till eller ta bort en tröskel här. */
+      supabase.from("concept_collective_stats")
+        .select("concept_name, mean_score, student_count, common_error_codes")
+        .order("mean_score", { ascending: true }).limit(8),
+    ]);
+
+    return res.status(200).json({
+      ok: true,
+      pulse: {
+        minnen:      summariseMemories(minnen.data || [], nu),
+        cacheBeslut: summariseProbes(sonder.data || []),
+        cacheRader:  summariseCache(rader.data || [], nu),
+        kvoter:      summariseQuota(kvoter.data || []),
+        begrepp:     summariseConcepts(begrepp.data || []),
+        hämtad:      new Date(nu).toISOString(),
+      },
+    });
   }
 
   return res.status(400).json({ ok: false, error: "Unknown action" });

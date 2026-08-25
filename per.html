@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <script src="/js/site-gate.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Privat sida. robots.txt utesluter den och den står inte i sitemapen,
+       men robots.txt är en begäran, inte ett skydd — noindex står här för de
+       sökmotorer som hämtar sidan ändå. Det riktiga skyddet är requireAdmin
+       på servern: utan adminroll svarar /api/admin ingenting att visa. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <script src="js/exgen-modules.js"></script>
+  <script>if(location.hostname.includes("vercel.app")){location.replace("https://exgen.se"+location.pathname+location.search)}</script>
+  <title>ExGen – P.E.R:s minne</title>
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/image/favicon-192.png" />
+  <link rel="icon" href="/image/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/image/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="exgen-tokens.css" />
+  <link rel="stylesheet" href="exgen-shell.css" />
+  <script src="js/exgen-shell.js" defer></script>
+  <style>
+  .pageHero{padding:32px 0 24px;border-bottom:1px solid var(--l);margin-bottom:24px}
+  .pageSub{font-size:13px;color:var(--t2);line-height:1.7;max-width:62ch}
+  .sekt{margin-bottom:40px}
+  .sektRubrik{font-size:17px;font-weight:700;color:var(--t);margin:0 0 4px}
+  .sektSub{font-family:var(--mono);font-size:11px;color:var(--t3);margin:0 0 14px}
+  .rutnat{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+  .post{background:var(--s);border:1px solid var(--l);border-radius:var(--r);padding:14px}
+  .postNamn{font-size:14px;font-weight:700;color:var(--t);margin:0 0 2px}
+  .postFil{font-family:var(--mono);font-size:10px;color:var(--t3);margin:0 0 10px;word-break:break-all}
+  .postFalt{font-size:12.5px;color:var(--t2);line-height:1.6;margin:0 0 7px}
+  .postFalt b{color:var(--t);font-weight:600}
+  .postGrans{border-top:1px solid var(--l);padding-top:8px;margin-top:9px}
+  .statsRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .statBox{background:var(--s);border:1px solid var(--l);border-radius:var(--r);padding:14px}
+  .statLabel{font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+  .statVal{font-size:21px;font-weight:700;color:var(--t)}
+  .statVal.tunt{font-size:12.5px;font-weight:500;color:var(--t3);line-height:1.5}
+  .statVal.accent{color:var(--a)}
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="ldr" class="loader" aria-hidden="true">
+  <div style="display:grid;place-items:center">
+    <div class="lOrb"></div>
+    <img class="lLogo" src="image/exgen-logo.png" alt="ExGen">
+  </div>
+</div>
+
+<div data-xg-header></div>
+
+<main>
+<div class="wrap">
+
+  <div class="pageHero">
+    <div class="eyebrow">Privat</div>
+    <h1 class="pageTitle">P.E.R:s minne</h1>
+    <p class="pageSub" id="status">Kontrollerar åtkomst…</p>
+  </div>
+
+  <section class="sekt">
+    <h2 class="sektRubrik">Registret</h2>
+    <p class="sektSub">vad P.E.R. är — moduler och flaggor</p>
+    <div class="rutnat" id="registret"></div>
+  </section>
+
+  <section class="sekt">
+    <h2 class="sektRubrik">Pulsen</h2>
+    <p class="sektSub" id="pulsTid">vad han gör just nu</p>
+    <div class="statsRow" id="pulsen"></div>
+    <div class="rutnat" id="begreppen"></div>
+  </section>
+
+</div>
+</main>
+
+<footer>ExGen — privat sida, ej för obehöriga.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL = 'https://mnmotdluigzeehdjbhbu.supabase.co';
+const SB_KEY = 'sb_publishable_T541A0HFXsw0zQRAhIy0kA_x0hcsfVN';
+const db = window.supabase.createClient(SB_URL, SB_KEY);
+
+window.addEventListener('load', () => setTimeout(() => document.getElementById('ldr').classList.add('out'), 160));
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Måste vara samma sträng som TOO_FEW i api/_per-pulse.js. Servern skickar
+   den som ett värde där en siffra annars hade stått. */
+const TOO_FEW = 'för få elever än';
+
+async function anropa(action) {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) return null;
+  const res = await fetch('/api/admin', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    body: JSON.stringify({ action }),
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+function ritaPost(p) {
+  return `<div class="post">
+    <p class="postNamn">${esc(p.namn)}</p>
+    <p class="postFil">${esc(p.fil || p.nyckel)}</p>
+    <p class="postFalt"><b>Gör:</b> ${esc(p['gör'])}</p>
+    <p class="postFalt"><b>Ser:</b> ${esc(p.ser)}</p>
+    <p class="postFalt postGrans"><b>Gräns:</b> ${esc(p['gräns'])}</p>
+  </div>`;
+}
+
+/* Ett värde som inte är ett tal ritas som text i mindre stil. Att rendera
+   "för få elever än" som en stor siffra vore att låtsas att den är mätt —
+   och att rendera den som 0 vore att påstå ett mätvärde som inte finns. */
+function ritaStat(etikett, varde, accent) {
+  const tunt = typeof varde !== 'number';
+  return `<div class="statBox">
+    <div class="statLabel">${esc(etikett)}</div>
+    <div class="statVal ${tunt ? 'tunt' : (accent ? 'accent' : '')}">${esc(varde)}</div>
+  </div>`;
+}
+
+async function ladda() {
+  const status = document.getElementById('status');
+
+  const reg = await anropa('per-registry');
+  if (!reg || !reg.ok) {
+    status.textContent = 'Ingen åtkomst. Sidan kräver ett adminkonto — gatet ligger på servern, inte här.';
+    return;
+  }
+  status.textContent = 'Registret beskrivs i api/_per-registry.js och bevakas av tests/per/per-registry.test.mjs, som faller om en modul saknar post eller en post saknar modul.';
+  document.getElementById('registret').innerHTML =
+    [...reg.registry.moduler, ...reg.registry.flaggor].map(ritaPost).join('');
+
+  const p = await anropa('per-pulse');
+  if (!p || !p.ok) return;
+  const d = p.pulse;
+
+  document.getElementById('pulsTid').textContent =
+    'hämtad ' + new Date(d['hämtad']).toLocaleString('sv-SE');
+
+  const kvot = d.cacheBeslut['träffkvot'];
+  document.getElementById('pulsen').innerHTML = [
+    ritaStat('Långtidsminnen', d.minnen.totalt),
+    ritaStat('Varav färska', d.minnen['färska'], true),
+    ritaStat('Passerat 90 dygn', d.minnen.gamla),
+    ritaStat('Cachens träffkvot', typeof kvot === 'number' ? kvot + ' %' : kvot, true),
+    ritaStat('Sonderingar 7 dygn', d.cacheBeslut.totalt),
+    ritaStat('Cacherader godkända', d.cacheRader.approved),
+    ritaStat('Cacherader väntande', d.cacheRader.pending),
+    ritaStat('Cacherader utgångna', d.cacheRader['utgångna']),
+    ...d.kvoter.map(k => ritaStat('Kvot ' + k.funktion, k['använt'])),
+  ].join('');
+
+  document.getElementById('begreppen').innerHTML = (d.begrepp === TOO_FEW)
+    ? `<div class="post"><p class="postNamn">Svåraste begreppen</p><p class="postFalt">${esc(TOO_FEW)} — vyn concept_collective_stats visar ett begrepp först vid fem distinkta elever, en felkod vid tre.</p></div>`
+    : d.begrepp.map(b => `<div class="post">
+        <p class="postNamn">${esc(b.namn)}</p>
+        <p class="postFil">${esc(b.elever)} elever · medelpoäng ${esc(b['medelpoäng'])}</p>
+        <p class="postFalt">${b.felkoder.length ? 'Vanligaste fel: ' + esc(b.felkoder.join(', ')) : 'Inga felkoder över tröskeln.'}</p>
+      </div>`).join('');
+}
+
+ladda();
+</script>
+</body>
+</html>

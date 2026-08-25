@@ -365,6 +365,47 @@ Any change to `api/` triggers security review checklist:
   mönster i `grade.js` hade drivit isär: ett prov kunde genereras som matte och
   rättas som vilket ämne som helst.
 
+## P.E.R:s minnessida (2026-08-25)
+- **Registret bor i `api/_per-registry.js`, aldrig i `config/`.** `vercel.json`
+  har `outputDirectory: "."`, så hela repotroten serveras statiskt — mätt
+  2026-08-25 svarar `/config/education-catalog.json` med 200 medan
+  `/api/_site.js` ger 404 tack vare understrecksprefixet. En registerfil i
+  `config/` hade legat öppen för vem som helst.
+- **`tests/per/per-registry.test.mjs` går rött åt BÅDA hållen.** En
+  `api/_per-*.js` utan post, och en post som pekar på en fil som inte finns.
+  Flaggnycklarna härleds ur koden i två mönster: `flagsEnabled([...])` och
+  `from("feature_flags") … .eq("key", …)` — `_per-cache.js` och `explain.js`
+  läser sina flaggor direkt, utan att gå genom grinden. Slutar båda regexarna
+  matcha blir varje kontroll grön på tomma mängder, och därför kontrollerar
+  testet först att härledningen hittade något alls.
+- **`legal_rag_enabled` och `per_legal_rag_enabled` är OLIKA flaggor.** Den
+  första grindar kunskapsmotorns rättskällor i `api/knowledge.js`, den andra
+  juridikläget i `api/explain.js`. Namnen skiljer sig med ett prefix och
+  gäller olika grenar — läs `PER_REGISTRY.flaggor` innan du rör någon av dem.
+- **Tomt underlag skrivs som `TOO_FEW`, aldrig som `0`.** Produktionen har ett
+  fåtal konton. En nolla som ser ut som ett mätvärde får läsaren att tro att
+  cachen aldrig träffar, när sanningen är att den aldrig fått chansen. En
+  träffkvot under 20 sonderingar (`MIN_PROBES`) är brus, inte en mätning.
+- **Pulsen är aggregat, aldrig enskilda elever.** Ingen `select` i
+  `per-pulse`-blocket hämtar `user_id`, och `tests/api/per-pulse.test.mjs`
+  läser select-strängarna och faller om någon börjar. Eleverna är till stor del
+  minderåriga; en uppslagsfunktion över deras minnen vore en övervakningspanel
+  som personuppgiftsavtalet inte täcker.
+- **`concept_collective_stats` bär k-anonymiteten själv** — fem distinkta
+  elever per begrepp, tre per felkod. Sidan läser vyn som den är och lägger
+  varken till eller tar bort en tröskel.
+- **Sidan är rollgatad, inte låst med Face ID än.** `requireAdmin` är gaten.
+  WebAuthn-lagret är Del B i
+  `docs/superpowers/specs/2026-08-25-per-minnessida-design.md`, och en passkey
+  autentiserar en ENHET — den är aldrig ett ersättningsgate för rollkollen.
+- **`per.html` ska inte in i `sitemap.xml`.** Faller
+  `sitemap-lastmod.test.mjs` på den betyder det att någon lagt in den där; ta
+  bort raden i stället för att ändra testet. `robots.txt` och `noindex` är
+  begäranden, inte skydd — skyddet är serverns rollkoll.
+- **En worktree saknar `node_modules`.** Playwright-testerna kraschar med
+  `ERR_MODULE_NOT_FOUND` tills du länkar in den:
+  `ln -s /Users/elton1/provia-ai/node_modules node_modules`.
+
 ## Vision och Alléskolan är två olika svar (2026-08-24)
 - **`buildVisionContext()` gäller hela produkten och alla elever.** Den nämner
   varken Alléskolan eller matematik — testet låser båda. Att svara "vi ska hjälpa
