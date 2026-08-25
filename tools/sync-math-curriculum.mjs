@@ -197,6 +197,34 @@ const check = process.argv.includes("--check");
 const data = await get(`${BASE}/subjects/${SUBJECT}?timespan=LATEST`);
 const subject = data.subject || data;
 
+/* FÖRMÅGORNA — vad ämnet faktiskt BEDÖMER.
+ *
+ * Ligger i ämnets syfte, inte i det centrala innehållet: innehållet säger vad
+ * som ska läras, förmågorna vad eleven ska kunna GÖRA med det. P.E.R. kunde
+ * säga vad som skulle läras men aldrig vilken förmåga en uppgift tränar.
+ *
+ * Extraheras ur den avslutande uppräkningen ("Undervisningen … ska ge eleverna
+ * förutsättningar att utveckla / förmåga att …"), inte skrivna av för hand.
+ * En förmågelista i repot som glidit från Skolverkets driver isär tyst. */
+function parseAbilities(purpose) {
+  const rader = String(purpose || "")
+    .replace(/<[^>]+>/g, "\n")
+    .split("\n")
+    .map(r => r.replace(/\u00ad/g, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  return rader
+    .filter(r => /^förmåga att /i.test(r))
+    .map(r => r.replace(/[,.]?\s*(och)?\s*$/, "").trim())
+    .filter((r, i, a) => r.length > 15 && a.indexOf(r) === i);
+}
+
+const abilities = parseAbilities(subject.purpose);
+if (!abilities.length) {
+  console.error("VÄGRAR SKRIVA: inga förmågor hittades i ämnets syfte.");
+  console.error("Det betyder att uppräkningen ändrat form hos Skolverket, inte att ämnet saknar förmågor.");
+  process.exit(1);
+}
+
 const central = parseCentralContent(subject.centralContents);
 const criteria = parseCriteria(subject.knowledgeRequirements);
 
@@ -267,6 +295,9 @@ const catalog = {
   subject: { code: subject.code, name: subject.name },
   generatedAt: new Date().toISOString().slice(0, 10),
   centralContent: central,
+  /* Vad ämnet BEDÖMER, ur ämnets syfte. Innehållet säger vad som ska läras,
+     förmågorna vad eleven ska kunna GÖRA med det. */
+  abilities,
   criteria,
   prerequisites: PREREQUISITES,
   gymnasium: { GY11: gy11, GY25: gy25 },
@@ -286,7 +317,35 @@ if (check) {
 } else {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(catalog, null, 0) + "\n");
-  console.log(`Skrev config/math-curriculum.json (${(fs.statSync(OUT).size / 1024).toFixed(0)} kB)`);
+  /* FÖRMÅGORNA OCKSÅ SOM ESM-MODUL.
+ *
+ * config/math-curriculum.json läses av api/_math-curriculum.js med
+ * readFileSync och process.cwd() — det fungerar för att config/** ligger i
+ * includeFiles. Men api/_per-core.js behöver förmågorna vid INLADDNING, och
+ * en filläsning där hade krävt import.meta för sökvägen. Den raden tog ned
+ * tre rutter 2026-08-25.
+ *
+ * En genererad modul importeras statiskt och finns alltid i bunten.
+ * Samma mönster som api/_per-graph-data.js. */
+{
+  const modul = `// api/_per-abilities.js — GENERERAD. Redigera aldrig för hand.
+//
+// Kör \`node tools/sync-math-curriculum.mjs\` för att skriva om den.
+// Skolverkets förmågor ur ämnets syfte, ordagrant.
+//
+// VARFÖR EN MODUL OCH INTE EN FILLÄSNING: api/_per-core.js behöver dem vid
+// inladdning, och en filläsning där hade krävt import.meta för sökvägen.
+// Vercel transpilerar varje .js i api/ till CJS, där import.meta är ett
+// syntaxfel — den raden tog ned /api/explain, /api/teacher-report och
+// /api/check-role samtidigt. Se tests/api/cjs-esm-boundary.test.mjs.
+
+export const PEDAGOGY_ABILITIES = ${JSON.stringify(abilities, null, 2)};
+`;
+  fs.writeFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "api", "_per-abilities.js"), modul, "utf8");
+  console.log(`Skrev api/_per-abilities.js (${abilities.length} förmågor)`);
+}
+
+console.log(`Skrev config/math-curriculum.json (${(fs.statSync(OUT).size / 1024).toFixed(0)} kB)`);
 }
 
 console.log(`gymnasiet: GY11 ${gy11.courses.length} kurser · Gy25 ${gy25.levels.length} nivåer, ` +
